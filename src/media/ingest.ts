@@ -70,10 +70,11 @@ export async function ingest(
   const upright = sharp(input, { animated: false }).rotate()
   const natural = await upright.clone().toBuffer({ resolveWithObject: true })
 
-  const widths = [...WIDTHS]
-    .filter((width) => width < natural.info.width)
-    .concat(Math.min(natural.info.width, MAX_WIDTH))
-    .sort((a, b) => a - b)
+  // La plus grande largeur produite est celle de l’image, plafonnée. Les
+  // largeurs intermédiaires sont celles qui lui sont strictement inférieures :
+  // une image plus large que le plafond ne redonne donc pas deux fois la même.
+  const largest = Math.min(natural.info.width, MAX_WIDTH)
+  const widths = [...WIDTHS.filter((width) => width < largest), largest]
 
   const files: IngestedFile[] = []
   let height = natural.info.height
@@ -87,10 +88,8 @@ export async function ingest(
 
     files.push({ name: fileName(key, width), data: rendered.data })
 
-    if (width === widths[widths.length - 1]) height = rendered.info.height
+    if (width === largest) height = rendered.info.height
   }
-
-  const largest = widths[widths.length - 1] ?? natural.info.width
 
   return {
     key,

@@ -83,6 +83,11 @@ Elles suppriment l'essentiel des questions que le client poserait autrement.
 de publication, toujours à la même place à l'écran. Jamais deux boutons
 « Publier » à deux endroits.
 
+**Rien ne fait perdre un brouillon sans le dire.** Ouvrir une autre page sur des
+modifications non enregistrées demande confirmation, fermer l'onglet passe par
+celle du navigateur, et tout le reste — ajouter une image, en corriger la
+description — recharge la médiathèque sans toucher au texte en cours.
+
 **Le vocabulaire est celui du client.** Ni « bloc », ni « schéma », ni
 « build », ni « commit », ni « déployer ». On dit *section*, *enregistrer*,
 *mettre en ligne*. Une dizaine de mots fixés une fois et tenus partout.

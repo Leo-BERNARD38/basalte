@@ -48,9 +48,16 @@ export type Project = Schemas &
   }
 
 export async function readSchemas(root: string): Promise<Schemas> {
+  return schemasOf(root, await findBlocks(blockRoots(root)))
+}
+
+async function schemasOf(
+  root: string,
+  sources: readonly BlockSource[],
+): Promise<Schemas> {
   return {
     site: await loadSite(root),
-    registry: await loadRegistry(await findBlocks(blockRoots(root))),
+    registry: await loadRegistry(sources),
     media: await readManifest(root),
   }
 }
@@ -85,12 +92,7 @@ export async function readPages(
 
 export async function readProject(root: string): Promise<Project> {
   const sources = await findBlocks(blockRoots(root))
-
-  const schemas: Schemas = {
-    site: await loadSite(root),
-    registry: await loadRegistry(sources),
-    media: await readManifest(root),
-  }
+  const schemas = await schemasOf(root, sources)
 
   return { ...schemas, sources, ...(await readPages(root, schemas)) }
 }

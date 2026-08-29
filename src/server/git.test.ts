@@ -103,6 +103,16 @@ describe('commitFiles', () => {
     expect(git(root, ['log', '--oneline']).trim().split('\n')).toHaveLength(1)
   })
 
+  it('rend la main quand git échoue, sans faire échouer l’écriture', async () => {
+    const root = await repository({ git: true })
+
+    expect(
+      await commitFiles(root, ['content/absente.json'], 'contenu', EMAIL),
+    ).toBe(false)
+
+    expect(git(root, ['log', '--oneline']).trim().split('\n')).toHaveLength(1)
+  })
+
   it('enregistre sans historique hors d’un dépôt', async () => {
     const root = await repository({ git: false })
 

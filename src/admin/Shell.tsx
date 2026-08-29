@@ -112,8 +112,8 @@ export function Shell({
       <main className="basalte-main">
         {payload.problems.length > 0 && (
           <Alert color="orange" variant="light" mb="md" title="À corriger">
-            {payload.problems.map((problem) => (
-              <Text key={problem.message} size="sm">
+            {payload.problems.map((problem, rank) => (
+              <Text key={`${rank}-${problem.message}`} size="sm">
                 {problem.message}
               </Text>
             ))}
@@ -127,8 +127,8 @@ export function Shell({
             mb="md"
             title="Rien n’a été enregistré"
           >
-            {problems.map((problem) => (
-              <Text key={problem} size="sm">
+            {problems.map((problem, rank) => (
+              <Text key={`${rank}-${problem}`} size="sm">
                 {problem}
               </Text>
             ))}

@@ -108,6 +108,10 @@ socle échappe le texte entier avant d'y réintroduire ces trois formes, et
 vérifie le schéma de chaque URL. Aucune balise ne peut donc venir du contenu
 (invariant 1, D42).
 
+Un lien — dans `f.url` comme dans `f.richtext` — s'écrit `http://`, `https://`,
+`mailto:`, `tel:`, `#ancre` ou `/chemin`. **Une seule barre :** `//hote` est
+une adresse absolue vers un autre site sous les dehors d'un chemin interne.
+
 ## Le registre est une convention
 
 Le socle scanne ses propres blocs puis `src/blocks/*/schema.ts` du dépôt

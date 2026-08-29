@@ -13,7 +13,7 @@ const ESCAPES: Readonly<Record<string, string>> = {
 }
 
 const LINK = /\[([^\]]*)\]\(([^)]*)\)/g
-const ALLOWED_HREF = /^(https?:\/\/|mailto:|tel:|\/|#)/i
+const ALLOWED_HREF = /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i
 
 export function renderRichtext(source: string): string {
   return source
@@ -53,7 +53,8 @@ function inline(text: string): string {
 }
 
 // Un caractère de contrôle ou une espace dans une URL sert à reconstruire un
-// schéma que la liste blanche refuserait écrit en clair.
+// schéma que la liste blanche refuserait écrit en clair. « //hôte » est
+// refusé de la même façon : c’est une adresse externe déguisée en chemin.
 function allowed(href: string): boolean {
   for (const character of href) {
     const code = character.codePointAt(0) ?? 0

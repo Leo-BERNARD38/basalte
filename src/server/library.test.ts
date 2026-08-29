@@ -5,8 +5,9 @@ import sharp from 'sharp'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
-import { MEDIA_DIR } from '../media/ingest.js'
-import { bench, defaultPage, IMAGE } from './panel.fixture.js'
+import { MAX_BYTES, MEDIA_DIR } from '../media/ingest.js'
+import { handlePanel } from './panel.js'
+import { bench, defaultPage, IMAGE, ORIGIN } from './panel.fixture.js'
 
 let png: Buffer
 
@@ -60,6 +61,31 @@ describe('POST /api/media', () => {
     expect((await site.media())[body.media.key]?.alt).toEqual({
       fr: 'Un aplat',
     })
+
+    await site.close()
+  })
+
+  it('refuse un corps trop lourd avant même de le lire', async () => {
+    const site = await bench()
+
+    const response = await handlePanel(
+      site.panel,
+      new Request(`${ORIGIN}/api/media`, {
+        method: 'POST',
+        headers: {
+          cookie: site.cookie,
+          origin: ORIGIN,
+          'content-type': 'multipart/form-data; boundary=limite',
+          'content-length': String(MAX_BYTES * 4),
+        },
+        body: '--limite--',
+      }),
+    )
+
+    expect(response?.status).toBe(413)
+    expect(
+      await readdir(path.join(site.root, MEDIA_DIR)).catch(() => []),
+    ).toEqual([])
 
     await site.close()
   })

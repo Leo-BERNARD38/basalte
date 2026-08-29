@@ -67,6 +67,15 @@ describe('toZod — champs plats', () => {
     expect(parse({ href: 'javascript:alert(1)' }).success).toBe(false)
     expect(parse({ href: 'mailto:bonjour@exemple.fr' }).success).toBe(true)
   })
+
+  it('un lien interne commence par une barre, jamais par deux', () => {
+    const parse = check({ href: f.url({ required: true }) })
+
+    expect(parse({ href: '/' }).success).toBe(true)
+    expect(parse({ href: '/contact' }).success).toBe(true)
+    expect(parse({ href: '//exemple.net' }).success).toBe(false)
+    expect(parse({ href: '//exemple.net/page' }).success).toBe(false)
+  })
 })
 
 describe('toZod — langues', () => {

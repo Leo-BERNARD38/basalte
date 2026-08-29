@@ -5,14 +5,29 @@
 // Astro ne partage aucun contexte React entre islands séparées : un arbre
 // unique supprime le problème, et `client:only` évite tout souci
 // d’hydratation.
+//
+// Un brouillon n’est repris du serveur que sur trois évènements : l’ouverture
+// du panel, un enregistrement réussi, et un changement de page consenti. Tout
+// le reste — une image ajoutée, une description corrigée — recharge la charge
+// utile sans y toucher.
 
 import '@mantine/core/styles.css'
 import './panel.css'
 
-import { Center, Loader, MantineProvider } from '@mantine/core'
+import {
+  Button,
+  Center,
+  Group,
+  Loader,
+  MantineProvider,
+  Modal,
+  Stack,
+  Text,
+} from '@mantine/core'
 import { useEffect, useState } from 'react'
 
 import { slugFor } from '../astro/routes.js'
+import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
 import { Account } from './Account.js'
 import { loadPanel, savePage } from './api.js'
@@ -43,22 +58,21 @@ export default function Panel() {
   const [problems, setProblems] = useState<readonly string[]>([])
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
+  const [asked, setAsked] = useState<string | undefined>(undefined)
 
-  const load = async (page?: string) => {
+  // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
+  // est.
+  const refresh = async (): Promise<PanelPayload | undefined> => {
     const answer = await loadPanel()
 
     setReady(true)
 
     if (!answer.ok) {
       setPayload(undefined)
-      return
+      return undefined
     }
 
     const data = answer.data
-    const name = page ?? selected
-
-    const opened =
-      data.pages.find((entry) => entry.name === name) ?? data.pages[0]
 
     setPayload(data)
     setLanguage(
@@ -67,10 +81,26 @@ export default function Panel() {
         (data.site.languages.find((entry) => entry.default)?.code ?? ''),
     )
 
-    if (opened !== undefined) {
-      setSelected(opened.name)
-      setDraft({ meta: opened.meta, blocks: opened.blocks })
-    }
+    return data
+  }
+
+  const open = (page: DraftPage) => {
+    setSelected(page.name)
+    setDraft({ meta: page.meta, blocks: page.blocks })
+    setProblems([])
+  }
+
+  /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
+  const load = async (page?: string) => {
+    const data = await refresh()
+
+    if (data === undefined) return
+
+    const opened =
+      data.pages.find((entry) => entry.name === (page ?? selected)) ??
+      data.pages[0]
+
+    if (opened !== undefined) open(opened)
   }
 
   useEffect(() => {
@@ -82,6 +112,24 @@ export default function Panel() {
 
     return () => window.removeEventListener('hashchange', follow)
   }, [])
+
+  const page = payload?.pages.find((entry) => entry.name === selected)
+  const dirty =
+    page !== undefined &&
+    !sameDraft(draft, { meta: page.meta, blocks: page.blocks })
+
+  // Fermer l’onglet sur des modifications non enregistrées passe par la
+  // confirmation du navigateur : le panel n’a pas d’autre prise sur ce
+  // départ-là.
+  useEffect(() => {
+    if (!dirty) return undefined
+
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault()
+
+    window.addEventListener('beforeunload', warn)
+
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [dirty])
 
   if (!ready) {
     return (
@@ -101,10 +149,7 @@ export default function Panel() {
     )
   }
 
-  const page = payload.pages.find((entry) => entry.name === selected)
-  const dirty =
-    page !== undefined &&
-    !sameDraft(draft, { meta: page.meta, blocks: page.blocks })
+  const known = payload
 
   const save = async (): Promise<boolean> => {
     setBusy(true)
@@ -130,24 +175,55 @@ export default function Panel() {
     return true
   }
 
+  // La fenêtre s’ouvre avant l’enregistrement : ouverte après une attente, le
+  // navigateur la prendrait pour une fenêtre surgissante et la bloquerait.
   const preview = async () => {
-    if (dirty && !(await save())) return
+    const tab = window.open('', '_blank')
+
+    if (tab !== null) tab.opener = null
+
+    if (dirty && !(await save())) {
+      tab?.close()
+      return
+    }
 
     const prefix =
       language ===
-      (payload.site.languages.find((entry) => entry.default)?.code ?? '')
+      (known.site.languages.find((entry) => entry.default)?.code ?? '')
         ? ''
         : language
 
-    const slug = slugFor(page?.route ?? '/', prefix) ?? ''
+    const address = `${PREVIEW}${slugFor(page?.route ?? '/', prefix) ?? ''}`
 
-    window.open(`${PREVIEW}${slug}`, '_blank', 'noopener')
+    if (tab === null) window.open(address, '_blank', 'noopener')
+    else tab.location.replace(address)
+  }
+
+  const select = (name: string) => {
+    if (name === selected) return
+
+    if (dirty) {
+      setAsked(name)
+      return
+    }
+
+    const opened = known.pages.find((entry) => entry.name === name)
+
+    if (opened !== undefined) open(opened)
+  }
+
+  const abandon = () => {
+    const opened = known.pages.find((entry) => entry.name === asked)
+
+    setAsked(undefined)
+
+    if (opened !== undefined) open(opened)
   }
 
   const editing: Editing = {
     language,
-    languages: payload.site.languages,
-    media: payload.media,
+    languages: known.site.languages,
+    media: known.media,
     pickImage: (current) =>
       new Promise((resolve) => setPicker({ current, resolve })),
   }
@@ -161,7 +237,7 @@ export default function Panel() {
     <MantineProvider>
       <EditingContext.Provider value={editing}>
         <Shell
-          payload={payload}
+          payload={known}
           screen={screen}
           onScreen={goTo}
           language={language}
@@ -176,28 +252,18 @@ export default function Panel() {
         >
           {screen === 'edit' && (
             <Edit
-              payload={payload}
+              payload={known}
               selected={selected}
               draft={draft}
-              onSelect={(name) => {
-                const opened = payload.pages.find(
-                  (entry) => entry.name === name,
-                )
-
-                if (opened === undefined) return
-
-                setSelected(name)
-                setDraft({ meta: opened.meta, blocks: opened.blocks })
-                setProblems([])
-              }}
+              onSelect={select}
               onDraft={setDraft}
             />
           )}
 
           {screen === 'media' && (
             <MediaLibrary
-              media={payload.media}
-              onChanged={() => void load(selected)}
+              media={known.media}
+              onChanged={() => void refresh()}
             />
           )}
 
@@ -208,12 +274,34 @@ export default function Panel() {
 
         <MediaPicker
           opened={picker !== undefined}
-          media={payload.media}
+          media={known.media}
           current={picker?.current ?? ''}
-          onChanged={() => void load(selected)}
+          onChanged={() => void refresh()}
           onClose={() => answerPicker(undefined)}
           onChoose={answerPicker}
         />
+
+        <Modal
+          opened={asked !== undefined}
+          onClose={() => setAsked(undefined)}
+          title="Modifications non enregistrées"
+          centered
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              Cette page porte des modifications qui ne sont pas enregistrées.
+              Ouvrir une autre page maintenant les perd.
+            </Text>
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setAsked(undefined)}>
+                Rester ici
+              </Button>
+              <Button color="red" onClick={abandon}>
+                Abandonner les modifications
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
       </EditingContext.Provider>
     </MantineProvider>
   )

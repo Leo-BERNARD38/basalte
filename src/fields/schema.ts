@@ -22,7 +22,9 @@ type LeafField = Extract<
 
 export const TRANSLATION_MISSING = 'translation-missing'
 
-const INTERNAL_OR_EXTERNAL = /^(https?:\/\/|mailto:|tel:|\/|#)/
+// « // » ouvre une adresse absolue vers un autre hôte sous les dehors d’un
+// chemin : un lien interne commence par une barre, jamais par deux.
+const INTERNAL_OR_EXTERNAL = /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/
 const EXTERNAL = /^https?:\/\//
 
 export function toZod(fields: Fields, languages: Languages): z.ZodType {

@@ -61,6 +61,17 @@ describe('ingest', () => {
     )
   })
 
+  it('plafonne la plus grande largeur sans la produire deux fois', async () => {
+    const result = await ingest(await photo(3000, 1500, 60))
+
+    expect(result.entry.widths).toEqual([480, 768, 1200, 1800, 2560])
+    expect(result.entry.width).toBe(2560)
+    expect(result.entry.height).toBe(1280)
+    expect(new Set(result.files.map((file) => file.name)).size).toBe(
+      result.files.length,
+    )
+  })
+
   it('n’agrandit jamais une image', async () => {
     const result = await ingest(small)
 

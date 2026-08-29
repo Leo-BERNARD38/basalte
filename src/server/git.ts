@@ -10,6 +10,11 @@
 // L’identité de l’auteur est passée à la commande plutôt que lue dans la
 // configuration : la machine du client n’en a aucune, et l’adresse du compte
 // qui édite est celle qui doit figurer dans l’historique.
+//
+// Un git en panne — un verrou, un hook, un chemin disparu — ne fait pas échouer
+// ce qui est déjà écrit sur le disque. L’échec part sur la sortie d’erreur et
+// l’enregistrement reste acquis : le client a sauvé son texte, il perd son
+// point de retour, pas son travail.
 
 import { execFile } from 'node:child_process'
 import path from 'node:path'
@@ -49,24 +54,33 @@ export async function commitFiles(
 
   const paths = files.map((file) => file.split(path.sep).join('/'))
 
-  await run('git', ['-C', root, 'add', '--', ...paths])
+  try {
+    await run('git', ['-C', root, 'add', '--', ...paths])
 
-  if (await indexClean(root)) return false
+    if (await indexClean(root)) return false
 
-  await run('git', [
-    '-C',
-    root,
-    '-c',
-    `user.name=${AUTHOR}`,
-    '-c',
-    `user.email=${email}`,
-    'commit',
-    '--no-verify',
-    '--message',
-    message,
-    '--',
-    ...paths,
-  ])
+    await run('git', [
+      '-C',
+      root,
+      '-c',
+      `user.name=${AUTHOR}`,
+      '-c',
+      `user.email=${email}`,
+      'commit',
+      '--no-verify',
+      '--message',
+      message,
+      '--',
+      ...paths,
+    ])
+  } catch (cause) {
+    process.stderr.write(
+      `Le commit n’a pas eu lieu : ${(cause as Error).message}
+`,
+    )
+
+    return false
+  }
 
   return true
 }

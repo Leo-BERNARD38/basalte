@@ -85,6 +85,12 @@ function usageLabel(usage: number): string {
   return `Utilisée ${usage} fois`
 }
 
+type Chosen = {
+  readonly file: File
+  /** Adresse d’objet du fichier local, à rendre quand il change. */
+  readonly preview: string
+}
+
 export function UploadButton({
   onDone,
   onError,
@@ -93,7 +99,7 @@ export function UploadButton({
   readonly onError: (message: string) => void
 }) {
   const editing = useEditing()
-  const [file, setFile] = useState<File | undefined>(undefined)
+  const [chosen, setChosen] = useState<Chosen | undefined>(undefined)
   const [alt, setAlt] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
 
@@ -102,17 +108,28 @@ export function UploadButton({
     (language) => (alt[language.code] ?? '').trim() !== '',
   )
 
+  // L’aperçu vit sur une adresse d’objet, créée une fois par fichier et rendue
+  // dès qu’il change : fabriquée au rendu, elle laisserait une image en
+  // mémoire à chaque frappe dans la description.
+  const pick = (file: File | null) => {
+    if (chosen !== undefined) URL.revokeObjectURL(chosen.preview)
+
+    setChosen(
+      file === null ? undefined : { file, preview: URL.createObjectURL(file) },
+    )
+  }
+
   const close = () => {
-    setFile(undefined)
+    pick(null)
     setAlt({})
   }
 
   const send = async () => {
-    if (file === undefined) return
+    if (chosen === undefined) return
 
     setBusy(true)
 
-    const answer = await uploadMedia(file, alt)
+    const answer = await uploadMedia(chosen.file, alt)
 
     setBusy(false)
 
@@ -129,21 +146,21 @@ export function UploadButton({
     <>
       <FileButton
         accept="image/jpeg,image/png,image/webp,image/avif,image/tiff"
-        onChange={(chosen) => setFile(chosen ?? undefined)}
+        onChange={pick}
       >
         {(props) => <Button {...props}>Ajouter une image</Button>}
       </FileButton>
 
       <Modal
-        opened={file !== undefined}
+        opened={chosen !== undefined}
         onClose={close}
         title="Décrire l’image"
         centered
       >
         <Stack gap="md">
-          {file !== undefined && (
+          {chosen !== undefined && (
             <Image
-              src={URL.createObjectURL(file)}
+              src={chosen.preview}
               alt=""
               mah={220}
               fit="contain"

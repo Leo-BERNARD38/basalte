@@ -16,7 +16,7 @@ import { z } from 'zod'
 import type { Schemas } from '../content/project.js'
 import { languageName } from '../content/report.js'
 import type { Translated } from '../fields/types.js'
-import { ingest, MEDIA_DIR, storeMedia } from '../media/ingest.js'
+import { ingest, MAX_BYTES, MEDIA_DIR, storeMedia } from '../media/ingest.js'
 import {
   MANIFEST_PATH,
   readManifest,
@@ -31,6 +31,11 @@ import { badRequest, json } from './http.js'
 import type { Commit } from './pages.js'
 
 const KEY = /^[0-9a-f]{16}$/
+
+// Le corps d’un téléversement est mis en mémoire en entier avant que l’image
+// n’en sorte : la taille annoncée est donc refusée avant la lecture, et non
+// après. La marge couvre l’enveloppe multipart et le texte alternatif.
+const ENVELOPE_SLACK = 64 * 1024
 
 const Coordinate = z.number().min(0).max(100)
 
@@ -62,6 +67,18 @@ export async function uploadMedia(
   schemas: Schemas,
   commit: Commit,
 ): Promise<Response> {
+  const announced = Number(request.headers.get('content-length') ?? 0)
+
+  if (announced > MAX_BYTES + ENVELOPE_SLACK) {
+    return json(
+      {
+        ok: false,
+        message: `Image trop lourde : la limite est de ${MAX_BYTES / 1024 / 1024} Mo.`,
+      },
+      413,
+    )
+  }
+
   const form = await readForm(request)
 
   if (form === undefined) return badRequest()

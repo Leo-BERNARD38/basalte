@@ -94,6 +94,12 @@ describe('renderRichtext — aucun HTML libre (invariant 1)', () => {
     }
   })
 
+  it('refuse une adresse externe déguisée en chemin', () => {
+    expect(renderRichtext('[x](//exemple.net)')).not.toContain('<a ')
+    expect(renderRichtext('[x](//exemple.net/page)')).not.toContain('<a ')
+    expect(renderRichtext('[x](/contact)')).toContain('href="/contact"')
+  })
+
   it('ne laisse pas un guillemet sortir de l’attribut href', () => {
     const html = renderRichtext('[x](/a"onmouseover="alert(1))')
 
