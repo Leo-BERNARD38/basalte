@@ -1,4 +1,5 @@
 ---
+import { site } from 'virtual:basalte'
 import Panel from '@leobernard/basalte/admin'
 
 export const prerender = false
@@ -9,9 +10,9 @@ export const prerender = false
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Panel</title>
+    <title>{site.name}</title>
   </head>
   <body>
-    <Panel client:only="react" />
+    <Panel client:only="react" site={site.name} />
   </body>
 </html>

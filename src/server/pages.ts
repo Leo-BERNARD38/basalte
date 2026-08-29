@@ -8,7 +8,6 @@
 // et un commit dont le contenu ne se construit pas ferait échouer la mise en
 // ligne suivante sans que le client sache pourquoi.
 
-import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import {
@@ -19,9 +18,10 @@ import {
   type PageBlock,
 } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
-import { readContent, routeOf } from '../content/read.js'
+import { readContent, type ContentFile, routeOf } from '../content/read.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { validatePage } from '../content/validate.js'
+import { writeJsonFile } from '../content/write.js'
 import {
   totalProgress,
   translationProgress,
@@ -69,7 +69,14 @@ export async function readDrafts(
   root: string,
   schemas: Schemas,
 ): Promise<readonly DraftPage[]> {
-  const files = await readContent(root)
+  return draftsFrom(await readContent(root), schemas)
+}
+
+/** La même chose depuis des fichiers déjà lus, quand l’appelant en fait deux usages. */
+export function draftsFrom(
+  files: readonly ContentFile[],
+  schemas: Schemas,
+): readonly DraftPage[] {
   const drafts: DraftPage[] = []
 
   for (const file of files) {
@@ -108,11 +115,7 @@ export async function savePage(
     blocks: result.page.blocks,
   }
 
-  await writeFile(
-    pageFile(root, name),
-    `${JSON.stringify(written, null, 2)}\n`,
-    'utf8',
-  )
+  await writeJsonFile(pageFile(root, name), written)
 
   const page = draftOf(name, written, schemas)
 

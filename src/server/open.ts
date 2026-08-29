@@ -53,7 +53,7 @@ export function authProvider(
 ): EmailProvider {
   const auth = readSettings(
     environment,
-    site.email?.provider ?? 'brevo',
+    site.email?.provider ?? BREVO,
     site.name,
   )
 

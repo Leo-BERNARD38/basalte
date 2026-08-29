@@ -3,6 +3,11 @@
 // de l’italique et des liens. Aucune balise ne peut donc venir du contenu
 // (invariant 1), et le schéma d’une URL est vérifié après échappement, quand
 // plus aucune entité ne peut en reconstruire un autre.
+//
+// La liste blanche des adresses est celle de `href.ts`, la même que celle du
+// champ `f.url()` : un lien accepté ici l’est là, et réciproquement.
+
+import { allowedHref } from './href.js'
 
 const ESCAPES: Readonly<Record<string, string>> = {
   '&': '&amp;',
@@ -13,7 +18,6 @@ const ESCAPES: Readonly<Record<string, string>> = {
 }
 
 const LINK = /\[([^\]]*)\]\(([^)]*)\)/g
-const ALLOWED_HREF = /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i
 
 export function renderRichtext(source: string): string {
   return source
@@ -42,7 +46,7 @@ function inline(text: string): string {
     const href = (match[2] ?? '').trim()
 
     output += emphasis(text.slice(read, match.index))
-    output += allowed(href)
+    output += allowedHref(href)
       ? `<a href="${href}">${emphasis(label)}</a>`
       : emphasis(whole)
 
@@ -50,19 +54,6 @@ function inline(text: string): string {
   }
 
   return (output + emphasis(text.slice(read))).replace(/\n/g, '<br>')
-}
-
-// Un caractère de contrôle ou une espace dans une URL sert à reconstruire un
-// schéma que la liste blanche refuserait écrit en clair. « //hôte » est
-// refusé de la même façon : c’est une adresse externe déguisée en chemin.
-function allowed(href: string): boolean {
-  for (const character of href) {
-    const code = character.codePointAt(0) ?? 0
-
-    if (code <= 0x20 || (code >= 0x7f && code <= 0x9f)) return false
-  }
-
-  return ALLOWED_HREF.test(href)
 }
 
 function emphasis(text: string): string {

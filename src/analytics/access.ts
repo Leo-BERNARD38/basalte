@@ -19,7 +19,7 @@ export const ACCESS_LOG = 'BASALTE_ACCESS_LOG'
 export const DEFAULT_ACCESS_LOG = '/var/log/caddy/access.log'
 
 /** La queue du fichier qui est lue, au plus. */
-export const MAX_BYTES = 8 * 1024 * 1024
+export const MAX_LOG_BYTES = 8 * 1024 * 1024
 
 const ROBOT =
   /bot|crawl|spider|slurp|curl|wget|headless|monitor|preview|scan|python-requests|facebookexternalhit|feedfetcher|lighthouse/i
@@ -80,7 +80,7 @@ async function tail(file: string): Promise<string | undefined> {
 
   try {
     const { size } = await handle.stat()
-    const length = Math.min(size, MAX_BYTES)
+    const length = Math.min(size, MAX_LOG_BYTES)
     const buffer = Buffer.alloc(length)
 
     await handle.read(buffer, 0, length, size - length)

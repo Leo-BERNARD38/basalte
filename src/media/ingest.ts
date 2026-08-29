@@ -18,7 +18,7 @@ import type { MediaEntry } from './manifest.js'
 import { fileName } from './resolve.js'
 
 export const MEDIA_DIR = path.join('public', 'media')
-export const MAX_BYTES = 10 * 1024 * 1024
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 export const MAX_WIDTH = 2560
 export const WIDTHS: readonly number[] = [480, 768, 1200, 1800, MAX_WIDTH]
 export const QUALITY = 82
@@ -45,9 +45,9 @@ export async function ingest(
   input: Buffer,
   options: { readonly alt?: Translated<string> } = {},
 ): Promise<Ingested> {
-  if (input.byteLength > MAX_BYTES) {
+  if (input.byteLength > MAX_IMAGE_BYTES) {
     throw new Error(
-      `Image de ${Math.round(input.byteLength / 1024 / 1024)} Mo : la limite est de ${MAX_BYTES / 1024 / 1024} Mo.`,
+      `Image de ${Math.round(input.byteLength / 1024 / 1024)} Mo : la limite est de ${MAX_IMAGE_BYTES / 1024 / 1024} Mo.`,
     )
   }
 

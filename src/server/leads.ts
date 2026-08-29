@@ -80,13 +80,18 @@ export function countUnread(database: DatabaseSync): number {
   return row === undefined ? 0 : number(row, 'total')
 }
 
+/**
+ * Marque un message lu, et rend `false` s’il n’existe pas. Marquer deux fois
+ * n’avance pas la date : le panel dit ainsi « message inconnu » sans confondre
+ * ce cas avec un message déjà lu.
+ */
 export function markLeadRead(
   database: DatabaseSync,
   id: number,
   now: number,
 ): boolean {
   const result = database
-    .prepare('update lead set read_at = ? where id = ? and read_at is null')
+    .prepare('update lead set read_at = coalesce(read_at, ?) where id = ?')
     .run(now, id)
 
   return Number(result.changes) > 0

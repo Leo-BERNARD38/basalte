@@ -36,6 +36,15 @@ describe('renderRichtext — mise en forme', () => {
     }
   })
 
+  it('laisse en texte un lien qui sort du site sous les dehors d’un chemin', () => {
+    for (const href of ['//exemple.fr', '/\\exemple.fr', '/\\/exemple.fr']) {
+      const rendered = renderRichtext(`[Nous écrire](${href})`)
+
+      expect(rendered).not.toContain('<a')
+      expect(rendered).toContain('Nous écrire')
+    }
+  })
+
   it('ne rend rien pour une chaîne vide', () => {
     expect(renderRichtext('')).toBe('')
     expect(renderRichtext('   \n\n  ')).toBe('')

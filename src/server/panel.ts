@@ -11,7 +11,8 @@ import { z } from 'zod'
 import { audienceReport, type AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
-import { readPages } from '../content/project.js'
+import { validateFiles } from '../content/project.js'
+import { readContent } from '../content/read.js'
 import { languageName, renderIssue } from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
 import type { Account } from './account.js'
@@ -40,7 +41,13 @@ import {
   markLeadRead,
   type Lead,
 } from './leads.js'
-import { readDrafts, savePage, type Commit, type DraftPage } from './pages.js'
+import {
+  draftsFrom,
+  readDrafts,
+  savePage,
+  type Commit,
+  type DraftPage,
+} from './pages.js'
 
 export const PANEL_API = '/api/'
 
@@ -172,8 +179,12 @@ function commitAs(panel: Panel, email: string): Commit {
 
 async function describePanel(panel: Panel, account: string): Promise<Response> {
   const schemas = await panel.schemas()
-  const pages = await readDrafts(panel.root, schemas)
-  const { issues } = await readPages(panel.root, schemas)
+
+  // Le contenu est lu une fois pour ses deux usages : les pages brutes que le
+  // panel ouvre, et les mêmes validées pour en tirer ce qui reste à corriger.
+  const files = await readContent(panel.root)
+  const pages = draftsFrom(files, schemas)
+  const { issues } = validateFiles(files, schemas)
 
   const payload: PanelPayload = {
     ok: true,
@@ -298,9 +309,9 @@ function lead(panel: Panel, request: Request, id: number): Response {
   if (guard !== undefined) return guard
 
   if (request.method === 'PATCH') {
-    markLeadRead(panel.server.database, id, panel.server.now())
-
-    return json({ ok: true })
+    return markLeadRead(panel.server.database, id, panel.server.now())
+      ? json({ ok: true })
+      : json({ ok: false, message: 'Message inconnu.' }, 404)
   }
 
   if (request.method !== 'DELETE') return refuseMethod()

@@ -5,7 +5,7 @@ import sharp from 'sharp'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
-import { MAX_BYTES, MEDIA_DIR } from '../media/ingest.js'
+import { MAX_IMAGE_BYTES, MEDIA_DIR } from '../media/ingest.js'
 import { handlePanel } from './panel.js'
 import { bench, defaultPage, IMAGE, ORIGIN } from './panel.fixture.js'
 
@@ -76,9 +76,29 @@ describe('POST /api/media', () => {
           cookie: site.cookie,
           origin: ORIGIN,
           'content-type': 'multipart/form-data; boundary=limite',
-          'content-length': String(MAX_BYTES * 4),
+          'content-length': String(MAX_IMAGE_BYTES * 4),
         },
         body: '--limite--',
+      }),
+    )
+
+    expect(response?.status).toBe(413)
+    expect(
+      await readdir(path.join(site.root, MEDIA_DIR)).catch(() => []),
+    ).toEqual([])
+
+    await site.close()
+  })
+
+  it('refuse un téléversement qui n’annonce pas sa longueur', async () => {
+    const site = await bench()
+
+    const response = await handlePanel(
+      site.panel,
+      new Request(`${ORIGIN}/api/media`, {
+        method: 'POST',
+        headers: { cookie: site.cookie, origin: ORIGIN },
+        body: upload(png, { fr: 'Un aplat' }),
       }),
     )
 

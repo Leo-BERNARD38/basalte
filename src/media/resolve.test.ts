@@ -38,11 +38,8 @@ describe('resolveImage', () => {
       resolveImage(manifest, 'a3f2c1d4b5e6f708', 'fr')?.objectPosition,
     ).toBe('30% 20%')
 
-    const centered = resolveImage(
-      { x: { ...manifest['a3f2c1d4b5e6f708']!, focal: undefined } },
-      'x',
-      'fr',
-    )
+    const { focal: _focal, ...sansFocal } = manifest['a3f2c1d4b5e6f708']!
+    const centered = resolveImage({ x: sansFocal }, 'x', 'fr')
 
     expect(centered?.objectPosition).toBe('50% 50%')
   })

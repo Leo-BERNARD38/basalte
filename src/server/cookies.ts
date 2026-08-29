@@ -30,10 +30,22 @@ export function readCookie(
     if (separator === -1) continue
     if (pair.slice(0, separator).trim() !== name) continue
 
-    return decodeURIComponent(pair.slice(separator + 1).trim())
+    return decoded(pair.slice(separator + 1).trim())
   }
 
   return undefined
+}
+
+// Un cookie mal encodé fait lever `decodeURIComponent`. Il vaut absent : un
+// jeton illisible n’ouvre aucune session, et laisser passer l’erreur ferait
+// répondre 500 à chaque requête du navigateur qui le porte — un sous-domaine
+// pose un cookie pour le domaine parent, et fermerait ainsi le panel.
+function decoded(value: string): string | undefined {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return undefined
+  }
 }
 
 export function setCookie(

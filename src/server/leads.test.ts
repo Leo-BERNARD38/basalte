@@ -285,3 +285,35 @@ async function audienceOf(
 
   return payload.audience
 }
+
+describe('un message qui n’existe pas', () => {
+  it('se marque lu par un 404, jamais par un succès silencieux', async () => {
+    const site = await bench()
+    const response = await site.call('PATCH', '/api/leads/4242', {})
+
+    expect(response.status).toBe(404)
+
+    await site.close()
+  })
+
+  it('marquer deux fois reste un succès, et ne bouge pas la date', async () => {
+    const site = await bench()
+
+    await site.submit(VALID)
+
+    const [lead] = await leadsOf(site)
+
+    expect(
+      (await site.call('PATCH', `/api/leads/${lead?.id}`, {})).status,
+    ).toBe(200)
+
+    const first = (await leadsOf(site))[0]?.readAt
+
+    expect(
+      (await site.call('PATCH', `/api/leads/${lead?.id}`, {})).status,
+    ).toBe(200)
+    expect((await leadsOf(site))[0]?.readAt).toBe(first)
+
+    await site.close()
+  })
+})

@@ -21,11 +21,17 @@
 import { z } from 'zod'
 
 import { matchSlug, urlFor } from '../astro/routes.js'
-import { readContent } from '../content/read.js'
+import { readRoutes } from '../content/read.js'
 import type { Panel } from './context.js'
 import { HOUR, MINUTE } from './durations.js'
 import { leadReceived } from './email/messages.js'
-import { guardOrigin, json, originOf, refuseMethod } from './http.js'
+import {
+  guardOrigin,
+  json,
+  originOf,
+  refuseMethod,
+  withinLength,
+} from './http.js'
 import { markDelivered, recordLead, type Lead, type NewLead } from './leads.js'
 import { consume, type Rule } from './throttle.js'
 
@@ -38,7 +44,7 @@ export const ADDRESS_RULE: Rule = { limit: 5, window: 15 * MINUTE }
 export const SITE_RULE: Rule = { limit: 60, window: HOUR }
 
 /** Un corps de formulaire tient en quelques kilo-octets ; le reste est refusé. */
-export const MAX_BYTES = 64 * 1024
+export const MAX_FORM_BYTES = 64 * 1024
 
 const MESSAGE_MIN = 10
 const MESSAGE_MAX = 4000
@@ -77,7 +83,7 @@ export async function handleContact(
 
   if (guard !== undefined) return guard
 
-  if (Number(request.headers.get('content-length') ?? 0) > MAX_BYTES) {
+  if (!withinLength(request, MAX_FORM_BYTES)) {
     return json({ ok: false, message: 'Message trop long.' }, 413)
   }
 
@@ -173,10 +179,14 @@ export type Destination = {
  * Où renvoyer le visiteur. L’adresse est reconstruite depuis les pages du
  * dépôt, jamais recopiée de ce qui a été envoyé : une redirection ouverte
  * n’est pas possible, et une page inconnue ramène à la racine.
+ *
+ * Seuls les noms de fichiers sont lus, pas leur contenu : c’est la seule
+ * adresse qu’un anonyme peut appeler en boucle, et lire toutes les pages du
+ * dépôt avant même le leurre lui donnerait un levier.
  */
 async function destination(panel: Panel, slug: string): Promise<Destination> {
   const { languages } = (await panel.schemas()).site
-  const routes = (await readContent(panel.root)).map((file) => file.route)
+  const routes = await readRoutes(panel.root)
   const found = matchSlug(clean(slug), routes, languages)
 
   if (found === undefined) {

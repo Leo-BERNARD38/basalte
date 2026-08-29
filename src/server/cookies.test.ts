@@ -25,6 +25,30 @@ describe('setCookie', () => {
   })
 })
 
+describe('readCookie — valeur illisible', () => {
+  // Un sous-domaine pose un cookie pour le domaine parent : une valeur mal
+  // encodée ne doit pas faire répondre 500 à chaque requête du navigateur.
+  it('vaut absente plutôt que de lever', () => {
+    for (const raw of ['%', '%zz', 'a%E0%A4b']) {
+      expect(() =>
+        readCookie(`${COOKIES.session}=${raw}`, COOKIES.session),
+      ).not.toThrow()
+      expect(readCookie(`${COOKIES.session}=${raw}`, COOKIES.session)).toBe(
+        undefined,
+      )
+    }
+  })
+
+  it('ne laisse pas un cookie illisible en cacher un autre', () => {
+    expect(
+      readCookie(
+        `${COOKIES.attempt}=%; ${COOKIES.session}=bon`,
+        COOKIES.session,
+      ),
+    ).toBe('bon')
+  })
+})
+
 describe('clearCookie', () => {
   it('vide la valeur et met la durée à zéro', () => {
     const cookie = clearCookie(COOKIES.device)

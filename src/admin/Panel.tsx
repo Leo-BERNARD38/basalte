@@ -55,7 +55,7 @@ type Picker = {
   readonly resolve: (key: string | undefined) => void
 }
 
-export default function Panel() {
+export default function Panel({ site }: { readonly site: string }) {
   const [payload, setPayload] = useState<PanelPayload | undefined>(undefined)
   const [ready, setReady] = useState(false)
   const [screen, setScreen] = useState<Screen>(readScreen())
@@ -71,19 +71,26 @@ export default function Panel() {
 
   // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
   // est.
+  //
+  // Seule une session refusée ramène à l’écran de connexion. Un serveur qui ne
+  // répond pas laisse l’écran en place : il reviendra, et renvoyer le client
+  // se connecter lui ferait croire qu’il a perdu ce qu’il vient d’écrire.
   const refresh = async (): Promise<PanelPayload | undefined> => {
     const answer = await loadPanel()
 
     setReady(true)
 
     if (!answer.ok) {
-      setPayload(undefined)
+      if (answer.signedOut) setPayload(undefined)
+      else setProblems([answer.message])
+
       return undefined
     }
 
     const data = answer.data
 
     setPayload(data)
+    setProblems([])
     setPublication(data.publication)
     setLanguage(
       (current) =>
@@ -176,7 +183,7 @@ export default function Panel() {
   if (payload === undefined) {
     return (
       <MantineProvider>
-        <SignIn site="Panel" onSignedIn={() => void load()} />
+        <SignIn site={site} onSignedIn={() => void load()} />
       </MantineProvider>
     )
   }

@@ -15,6 +15,9 @@ import { prepareMedia } from '../media/prepare.js'
 import { countMediaUsage } from '../media/usage.js'
 import type { Result } from './run.js'
 
+/** Où `--build` écrit, à côté de la racine servie en local et jamais dans `dist/`. */
+export const CHECK_OUT = path.join('.basalte', 'check')
+
 export async function check(
   argv: readonly string[],
   cwd: string,
@@ -97,6 +100,10 @@ function count(value: number, noun: string): string {
 
 // Astro est une dépendance de pair : c’est celui du dépôt qui construit, jamais
 // une copie apportée par le socle.
+//
+// La sortie ne va pas dans `dist/`, où vit le panel construit — celui-là même
+// que la machine exécute. Vérifier que le site se construit ne doit pas
+// remplacer l’écran qui sert à le corriger (D68).
 function buildSite(cwd: string): void {
   const require = createRequire(path.join(cwd, 'package.json'))
   const astro = path.join(
@@ -105,5 +112,9 @@ function buildSite(cwd: string): void {
     'astro.mjs',
   )
 
-  execFileSync(process.execPath, [astro, 'build'], { cwd, stdio: 'inherit' })
+  execFileSync(
+    process.execPath,
+    [astro, 'build', '--outDir', path.join(cwd, CHECK_OUT)],
+    { cwd, stdio: 'inherit' },
+  )
 }

@@ -66,7 +66,10 @@ describe('openDatabase', () => {
       .run()
 
     // On rembobine la base à la première étape : les suivantes doivent s’y
-    // jouer seules, et ce qui existait déjà rester en place.
+    // jouer seules, et ce qui existait déjà rester en place. Tout ce que les
+    // étapes suivantes ont posé disparaît, index compris — une base restée à
+    // la version 1 ne les a jamais eus.
+    database.exec('drop index journal_account')
     database.exec('drop table lead')
     database.exec('drop table publication')
     database.exec('pragma user_version = 1')

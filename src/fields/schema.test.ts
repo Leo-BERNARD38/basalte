@@ -129,12 +129,18 @@ describe('toZod — langues', () => {
     })
   })
 
-  it('écarte une langue que le site ne déclare pas', () => {
+  it('conserve une traduction dont la langue n’est plus déclarée (D86)', () => {
     const parse = check({ title: f.text({ i18n: true }) }, mono)
     const result = parse({ title: { fr: 'Bonjour', de: 'Hallo' } })
 
     expect(result.success).toBe(true)
-    expect(result.data).toEqual({ title: { fr: 'Bonjour' } })
+    expect(result.data).toEqual({ title: { fr: 'Bonjour', de: 'Hallo' } })
+  })
+
+  it('refuse une traduction qui n’est pas du texte', () => {
+    const parse = check({ title: f.text({ i18n: true }) }, mono)
+
+    expect(parse({ title: { fr: 'Bonjour', de: 12 } }).success).toBe(false)
   })
 })
 

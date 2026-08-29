@@ -6,6 +6,11 @@
 // Le schéma s’applique par `PRAGMA user_version` : chaque étape est jouée une
 // fois, dans l’ordre, et une base déjà à jour ne bouge pas. Une étape ajoutée
 // à la suite monte une base existante sans rien lui faire perdre.
+//
+// Une étape est jouée dans une transaction, numéro de version compris : SQLite
+// sait défaire du DDL, et une étape interrompue à mi-chemin laisserait sinon
+// une base entre deux versions, que la relance essaierait de remonter par où
+// elle est déjà passée.
 
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
@@ -38,7 +43,6 @@ const STEPS: readonly string[] = [
     expires_at integer not null,
     consumed_at integer,
     tries integer not null default 0,
-    remember integer not null default 0,
     ip text not null,
     agent text not null
   ) strict;
@@ -127,6 +131,10 @@ const STEPS: readonly string[] = [
 
   create index lead_at on lead (at);
   `,
+  `
+  create index journal_account on journal (account_id, at);
+  create index lead_unread on lead (read_at);
+  `,
 ]
 
 /** La version que le socle attend : le nombre d’étapes écrites ci-dessus. */
@@ -160,8 +168,19 @@ export function migrate(database: DatabaseSync): void {
   )
 
   for (let step = current; step < STEPS.length; step += 1) {
-    database.exec(STEPS[step] ?? '')
-    database.exec(`pragma user_version = ${step + 1}`)
+    database.exec('begin')
+
+    try {
+      database.exec(STEPS[step] ?? '')
+      database.exec(`pragma user_version = ${step + 1}`)
+      database.exec('commit')
+    } catch (cause) {
+      database.exec('rollback')
+
+      throw new Error(
+        `La base n’a pas pu monter en version ${step + 1} : ${(cause as Error).message}`,
+      )
+    }
   }
 }
 

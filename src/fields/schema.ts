@@ -13,6 +13,7 @@
 import { z } from 'zod'
 
 import type { Languages } from '../site/languages.js'
+import { allowedHref } from './href.js'
 import type { AnyField, Fields } from './types.js'
 
 type LeafField = Extract<
@@ -22,10 +23,17 @@ type LeafField = Extract<
 
 export const TRANSLATION_MISSING = 'translation-missing'
 
-// « // » ouvre une adresse absolue vers un autre hôte sous les dehors d’un
-// chemin : un lien interne commence par une barre, jamais par deux.
-const INTERNAL_OR_EXTERNAL = /^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/
-const EXTERNAL = /^https?:\/\//
+/**
+ * Le minimum réellement appliqué : la borne déclarée, relevée à un par
+ * `required`. Le panel lit la même fonction, sans quoi il laisserait vider ce
+ * que l’enregistrement refuse ensuite.
+ */
+export function minimumOf(field: {
+  readonly required: boolean
+  readonly min?: number
+}): number {
+  return Math.max(field.min ?? 0, field.required ? 1 : 0)
+}
 
 export function toZod(fields: Fields, languages: Languages): z.ZodType {
   return objectOf(fields, languages)
@@ -48,7 +56,7 @@ function fieldOf(field: AnyField, languages: Languages): z.ZodType {
 
   if (field.kind === 'list') {
     let list = z.array(objectOf(field.of, languages))
-    const min = Math.max(field.min ?? 0, field.required ? 1 : 0)
+    const min = minimumOf(field)
 
     if (min > 0) list = list.min(min)
     if (field.max !== undefined) list = list.max(field.max)
@@ -73,24 +81,30 @@ function translatedOf(field: LeafField, languages: Languages): z.ZodType {
       : leafOf(field)
   }
 
-  const translated = z.object(shape).superRefine((value, context) => {
-    const reference = value[languages.default.code]
+  // Les langues inconnues du site sont conservées plutôt que retirées : ce que
+  // le panel écrit est ce que l’analyse rend, et une langue retirée de la
+  // configuration effacerait sinon sa traduction au premier enregistrement.
+  const translated = z
+    .object(shape)
+    .catchall(z.string())
+    .superRefine((value, context) => {
+      const reference = value[languages.default.code]
 
-    if (typeof reference !== 'string' || reference.trim() === '') return
+      if (typeof reference !== 'string' || reference.trim() === '') return
 
-    for (const language of languages.online) {
-      const translation = value[language.code]
+      for (const language of languages.online) {
+        const translation = value[language.code]
 
-      if (typeof translation !== 'string' || translation.trim() === '') {
-        context.addIssue({
-          code: 'custom',
-          path: [language.code],
-          message: TRANSLATION_MISSING,
-          params: { rule: TRANSLATION_MISSING },
-        })
+        if (typeof translation !== 'string' || translation.trim() === '') {
+          context.addIssue({
+            code: 'custom',
+            path: [language.code],
+            message: TRANSLATION_MISSING,
+            params: { rule: TRANSLATION_MISSING },
+          })
+        }
       }
-    }
-  })
+    })
 
   return translated.default({})
 }
@@ -109,10 +123,7 @@ function leafOf(field: LeafField): z.ZodType {
       return bounded(field.required ? 1 : 0)
         .refine(
           (value) =>
-            value === '' ||
-            (field.external === true
-              ? EXTERNAL.test(value)
-              : INTERNAL_OR_EXTERNAL.test(value)),
+            value === '' || allowedHref(value, field.external === true),
         )
         .default('')
 
@@ -124,10 +135,7 @@ function leafOf(field: LeafField): z.ZodType {
 
     case 'text':
     case 'textarea':
-      return bounded(
-        Math.max(field.min ?? 0, field.required ? 1 : 0),
-        field.max,
-      )
+      return bounded(minimumOf(field), field.max)
   }
 }
 

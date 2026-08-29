@@ -49,12 +49,16 @@ export function validatePage(input: ValidateInput): PageValidation {
 
   if (!envelope.success) {
     return {
-      issues: envelope.error.issues.map((issue) => ({
-        severity: 'error',
-        page: name,
-        field: issue.path.map(String).join(' › ') || undefined,
-        message: `structure de fichier invalide (${issue.code})`,
-      })),
+      issues: envelope.error.issues.map((issue) => {
+        const field = issue.path.map(String).join(' › ')
+
+        return {
+          severity: 'error' as const,
+          page: name,
+          ...(field === '' ? {} : { field }),
+          message: `structure de fichier invalide (${issue.code})`,
+        }
+      }),
     }
   }
 

@@ -180,7 +180,8 @@ voir `mise-a-jour.md`.
 ## Validation
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build,
-et en pré-commit. Il détecte :
+et en pré-commit dans un dépôt client — le hook y est posé par `basalte init`.
+Le dépôt du socle, lui, a les siens (`environnement.md`). Il détecte :
 
 - un type de bloc inconnu
 - un champ requis vide

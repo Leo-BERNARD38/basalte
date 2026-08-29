@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { DAY } from '../server/durations.js'
-import { isRobot, MAX_BYTES, parseEntry, readAccess } from './access.js'
+import { isRobot, MAX_LOG_BYTES, parseEntry, readAccess } from './access.js'
 import { buildReport } from './report.js'
 
 const WORK = fileURLToPath(new URL('../../.tmp/', import.meta.url))
@@ -103,7 +103,7 @@ describe('la lecture du log', () => {
   // milieu, et elle est écartée plutôt que réparée.
   it('borne ce qu’elle lit et jette la ligne tronquée', async () => {
     const file = path.join(await work(), 'gros.log')
-    const lines = Math.ceil(MAX_BYTES / LINE.length) + 10
+    const lines = Math.ceil(MAX_LOG_BYTES / LINE.length) + 10
 
     await writeFile(file, `${Array(lines).fill(LINE).join('\n')}\n`, 'utf8')
 

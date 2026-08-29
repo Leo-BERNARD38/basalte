@@ -14,7 +14,7 @@ import { readManifest, type MediaManifest } from '../media/manifest.js'
 import type { Site } from '../site/define.js'
 import { loadSite } from '../site/load.js'
 import type { Page } from './page.js'
-import { readContent } from './read.js'
+import { readContent, type ContentFile } from './read.js'
 import type { ContentIssue } from './report.js'
 import { validatePage } from './validate.js'
 
@@ -67,7 +67,14 @@ export async function readPages(
   root: string,
   schemas: Schemas,
 ): Promise<Content> {
-  const files = await readContent(root)
+  return validateFiles(await readContent(root), schemas)
+}
+
+/** La même chose depuis des fichiers déjà lus, quand l’appelant en fait deux usages. */
+export function validateFiles(
+  files: readonly ContentFile[],
+  schemas: Schemas,
+): Content {
   const pages: RenderedPage[] = []
   const issues: ContentIssue[] = []
 

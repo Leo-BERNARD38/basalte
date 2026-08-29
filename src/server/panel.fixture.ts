@@ -93,6 +93,17 @@ export type Bench = {
   close(): Promise<void>
 }
 
+// Un `Request` construit en mémoire ne porte pas de `content-length` ; un
+// navigateur, si. Le banc l’ajoute pour ressembler à ce qui arrivera vraiment,
+// et pour que les gardes de taille soient réellement traversées.
+async function announceLength(request: Request): Promise<void> {
+  if (request.headers.has('content-length')) return
+
+  const bytes = (await request.clone().arrayBuffer()).byteLength
+
+  request.headers.set('content-length', String(bytes))
+}
+
 /** Un build court : il écrit une page dans le dossier reçu, et réussit. */
 export const buildsFine: Build = async (_root, outDir) => {
   await mkdir(outDir, { recursive: true })
@@ -207,6 +218,8 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
           : { body: raw ? body : JSON.stringify(body) }),
       })
 
+      if (body !== undefined) await announceLength(request)
+
       return (
         (await handlePanel(panel, request)) ??
         new Response('hors panel', { status: 404 })
@@ -222,10 +235,14 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
 
       if (origin !== null) headers.set('origin', origin)
 
+      const body = new URLSearchParams(fields).toString()
+
+      headers.set('content-length', String(Buffer.byteLength(body)))
+
       const request = new Request(`${ORIGIN}/api/contact`, {
         method: 'POST',
         headers,
-        body: new URLSearchParams(fields).toString(),
+        body,
       })
 
       return (

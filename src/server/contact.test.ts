@@ -4,7 +4,12 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
-import { ADDRESS_RULE, handleContact, MARKERS } from './contact.js'
+import {
+  ADDRESS_RULE,
+  handleContact,
+  MARKERS,
+  MAX_FORM_BYTES,
+} from './contact.js'
 import { listLeads } from './leads.js'
 import { bench, defaultPage, ORIGIN } from './panel.fixture.js'
 
@@ -316,5 +321,52 @@ describe('le bloc et l’endpoint', () => {
 
     expect(component).toContain('action="/api/contact"')
     expect(component).not.toContain('<script')
+  })
+})
+
+describe('la taille du corps', () => {
+  // `formData` met le corps en mémoire en entier : une requête qui n’annonce
+  // pas sa longueur ferait lire sans limite la seule adresse ouverte à un
+  // anonyme. Un navigateur, lui, l’annonce toujours.
+  it('refuse un envoi qui n’annonce pas sa longueur', async () => {
+    const site = await bench()
+
+    const response = await handleContact(
+      site.panel,
+      new Request(`${ORIGIN}/api/contact`, {
+        method: 'POST',
+        headers: {
+          origin: ORIGIN,
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ ...VALID, page: '/' }).toString(),
+      }),
+    )
+
+    expect(response?.status).toBe(413)
+    expect(listLeads(site.panel.server.database, 10)).toHaveLength(0)
+
+    await site.close()
+  })
+
+  it('refuse un envoi qui en annonce une trop grande', async () => {
+    const site = await bench()
+
+    const response = await handleContact(
+      site.panel,
+      new Request(`${ORIGIN}/api/contact`, {
+        method: 'POST',
+        headers: {
+          origin: ORIGIN,
+          'content-type': 'application/x-www-form-urlencoded',
+          'content-length': String(MAX_FORM_BYTES + 1),
+        },
+        body: new URLSearchParams({ ...VALID, page: '/' }).toString(),
+      }),
+    )
+
+    expect(response?.status).toBe(413)
+
+    await site.close()
   })
 })

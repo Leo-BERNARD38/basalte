@@ -1,7 +1,7 @@
 import sharp from 'sharp'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { ingest, isDerivative, MAX_BYTES } from './ingest.js'
+import { ingest, isDerivative, MAX_IMAGE_BYTES } from './ingest.js'
 import { fileName } from './resolve.js'
 
 async function photo(
@@ -110,7 +110,9 @@ describe('ingest', () => {
   })
 
   it('refuse au-delà de la limite de taille', async () => {
-    await expect(ingest(Buffer.alloc(MAX_BYTES + 1))).rejects.toThrow(/limite/)
+    await expect(ingest(Buffer.alloc(MAX_IMAGE_BYTES + 1))).rejects.toThrow(
+      /limite/,
+    )
   })
 
   it('reconnaît un fichier qu’il a produit', () => {

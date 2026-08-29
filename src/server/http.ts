@@ -88,6 +88,25 @@ function clientAddress(request: Request): string {
   return forwarded.split(',').at(-1)?.trim() ?? ''
 }
 
+/**
+ * Vrai quand la requête annonce une longueur, et qu’elle tient sous la borne.
+ *
+ * Un corps de formulaire est mis en mémoire en entier par `formData` : sa
+ * taille se refuse donc avant la lecture. Ne rien annoncer est refusé de la
+ * même façon — un navigateur annonce toujours la longueur d’un formulaire, et
+ * l’omettre est le moyen de faire lire sans limite. `Number(null)` valant zéro,
+ * l’en-tête absent se teste pour lui-même, jamais par sa conversion.
+ */
+export function withinLength(request: Request, limit: number): boolean {
+  const announced = request.headers.get('content-length')
+
+  if (announced === null) return false
+
+  const bytes = Number(announced)
+
+  return Number.isInteger(bytes) && bytes >= 0 && bytes <= limit
+}
+
 export function badRequest(): Response {
   return json({ ok: false, message: 'Formulaire incomplet.' }, 400)
 }

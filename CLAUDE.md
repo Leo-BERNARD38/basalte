@@ -167,9 +167,10 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build
-et en pré-commit. Il valide des contenus contre des schémas — ce n'est pas un
-test d'intégration : l'auth, les images et la bascule ont leurs propres tests
-(`docs/implementation.md`).
+et en pré-commit d'un dépôt client ; les hooks de ce dépôt-ci sont ceux de
+`docs/environnement.md`. Il valide des contenus contre des schémas — ce n'est
+pas un test d'intégration : l'auth, les images et la bascule ont leurs propres
+tests (`docs/implementation.md`).
 
 ## Pièges connus
 
@@ -206,6 +207,10 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
   (D85). Le proxy sert le site depuis le disque et le panel depuis
   l'application : un dossier commun fait chercher l'island du panel parmi les
   fichiers du site — une page vide, sans la moindre erreur côté serveur.
+- **`Number(null)` vaut zéro, pas `NaN`.** Un en-tête absent lu par
+  `headers.get` puis converti passe donc toutes les bornes hautes : une garde
+  de taille écrite ainsi ne garde rien. L'absence se teste pour elle-même
+  (`withinLength`, dans `src/server/http.ts`).
 - **Le bloc `contact` n'importe rien de `src/server/`.** Les trois identifiants
   de réponse y sont écrits en clair et un test les compare à `MARKERS` :
   importer le module du serveur entraînerait `node:sqlite` dans le build du site
