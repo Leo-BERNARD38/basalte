@@ -33,7 +33,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `depot-client.md` | Ce que `basalte init` génère, configuration, paquet Claude Code |
 | `design.md` | Tokens, plancher non négociable, implémentation d'une maquette |
 | `modele-contenu.md` | Format des pages, définition d'un bloc, DSL de champs, langues, migrations |
-| `panel.md` | Structure de l'interface, authentification, médias |
+| `panel.md` | Structure de l'interface, moteur de formulaires, authentification, médias |
 | `publication.md` | Du clic « Publier » au HTML en ligne |
 | `mise-a-jour.md` | La commande de mise à jour, les notes de version, la mise à jour assistée |
 | `seo-performances.md` | Ce qui produit le SEO et les performances |
@@ -61,7 +61,7 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 ## Statut
 
 Design validé en brainstorming le 2026-08-29, fondations techniques posées le
-même jour (`environnement.md`), phases 1 et 2 faites dans la foulée.
+même jour (`environnement.md`), phases 1 à 3 faites dans la foulée.
 
 **Phase 1** — DSL de champs, moteur de blocs, intégration Astro, médias,
 `basalte check` et `basalte inventory`. Le site de démonstration se construit
@@ -71,8 +71,13 @@ depuis son JSON. Décisions D40 à D46.
 en Argon2id, code à usage unique par email, appareil de confiance, sessions,
 journal, limitation de débit, et `basalte admin:login`. Décisions D47 à D53.
 
+**Phase 3** — le panel : formulaires produits depuis la description des champs,
+enregistrement validé puis commité, médiathèque avec texte alternatif et point
+focal, réordonnancement, visibilité par langue, aperçu du contenu non publié.
+Décisions D55 à D65.
+
 L'ordre des phases est tranché (D54) : on suit la numérotation. Prochaine
-phase, la 3 — éditer.
+phase, la 4 — publier.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

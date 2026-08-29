@@ -25,6 +25,7 @@ mon-client/
 ├── compose.yml
 ├── Caddyfile
 ├── data/                  la base SQLite — jamais versionnée
+│                          comptes, sessions, appareils, journal
 ├── .gitignore             .env, node_modules, dist, data
 └── package.json
 ```
@@ -39,7 +40,7 @@ dépôt (invariant 8), et une doc agent régénérée plutôt que recopiée (D27
 
 | Commande | Quand |
 |---|---|
-| `npm run dev` | développer — site et panel en local |
+| `npm run dev` | développer — site et panel en local, sur la même adresse |
 | `npm run check` | valider avant de pousser |
 | `npm run deploy` | provisionner la machine, ou la mettre à jour (`mise-en-prod.md`) |
 | `npm run doctor` | prouver que la configuration fonctionne (`mise-en-prod.md`) |
@@ -47,6 +48,10 @@ dépôt (invariant 8), et une doc agent régénérée plutôt que recopiée (D27
 
 C'est toute la surface. Un sixième script serait le signe qu'une commande
 manque au CLI.
+
+`npm run dev` sert le site sur `/` et le panel sur `/admin`, dans un seul
+processus. Le panel demande une session comme en production : le premier accès
+passe par `basalte admin:login --user <email> --create`, une fois.
 
 ## Configuration : deux fichiers, pas un
 

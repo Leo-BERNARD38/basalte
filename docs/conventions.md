@@ -13,10 +13,15 @@ Tout ce qui suit sert à rendre la réutilisation plus facile que la réécritur
 basalte inventory
 ```
 
-Sort la liste de tout ce qui est réutilisable — champs `f.*`, blocs, helpers
-serveur, composants du panel — avec leur signature, **générée depuis le code**.
-Un inventaire écrit à la main est faux en deux semaines ; celui-ci ne peut pas
+Sort la liste de ce qu'un dépôt client réutilise — les types de champs `f.*` et
+les blocs disponibles, avec leur signature, **générée depuis le code**. Un
+inventaire écrit à la main est faux en deux semaines ; celui-ci ne peut pas
 l'être.
+
+Les composants du panel n'y figurent pas, et n'y figureront pas : aucun dépôt
+client n'en écrit (invariant 8), et la seule extension qui compte — un type de
+champ — se déclare déjà dans `f.*`. La liste sert celui qui écrit un bloc, pas
+celui qui écrit le socle.
 
 La règle est stricte :
 
@@ -100,6 +105,11 @@ Deux suffixes ont un sens pour l'outillage : `*.test.ts` est une suite Vitest,
 `*.fixture.ts` un banc d'essai partagé entre plusieurs suites. Les deux sont
 écartés du paquet par `tsconfig.build.json` — un banc d'essai ne part jamais
 chez un client.
+
+Un composant React porte l'extension `.tsx` et son nom en PascalCase, comme le
+composant `.astro` d'un bloc. Il s'importe avec le suffixe `.js`, jamais
+`.jsx` : `tsc` compile le JSX et produit un `.js`, et c'est ce nom-là que
+l'import doit porter pour que le paquet installé se résolve.
 
 ## Apostrophes
 

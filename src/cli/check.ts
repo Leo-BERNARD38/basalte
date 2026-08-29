@@ -9,9 +9,10 @@ import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 
-import { errorsOf, readProject } from '../content/project.js'
-import { renderIssue } from '../content/report.js'
+import { errorsOf, readProject, type Project } from '../content/project.js'
+import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
+import { countMediaUsage } from '../media/usage.js'
 import type { Result } from './run.js'
 
 export async function check(
@@ -27,7 +28,7 @@ export async function check(
     lines.push(`  ✓ « ${media.from} » intégré sous la clé « ${media.key} »`)
   }
 
-  const issues = project.issues
+  const issues = [...project.issues, ...orphans(project)]
   const sections = project.pages.reduce(
     (total, entry) => total + entry.page.blocks.length,
     0,
@@ -70,6 +71,24 @@ export async function check(
   }
 
   return { code: 0, stdout: `${lines.join('\n')}\n`, stderr: '' }
+}
+
+// Une image que plus aucune section ne cite reste dans le dépôt : git ne
+// supprime rien, et la retirer à la main casserait un retour arrière. Le
+// signaler suffit — c’est le panel qui sait la supprimer proprement.
+function orphans(project: Project): readonly ContentIssue[] {
+  const usage = countMediaUsage(
+    project.registry,
+    project.pages.map((entry) => entry.page),
+  )
+
+  return Object.keys(project.media)
+    .filter((key) => (usage.get(key) ?? 0) === 0)
+    .map((key) => ({
+      severity: 'warning' as const,
+      page: 'médiathèque',
+      message: `l’image « ${key} » n’est employée par aucune section`,
+    }))
 }
 
 function count(value: number, noun: string): string {

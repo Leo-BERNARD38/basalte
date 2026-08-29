@@ -3,9 +3,16 @@
 // typecheckés comme le reste.
 
 declare module 'virtual:basalte' {
-  import type { MediaManifest, RenderedPage, Site } from '@leobernard/basalte'
+  import type {
+    BlockRegistry,
+    MediaManifest,
+    RenderedPage,
+    Site,
+  } from '@leobernard/basalte'
 
+  export const root: string
   export const site: Site
+  export const registry: BlockRegistry
   export const pages: readonly RenderedPage[]
   export const media: MediaManifest
   export const blocks: Readonly<

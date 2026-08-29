@@ -8,6 +8,12 @@
 - **Publier** — bouton explicite : build, bascule atomique, puis **push vers
   GitHub**.
 
+L'enregistrement est en place depuis la phase 3 : le panel valide, écrit, puis
+commite au nom du compte qui édite. Un contenu invalide est refusé (D60) — un
+commit qui ne se construit pas ferait échouer la mise en ligne suivante. Le
+commit saute les hooks du dépôt : `check` vient de passer, et un hook en échec
+rendrait l'enregistrement impossible (D62).
+
 Le client contrôle donc quand ses changements sortent, et un chantier en cours
 ne devient jamais public par accident.
 
@@ -31,11 +37,18 @@ Le panel n'écrit que dans `content/` et `public/media/`. Ne jamais toucher à
 ces deux dossiers depuis ta machine pendant qu'un client édite rend les
 conflits quasi impossibles.
 
-## Preview
+## Aperçu
 
-Une route `/admin/preview/…` rend le contenu **non publié** avec exactement les
-mêmes composants Astro que le site réel — pas une approximation. Possible sans
-travail supplémentaire, puisqu'un runtime Node tourne déjà pour le panel.
+`/admin/preview/<slug>` rend le contenu **non publié** avec exactement les mêmes
+composants Astro que le site réel — pas une approximation. Le processus Node du
+panel le sert, derrière la même session : un aperçu n'est jamais public.
+
+Il montre le dépôt tel qu'il est enregistré, images comprises — le panel sert
+`/media/*` depuis le dépôt et non depuis la version en ligne (D64). Il montre
+aussi les **langues en préparation**, absentes du site construit : c'est le seul
+endroit où une traduction se relit avant de sortir.
+
+Le bouton « Aperçu » du panel enregistre d'abord si quelque chose attend.
 
 ## Le dossier de build ne bouge pas
 

@@ -4,11 +4,13 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** phases 1 et 2 faites. Phase 1 — DSL de champs, moteur de blocs,
+**État :** phases 1 à 3 faites. Phase 1 — DSL de champs, moteur de blocs,
 intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
 démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
-d'authentification entier, jusqu'à `basalte admin:login`. Prochaine étape : la
-phase 3, éditer (`docs/implementation.md`).
+d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
+formulaires produits depuis les schémas, enregistrement avec commit, médiathèque,
+réordonnancement, visibilité par langue, aperçu. Prochaine étape : la phase 4,
+publier (`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -72,12 +74,13 @@ src/
 ├── site/           site.config.ts : chargement, langues, tokens → CSS
 ├── fields/         DSL f.* → schéma Zod + description d'interface
 ├── content/        format de page, lecture, validation, messages français
-├── media/          ingestion sharp, manifeste, résolution vers srcset
+├── media/          ingestion sharp, manifeste, résolution, emplois
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro
-├── astro/          intégration Astro (routes, langues, layout)
+├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
-├── server/         auth, sessions, journal, email — puis contenu et contact
+│   └── fields/     un composant par type de champ, une table d'aiguillage
+├── server/         auth, sessions, journal, email, contenu, médias, git
 │   └── email/      interface EmailProvider, brevo · console · memory
 ├── seo/            meta, JSON-LD, sitemap, hreflang
 └── cli/            init, check, inventory, update, deploy, doctor,
@@ -89,8 +92,8 @@ scripts/            outillage du dépôt — jamais livré, jamais importé
 docs/
 ```
 
-`admin/`, `seo/` et `migrations/` n'existent pas encore : ils arrivent avec leur
-phase. `server/` ne porte pour l'instant que l'authentification.
+`seo/` et `migrations/` n'existent pas encore : ils arrivent avec leur phase.
+`server/` ne porte pas encore le formulaire de contact.
 
 Un `*.fixture.ts` est un banc d'essai : `tsconfig.build.json` l'écarte du
 paquet au même titre qu'un test.
@@ -114,6 +117,8 @@ Détail dans `docs/conventions.md`. L'essentiel :
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
   `docs/decisions.md`.
 - **Anglais dans le code**, français dès qu'une chaîne s'affiche.
+- **Un `.tsx` s'importe avec le suffixe `.js`**, jamais `.jsx` : c'est le nom du
+  fichier compilé, et c'est lui que le paquet installé résout.
 - **Apostrophe typographique** dans les chaînes et commentaires français : les
   chaînes sont délimitées par des apostrophes droites, la variante
   typographique n'a jamais à être échappée.
@@ -186,3 +191,17 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
   `preinstall`, `install`, `prepack`, `build` ou le champ `workspaces` existe.
   `--omit=dev` n'y change rien, `--ignore-scripts` casse l'installation en
   silence. Détail et vérification dans `docs/environnement.md`.
+- **Une valeur lue seulement dans un `return` de frontmatter `.astro` est vue
+  comme inutilisée** par `astro check`. La lire aussi dans la condition qui
+  précède le `return` suffit — ce qui pousse la logique hors du template, où
+  elle se teste (`src/astro/preview.ts`).
+- **`import.meta.url` ne désigne plus le fichier d'origine une fois le serveur
+  du panel groupé.** Rien qui doive localiser un dossier du paquet à
+  l'exécution ne peut s'y fier : le registre de blocs est embarqué dans le
+  module généré (D56).
+- **`@vitejs/plugin-react` exclut `node_modules` de Babel par défaut**, et le
+  panel y vit une fois installé. Sans réglage, le compilateur React ne verrait
+  jamais le seul React du projet.
+- Le panel écrit dans `content/` et `public/media/`, et **ne commite que si la
+  racine du site est la racine d'un dépôt git** : le site de démonstration, logé
+  dans le dépôt du socle, ne doit pas y écrire d'historique.

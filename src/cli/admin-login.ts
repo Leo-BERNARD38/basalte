@@ -6,9 +6,6 @@
 // `--create`, en affichant son mot de passe une seule fois, à l’écran, jamais
 // par email (invariant 12).
 
-import { existsSync } from 'node:fs'
-import path from 'node:path'
-
 import { createAccount } from '../server/account.js'
 import type { Server } from '../server/context.js'
 import { MINUTE } from '../server/durations.js'
@@ -17,8 +14,6 @@ import { createRescue, RESCUE_LIFETIME } from '../server/login.js'
 import { openServer } from '../server/open.js'
 import { loadSite } from '../site/load.js'
 import type { Result } from './run.js'
-
-const ENV_FILE = '.env'
 
 export async function adminLogin(
   argv: readonly string[],
@@ -34,8 +29,6 @@ export async function adminLogin(
         'Il manque l’adresse du compte : basalte admin:login --user <email>\n',
     }
   }
-
-  loadEnvironment(cwd)
 
   const site = await loadSite(cwd)
   const server = openServer(cwd, site)
@@ -94,10 +87,4 @@ function optionValue(
   const index = argv.indexOf(name)
 
   return index === -1 ? undefined : argv[index + 1]
-}
-
-function loadEnvironment(cwd: string): void {
-  const file = path.join(cwd, ENV_FILE)
-
-  if (existsSync(file)) process.loadEnvFile(file)
 }

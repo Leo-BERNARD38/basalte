@@ -5,6 +5,10 @@ coverage/
 .githooks/
 package-lock.json
 
+# Les contenus sont écrits par le panel, pas à la main : les réaligner ici
+# ferait diverger le dépôt du socle de ce qu'un dépôt client contient.
+examples/demo/content/
+
 # La documentation est écrite à la main, calibrée sur 79 colonnes. Prettier y
 # aligne les tableaux cellule par cellule, ce qui allonge les lignes bien
 # au-delà et rend l'édition pénible. Ses fins de ligne sont tenues par

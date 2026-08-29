@@ -1,0 +1,135 @@
+/* Le panel n’emprunte pas les tokens du site : il n’est pas le site, et la DA
+   d’un client ne doit pas décider de la lisibilité de son outil de travail.
+   Ce qui suit complète Mantine, il ne le remplace pas. */
+
+.basalte-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.basalte-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-body);
+}
+
+.basalte-main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 6rem;
+}
+
+.basalte-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-body);
+}
+
+.basalte-edit {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 60rem) {
+  .basalte-edit {
+    grid-template-columns: 15rem 1fr;
+  }
+
+  .basalte-pages {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+  }
+}
+
+.basalte-signin {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.basalte-handle {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: transparent;
+  color: var(--mantine-color-gray-6);
+  cursor: grab;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.basalte-handle:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: 2px;
+}
+
+.basalte-preview {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--mantine-color-gray-4);
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-gray-7);
+  font-size: 0.875rem;
+}
+
+.basalte-preview :where(p) {
+  margin: 0 0 0.5rem;
+}
+
+.basalte-tile {
+  display: block;
+  width: 100%;
+  padding: 0.375rem;
+  border: 2px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  text-align: left;
+}
+
+.basalte-tile:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: 2px;
+}
+
+.basalte-tile-selected {
+  border-color: var(--mantine-color-blue-6);
+}
+
+.basalte-focal {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.basalte-focal img {
+  display: block;
+  max-width: 100%;
+  max-height: 18rem;
+  border-radius: var(--mantine-radius-sm);
+  cursor: crosshair;
+}
+
+.basalte-focal span {
+  position: absolute;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin: -0.4375rem 0 0 -0.4375rem;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: var(--mantine-color-blue-6);
+  pointer-events: none;
+}

@@ -1,12 +1,19 @@
 // La résolution d’une clé de média vers ce qu’un composant met dans un `img` :
 // les largeurs produites à l’ingestion deviennent un `srcset`, et le point
 // focal une `object-position`.
+//
+// Ce fichier ne touche ni au disque ni à sharp : le panel s’en sert dans le
+// navigateur, où rien de `node:` n’a sa place.
 
 import { pick } from '../fields/translate.js'
-import { fileName } from './ingest.js'
 import type { MediaManifest } from './manifest.js'
 
 export const MEDIA_URL = '/media'
+
+/** Le nom d’une dérivée : l’empreinte, la largeur, et le format produit. */
+export function fileName(key: string, width: number): string {
+  return `${key}-${width}.webp`
+}
 
 export type ResolvedImage = {
   readonly src: string

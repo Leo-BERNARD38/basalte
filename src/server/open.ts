@@ -6,6 +6,9 @@
 // de connexion se déroule entièrement en local, le code s’affiche dans le
 // terminal, et rien ne part sur le réseau.
 
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+
 import type { Site } from '../site/define.js'
 import { createServer, type Server } from './context.js'
 import { databasePath, openDatabase } from './database.js'
@@ -19,17 +22,27 @@ import {
 } from './email/provider.js'
 
 const LOCAL = 'En attendant, les emails s’affichent dans le terminal.'
+const ENV_FILE = '.env'
 
 export function openServer(
   root: string,
   site: Site,
   environment: Environment = process.env,
 ): Server {
+  loadEnvironment(root)
+
   return createServer({
     database: openDatabase(databasePath(root)),
     site: { name: site.name, origin: `https://${site.domain}` },
     email: authProvider(site, environment),
   })
+}
+
+/** Charge le `.env` du dépôt s’il existe ; il n’écrase aucune variable posée. */
+export function loadEnvironment(root: string): void {
+  const file = path.join(root, ENV_FILE)
+
+  if (existsSync(file)) process.loadEnvFile(file)
 }
 
 export function authProvider(

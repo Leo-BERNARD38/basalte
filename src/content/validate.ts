@@ -5,7 +5,11 @@
 // n’empêche aucune publication (D18).
 
 import type { BlockRegistry } from '../blocks/define.js'
-import { translationProgress, type Progress } from '../fields/progress.js'
+import {
+  totalProgress,
+  translationProgress,
+  type Progress,
+} from '../fields/progress.js'
 import { toZod } from '../fields/schema.js'
 import { walkValues } from '../fields/walk.js'
 import type { Fields } from '../fields/types.js'
@@ -127,16 +131,17 @@ export function validatePage(input: ValidateInput): PageValidation {
     })
   }
 
-  for (const language of languages.draft) {
-    const total = sum(progress, language.code, (entry) => entry.total)
-    const filled = sum(progress, language.code, (entry) => entry.filled)
+  const totals = totalProgress(progress)
 
-    if (total > 0 && filled < total) {
+  for (const language of languages.draft) {
+    const entry = totals.find((item) => item.language === language.code)
+
+    if (entry !== undefined && entry.total > 0 && entry.filled < entry.total) {
       issues.push({
         severity: 'warning',
         page: name,
         language: language.code,
-        message: `${languageName(language.code)} en préparation : ${filled} champs traduits sur ${total}`,
+        message: `${languageName(language.code)} en préparation : ${entry.filled} champs traduits sur ${entry.total}`,
       })
     }
   }
@@ -238,16 +243,6 @@ function media(
       }
     }
   })
-}
-
-function sum(
-  progress: readonly Progress[],
-  language: string,
-  read: (entry: Progress) => number,
-): number {
-  return progress
-    .filter((entry) => entry.language === language)
-    .reduce((total, entry) => total + read(entry), 0)
 }
 
 function label(registry: BlockRegistry, type: string): string {

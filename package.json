@@ -2,7 +2,7 @@
   "name": "@leobernard/basalte",
   "version": "0.1.0",
   "private": true,
-  "description": "Socle technique pour landing pages éditables par leurs propriétaires",
+  "description": "Socle technique pour landing pages \u00e9ditables par leurs propri\u00e9taires",
   "license": "UNLICENSED",
   "author": "Leo BERNARD",
   "repository": {
@@ -25,6 +25,10 @@
       "types": "./dist/astro/index.d.ts",
       "import": "./dist/astro/index.js"
     },
+    "./admin": {
+      "types": "./dist/admin/Panel.d.ts",
+      "import": "./dist/admin/Panel.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -34,6 +38,7 @@
     "build": "node scripts/build.mjs",
     "demo:dev": "node scripts/build.mjs && astro dev --root examples/demo",
     "demo:build": "node scripts/build.mjs && astro build --root examples/demo",
+    "demo:panel": "node scripts/build.mjs && node scripts/build-panel.mjs",
     "demo:check": "node scripts/build.mjs && astro check --root examples/demo",
     "prepare": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",

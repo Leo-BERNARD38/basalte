@@ -13,6 +13,15 @@ import type { Server } from './context.js'
 import { clearCookie, COOKIES, readCookie, setCookie } from './cookies.js'
 import { forgetDevices, listDevices, TRUST } from './device.js'
 import { SECOND } from './durations.js'
+import {
+  badRequest,
+  guardWrite,
+  json,
+  originOf,
+  parseBody,
+  refuseAnonymous,
+  refuseMethod,
+} from './http.js'
 import { OUTCOME_LABELS, record, recentEntries } from './journal.js'
 import {
   CODE_LIFETIME,
@@ -34,8 +43,6 @@ export const AUTH_PREFIX = '/api/auth/'
 export const RESCUE_PATH = '/admin/rescue'
 export const PANEL_PATH = '/admin'
 export const JOURNAL_LIMIT = 20
-
-const AGENT_LENGTH = 200
 
 const SignIn = z.object({
   email: z.string().min(1).max(320),
@@ -115,54 +122,12 @@ export function authenticate(
     : accountById(server.database, session.accountId)
 }
 
-export function originOf(request: Request): Origin {
-  return {
-    ip: clientAddress(request),
-    agent: (request.headers.get('user-agent') ?? '').slice(0, AGENT_LENGTH),
-  }
-}
-
-// Caddy ajoute l’adresse du visiteur à la fin de `X-Forwarded-For` : c’est
-// donc la dernière entrée qui vient du proxy, et les précédentes qui viennent
-// du client.
-function clientAddress(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-
-  if (forwarded === null) return ''
-
-  return forwarded.split(',').at(-1)?.trim() ?? ''
-}
-
-function guardWrite(request: Request): Response | undefined {
-  const type = request.headers.get('content-type') ?? ''
-
-  if (!type.startsWith('application/json')) {
-    return json({ ok: false, message: 'Corps de requête inattendu.' }, 415)
-  }
-
-  const declared = request.headers.get('origin')
-
-  if (declared === null || !sameHost(declared, request.url)) {
-    return json({ ok: false, message: 'Requête refusée.' }, 403)
-  }
-
-  return undefined
-}
-
-function sameHost(declared: string, target: string): boolean {
-  try {
-    return new URL(declared).host === new URL(target).host
-  } catch {
-    return false
-  }
-}
-
 async function startSignIn(
   server: Server,
   request: Request,
   origin: Origin,
 ): Promise<Response> {
-  const body = await parse(request, SignIn)
+  const body = await parseBody(request, SignIn)
 
   if (body === undefined) return badRequest()
 
@@ -209,7 +174,7 @@ async function finishSignIn(
   request: Request,
   origin: Origin,
 ): Promise<Response> {
-  const body = await parse(request, Code)
+  const body = await parseBody(request, Code)
 
   if (body === undefined) return badRequest()
 
@@ -287,7 +252,7 @@ function signOut(server: Server, request: Request, origin: Origin): Response {
 function describeSession(server: Server, request: Request): Response {
   const account = authenticate(server, request)
 
-  if (account === undefined) return json({ ok: false, signedIn: false }, 401)
+  if (account === undefined) return refuseAnonymous()
 
   const now = server.now()
 
@@ -319,9 +284,9 @@ async function updatePassword(
 ): Promise<Response> {
   const account = authenticate(server, request)
 
-  if (account === undefined) return json({ ok: false, signedIn: false }, 401)
+  if (account === undefined) return refuseAnonymous()
 
-  const body = await parse(request, Password)
+  const body = await parseBody(request, Password)
 
   if (body === undefined) return badRequest()
 
@@ -359,7 +324,7 @@ async function updatePassword(
 function forget(server: Server, request: Request, origin: Origin): Response {
   const account = authenticate(server, request)
 
-  if (account === undefined) return json({ ok: false, signedIn: false }, 401)
+  if (account === undefined) return refuseAnonymous()
 
   const now = server.now()
   const forgotten = forgetDevices(server.database, account.id, now)
@@ -406,40 +371,4 @@ function session(token: string, expiresAt: number, now: number): string {
   return setCookie(COOKIES.session, token, {
     maxAge: (expiresAt - now) / SECOND,
   })
-}
-
-async function parse<T>(
-  request: Request,
-  schema: z.ZodType<T>,
-): Promise<T | undefined> {
-  try {
-    const parsed = schema.safeParse(await request.json())
-
-    return parsed.success ? parsed.data : undefined
-  } catch {
-    return undefined
-  }
-}
-
-function badRequest(): Response {
-  return json({ ok: false, message: 'Formulaire incomplet.' }, 400)
-}
-
-function refuseMethod(): Response {
-  return json({ ok: false, message: 'Méthode refusée.' }, 405)
-}
-
-function json(
-  body: unknown,
-  status = 200,
-  cookies: readonly string[] = [],
-): Response {
-  const headers: [string, string][] = [
-    ['content-type', 'application/json; charset=utf-8'],
-    ['cache-control', 'no-store'],
-  ]
-
-  for (const cookie of cookies) headers.push(['set-cookie', cookie])
-
-  return new Response(JSON.stringify(body), { status, headers })
 }

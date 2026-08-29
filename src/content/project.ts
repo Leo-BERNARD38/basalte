@@ -24,22 +24,43 @@ export type RenderedPage = {
   readonly page: Page
 }
 
-export type Project = {
+/**
+ * Tout ce qui décrit un dépôt, sans son contenu : de quoi valider une page.
+ *
+ * Les descripteurs de champs étant des données pures, ce jeu se sérialise —
+ * c’est ce qui permet au panel de le recevoir tout fait plutôt que de
+ * reparcourir les blocs à chaque requête.
+ */
+export type Schemas = {
   readonly site: Site
-  readonly sources: readonly BlockSource[]
   readonly registry: BlockRegistry
   readonly media: MediaManifest
+}
+
+export type Content = {
   readonly pages: readonly RenderedPage[]
   readonly issues: readonly ContentIssue[]
 }
 
-export async function readProject(root: string): Promise<Project> {
-  const site = await loadSite(root)
-  const sources = await findBlocks(blockRoots(root))
-  const registry = await loadRegistry(sources)
-  const media = await readManifest(root)
-  const files = await readContent(root)
+export type Project = Schemas &
+  Content & {
+    readonly sources: readonly BlockSource[]
+  }
 
+export async function readSchemas(root: string): Promise<Schemas> {
+  return {
+    site: await loadSite(root),
+    registry: await loadRegistry(await findBlocks(blockRoots(root))),
+    media: await readManifest(root),
+  }
+}
+
+/** Les pages du dépôt, validées contre les schémas donnés. */
+export async function readPages(
+  root: string,
+  schemas: Schemas,
+): Promise<Content> {
+  const files = await readContent(root)
   const pages: RenderedPage[] = []
   const issues: ContentIssue[] = []
 
@@ -47,9 +68,9 @@ export async function readProject(root: string): Promise<Project> {
     const result = validatePage({
       name: file.name,
       source: file.source,
-      registry,
-      languages: site.languages,
-      media,
+      registry: schemas.registry,
+      languages: schemas.site.languages,
+      media: schemas.media,
     })
 
     issues.push(...result.issues)
@@ -59,7 +80,19 @@ export async function readProject(root: string): Promise<Project> {
     }
   }
 
-  return { site, sources, registry, media, pages, issues }
+  return { pages, issues }
+}
+
+export async function readProject(root: string): Promise<Project> {
+  const sources = await findBlocks(blockRoots(root))
+
+  const schemas: Schemas = {
+    site: await loadSite(root),
+    registry: await loadRegistry(sources),
+    media: await readManifest(root),
+  }
+
+  return { ...schemas, sources, ...(await readPages(root, schemas)) }
 }
 
 export function errorsOf(

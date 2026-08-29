@@ -1,7 +1,8 @@
 import sharp from 'sharp'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { fileName, ingest, isDerivative, MAX_BYTES } from './ingest.js'
+import { ingest, isDerivative, MAX_BYTES } from './ingest.js'
+import { fileName } from './resolve.js'
 
 async function photo(
   width: number,

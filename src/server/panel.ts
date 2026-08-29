@@ -1,0 +1,242 @@
+// Les adresses du panel, au-delà de l’authentification. Elles suivent la même
+// forme que celle-ci — `Request` vers `Response`, rien du serveur qui les
+// monte (D51) — et se déroulent donc entièrement dans les tests.
+//
+// La charge utile de démarrage est ce qui rend le panel piloté par le DSL : le
+// navigateur reçoit la description des champs, jamais une liste d’écrans
+// écrite à la main. Ajouter un type de champ au socle ne demande rien ici.
+
+import { z } from 'zod'
+
+import { META_FIELDS } from '../content/page.js'
+import { readPages } from '../content/project.js'
+import { languageName, renderIssue } from '../content/report.js'
+import { describeFields, type FieldDescription } from '../fields/describe.js'
+import type { Panel } from './context.js'
+import { commitFiles, isRepositoryRoot } from './git.js'
+import { authenticate } from './handlers.js'
+import {
+  badRequest,
+  guardOrigin,
+  guardWrite,
+  json,
+  refuseAnonymous,
+  refuseMethod,
+} from './http.js'
+import {
+  deleteMedia,
+  describeMedia,
+  updateMedia,
+  uploadMedia,
+  type MediaSummary,
+} from './library.js'
+import { readDrafts, savePage, type Commit, type DraftPage } from './pages.js'
+
+export const PANEL_API = '/api/'
+
+const NAME = /^[a-z0-9][a-z0-9-]*$/
+
+const Block = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+  hidden: z.record(z.string(), z.boolean()).default({}),
+  props: z.record(z.string(), z.unknown()).default({}),
+})
+
+const Draft = z.object({
+  meta: z.record(z.string(), z.unknown()).default({}),
+  blocks: z.array(Block).default([]),
+})
+
+export type PanelLanguage = {
+  readonly code: string
+  readonly label: string
+  readonly default: boolean
+  readonly draft: boolean
+}
+
+export type PanelBlockType = {
+  readonly name: string
+  readonly label: string
+  readonly help?: string
+  readonly fields: readonly FieldDescription[]
+}
+
+export type PanelPayload = {
+  readonly ok: true
+  readonly account: string
+  readonly site: {
+    readonly name: string
+    readonly languages: readonly PanelLanguage[]
+  }
+  readonly meta: readonly FieldDescription[]
+  readonly library: readonly PanelBlockType[]
+  readonly pages: readonly DraftPage[]
+  readonly media: readonly MediaSummary[]
+  readonly problems: readonly {
+    readonly severity: 'error' | 'warning'
+    readonly message: string
+  }[]
+  readonly tracked: boolean
+}
+
+/**
+ * Traite une adresse du panel, ou renvoie `undefined` si elle ne lui
+ * appartient pas. L’authentification est passée avant d’arriver ici.
+ */
+export async function handlePanel(
+  panel: Panel,
+  request: Request,
+): Promise<Response | undefined> {
+  const url = new URL(request.url)
+
+  if (!url.pathname.startsWith(PANEL_API)) return undefined
+
+  const route = url.pathname.slice(PANEL_API.length).split('/')
+  const account = authenticate(panel.server, request)
+
+  if (account === undefined) return refuseAnonymous()
+
+  const commit = commitAs(panel, account.email)
+
+  if (route[0] === 'panel' && route.length === 1) {
+    return request.method === 'GET'
+      ? describePanel(panel, account.email)
+      : refuseMethod()
+  }
+
+  if (route[0] === 'pages' && route.length === 2) {
+    if (request.method !== 'PUT') return refuseMethod()
+
+    const guard = guardWrite(request)
+
+    return guard ?? save(panel, route[1] ?? '', request, commit)
+  }
+
+  if (route[0] === 'media' && route.length === 1) {
+    if (request.method !== 'POST') return refuseMethod()
+
+    const guard = guardOrigin(request)
+
+    if (guard !== undefined) return guard
+
+    return uploadMedia(panel, request, await panel.schemas(), commit)
+  }
+
+  if (route[0] === 'media' && route.length === 2) {
+    return media(panel, request, route[1] ?? '', commit)
+  }
+
+  return json({ ok: false, message: 'Adresse inconnue.' }, 404)
+}
+
+function commitAs(panel: Panel, email: string): Commit {
+  return (files, message) => commitFiles(panel.root, files, message, email)
+}
+
+async function describePanel(panel: Panel, account: string): Promise<Response> {
+  const schemas = await panel.schemas()
+  const pages = await readDrafts(panel.root, schemas)
+  const { issues } = await readPages(panel.root, schemas)
+
+  const payload: PanelPayload = {
+    ok: true,
+    account,
+    site: {
+      name: schemas.site.name,
+      languages: schemas.site.languages.all.map((language) => ({
+        code: language.code,
+        label: languageName(language.code),
+        default: language.default,
+        draft: language.draft,
+      })),
+    },
+    meta: describeFields(META_FIELDS),
+    library: Object.values(schemas.registry).map((definition) => ({
+      name: definition.name,
+      label: definition.label,
+      ...(definition.help === undefined ? {} : { help: definition.help }),
+      fields: describeFields(definition.fields),
+    })),
+    pages,
+    media: describeMedia(schemas.media, pages, schemas),
+    problems: issues.map((issue) => ({
+      severity: issue.severity,
+      message: renderIssue(issue),
+    })),
+    tracked: await isRepositoryRoot(panel.root),
+  }
+
+  return json(payload)
+}
+
+async function save(
+  panel: Panel,
+  name: string,
+  request: Request,
+  commit: Commit,
+): Promise<Response> {
+  if (!NAME.test(name)) {
+    return json({ ok: false, message: 'Page inconnue.' }, 404)
+  }
+
+  let body
+
+  try {
+    body = Draft.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const schemas = await panel.schemas()
+  const known = await readDrafts(panel.root, schemas)
+
+  if (!known.some((page) => page.name === name)) {
+    return json({ ok: false, message: 'Page inconnue.' }, 404)
+  }
+
+  const result = await savePage(panel.root, schemas, name, body.data, commit)
+
+  if (result.kind === 'refused') {
+    return json(
+      {
+        ok: false,
+        message: 'Il reste quelque chose à corriger.',
+        problems: result.problems,
+      },
+      422,
+    )
+  }
+
+  return json({ ok: true, page: result.page, commit: result.commit })
+}
+
+async function media(
+  panel: Panel,
+  request: Request,
+  key: string,
+  commit: Commit,
+): Promise<Response> {
+  if (request.method === 'PATCH') {
+    const guard = guardWrite(request)
+
+    if (guard !== undefined) return guard
+
+    return updateMedia(panel, request, key, await panel.schemas(), commit)
+  }
+
+  if (request.method === 'DELETE') {
+    const guard = guardOrigin(request)
+
+    if (guard !== undefined) return guard
+
+    const schemas = await panel.schemas()
+    const pages = await readDrafts(panel.root, schemas)
+
+    return deleteMedia(panel, key, pages, schemas, commit)
+  }
+
+  return refuseMethod()
+}

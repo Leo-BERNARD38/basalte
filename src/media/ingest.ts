@@ -15,6 +15,7 @@ import sharp, { type Metadata } from 'sharp'
 
 import type { Translated } from '../fields/types.js'
 import type { MediaEntry } from './manifest.js'
+import { fileName } from './resolve.js'
 
 export const MEDIA_DIR = path.join('public', 'media')
 export const MAX_BYTES = 10 * 1024 * 1024
@@ -38,10 +39,6 @@ export type Ingested = {
 
 export function isDerivative(name: string): boolean {
   return DERIVATIVE.test(name)
-}
-
-export function fileName(key: string, width: number): string {
-  return `${key}-${width}.webp`
 }
 
 export async function ingest(

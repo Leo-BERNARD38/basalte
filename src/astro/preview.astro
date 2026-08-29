@@ -1,0 +1,41 @@
+---
+import { blocks } from 'virtual:basalte'
+
+import { resolveImage } from '../media/resolve.js'
+import Layout from './Layout.astro'
+import { resolvePreview } from './preview.js'
+import { panelContext } from './server.js'
+
+export const prerender = false
+
+const view = await resolvePreview(
+  panelContext(),
+  Astro.request,
+  Astro.params.slug ?? '',
+)
+
+if (view.kind === 'stop') return view.response
+
+const { entry, language, schemas } = view
+
+const sections = entry.page.blocks.filter(
+  (section) => section.hidden[language] !== true,
+)
+
+const image = (key: string, sizes?: string) =>
+  resolveImage(schemas.media, key, language, sizes)
+---
+
+<Layout
+  site={schemas.site}
+  meta={entry.page.meta}
+  language={language}
+  route={entry.route}
+>
+  {
+    sections.map((section) => {
+      const Block = blocks[section.type]
+      return <Block props={section.props} language={language} image={image} />
+    })
+  }
+</Layout>

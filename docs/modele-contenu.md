@@ -44,7 +44,9 @@
   (D41). Ce que le client voit n'en dépend pas : le panel n'affiche un
   sélecteur que s'il y a plusieurs langues.
 - **Un champ absent vaut vide** (D43). Un contenu écrit à la main n'a donc pas
-  à porter chaque clé, et le rendu n'a jamais à tester une absence.
+  à porter chaque clé, et le rendu n'a jamais à tester une absence. Le panel,
+  lui, réécrit toutes les clés déclarées (D61) : le diff d'un enregistrement ne
+  dépend pas de ce qui avait été chargé.
 
 ## Un bloc est un dossier, deux fichiers
 
@@ -180,4 +182,7 @@ et en pré-commit. Il détecte :
 - une valeur de style en dur dans un bloc (`design.md`)
 
 Dans une langue **en préparation**, une traduction manquante avertit sans
-bloquer : le panel affiche l'avancement.
+bloquer : le panel affiche l'avancement, page par page.
+
+Les mêmes règles s'appliquent à l'enregistrement depuis le panel, qui refuse un
+contenu invalide (D60) et rend les mêmes phrases.

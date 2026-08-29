@@ -112,14 +112,32 @@ expiration compris.
 
 ---
 
-## Phase 3 — Éditer
+## Phase 3 — Éditer  ·  faite
+
+**Ce qu'elle a retenu.** Le même projet Astro produit le site et le panel, en
+deux modes de durées de vie opposées (D55). Le panel reçoit les schémas
+embarqués dans le module généré plutôt que de reparcourir les blocs (D56) —
+`import.meta.url` ne désigne plus le dossier des blocs une fois le serveur
+groupé. Aucune dépendance nouvelle (D57). L'état est le document entier,
+recomposé de bas en haut (D58), et une table unique `kind → composant` porte
+tout le moteur de formulaires (D59). Un enregistrement invalide est refusé
+(D60), écrit ce que la validation a produit (D61), et ne commite que dans le
+dépôt du site (D62). Cinq pages plutôt que six (D63). Le panel sert lui-même
+les images du dépôt (D64) et emploie l'échelle de Mantine, pas les tokens du
+site (D65). Détail : D55 à D65, application dans `panel.md`.
+
+**Ce qui reste ouvert.** La barre du bas porte l'enregistrement et l'aperçu ;
+le bouton « mettre en ligne » est à la phase 4, avec ce qu'il déclenche. Le
+compilateur React ne voit le panel que parce que l'intégration retire
+`node_modules` de l'exclusion de Babel — à revérifier à chaque montée de
+`@vitejs/plugin-react`.
 
 **Pourquoi.** C'est le produit, tel que le client le voit. Tout le reste lui est
 invisible.
 
 **Ce qu'elle produit.** Le panel : formulaires générés depuis les schémas,
 enregistrement, médias, réordonnancement, `hidden`, langues en préparation,
-preview.
+aperçu.
 
 **Enjeux.** C'est la phase où la complexité s'accumule sans qu'on la voie. Deux
 dettes guettent. La première : un moteur de formulaires qui traite les types de
@@ -129,9 +147,6 @@ seconde : une interface qui gagne un écran à chaque besoin. La contrainte de s
 pages existe pour forcer l'arbitrage, pas pour l'interdire.
 
 **Déjà tranché.** Invariant 6 · D3, D10, D25 · `panel.md`.
-
-**À décider dans la phase.** La couche de composants · la forme de l'état · le
-dialogue panel ↔ serveur · la médiathèque · le découpage réel des écrans.
 
 **Finie quand.** Un client édite sa page de bout en bout sans toi.
 
@@ -221,7 +236,7 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Prochaine phase : la 3, éditer.**
+**Prochaine phase : la 4, publier.**
 
 ## Tests
 
@@ -236,6 +251,12 @@ mémoire, une horloge qu'on avance à la main, un canal email qui retient au lie
 d'envoyer (`src/server/auth.fixture.ts`). C'est ce qui rend éprouvables les
 expirations, les rejeux et les verrouillages, qui sinon demanderaient d'attendre
 sept jours.
+
+Le **panel** s'y est ajouté par sa partie serveur, testable de la même façon :
+un dépôt de site jetable, une session ouverte, et des requêtes appelées
+directement (`src/server/panel.fixture.ts`). Son interface React, elle, se
+vérifie dans un vrai navigateur — c'est là que se voient les cookies
+`HttpOnly`, le réordonnancement au clavier et l'absence de script sur l'aperçu.
 
 Le reste est couvert par `basalte check` sur le site de démonstration et par le
 diff du HTML produit : sur un correctif, un diff vide prouve l'absence de
@@ -277,5 +298,7 @@ Ceux qui ne relèvent d'aucune phase en particulier.
 
 | Sujet | Question |
 |---|---|
-| Portée de la règle des tokens | `basalte check` refuse les valeurs de style en dur dans un bloc. Faut-il l'étendre aux composants du panel ? |
 | Purge des données personnelles | Le journal, les leads et les logs Caddy partagent une durée. Qui la déclenche sur la machine — le panel, un cron du conteneur ? Phase 5 |
+
+La portée de la règle des tokens est tranchée : elle s'arrête aux blocs. Le
+panel emploie l'échelle de Mantine (D65).

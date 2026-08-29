@@ -52,3 +52,21 @@ function text(translated: unknown, language: string): string {
 
   return typeof value === 'string' ? value.trim() : ''
 }
+
+/** Regroupe par langue plusieurs avancements partiels — une page, ses sections. */
+export function totalProgress(
+  entries: readonly Progress[],
+): readonly Progress[] {
+  const totals = new Map<string, { filled: number; total: number }>()
+
+  for (const entry of entries) {
+    const current = totals.get(entry.language) ?? { filled: 0, total: 0 }
+
+    totals.set(entry.language, {
+      filled: current.filled + entry.filled,
+      total: current.total + entry.total,
+    })
+  }
+
+  return [...totals].map(([language, counts]) => ({ language, ...counts }))
+}

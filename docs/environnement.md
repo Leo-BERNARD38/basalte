@@ -38,9 +38,10 @@ npm run setup
 | `npm run test:watch` | Vitest, en continu |
 | `npm run format` | applique Prettier |
 | `npm run setup` | branche `.githooks/` |
-| `npm run demo:dev` | sert le site de démonstration |
-| `npm run demo:build` | construit le site de démonstration |
-| `npm run demo:check` | typecheck des `.astro`, via `@astrojs/check` |
+| `npm run demo:dev` | sert le site de démonstration, panel compris |
+| `npm run demo:build` | construit le site de démonstration, statique |
+| `npm run demo:panel` | construit son panel : sortie serveur, adaptateur Node |
+| `npm run demo:check` | typecheck des `.astro` et des `.tsx`, via `@astrojs/check` |
 
 Le site de démonstration n'a ni `package.json` ni entrée `workspaces` (D46) :
 Node résout `@leobernard/basalte` par self-reference depuis n'importe quel
@@ -105,11 +106,15 @@ n'apparaîtrait qu'à l'exécution. Ils suivent `.nvmrc`, jamais `latest`.
 `@astrojs/react` accepte une option `babel` et la passe telle quelle à
 `@vitejs/plugin-react` — vérifié dans ses types :
 `Pick<ViteReactPluginOptions, 'include' | 'exclude' | 'babel'>`. Le compilateur
-s'active donc sans détour, dans l'intégration du socle :
+s'active donc sans détour, dans l'intégration du socle.
 
-```js
-react({ babel: { plugins: ['babel-plugin-react-compiler'] } })
-```
+Une précision qui ne se devine pas : `@vitejs/plugin-react` **exclut
+`node_modules` par défaut** (`defaultExcludeRE = /\/node_modules\//`). Or le
+panel y vit, puisqu'il arrive dans le paquet. Sans réglage, le compilateur ne
+verrait donc jamais le seul React du projet. L'intégration remplace l'exclusion
+par « tout `node_modules` sauf `@leobernard/basalte` », et retire le paquet de
+la pré-optimisation de Vite pour que le développement se comporte comme le
+build. À revérifier à chaque montée de `@vitejs/plugin-react`.
 
 `react-compiler-runtime` n'est pas installé : il ne sert qu'à React 17 et 18,
 dont les APIs manquantes sont natives à partir de 19.
@@ -292,6 +297,11 @@ Deux réglages du `tsconfig.json` en découlent, et ils ne sont pas cosmétiques
   — la syntaxe que le stripping ne sait pas effacer. Sans lui, rien n'empêche le
   DSL d'exposer une construction qu'un `schema.ts` de dépôt client ne pourrait
   pas utiliser.
+
+Le panel ajoute `jsx: react-jsx` et la bibliothèque `dom` : c'est ce qui permet
+au même `tsc` de compiler les `.tsx` du panel et le reste du socle. Les deux
+familles de types coexistent sans conflit — vérifié, `@types/node` 24 et
+`lib.dom` ne se disputent ni `Request`, ni `Response`, ni `fetch`.
 
 ## `scripts/`
 

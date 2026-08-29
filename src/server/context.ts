@@ -7,6 +7,7 @@
 
 import type { DatabaseSync } from 'node:sqlite'
 
+import type { Schemas } from '../content/project.js'
 import type { EmailProvider } from './email/provider.js'
 
 export type Server = {
@@ -14,6 +15,19 @@ export type Server = {
   readonly site: SiteIdentity
   readonly email: EmailProvider
   readonly now: () => number
+}
+
+// Le panel écrit sur le disque : il lui faut, en plus du serveur, la racine du
+// dépôt du site. Il n’écrit jamais ailleurs que dans `content/` et
+// `public/media/`.
+//
+// Les schémas sont fournis plutôt que cherchés : ils sont fixés au démarrage —
+// seul le manifeste des médias change sous les pas du panel, et c’est lui qui
+// le change.
+export type Panel = {
+  readonly server: Server
+  readonly root: string
+  schemas(): Promise<Schemas>
 }
 
 export type SiteIdentity = {

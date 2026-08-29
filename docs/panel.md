@@ -9,32 +9,60 @@ supprime le problème, et `client:only` évite tout souci d'hydratation. Le pane
 n'a besoin ni de SEO ni de rendu serveur, puisqu'il est derrière une
 authentification.
 
-Mantine fournit l'essentiel : `@mantine/form` pour l'état et la validation,
-`@mantine/dropzone` pour le téléversement, des entrées correspondant une à une
-aux types de champs, `@mantine/notifications` et `@mantine/modals`. Le
-réordonnancement des sections utilise dnd-kit, que Mantine recommande
-explicitement.
+Il n'ajoute **aucune dépendance** (D57) : `@mantine/core` et `@mantine/hooks`
+pour les composants, dnd-kit pour le réordonnancement. `@mantine/form`,
+`@mantine/notifications`, `@mantine/modals` et `@mantine/dropzone` ont été
+écartés — quatre paquets de plus sur chaque VPS pour ce que `@mantine/core`
+porte déjà.
 
-Reste à écrire : le moteur qui traduit un schéma en formulaire, et la partie
-serveur.
+### Deux modes, deux durées de vie
+
+Le même projet Astro produit le site et le panel, selon le mode (D55) :
+
+| Commande | Ce qui sort | Quand |
+|---|---|---|
+| `astro dev` | le site *et* le panel | développement |
+| `astro build` | le site public, statique | à chaque mise en ligne |
+| `BASALTE_MODE=panel astro build` | le panel, sortie serveur, adaptateur Node | à un déploiement |
+
+C'est ce qui évite qu'un processus se reconstruise lui-même : le panel n'est
+rebâti qu'au déploiement, tandis que le site l'est à chaque publication.
+
+En mode panel, une erreur de contenu **n'arrête pas** la construction : c'est le
+panel qui sert à la corriger.
+
+### Le moteur de formulaires
+
+Le navigateur reçoit la **description des champs**, jamais une liste d'écrans
+écrite à la main. Une table unique fait correspondre un `kind` du DSL à un
+composant (D59) : ajouter un type à `f.*` demande un composant et une ligne,
+jamais une retouche des écrans.
+
+L'état d'édition est le document entier, recomposé de bas en haut — chaque
+champ rend une nouvelle valeur à son parent (D58). Il n'y a donc pas de
+validation dans le panel : les contraintes viennent des descripteurs (`max`
+devient un `maxLength`), et le verdict vient du serveur.
+
+Les schémas arrivent embarqués dans le module généré au démarrage plutôt que
+reparcourus à chaque requête (D56) — une fois le serveur groupé,
+`import.meta.url` ne désigne plus le dossier des blocs du socle.
 
 ## Structure de l'interface
 
 Le panel aura beaucoup de fonctions. Elles ne doivent jamais être visibles en
 même temps.
 
-**Six pages, et pas davantage.** *Hypothèse de départ — la phase 3 confirme ou
-remplace ce découpage. Ce qui ne bouge pas : leur nombre reste petit, et la
-hiérarchie suit la fréquence d'usage.*
+**Cinq pages, et pas davantage.** L'hypothèse de départ en comptait six ;
+« Réglages » a été supprimée (D63) : langues et informations du site vivent dans
+`site.config.ts`, versionné, que le client n'édite pas.
 
-| Page | Contenu |
-|---|---|
-| Édition | les pages du site et leurs sections — l'écran par défaut |
-| Médias | la médiathèque |
-| Messages | les leads du formulaire de contact |
-| Statistiques | le rapport d'audience |
-| Réglages | langues, informations du site |
-| Compte | mot de passe, appareils, journal de connexion |
+| Page | Contenu | Depuis |
+|---|---|---|
+| Édition | les pages du site et leurs sections — l'écran par défaut | phase 3 |
+| Médias | la médiathèque | phase 3 |
+| Compte | mot de passe, appareils, journal de connexion | phase 3 |
+| Messages | les leads du formulaire de contact | phase 5 |
+| Statistiques | le rapport d'audience | phase 5 |
 
 Arriver à dix pages signifie que deux d'entre elles auraient dû fusionner. La
 hiérarchie suit la fréquence d'usage : le client édite chaque semaine, il
@@ -59,11 +87,15 @@ de publication, toujours à la même place à l'écran. Jamais deux boutons
 « build », ni « commit », ni « déployer ». On dit *section*, *enregistrer*,
 *mettre en ligne*. Une dizaine de mots fixés une fois et tenus partout.
 
-Mantine fournit des composants corrects, pas une hiérarchie. Une petite couche
-maison garantit que toutes les pages se ressemblent, et empêche que chaque écran
-soit redessiné un peu différemment. *Hypothèse — `PageHeader`, `Section`,
-`EmptyState`, `SaveBar` : la phase 3 la dessine depuis les écrans réels, pas
-l'inverse.*
+Mantine fournit des composants corrects, pas une hiérarchie. Dessinée depuis
+les écrans réels, la couche maison s'est révélée plus courte que prévu : le
+cadre (`Shell`), une section pliable, la grille de médias, et le moteur de
+champs. `PageHeader` et `EmptyState` n'ont pas eu lieu d'être — deux titres et
+une phrase suffisaient.
+
+Le panel emploie l'**échelle de Mantine**, jamais les tokens du site (D65) : la
+DA d'un client ne décide pas de la lisibilité de son outil de travail. La règle
+des tokens de `design.md` reste donc bornée aux blocs.
 
 ## Authentification
 
@@ -135,6 +167,41 @@ Le premier compte se crée en console : `basalte admin:login --user <email>
 --create` affiche le mot de passe généré une seule fois, puis le lien de
 connexion (D53).
 
+### Ce que la phase 3 a posé
+
+Le panel monte le flux d'authentification sans le réécrire, et lui ajoute ses
+propres adresses, de la même forme.
+
+| Adresse | Ce qu'elle fait |
+|---|---|
+| `GET /api/panel` | tout ce qu'il faut pour démarrer : site, langues, champs, bibliothèque de sections, pages, médias, ce qui est cassé |
+| `PUT /api/pages/<nom>` | valide, écrit la page, commit |
+| `POST /api/media` | téléverse une image, avec son texte alternatif |
+| `PATCH /api/media/<clé>` | texte alternatif et point focal |
+| `DELETE /api/media/<clé>` | supprime, sauf si une section l'emploie |
+| `GET /admin` | la coquille qui monte l'island |
+| `GET /admin/preview/<slug>` | l'aperçu du dépôt tel qu'il est |
+| `GET /media/<fichier>` | les images du dépôt, pas celles de la version en ligne (D64) |
+
+Les mêmes gardes que l'authentification, avec une nuance : un formulaire
+hébergé ailleurs *peut* annoncer `multipart/form-data`. Le téléversement n'est
+donc protégé que par l'origine et par `SameSite=Strict`, là où les autres
+écritures exigent en plus un corps annoncé en JSON.
+
+`GET /media/<fichier>` ne sert que les noms produits par l'ingestion —
+empreinte, largeur, WebP. Aucun autre chemin ne peut être demandé.
+
+**Le panel lit le contenu brut, et n'enregistre que du contenu valide.** Une
+page cassée doit rester ouvrable, sinon le seul écran capable de la réparer est
+celui qui refuse de s'afficher. À l'enregistrement, en revanche, un contenu
+invalide est refusé avec les messages français de `check` (D60) : chaque commit
+reste constructible.
+
+**Ce qui n'est pas dans le panel.** Le client n'ajoute ni page ni section
+(D3) : il modifie, réordonne, masque, et remplit ou vide une liste répétable.
+La barre du bas porte l'enregistrement et l'aperçu ; le bouton « mettre en
+ligne » arrive avec la phase 4.
+
 ## Médias
 
 **Rien de ce que le client envoie n'est conservé tel quel** : chaque image est
@@ -176,4 +243,11 @@ site.
 **Point focal** réglable (transformé en `object-position`) plutôt qu'un outil de
 recadrage : cela résout les visages coupés pour une fraction du travail.
 
-La suppression d'un média encore référencé est refusée.
+La suppression d'un média encore référencé est refusée : le panel affiche
+« employée par une section » à la place du bouton. `basalte check` signale
+l'inverse — une image que plus aucune section ne cite. Il ne la supprime pas :
+git ne perd rien, et l'effacer casserait un retour en arrière.
+
+Le point focal se règle en cliquant sur le sujet de l'image ; le repère montre
+où il est. Le texte alternatif est demandé **avant** l'envoi, dans chaque langue
+en ligne — c'est la seule occasion où le client a l'image sous les yeux.
