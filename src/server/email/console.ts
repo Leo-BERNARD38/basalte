@@ -15,6 +15,9 @@ export function consoleProvider(
           '',
           '─── email non envoyé (fournisseur « console ») ───',
           `À       : ${message.to}`,
+          ...(message.replyTo === undefined
+            ? []
+            : [`Réponse : ${message.replyTo}`]),
           `Objet   : ${message.subject}`,
           '',
           message.text,

@@ -75,10 +75,16 @@ export default defineSite({
 ```
 EMAIL_API_KEY=…                    la clé du fournisseur
 EMAIL_FROM=bonjour@exemple.fr      expéditeur des emails du site
+CONTACT_EMAIL=contact@exemple.fr   où arrivent les messages du formulaire
 EMAIL_ADMIN=leo@exemple.fr         où partent les erreurs
 AUTH_EMAIL_API_KEY=…               le canal des codes de connexion
 AUTH_EMAIL_FROM=connexion@exemple.fr
 ```
+
+`CONTACT_EMAIL` est l'adresse du client, `EMAIL_ADMIN` la tienne : les messages
+vont à l'un, les pannes de la machine à l'autre. Sans `CONTACT_EMAIL`, un
+message reste dans le panel et rien ne part — il n'est jamais perdu, il n'est
+simplement pas notifié (`services.md`).
 
 Les deux dernières lignes sont facultatives : sans elles, les codes de
 connexion partent par le canal du formulaire de contact, et `doctor` le
@@ -89,8 +95,8 @@ Aucune variable ne porte de secret de session : les jetons sont tirés au
 hasard et stockés hachés dans `data/basalte.db`, il n'y a rien à dériver d'une
 clé.
 
-`init` écrit ce fichier avec ses lignes vides. Reste **une clé à coller et deux
-adresses** pour un site monocanal, deux clés et trois adresses pour séparer les
+`init` écrit ce fichier avec ses lignes vides. Reste **une clé à coller et trois
+adresses** pour un site monocanal, deux clés et quatre adresses pour séparer les
 canaux : c'est toute la configuration email d'un site. `npm run doctor` dit ce
 qui manque, et prouve que ce qui est rempli fonctionne vraiment.
 

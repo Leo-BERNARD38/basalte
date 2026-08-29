@@ -1,0 +1,38 @@
+{
+  "$format": 1,
+  "meta": {
+    "title": { "fr": "Nous écrire — Atelier Démonstration", "en": "" },
+    "description": {
+      "fr": "Un formulaire servi en HTML pur : aucun script, aucun CAPTCHA, et un message qui ne se perd pas.",
+      "en": ""
+    }
+  },
+  "blocks": [
+    {
+      "id": "c1",
+      "type": "contact",
+      "props": {
+        "title": { "fr": "Nous écrire", "en": "" },
+        "intro": {
+          "fr": "Dites-nous ce que vous cherchez. Nous répondons sous deux jours ouvrés.",
+          "en": ""
+        },
+        "labels": {
+          "name": { "fr": "", "en": "" },
+          "email": { "fr": "", "en": "" },
+          "message": { "fr": "", "en": "" },
+          "submit": { "fr": "Envoyer le message", "en": "" }
+        },
+        "answers": {
+          "sent": { "fr": "", "en": "" },
+          "refused": { "fr": "", "en": "" },
+          "waiting": { "fr": "", "en": "" }
+        },
+        "consent": {
+          "fr": "Vos coordonnées servent à vous répondre, et à rien d’autre. Elles sont effacées au bout de douze mois.",
+          "en": ""
+        }
+      }
+    }
+  ]
+}

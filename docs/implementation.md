@@ -190,7 +190,27 @@ et le client lit un message qui ne l'inquiète pas.
 
 ---
 
-## Phase 5 — Servir
+## Phase 5 — Servir  ·  faite
+
+**Ce qu'elle a retenu.** Le formulaire est un formulaire HTML ordinaire, et la
+réponse arrive en fragment d'URL que `:target` révèle (D76) — le site public
+n'embarque toujours pas une ligne de JavaScript. L'anti-spam est un leurre, un
+plafond par adresse et un plafond pour le site ; le délai minimum de
+remplissage est abandonné, faute d'horloge sans script (D77). Un leurre rempli
+reçoit la réponse d'un envoi réussi (D78), l'adresse de retour est reconstruite
+depuis les pages du dépôt (D79), et le message est écrit en base **avant** tout
+envoi (D80). Le destinataire est `CONTACT_EMAIL` dans `.env` (D81), les libellés
+sont des champs qui retombent sur le français (D82), le panel purge lui-même
+(D83), et l'audience se lit dans le fichier de log courant, par la fin (D84).
+Détail : D76 à D85, application dans `services.md`.
+
+**Ce qui reste ouvert.** Rien de la phase. Le bloc `faq` — JS opt-in, JSON-LD —
+attend toujours `src/seo/`.
+
+**Ce qu'elle a trouvé en chemin.** Le panel et le site publiaient leurs fichiers
+dans le même `_astro/`, que le Caddyfile documenté envoie au site statique : le
+panel ne se serait pas chargé en production, sans la moindre erreur côté
+serveur. Les deux dossiers sont désormais distincts (D85).
 
 **Pourquoi.** Un formulaire qui perd un lead coûte plus cher que tout le reste
 du site réuni.
@@ -204,9 +224,6 @@ L'analytics par logs est, assumé, le morceau le plus approximatif du projet :
 c'est un ordre de grandeur, et il ne mérite pas trois jours.
 
 **Déjà tranché.** D4, D13, D14 · `services.md`.
-
-**À décider dans la phase.** Le stockage des leads · le réglage de l'anti-spam ·
-le format de log et son analyse.
 
 **Finie quand.** Un lead arrive par email *et* se retrouve dans le panel — même
 quand l'envoi échoue.
@@ -249,7 +266,7 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Prochaine phase : la 5, servir.**
+**Prochaine phase : la 6, livrer.**
 
 ## Tests
 
@@ -264,6 +281,13 @@ mémoire, une horloge qu'on avance à la main, un canal email qui retient au lie
 d'envoyer (`src/server/auth.fixture.ts`). C'est ce qui rend éprouvables les
 expirations, les rejeux et les verrouillages, qui sinon demanderaient d'attendre
 sept jours.
+
+Le **formulaire de contact** s'éprouve par le même banc que le panel : un envoi
+y est une requête de formulaire écrite à la main, ce qui laisse le leurre, les
+plafonds, la redirection et un envoi d'email en échec s'exercer sans navigateur.
+Ce que le bloc et l'endpoint partagent — les trois identifiants de réponse —
+tient par un test qui compare le composant au serveur, faute de pouvoir importer
+l'un dans l'autre.
 
 Le **panel** s'y est ajouté par sa partie serveur, testable de la même façon :
 un dépôt de site jetable, une session ouverte, et des requêtes appelées
@@ -290,8 +314,8 @@ choisis pour la mécanique que chacun démontre (D19).
 
 Livrés en phase 1 : `hero` (texte traduisible, image, point focal, bouton) ·
 `richtext` (Markdown restreint) · `features` (liste répétable) · `gallery`
-(plusieurs images, `srcset`). Restent à écrire avec la phase qui leur donne
-leur mécanique : `faq` (JS opt-in, JSON-LD) et `contact` (endpoint serveur).
+(plusieurs images, `srcset`). Livré en phase 5 : `contact` (endpoint serveur,
+réponse sans script). Reste `faq` — JS opt-in et JSON-LD — qui attend `src/seo/`.
 
 Le critère, lui, tient : un bloc de référence gagne sa place s'il démontre une
 mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou `stats` sont des
@@ -310,11 +334,9 @@ contenu les accueille sans réécriture.
 
 ## Points ouverts
 
-Ceux qui ne relèvent d'aucune phase en particulier.
+Aucun qui ne relève d'une phase. Le dernier — qui déclenche la purge des données
+personnelles sur la machine — est tranché : le processus du panel pour ce qui
+est en base, Caddy pour ses propres logs (D83).
 
-| Sujet | Question |
-|---|---|
-| Purge des données personnelles | Le journal, les leads et les logs Caddy partagent une durée. Qui la déclenche sur la machine — le panel, un cron du conteneur ? Phase 5 |
-
-La portée de la règle des tokens est tranchée : elle s'arrête aux blocs. Le
+La portée de la règle des tokens l'est aussi : elle s'arrête aux blocs. Le
 panel emploie l'échelle de Mantine (D65).

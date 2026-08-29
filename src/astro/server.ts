@@ -4,7 +4,7 @@
 //
 // La file de mise en ligne l’est pour la même raison, en plus forte : deux
 // files donneraient deux builds simultanés, et la place unique ne vaudrait
-// plus rien.
+// plus rien. La purge, elle, est un minuteur : un seul, posé ici.
 //
 // Les schémas, eux, viennent du module généré au démarrage : le panel ne
 // reparcourt pas les blocs. Seul le manifeste des médias est relu à chaque
@@ -12,13 +12,15 @@
 
 import { registry, root, site } from 'virtual:basalte'
 
+import { accessLogPath } from '../analytics/access.js'
 import type { Schemas } from '../content/project.js'
 import { readManifest } from '../media/manifest.js'
 import { alertMaintainer } from '../publish/alert.js'
 import { createPublisher } from '../publish/publish.js'
 import type { Panel } from '../server/context.js'
-import { adminAddress } from '../server/email/provider.js'
+import { adminAddress, contactAddress } from '../server/email/provider.js'
 import { openServer, siteProvider } from '../server/open.js'
+import { DEFAULT_MONTHS, startPurge } from '../server/purge.js'
 
 let opened: Panel | undefined
 
@@ -32,6 +34,10 @@ function open(): Panel {
   // `openServer` charge le `.env` du dépôt : rien ne doit lire l’environnement
   // avant lui.
   const server = openServer(root, site)
+  const provider = siteProvider(site, process.env)
+  const months = site.leads?.purgeAfterMonths ?? DEFAULT_MONTHS
+
+  startPurge({ database: server.database, months, now: server.now })
 
   return {
     server,
@@ -48,8 +54,14 @@ function open(): Panel {
       now: server.now,
       alert: alertMaintainer({
         to: adminAddress(process.env),
-        provider: siteProvider(site, process.env),
+        provider,
       }),
     }),
+    leads: {
+      to: contactAddress(process.env),
+      provider,
+      months,
+    },
+    accessLog: accessLogPath(process.env),
   }
 }

@@ -4,15 +4,17 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** phases 1 à 4 faites. Phase 1 — DSL de champs, moteur de blocs,
+**État :** phases 1 à 5 faites. Phase 1 — DSL de champs, moteur de blocs,
 intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
 démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
 d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
 formulaires produits depuis les schémas, enregistrement avec commit, médiathèque,
 réordonnancement, visibilité par langue, aperçu. Phase 4 — la mise en ligne :
 rebase, build en processus enfant, bascule atomique, push, file à une place, et
-un échec qui laisse le site debout. Prochaine étape : la phase 5, servir
-(`docs/implementation.md`).
+un échec qui laisse le site debout. Phase 5 — servir : formulaire de contact
+sans une ligne de JavaScript, anti-spam, messages gardés en base avant tout
+envoi, purge des données personnelles, audience lue dans les logs de Caddy.
+Prochaine étape : la phase 6, livrer (`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -59,6 +61,7 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Styles | CSS natif + custom properties |
 | Auth, sessions, leads | SQLite, par `node:sqlite` |
 | Traitement d'images | sharp |
+| Audience | analyse des logs d'accès de Caddy, aucun script |
 | Déploiement | Docker Compose + Caddy |
 | Mots de passe | Argon2id, par `@node-rs/argon2` |
 | Email | Brevo, derrière une interface agnostique |
@@ -96,7 +99,6 @@ docs/
 ```
 
 `seo/` et `migrations/` n'existent pas encore : ils arrivent avec leur phase.
-`server/` ne porte pas encore le formulaire de contact.
 
 Un `*.fixture.ts` est un banc d'essai : `tsconfig.build.json` l'écarte du
 paquet au même titre qu'un test.
@@ -200,6 +202,14 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
 - **Le build d'une mise en ligne n'écrit jamais dans `dist/`** : le panel
   construit y vit, et c'est lui que le processus exécute. Sa sortie va
   directement dans le dossier de la version (D68).
+- **Le panel range ses fichiers dans `_panel/`, le site public dans `_astro/`**
+  (D85). Le proxy sert le site depuis le disque et le panel depuis
+  l'application : un dossier commun fait chercher l'island du panel parmi les
+  fichiers du site — une page vide, sans la moindre erreur côté serveur.
+- **Le bloc `contact` n'importe rien de `src/server/`.** Les trois identifiants
+  de réponse y sont écrits en clair et un test les compare à `MARKERS` :
+  importer le module du serveur entraînerait `node:sqlite` dans le build du site
+  public, qui n'en a que faire.
 - **Une valeur lue seulement dans un `return` de frontmatter `.astro` est vue
   comme inutilisée** par `astro check`. La lire aussi dans la condition qui
   précède le `return` suffit — ce qui pousse la logique hors du template, où

@@ -27,6 +27,9 @@ export function brevoProvider(settings: EmailSettings): EmailProvider {
         body: JSON.stringify({
           sender: { name: settings.sender, email: settings.from },
           to: [{ email: message.to }],
+          ...(message.replyTo === undefined
+            ? {}
+            : { replyTo: { email: message.replyTo } }),
           subject: message.subject,
           textContent: message.text,
           htmlContent: message.html,

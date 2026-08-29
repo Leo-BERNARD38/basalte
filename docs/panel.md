@@ -64,6 +64,10 @@ même temps.
 | Messages | les leads du formulaire de contact | phase 5 |
 | Statistiques | le rapport d'audience | phase 5 |
 
+Les cinq sont là. L'onglet « Messages » porte une pastille tant qu'un message
+n'est pas lu ; ouvrir un message le marque lu, sans que le client coche quoi que
+ce soit.
+
 Arriver à dix pages signifie que deux d'entre elles auraient dû fusionner. La
 hiérarchie suit la fréquence d'usage : le client édite chaque semaine, il
 consulte ses statistiques une fois par mois.
@@ -198,6 +202,31 @@ propres adresses, de la même forme.
 Le panel revient lire la seconde toutes les secondes et demie tant que la file
 tourne : un build dure des secondes, une requête ne les attend pas
 (`publication.md`).
+
+### Ce que la phase 5 a ajouté
+
+| Adresse | Ce qu'elle fait |
+|---|---|
+| `POST /api/contact` | l'envoi du formulaire ; **la seule adresse ouverte à un visiteur anonyme** |
+| `GET /api/leads` | les messages reçus, du plus récent au plus ancien |
+| `PATCH /api/leads/<id>` | marque un message lu |
+| `DELETE /api/leads/<id>` | supprime un message, définitivement |
+| `GET /api/stats` | le rapport d'audience des trente derniers jours |
+
+`POST /api/contact` passe **avant** le reste du panel, qui refuse tout ce qui
+n'a pas de session. Elle est gardée par l'origine seule — un formulaire HTML ne
+peut pas annoncer un corps JSON — et par ses propres compteurs de débit
+(`services.md`).
+
+Ni l'adresse IP ni le navigateur du visiteur ne sortent de `GET /api/leads` :
+ils sont gardés en base pour le jour où un envoi doit se retracer, et n'ont rien
+à faire dans un écran.
+
+Les fichiers du panel sont servis depuis `/_panel/`, ceux du site public depuis
+`/_astro/` (D85). Le proxy sert le site depuis le disque et le panel depuis
+l'application : un dossier commun ferait chercher l'island du panel parmi les
+fichiers du site, et la page resterait vide sans la moindre erreur côté
+serveur.
 
 Les mêmes gardes que l'authentification, avec une nuance : un formulaire
 hébergé ailleurs *peut* annoncer `multipart/form-data`. Le téléversement n'est

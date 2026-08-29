@@ -2,10 +2,11 @@
 // attendue, ou bien un message français et, s’il y en a, la liste de ce qui
 // reste à corriger. Aucun écran n’a donc à interpréter un code HTTP.
 
+import type { AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
 import type { MediaSummary } from '../server/library.js'
 import type { DraftPage } from '../server/pages.js'
-import type { PanelPayload } from '../server/panel.js'
+import type { LeadSummary, PanelPayload } from '../server/panel.js'
 import type { Draft } from './draft.js'
 
 export type Answer<T> =
@@ -57,6 +58,26 @@ export function publishSite(): Promise<Answer<Published>> {
 
 export function readPublication(): Promise<Answer<Published>> {
   return send('GET', '/api/publish')
+}
+
+export function readLeads(): Promise<
+  Answer<{ readonly leads: readonly LeadSummary[]; readonly unread: number }>
+> {
+  return send('GET', '/api/leads')
+}
+
+export function markLeadRead(id: number): Promise<Answer<unknown>> {
+  return send('PATCH', `/api/leads/${id}`, {})
+}
+
+export function deleteLead(id: number): Promise<Answer<unknown>> {
+  return send('DELETE', `/api/leads/${id}`)
+}
+
+export function readAudience(): Promise<
+  Answer<{ readonly audience: AudienceReport }>
+> {
+  return send('GET', '/api/stats')
 }
 
 export function signIn(

@@ -1,0 +1,230 @@
+---
+// Le seul bloc qui parle au serveur. Il n’embarque pourtant aucun script : un
+// formulaire HTML ordinaire, et une réponse rendue visible par `:target`.
+//
+// Les trois identifiants de réponse sont le contrat passé avec l’endpoint —
+// `MARKERS` dans `src/server/contact.ts`, qu’un test compare à ce fichier. Ils
+// ne sont pas importés : ce module entraînerait la base SQLite dans le build du
+// site public, qui n’a rien à en faire.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language } = Astro.props
+
+// Un libellé laissé vide reprend le français : le formulaire est complet dès
+// qu’il est posé, et se traduit quand le client le décide.
+const say = (value: Record<string, string>, fallback: string): string =>
+  pick(value, language) === '' ? fallback : pick(value, language)
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+const consent = pick(props.consent, language)
+---
+
+<section class="contact">
+  <div class="contact__inner">
+    {title !== '' && <h2 class="contact__title">{title}</h2>}
+    {intro !== '' && <p class="contact__intro">{intro}</p>}
+
+    <p
+      class="contact__answer contact__answer--sent"
+      id="message-envoye"
+      role="status"
+    >
+      {
+        say(
+          props.answers.sent,
+          'Merci, votre message est bien arrivé. Nous vous répondons vite.',
+        )
+      }
+    </p>
+    <p
+      class="contact__answer contact__answer--refused"
+      id="message-refuse"
+      role="status"
+    >
+      {
+        say(
+          props.answers.refused,
+          'Le message n’a pas pu être envoyé. Vérifiez votre adresse email et réessayez.',
+        )
+      }
+    </p>
+    <p
+      class="contact__answer contact__answer--refused"
+      id="message-attente"
+      role="status"
+    >
+      {
+        say(
+          props.answers.waiting,
+          'Trop de messages envoyés depuis cette connexion. Réessayez dans quelques minutes.',
+        )
+      }
+    </p>
+
+    <form class="contact__form" method="post" action="/api/contact">
+      <input type="hidden" name="page" value={Astro.url.pathname} />
+
+      <label class="contact__field">
+        <span class="contact__label">{say(props.labels.name, 'Nom')}</span>
+        <input
+          class="contact__input"
+          type="text"
+          name="name"
+          required
+          maxlength="80"
+          autocomplete="name"
+        />
+      </label>
+
+      <label class="contact__field">
+        <span class="contact__label">
+          {say(props.labels.email, 'Adresse email')}
+        </span>
+        <input
+          class="contact__input"
+          type="email"
+          name="email"
+          required
+          maxlength="200"
+          autocomplete="email"
+        />
+      </label>
+
+      <label class="contact__field">
+        <span class="contact__label"
+          >{say(props.labels.message, 'Message')}</span
+        >
+        <textarea
+          class="contact__input contact__input--area"
+          name="message"
+          required
+          minlength="10"
+          maxlength="4000"
+          rows="6"></textarea>
+      </label>
+
+      <div class="contact__trap" aria-hidden="true">
+        <label>
+          Site web
+          <input type="text" name="website" tabindex="-1" autocomplete="off" />
+        </label>
+      </div>
+
+      <button class="contact__submit" type="submit">
+        {say(props.labels.submit, 'Envoyer')}
+      </button>
+
+      {consent !== '' && <p class="contact__consent">{consent}</p>}
+    </form>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .contact__inner {
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .contact__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .contact__intro {
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+  }
+
+  /* La réponse du serveur arrive en fragment d’URL : seule celle qu’il désigne
+     s’affiche, et le navigateur y amène le visiteur. */
+  .contact__answer {
+    display: none;
+    margin: 0 0 var(--space-5);
+    padding: var(--space-4);
+    border-left: var(--space-1) solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+  }
+
+  .contact__answer--refused {
+    border-left-color: var(--color-danger);
+  }
+
+  .contact__answer:target {
+    display: block;
+  }
+
+  .contact__form {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .contact__field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .contact__label {
+    font-size: var(--text-sm);
+  }
+
+  .contact__input {
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+  }
+
+  .contact__input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  .contact__input--area {
+    resize: vertical;
+  }
+
+  /* Le leurre : hors de l’écran plutôt que masqué, pour qu’un robot qui lit le
+     HTML le remplisse et qu’un lecteur d’écran l’ignore. */
+  .contact__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .contact__submit {
+    justify-self: start;
+    padding: var(--space-3) var(--space-5);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    cursor: pointer;
+  }
+
+  .contact__consent {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -7,6 +7,7 @@
 // contenu (invariant 1).
 
 import { escapeHtml } from '../../fields/richtext.js'
+import type { Lead } from '../leads.js'
 import type { Origin } from '../session.js'
 import type { EmailMessage } from './provider.js'
 
@@ -82,6 +83,27 @@ export function publicationFailed(
       'Cet email part de la machine du site, pas du canal des codes de connexion.',
     ],
   )
+}
+
+// Le message reçu par le formulaire. La réponse part vers le visiteur, pas
+// vers l’expéditeur du site : le client répond depuis sa boîte, sans recopier
+// une adresse.
+export function leadReceived(siteName: string, lead: Lead): Letter {
+  return {
+    ...letter(
+      `Message de ${lead.name} — ${siteName}`,
+      `${lead.name} vous écrit`,
+      [
+        `${lead.name} (${lead.email}) a rempli le formulaire de ${siteName}.`,
+        lead.message,
+      ],
+      [
+        'Répondez directement à cet email : il part vers le visiteur.',
+        'Le message est aussi conservé dans la page « Messages » de votre panel.',
+      ],
+    ),
+    replyTo: lead.email,
+  }
 }
 
 function describe(origin: Origin): string {

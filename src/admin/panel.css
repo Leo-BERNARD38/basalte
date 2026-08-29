@@ -133,3 +133,18 @@
   background: var(--mantine-color-blue-6);
   pointer-events: none;
 }
+
+/* La jauge d’un jour dans les statistiques : trois règles plutôt qu’une
+   bibliothèque de graphiques. */
+.basalte-gauge {
+  flex: 1;
+  height: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--mantine-color-gray-2);
+  overflow: hidden;
+}
+
+.basalte-gauge__fill {
+  height: 100%;
+  background: var(--mantine-primary-color-filled);
+}

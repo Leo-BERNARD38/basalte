@@ -37,8 +37,10 @@ import { Edit } from './Edit.js'
 import { EditingContext, type Editing } from './editing.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
+import { Messages } from './Messages.js'
 import { SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
+import { Stats } from './Stats.js'
 
 const PREVIEW = '/admin/preview/'
 const EMPTY: Draft = { meta: {}, blocks: [] }
@@ -308,6 +310,18 @@ export default function Panel() {
               media={known.media}
               onChanged={() => void refresh()}
             />
+          )}
+
+          {screen === 'messages' && (
+            <Messages
+              retention={known.retention}
+              onChanged={() => void refresh()}
+              onSignedOut={() => setPayload(undefined)}
+            />
+          )}
+
+          {screen === 'stats' && (
+            <Stats onSignedOut={() => setPayload(undefined)} />
           )}
 
           {screen === 'account' && (

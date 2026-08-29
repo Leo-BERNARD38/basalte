@@ -19,7 +19,7 @@ function version(database: ReturnType<typeof openDatabase>): number {
 }
 
 describe('openDatabase', () => {
-  it('crée les huit tables du schéma', () => {
+  it('crée les neuf tables du schéma', () => {
     const database = openDatabase(MEMORY)
 
     const tables = database
@@ -36,6 +36,7 @@ describe('openDatabase', () => {
       'journal',
       'throttle',
       'publication',
+      'lead',
     ]) {
       expect(tables).toContain(table)
     }
@@ -64,8 +65,9 @@ describe('openDatabase', () => {
       )
       .run()
 
-    // On rembobine la base à la première étape : la suivante doit s’y jouer
-    // seule, et ce qui existait déjà rester en place.
+    // On rembobine la base à la première étape : les suivantes doivent s’y
+    // jouer seules, et ce qui existait déjà rester en place.
+    database.exec('drop table lead')
     database.exec('drop table publication')
     database.exec('pragma user_version = 1')
 
@@ -77,11 +79,14 @@ describe('openDatabase', () => {
         'total'
       ],
     ).toBe(1)
-    expect(
-      database.prepare('select count(*) as total from publication').get()?.[
-        'total'
-      ],
-    ).toBe(0)
+
+    for (const table of ['publication', 'lead']) {
+      expect(
+        database.prepare(`select count(*) as total from ${table}`).get()?.[
+          'total'
+        ],
+      ).toBe(0)
+    }
 
     database.close()
   })

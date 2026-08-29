@@ -1,6 +1,7 @@
-// La base du site : comptes, sessions, appareils de confiance, journal, et les
-// mises en ligne. Un seul fichier SQLite, ouvert par le module `node:sqlite`
-// intégré à Node — le VPS ne reçoit donc aucune dépendance native de plus.
+// La base du site : comptes, sessions, appareils de confiance, journal, mises
+// en ligne, et les messages reçus par le formulaire. Un seul fichier SQLite,
+// ouvert par le module `node:sqlite` intégré à Node — le VPS ne reçoit donc
+// aucune dépendance native de plus.
 //
 // Le schéma s’applique par `PRAGMA user_version` : chaque étape est jouée une
 // fois, dans l’ordre, et une base déjà à jour ne bouge pas. Une étape ajoutée
@@ -108,6 +109,23 @@ const STEPS: readonly string[] = [
   ) strict;
 
   create index publication_at on publication (at);
+  `,
+  `
+  create table lead (
+    id integer primary key,
+    at integer not null,
+    name text not null,
+    email text not null,
+    message text not null,
+    page text not null,
+    language text not null,
+    ip text not null,
+    agent text not null,
+    delivery text not null default 'failed',
+    read_at integer
+  ) strict;
+
+  create index lead_at on lead (at);
   `,
 ]
 

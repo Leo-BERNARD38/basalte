@@ -31,6 +31,20 @@ export type Panel = {
   schemas(): Promise<Schemas>
   /** La file de mise en ligne, unique pour le processus (D71). */
   readonly publisher: Publisher
+  /** Où partent les messages du formulaire, et combien de temps ils vivent. */
+  readonly leads: Leads
+  /** Le log d’accès de Caddy, d’où sort le rapport d’audience. */
+  readonly accessLog: string
+}
+
+// Le canal du site, pas celui des codes de connexion (D75). Sans destinataire
+// ni fournisseur, un message reste dans le panel : il n’est jamais perdu, il
+// n’est simplement pas notifié.
+export type Leads = {
+  readonly to: string
+  readonly provider?: EmailProvider | undefined
+  /** Durée de conservation, en mois. */
+  readonly months: number
 }
 
 export type SiteIdentity = {

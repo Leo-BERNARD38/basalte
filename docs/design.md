@@ -28,7 +28,7 @@ socle.
 
 | Famille | Tokens |
 |---|---|
-| Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` |
+| Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` `--color-danger` |
 | Typographies | `--font-title` `--font-body` |
 | Échelle de texte | `--text-xs` `--text-sm` `--text-base` `--text-lg` `--text-xl` `--text-2xl` `--text-3xl` |
 | Espacement | `--space-1` → `--space-8`, de 0,25 à 4,5 rem |

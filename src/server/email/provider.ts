@@ -14,6 +14,8 @@ export type EmailMessage = {
   readonly subject: string
   readonly text: string
   readonly html: string
+  /** L’adresse à laquelle une réponse doit partir, quand ce n’est pas celle d’envoi. */
+  readonly replyTo?: string
 }
 
 export type EmailProvider = {
@@ -34,6 +36,7 @@ export const VARIABLES = {
   key: 'EMAIL_API_KEY',
   from: 'EMAIL_FROM',
   admin: 'EMAIL_ADMIN',
+  contact: 'CONTACT_EMAIL',
   authKey: 'AUTH_EMAIL_API_KEY',
   authFrom: 'AUTH_EMAIL_FROM',
 } as const
@@ -67,6 +70,14 @@ export function readSettings(
 /** L’adresse où partent les erreurs de la machine (`depot-client.md`). */
 export function adminAddress(environment: Environment): string {
   return (environment[VARIABLES.admin] ?? '').trim()
+}
+
+/**
+ * L’adresse où partent les messages du formulaire — celle du client, pas celle
+ * du mainteneur. Vide, les messages restent dans le panel et rien ne part.
+ */
+export function contactAddress(environment: Environment): string {
+  return (environment[VARIABLES.contact] ?? '').trim()
 }
 
 export function describeMissing(settings: EmailSettings): string | undefined {

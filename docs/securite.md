@@ -7,6 +7,7 @@ Par probabilité décroissante :
 | Menace | Réponse |
 |---|---|
 | Robots opportunistes balayant Internet | Aucun CMS connu à attaquer, aucune faille publique à rejouer, limitation de débit. Le panel ne cède qu'à une authentification, jamais à la discrétion de ses routes |
+| Robots remplissant le formulaire de contact | Champ leurre, plafond par adresse, plafond pour le site ; un leurre rempli reçoit la réponse d'un envoi réussi et n'écrit rien (`services.md`) |
 | Bourrage d'identifiants (mot de passe réutilisé) | Mot de passe généré, jamais choisi → jamais réutilisé ; code email en second facteur |
 | Hameçonnage du client | Code email en second facteur ; notification à chaque nouvel appareil |
 | Attaquant ciblé | Isolation par VPS ; plafond de dégâts borné |
@@ -26,6 +27,12 @@ peut pas :
 - rester discret — chaque modification est un commit horodaté
 - rendre les dégâts permanents — `git revert` restaure le site en une minute,
   et la protection de branche empêche de réécrire l'historique
+
+Une seule adresse est ouverte à un visiteur anonyme : `POST /api/contact`. Elle
+n'écrit qu'une ligne de message, ne lit rien, et ne renvoie jamais autre chose
+qu'une redirection vers une page du site — l'adresse de retour est reconstruite
+depuis les pages du dépôt, jamais recopiée de ce que le formulaire a envoyé
+(D79).
 
 **Le panel est coupable à tout moment** sans interrompre le site, puisque
 celui-ci est statique. En cas d'incident : couper l'édition, laisser les
@@ -90,9 +97,19 @@ certificats automatiques, sans certbot ni cron à surveiller.
 
 ## Données personnelles
 
-Trois gisements, une même purge automatique configurée par site :
+Trois gisements, une même durée configurée par site — `leads.purgeAfterMonths`
+dans `site.config.ts`, douze mois par défaut :
 
-- les **leads** du formulaire (12 mois par défaut, voir `services.md`)
-- le **journal de connexion** du panel (date, IP, navigateur)
+- les **messages** du formulaire, effacés par le panel
+- le **journal de connexion** du panel (date, IP, navigateur), effacé par le
+  panel
 - les **logs d'accès Caddy** qui alimentent l'analytics, IP anonymisées à la
-  source
+  source par `ip_mask` et tournés par `roll_keep_for`
+
+C'est le processus du panel qui purge les deux premiers (D83), au démarrage puis
+chaque jour : il tourne déjà en permanence, là où un cron dans le conteneur
+serait un composant de plus à surveiller. Le décompte est en mois calendaires et
+en temps universel — douze mois, c'est la même date l'an prochain.
+
+Le client peut en outre supprimer un message à la main depuis le panel. La
+suppression est définitive : la base n'est pas versionnée.

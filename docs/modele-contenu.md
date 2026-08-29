@@ -76,6 +76,12 @@ Ce fichier unique produit **quatre sorties** : le formulaire du panel, la
 validation, le type TypeScript consommé par le composant, et l'entrée dans la
 bibliothèque de blocs.
 
+Un bloc peut aussi porter ses propres libellés d'interface — le bloc `contact`
+le fait pour ses champs et ses trois réponses au visiteur. Ce sont des champs
+comme les autres, vides par défaut, et le composant retombe alors sur le
+français (D82) : le socle ne porte aucune table de traductions, et une langue
+non prévue se remplit depuis le panel.
+
 ## Pourquoi un DSL `f.*` plutôt que du Zod nu
 
 Un schéma Zod décrit une forme de donnée, pas une interface. Il ignore le

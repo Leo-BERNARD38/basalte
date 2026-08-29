@@ -21,7 +21,9 @@ import {
 } from '../publish/publish.js'
 import { defineSite } from '../site/define.js'
 import type { Letter } from './email/messages.js'
+import { memoryProvider, type MemoryProvider } from './email/memory.js'
 import { harness, HERE, type Harness } from './auth.fixture.js'
+import { handleContact } from './contact.js'
 import type { Panel } from './context.js'
 import { COOKIES } from './cookies.js'
 import { handlePanel } from './panel.js'
@@ -54,6 +56,12 @@ export type BenchOptions = {
   readonly content?: unknown
   /** Le build employé par la file. Par défaut, il écrit une page et réussit. */
   readonly build?: Build
+  /** Une deuxième page de contenu, sous le nom donné. */
+  readonly pages?: Readonly<Record<string, unknown>>
+  /** Vide, aucun message n’est notifié : ils restent dans le panel. */
+  readonly contactTo?: string
+  /** Le log d’accès que lit le rapport d’audience. */
+  readonly accessLog?: string
 }
 
 export type Bench = {
@@ -65,12 +73,19 @@ export type Bench = {
   readonly serving: string
   /** Les alertes parties au mainteneur, dans l’ordre. */
   readonly alerts: readonly Letter[]
+  /** Le canal du site : ce qui part au client, messages du formulaire compris. */
+  readonly mail: MemoryProvider
   /** L’en-tête `Cookie` d’une session ouverte, pour une requête écrite à la main. */
   readonly cookie: string
   call(
     method: string,
     address: string,
     body?: unknown,
+    options?: CallOptions,
+  ): Promise<Response>
+  /** Un envoi de formulaire, tel que le poste un navigateur. */
+  submit(
+    fields: Readonly<Record<string, string>>,
     options?: CallOptions,
   ): Promise<Response>
   page(): Promise<Record<string, unknown>>
@@ -104,6 +119,11 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     path.join(root, 'content', 'index.json'),
     settings.content ?? defaultPage(),
   )
+
+  for (const [name, page] of Object.entries(settings.pages ?? {})) {
+    await write(path.join(root, 'content', `${name}.json`), page)
+  }
+
   await write(path.join(root, MANIFEST_PATH), MANIFEST)
 
   const registry = await loadRegistry(await findBlocks(blockRoots(root)))
@@ -126,6 +146,8 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     },
   })
 
+  const mail = memoryProvider()
+
   const panel: Panel = {
     server: carrier.server,
     root,
@@ -135,6 +157,12 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
       media: (await read(path.join(root, MANIFEST_PATH))) as MediaManifest,
     }),
     publisher,
+    leads: {
+      to: settings.contactTo ?? 'client@exemple.fr',
+      provider: mail,
+      months: 12,
+    },
+    accessLog: settings.accessLog ?? path.join(root, 'access.log'),
   }
 
   const session = openSession(
@@ -153,6 +181,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     publisher,
     serving,
     alerts,
+    mail,
     cookie,
 
     async call(method, address, body, options = {}) {
@@ -181,6 +210,27 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
       return (
         (await handlePanel(panel, request)) ??
         new Response('hors panel', { status: 404 })
+      )
+    },
+
+    async submit(fields, options = {}) {
+      const headers = new Headers({
+        'content-type': 'application/x-www-form-urlencoded',
+      })
+
+      const origin = options.origin === undefined ? ORIGIN : options.origin
+
+      if (origin !== null) headers.set('origin', origin)
+
+      const request = new Request(`${ORIGIN}/api/contact`, {
+        method: 'POST',
+        headers,
+        body: new URLSearchParams(fields).toString(),
+      })
+
+      return (
+        (await handleContact(panel, request)) ??
+        new Response('hors contact', { status: 404 })
       )
     },
 

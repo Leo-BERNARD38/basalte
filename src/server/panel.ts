@@ -8,6 +8,7 @@
 
 import { z } from 'zod'
 
+import { audienceReport, type AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
 import { readPages } from '../content/project.js'
@@ -32,6 +33,13 @@ import {
   uploadMedia,
   type MediaSummary,
 } from './library.js'
+import {
+  countUnread,
+  deleteLead,
+  listLeads,
+  markLeadRead,
+  type Lead,
+} from './leads.js'
 import { readDrafts, savePage, type Commit, type DraftPage } from './pages.js'
 
 export const PANEL_API = '/api/'
@@ -81,7 +89,16 @@ export type PanelPayload = {
   }[]
   readonly tracked: boolean
   readonly publication: PublishState
+  /** Messages non lus, pour la pastille de l’onglet. */
+  readonly unread: number
+  /** Durée de conservation des messages, en mois. */
+  readonly retention: number
 }
+
+/** Ce que le panel affiche d’un message. L’adresse IP n’en sort pas. */
+export type LeadSummary = Omit<Lead, 'ip' | 'agent'>
+
+export const LEADS_LIMIT = 200
 
 /**
  * Traite une adresse du panel, ou renvoie `undefined` si elle ne lui
@@ -134,6 +151,18 @@ export async function handlePanel(
     return publish(panel, request, account)
   }
 
+  if (route[0] === 'leads' && route.length === 1) {
+    return request.method === 'GET' ? describeLeads(panel) : refuseMethod()
+  }
+
+  if (route[0] === 'leads' && route.length === 2) {
+    return lead(panel, request, Number(route[1]))
+  }
+
+  if (route[0] === 'stats' && route.length === 1) {
+    return request.method === 'GET' ? describeAudience(panel) : refuseMethod()
+  }
+
   return json({ ok: false, message: 'Adresse inconnue.' }, 404)
 }
 
@@ -173,6 +202,8 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
     })),
     tracked: await isRepositoryRoot(panel.root),
     publication: panel.publisher.state(),
+    unread: countUnread(panel.server.database),
+    retention: panel.leads.months,
   }
 
   return json(payload)
@@ -241,6 +272,57 @@ function publish(panel: Panel, request: Request, account: Account): Response {
       email: account.email,
     }),
   })
+}
+
+function describeLeads(panel: Panel): Response {
+  return json({
+    ok: true,
+    leads: listLeads(panel.server.database, LEADS_LIMIT).map((entry) =>
+      summarize(entry),
+    ),
+    unread: countUnread(panel.server.database),
+  })
+}
+
+// Le client lit et supprime ses messages ; il n’en écrit aucun. La suppression
+// est celle que le RGPD demande, et elle est définitive : la base n’est pas
+// versionnée.
+function lead(panel: Panel, request: Request, id: number): Response {
+  if (!Number.isInteger(id) || id <= 0) {
+    return json({ ok: false, message: 'Message inconnu.' }, 404)
+  }
+
+  const guard =
+    request.method === 'PATCH' ? guardWrite(request) : guardOrigin(request)
+
+  if (guard !== undefined) return guard
+
+  if (request.method === 'PATCH') {
+    markLeadRead(panel.server.database, id, panel.server.now())
+
+    return json({ ok: true })
+  }
+
+  if (request.method !== 'DELETE') return refuseMethod()
+
+  return deleteLead(panel.server.database, id)
+    ? json({ ok: true })
+    : json({ ok: false, message: 'Message inconnu.' }, 404)
+}
+
+async function describeAudience(panel: Panel): Promise<Response> {
+  const report: AudienceReport = await audienceReport(panel.accessLog, {
+    host: new URL(panel.server.site.origin).host,
+    now: panel.server.now(),
+  })
+
+  return json({ ok: true, audience: report })
+}
+
+function summarize(entry: Lead): LeadSummary {
+  const { ip: _ip, agent: _agent, ...summary } = entry
+
+  return summary
 }
 
 async function media(

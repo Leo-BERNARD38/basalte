@@ -29,6 +29,9 @@ import type { MediaManifest } from '../media/manifest.js'
 import type { Site } from '../site/define.js'
 import { CONFIG_FILE } from '../site/load.js'
 
+/** Le dossier des fichiers du panel, distinct de celui du site public. */
+export const PANEL_ASSETS = '_panel'
+
 const VIRTUAL = 'virtual:basalte'
 const GENERATED = 'basalte.ts'
 const MODE = 'BASALTE_MODE'
@@ -136,6 +139,11 @@ type Setup = Parameters<
 // Le panel arrive compilé, sous `node_modules`, là où Vite n’applique Babel à
 // rien par défaut : sans ces deux réglages, le compilateur React ne verrait
 // jamais le seul React du projet (D39).
+//
+// Ses fichiers ne vont pas dans `_astro/`, où le site public range les siens :
+// le proxy sert le site depuis le disque et le panel depuis l’application, et
+// un dossier commun ferait chercher l’island du panel parmi les fichiers du
+// site — une page vide, sans la moindre erreur côté serveur (D85).
 async function mountPanel(
   command: Setup['command'],
   updateConfig: Setup['updateConfig'],
@@ -144,6 +152,7 @@ async function mountPanel(
   const { default: react } = await import('@astrojs/react')
 
   updateConfig({
+    build: { assets: PANEL_ASSETS },
     vite: { optimizeDeps: { exclude: [PACKAGE] } },
     integrations: [
       react({

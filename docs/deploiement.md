@@ -14,11 +14,24 @@ Le Caddyfile complet tient sur un écran, HTTPS compris :
 
 ```
 exemple.com {
-    handle /admin/* { reverse_proxy app:3000 }
-    handle /api/*   { reverse_proxy app:3000 }
+    handle /admin/*  { reverse_proxy app:3000 }
+    handle /api/*    { reverse_proxy app:3000 }
+    handle /media/*  { reverse_proxy app:3000 }
+    handle /_panel/* { reverse_proxy app:3000 }
     handle {
         root * /srv/site/current
         file_server
+    }
+
+    log {
+        output file /var/log/caddy/access.log {
+            roll_keep_for 365d
+        }
+        format filter {
+            wrap json
+            request>remote_ip ip_mask 24 48
+            request>client_ip  ip_mask 24 48
+        }
     }
 }
 ```
@@ -47,11 +60,26 @@ alimentent l'analytics sont configurés là.
 donné à l'application par `BASALTE_SITE_ROOT` (D69) ; hors production, le socle
 retombe sur `.basalte/site` dans le dépôt.
 
-Deux points que le panel attend de ce fichier : `X-Forwarded-For` doit être
-posé — c'est la dernière entrée que le socle lit pour limiter le débit par
-adresse, et sans lui tout le trafic partage un seul compteur — et la chaîne de
-requête de `/admin/rescue` mérite d'être retirée des lignes journalisées, le
-jeton de secours y figurant en clair (`securite.md`).
+Quatre points que le panel attend de ce fichier.
+
+- **`X-Forwarded-For` doit être posé** — c'est la dernière entrée que le socle
+  lit pour limiter le débit par adresse, sur le panel comme sur le formulaire de
+  contact. Sans lui, tout le trafic partage un seul compteur.
+- **`/_panel/*` va à l'application** : le panel y range ses fichiers, le site
+  public garde `_astro/` (D85). Un dossier commun ferait chercher l'island du
+  panel parmi les fichiers du site, et la page resterait vide sans la moindre
+  erreur côté serveur.
+- **Le log d'accès est en JSON, les adresses masquées à la source.** C'est lui
+  que lit le rapport d'audience du panel (`services.md`), qui n'a donc jamais
+  d'adresse complète entre les mains. `roll_keep_for` porte la durée de
+  conservation : c'est ici que se règle la purge du troisième gisement de
+  données personnelles, les deux autres étant en base.
+- **La chaîne de requête de `/admin/rescue` mérite d'être retirée** des lignes
+  journalisées, le jeton de secours y figurant en clair (`securite.md`).
+
+Le socle lit `/var/log/caddy/access.log` par défaut ; `BASALTE_ACCESS_LOG` le
+déplace. Le fichier doit être lisible par le conteneur de l'application — un
+volume partagé, comme `/srv/site`.
 
 ## Dimensionnement
 
@@ -77,8 +105,8 @@ Les **versions construites**, elles, ne sont pas sauvegardées et n'ont pas à
 l'être : elles se reconstruisent depuis le dépôt en une commande.
 
 Reste la base SQLite (comptes, sessions, appareils, journal, mises en ligne,
-leads), qui est un fichier : `data/basalte.db` à la racine du dépôt du site, monté en volume, dump
-quotidien. Elle n'est pas versionnée — c'est la seule donnée du site que le
+messages du formulaire), qui est un fichier : `data/basalte.db` à la racine du
+dépôt du site, monté en volume, dump quotidien. Elle n'est pas versionnée — c'est la seule donnée du site que le
 dépôt ne réplique pas.
 
 ## Reprise après sinistre

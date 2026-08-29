@@ -11,6 +11,7 @@ const DEFAULTS = {
     accent: '#1f57ff',
     accentFg: '#ffffff',
     border: '#e2e5ea',
+    danger: '#b42318',
   },
   font: {
     title: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',

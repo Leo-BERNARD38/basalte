@@ -1,7 +1,7 @@
 # Décisions
 
-Soixante-cinq décisions actées, avec l'alternative écartée et sa raison. Les
-détails d'application sont dans les documents thématiques.
+Quatre-vingt-cinq décisions actées, avec l'alternative écartée et sa raison.
+Les détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
 |---|---|---|
@@ -80,3 +80,13 @@ détails d'application sont dans les documents thématiques.
 | D73 | Les mises en ligne vivent dans la base, en états terminaux seulement | Une ligne « en cours » : elle survivrait à un redémarrage et mentirait pour toujours. Un fichier d'état à côté des versions : une deuxième source de vérité à sauvegarder |
 | D74 | Le rebase et le push sont gardés par la même règle que les commits : la racine du site doit être la racine du dépôt | S'en remettre à git : il répond pour le dépôt le plus proche au-dessus, et publier un dossier logé dans un autre dépôt — le site de démonstration — rebaserait et pousserait celui-là (D62) |
 | D75 | L'alerte au mainteneur emprunte le canal du site (`EMAIL_*`), jamais celui des codes de connexion | Le canal d'authentification : une machine qui échoue en boucle épuiserait le quota qui sert à se connecter, et enfermerait dehors la seule personne capable de réparer |
+| D76 | Le formulaire de contact est un formulaire HTML ordinaire : POST classique, réponse en redirection, et la page révèle le message par `:target` | Un envoi par `fetch` : le site public embarquerait du JavaScript (invariant 5), et un lead se perdrait le jour où le script ne charge pas. Une page de remerciement rendue par le serveur : elle ne porterait pas la DA du client, versionnée dans son dépôt |
+| D77 | L'anti-spam est un champ leurre, une limitation par adresse et un plafond pour le site ; le délai minimum de remplissage est abandonné | Le délai de `services.md` : il demande une horloge posée au chargement, donc du JavaScript. Un CAPTCHA : un tiers dans la page, un obstacle d'accessibilité, et des visiteurs perdus pour arrêter ce que le leurre arrête déjà |
+| D78 | Un leurre rempli reçoit la réponse d'un envoi réussi, et rien n'est écrit ; une limite atteinte, elle, se dit franchement | Refuser le leurre visiblement : le robot apprend quel champ le trahit et le contourne au prochain passage. Mentir sur la limite : un visiteur réel croirait son message parti |
+| D79 | L'adresse de retour est reconstruite depuis les pages du dépôt, jamais recopiée de ce que le formulaire a envoyé | Rediriger vers le champ reçu : c'est une redirection ouverte, offerte à qui poste le formulaire depuis n'importe où |
+| D80 | Un message est écrit en base avant tout envoi, et la ligne dit si la notification est partie | Envoyer puis écrire : un incident chez le fournisseur perdrait le lead, qui coûte plus cher que le reste du site réuni. Un état « en cours » : il survivrait à un redémarrage et mentirait pour toujours (D73) |
+| D81 | Le destinataire des messages est `CONTACT_EMAIL` dans `.env`, à côté de `EMAIL_ADMIN` | Dans `site.config.ts` : l'adresse du client partirait sur GitHub avec le dépôt, et les deux destinataires de la machine se liraient dans deux fichiers différents |
+| D82 | Les libellés du formulaire sont des champs, vides par défaut, et le composant retombe alors sur le français | Une table de traductions dans le socle : une langue non prévue demanderait de modifier le socle pour un texte qui appartient au client. Des libellés en dur : un site anglais afficherait « Envoyer » |
+| D83 | C'est le processus du panel qui purge, au démarrage puis chaque jour ; les logs d'accès, eux, tournent avec `roll_keep_for` | Un cron dans le conteneur : un composant de plus à provisionner et à surveiller, pour trois `delete` que le processus déjà en place exécute en une milliseconde |
+| D84 | L'audience se lit dans le fichier de log courant, par la fin et sur huit méga-octets au plus | Lire aussi les fichiers tournés : ils sont compressés par Caddy, et les décompresser pour un rapport d'appoint mettrait la mémoire du panel à la merci d'un log volumineux |
+| D85 | Le panel range ses fichiers dans `_panel/`, le site public garde `_astro/` | Un dossier commun : le proxy sert le site depuis le disque et le panel depuis l'application, et l'island du panel serait cherchée parmi les fichiers du site — une page vide, sans la moindre erreur côté serveur |

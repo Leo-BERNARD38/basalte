@@ -12,14 +12,18 @@ import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import { signOut } from './api.js'
 
-export type Screen = 'edit' | 'media' | 'account'
+export type Screen = 'edit' | 'media' | 'messages' | 'stats' | 'account'
 
+// Cinq pages, et pas davantage : arriver à dix signifierait que deux d’entre
+// elles auraient dû fusionner (`panel.md`). L’ordre suit la fréquence d’usage.
 export const SCREENS: readonly {
   readonly value: Screen
   readonly label: string
 }[] = [
   { value: 'edit', label: 'Édition' },
   { value: 'media', label: 'Médias' },
+  { value: 'messages', label: 'Messages' },
+  { value: 'stats', label: 'Statistiques' },
   { value: 'account', label: 'Compte' },
 ]
 
@@ -79,7 +83,17 @@ export function Shell({
             >
               <Tabs.List>
                 {SCREENS.map((entry) => (
-                  <Tabs.Tab key={entry.value} value={entry.value}>
+                  <Tabs.Tab
+                    key={entry.value}
+                    value={entry.value}
+                    rightSection={
+                      entry.value === 'messages' && payload.unread > 0 ? (
+                        <Badge size="sm" circle>
+                          {payload.unread}
+                        </Badge>
+                      ) : undefined
+                    }
+                  >
                     {entry.label}
                   </Tabs.Tab>
                 ))}
