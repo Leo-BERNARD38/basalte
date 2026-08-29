@@ -28,9 +28,8 @@ Trois acteurs, à ne pas confondre dans la suite du document :
   blocs sur mesure, écrits par toi, dans `src/blocks/`. Le client final n'y
   touche pas.
 
-Le socle est publié sous le nom npm `@socle/core` depuis ce dépôt
-(`landing-custom`) ; ce nom est une convention de travail, à figer avant la
-première installation.
+Le socle est publié sous le nom npm `@leobernard/basalte` depuis ce dépôt
+(`basalte`). Dans la prose, il reste désigné par le nom commun « le socle ».
 
 ## 2. Contraintes fondatrices
 
@@ -87,7 +86,7 @@ n'interrompt pas le service.
 ## 5. Répartition socle / dépôt client
 
 ```
-@socle/core (ce dépôt)              dépôt client (un par client)
+@leobernard/basalte (ce dépôt)              dépôt client (un par client)
 ├── intégration Astro               ├── astro.config.mjs      (4 lignes)
 ├── moteur de rendu de blocs        ├── site.config.ts        DA, langues, domaine
 ├── DSL de champs + validation      ├── src/blocks/           blocs sur mesure
@@ -112,7 +111,7 @@ a donc une allure radicalement différente d'un client à l'autre.
 Installation dans le dépôt client :
 
 ```json
-"dependencies": { "@socle/core": "github:Leo-BERNARD38/landing-custom#v1.4.0" }
+"dependencies": { "@leobernard/basalte": "github:Leo-BERNARD38/basalte#v1.4.0" }
 ```
 
 Aucun accent circonflexe nulle part. Un tag git étant mutable, le point de
@@ -125,7 +124,7 @@ ajout rétrocompatible, *major* quand le format de contenu change.
 Mise à jour d'un site :
 
 ```bash
-npm install github:Leo-BERNARD38/landing-custom#v1.5.0
+npm install github:Leo-BERNARD38/basalte#v1.5.0
 npm run check      # valide tous les contenus contre les schémas, puis build
 git commit -am "socle v1.5.0" && git push
 ```
@@ -139,7 +138,7 @@ moins critique → les autres. Un site figé sur une version ancienne continue d
 fonctionner ; on ne met à jour que pour un correctif de sécurité, une
 fonctionnalité demandée, ou à l'occasion d'une intervention.
 
-`socle update-all` itère sur une liste de sites, pour le cas où un correctif de
+`basalte update-all` itère sur une liste de sites, pour le cas où un correctif de
 sécurité du panel doit atteindre tous les VPS rapidement.
 
 ## 7. Modèle de contenu
@@ -216,7 +215,7 @@ panel empêche le dépassement, et le build le refuserait.
 Claude Code du projet : créer un bloc, c'est écrire deux fichiers, sans toucher
 à une configuration centrale.
 
-**Validation.** `socle check` s'exécute à l'enregistrement dans le panel, avant
+**Validation.** `basalte check` s'exécute à l'enregistrement dans le panel, avant
 chaque build, et en pré-commit. Il détecte un type de bloc inconnu, un champ
 requis vide, un texte trop long, une image absente du disque, un format obsolète
 ou un média orphelin. Une traduction manquante **avertit sans bloquer** : le
@@ -244,7 +243,7 @@ Flux : email + mot de passe, puis code à six chiffres reçu par email.
   vaut plus que le verrouillage.
 - **Journal** des connexions réussies et échouées (date, IP, navigateur),
   consultable par le client dans le panel.
-- **Secours hors email** : `socle admin:login --user <email>` exécuté en SSH
+- **Secours hors email** : `basalte admin:login --user <email>` exécuté en SSH
   génère un lien de connexion valable dix minutes. Indispensable, puisque
   l'email est devenu un composant d'authentification.
 
@@ -366,7 +365,7 @@ une mesure exacte.
 
 ## 15. Déploiement et exploitation
 
-**Docker Compose** généré par `socle init` : application Node et Caddy. Un
+**Docker Compose** généré par `basalte init` : application Node et Caddy. Un
 nouveau client se provisionne en une commande, à l'identique, chez n'importe
 quel hébergeur.
 
@@ -378,7 +377,7 @@ laisse peu de marge.
 publication, puisque le dépôt est poussé sur GitHub. Reste la base SQLite
 (comptes, sessions, leads), qui est un fichier : dump quotidien.
 
-**Reprise après sinistre = installation.** `git clone` + `socle init` +
+**Reprise après sinistre = installation.** `git clone` + `basalte init` +
 restauration du fichier SQLite. La procédure de restauration est celle qu'on
 exécute à chaque nouveau client, donc elle est validée en permanence — à la
 différence d'un document que personne ne teste jamais.
@@ -442,7 +441,7 @@ Chaque étape produit quelque chose de démontrable.
 
 1. Squelette du socle : intégration Astro, `defineSite`, tokens CSS, un bloc
    `hero`, rendu statique → un premier site s'affiche.
-2. DSL de champs, validation, `socle check`.
+2. DSL de champs, validation, `basalte check`.
 3. Bibliothèque de blocs v1 et helpers SEO.
 4. Authentification du panel — morceau critique, isolé et testable seul.
 5. Panel : génération des formulaires, enregistrement, commit.
@@ -451,5 +450,5 @@ Chaque étape produit quelque chose de démontrable.
 8. Pipeline de publication : bascule atomique, file d'attente, gestion d'échec.
 9. Formulaire de contact, Brevo, stockage, purge.
 10. Analytics par logs.
-11. `socle init`, Docker Compose, provisionnement.
-12. Migrations et `socle update-all`.
+11. `basalte init`, Docker Compose, provisionnement.
+12. Migrations et `basalte update-all`.

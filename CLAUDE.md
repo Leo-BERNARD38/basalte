@@ -1,7 +1,7 @@
-# landing-custom
+# basalte
 
 Socle technique pour landing pages éditables par leurs propriétaires.
-Publié en package npm `@socle/core`, installé depuis git par tag dans un dépôt
+Publié en package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site.
 
 **Design de référence :** `docs/superpowers/specs/2026-08-29-socle-landing-pages-design.md`
@@ -98,13 +98,13 @@ Les contraintes (`max`) protègent la DA — les renseigner systématiquement.
 
 | Commande | Effet |
 |---|---|
-| `socle init <nom>` | génère un dépôt client complet |
-| `socle check` | valide contenus contre schémas, puis build |
-| `socle migrate` | applique les migrations de format |
-| `socle admin:login --user <email>` | lien de connexion de secours (SSH) |
-| `socle update-all` | monte de version une liste de sites |
+| `basalte init <nom>` | génère un dépôt client complet |
+| `basalte check` | valide contenus contre schémas, puis build |
+| `basalte migrate` | applique les migrations de format |
+| `basalte admin:login --user <email>` | lien de connexion de secours (SSH) |
+| `basalte update-all` | monte de version une liste de sites |
 
-`socle check` s'exécute à l'enregistrement dans le panel, avant chaque build et
+`basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build et
 en pré-commit. C'est le test d'intégration du projet.
 
 ## Vocabulaire

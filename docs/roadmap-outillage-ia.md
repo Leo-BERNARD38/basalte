@@ -23,7 +23,7 @@ son travail seul, et ne casse pas les invariants.
 
 **Commandes**
 - `/nouveau-bloc <nom>`
-- `/check` — enveloppe de `socle check` avec sortie lisible par un agent
+- `/check` — enveloppe de `basalte check` avec sortie lisible par un agent
 - `/release <version>` — vérifs, tag, notes de version
 
 **Agents**
@@ -32,7 +32,7 @@ son travail seul, et ne casse pas les invariants.
 
 **Vérifiabilité**
 - Le critère : un agent doit pouvoir savoir seul s'il a cassé quelque chose.
-- Pistes : `socle check` sur le site de démo, diff du HTML généré avant/après,
+- Pistes : `basalte check` sur le site de démo, diff du HTML généré avant/après,
   tests du DSL de champs, tests du flux d'authentification.
 - À trancher : jusqu'où va la couverture de tests, et sur quoi précisément.
 
@@ -43,7 +43,7 @@ son travail seul, et ne casse pas les invariants.
 Objectif : qu'un agent puisse produire une landing complète dans un dépôt
 client, puis la maintenir, sans relire le socle.
 
-**Généré par `socle init`**
+**Généré par `basalte init`**
 - `CLAUDE.md` du dépôt client : DA du site, langues, blocs disponibles,
   commandes, ce qu'il ne faut pas toucher
 - inventaire des blocs disponibles, **généré depuis les schémas** plutôt
@@ -55,7 +55,7 @@ client, puis la maintenir, sans relire le socle.
 
 Un `CLAUDE.md` généré une fois à l'init devient faux dès que le socle évolue.
 Piste à évaluer : le socle expose sa doc agent depuis le package
-(`node_modules/@socle/core/AGENTS.md` + inventaire des blocs généré), et le
+(`node_modules/@leobernard/basalte/AGENTS.md` + inventaire des blocs généré), et le
 `CLAUDE.md` du dépôt client s'y réfère au lieu de la dupliquer. Mettre à jour
 le socle mettrait alors à jour la doc automatiquement.
 À vérifier : est-ce qu'un agent lit correctement une doc située dans
@@ -64,7 +64,7 @@ le socle mettrait alors à jour la doc automatiquement.
 **Reste à cadrer**
 - comment un agent découvre le contenu actuel d'un site sans tout lire
 - garde-fous : un agent ne doit pas modifier `content/` en production sans
-  passer par `socle check`
+  passer par `basalte check`
 
 ---
 
@@ -85,5 +85,4 @@ le socle mettrait alors à jour la doc automatiquement.
 | Sujet | Question |
 |---|---|
 | Reverse proxy | Caddy (acté en D15) ou nginx ? Caddy gère les certificats seul ; nginx demande certbot et une config plus longue |
-| Nommage | `@socle/core` est une convention de travail, à figer avant la première installation |
 | Blocs v1 | Liste de la section 17 du spec à valider |
