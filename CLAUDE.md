@@ -13,9 +13,11 @@ Prochaine étape : `docs/implementation.md`, étape 1.
 
 | Tu travailles sur… | Lis |
 |---|---|
+| n'importe quoi dans ce dépôt | `docs/conventions.md` |
 | un bloc, un schéma, du contenu | `docs/modele-contenu.md` |
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
+| une montée de version | `docs/mise-a-jour.md` |
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
@@ -42,15 +44,33 @@ Pas de Tailwind. Pas de framework CSS. Pas d'ORM.
 src/
 ├── astro/          intégration Astro (injecte routes, i18n, sitemap)
 ├── fields/         DSL f.* → schéma Zod + description d'interface
-├── blocks/         bibliothèque de blocs de base
+├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro
 ├── admin/          panel : island React unique
 ├── server/         auth, écriture contenu, publication, contact
 ├── seo/            meta, JSON-LD, sitemap, hreflang
-└── cli/            init, check, migrate, admin:login, update-all
+└── cli/            init, check, inventory, update, migrate, admin:login
+migrations/         transformations de format de contenu
 examples/demo/      site de démonstration, banc de test
 docs/
 ```
+
+## Conventions
+
+Détail dans `docs/conventions.md`. L'essentiel :
+
+- **Chercher avant d'écrire.** `basalte inventory` liste tout ce qui est
+  réutilisable, généré depuis le code. Écrire une variante locale d'une
+  fonction existante est un défaut, même si elle marche.
+- **Pas de `utils.ts`, pas de `helpers/`.** Un helper vit dans le dossier de
+  son domaine. Un fourre-tout est là où la duplication s'accumule.
+- **Un bloc ne valide rien à la main.** Une vérification manquante s'ajoute à
+  `f.*`.
+- **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
+  Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
+  `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
+  `docs/decisions.md`.
+- **Anglais dans le code**, français dès qu'une chaîne s'affiche.
 
 ## Règles absolues
 
@@ -73,6 +93,8 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 9. **Les langues sont imbriquées dans les champs**, jamais un fichier par langue.
 10. **`id` de bloc stable**, jamais l'index de position.
 11. **Le build ne remplace jamais le site en place.**
+12. **Le mot de passe initial ne transite jamais par email** — l'email porte
+    déjà le second facteur.
 
 ## Commandes
 
@@ -80,18 +102,27 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 |---|---|
 | `basalte init <nom>` | génère un dépôt client complet |
 | `basalte check` | valide contenus contre schémas, puis build |
+| `basalte inventory` | liste blocs, champs et helpers réutilisables |
+| `basalte update` | monte un site de version, ou annule tout |
 | `basalte migrate` | applique les migrations de format |
 | `basalte admin:login --user <email>` | lien de connexion de secours (SSH) |
-| `basalte update-all` | monte de version une liste de sites |
+| `basalte update-all <liste>` | monte de version une liste de sites |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build
-et en pré-commit. C'est le test d'intégration du projet.
+et en pré-commit. Il valide des contenus contre des schémas — ce n'est pas un
+test d'intégration : l'auth, les images et la bascule ont leurs propres tests
+(`docs/implementation.md`).
 
 ## Pièges connus
 
 - Astro n'optimise que les images **importées** dans le code, pas celles
   désignées par une chaîne venue d'un JSON. Passer par `import.meta.glob`.
+- Astro garde les images optimisées dans `node_modules/.astro`. Le build tourne
+  toujours dans le même dossier de travail ; seul le `dist/` est déplacé dans
+  `releases/`. Sinon tout est ré-encodé à chaque publication.
 - Le code email d'authentification doit être lié à la tentative de connexion en
   cours, pas au seul compte, sinon il est rejouable ailleurs.
 - Les emails d'auth empruntent un canal distinct de ceux du formulaire de
   contact.
+- Installer depuis git installe du TypeScript non compilé : le package a besoin
+  d'un script `prepare`.

@@ -1,7 +1,7 @@
 # Décisions
 
-Quinze décisions actées en brainstorming, avec l'alternative écartée et sa
-raison. Les détails d'application sont dans les documents thématiques.
+Vingt-cinq décisions actées, avec l'alternative écartée et sa raison. Les
+détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
 |---|---|---|
@@ -20,3 +20,13 @@ raison. Les détails d'application sont dans les documents thématiques.
 | D13 | Email via Brevo par défaut, derrière une interface agnostique | Resend : société américaine, or les leads sont des données personnelles. Postmark : meilleure délivrabilité mais 100 emails/mois gratuits |
 | D14 | Analytics par analyse des logs Caddy, rapport dans le panel | GoatCounter ou Umami : ajoutent un script sur les pages ou un runtime supplémentaire sur la machine |
 | D15 | Déploiement par Docker Compose | Bare metal : plus léger, mais le provisionnement diverge d'un VPS à l'autre — le défaut même que ce socle corrige |
+| D16 | Le socle est un dépôt **public** | Privé : chaque VPS aurait besoin d'une clé de lecture GitHub, donc un secret de plus à distribuer, pour une confidentialité qui ne fait pas partie du modèle de sécurité |
+| D17 | Le panel commit à chaque enregistrement, mais ne pousse qu'à la publication | Pousser à chaque enregistrement : l'enregistrement dépend alors du réseau, et l'historique distant ne correspond plus à ce qui est en ligne |
+| D18 | Une langue s'active d'abord en préparation (`draft`) ; elle n'exige ses traductions qu'une fois en ligne | Activation directe : tout le site devient invalide d'un coup et le client ne peut plus rien publier tant qu'il n'a pas tout traduit |
+| D19 | Les blocs de base sont une référence technique — un bloc par mécanique du socle — pas un catalogue de sections | Catalogue : les variantes visuelles sont du sur-mesure client, elles n'enseignent rien et se maintiennent pour rien |
+| D20 | Le mot de passe initial n'est jamais transmis par email | Envoi par email : les deux facteurs arrivent dans la même boîte, le second facteur ne protège plus de rien |
+| D21 | Un commentaire décrit l'existant ; le pourquoi d'un choix va dans ce fichier | Commentaires d'historique : ils vieillissent, personne ne les supprime, et ils noient les rares commentaires utiles |
+| D22 | Pas de `utils.ts` ni de dossier `helpers/` : un helper vit dans le dossier de son domaine | Fourre-tout : personne ne le lit, tout le monde y ajoute — c'est là que la duplication s'accumule |
+| D23 | Une mise à jour est atomique : elle aboutit entièrement, ou le dépôt revient à l'état d'avant | Suite d'étapes manuelles : un site à moitié migré est le pire état possible |
+| D24 | Caddy comme reverse proxy | nginx : certificats à gérer avec certbot et son renouvellement, configuration quatre fois plus longue, en-têtes de proxy faciles à oublier |
+| D25 | Le panel emploie le vocabulaire du client (« section », « mettre en ligne »), jamais celui du code | Vocabulaire technique : le client doit apprendre un modèle mental qui n'est pas le sien pour utiliser son propre site |

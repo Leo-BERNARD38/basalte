@@ -18,7 +18,8 @@
 ```
 
 Le site public ne dépend **pas** du panel : couper le processus d'édition
-n'interrompt pas le service.
+n'interrompt pas le service. Le formulaire de contact, lui, passe par ce
+processus — couper l'édition coupe aussi le formulaire, et pas les visites.
 
 ## Répartition socle / dépôt client
 
@@ -30,8 +31,8 @@ n'interrompt pas le service.
 ├── panel d'édition complet         ├── content/*.json        éditable
 ├── helpers SEO                     ├── public/media/         images
 ├── endpoint contact + anti-spam    ├── compose.yml
-├── CLI (init, check, migrate…)     └── Caddyfile
-└── bibliothèque de blocs de base
+├── CLI (init, check, update…)      └── Caddyfile
+└── blocs de référence
 ```
 
 **Règle d'or :** plus un dépôt client contient de code, moins il est
@@ -43,39 +44,87 @@ La DA vit dans `site.config.ts` sous forme de tokens (couleurs, typographies,
 échelles d'espacement, rayons) injectés en variables CSS. Le même bloc `hero`
 a donc une allure radicalement différente d'un client à l'autre.
 
-## Distribution
+## Package, pas template
 
-Installation dans le dépôt client :
+Deux façons de réutiliser du code, et une seule convient.
+
+**Un template de dépôt, on le copie.** GitHub duplique les fichiers dans un
+nouveau dépôt, puis chaque copie vit sa vie. Un correctif publié ici n'atteint
+aucune des copies : il faut le reporter à la main, autant de fois qu'il y a de
+clients, en espérant ne rien oublier.
+
+**Un package, on l'installe.** Le code reste ici. Le dépôt client en déclare
+une version, et le code arrive dans `node_modules/` au `npm install` :
 
 ```json
-"dependencies": { "@leobernard/basalte": "github:Leo-BERNARD38/basalte#v1.4.0" }
+"@leobernard/basalte": "github:Leo-BERNARD38/basalte#v1.4.0"
 ```
 
-Aucun accent circonflexe nulle part. Un tag git étant mutable, le point de
-figement réel est le `package-lock.json`, qui enregistre le commit résolu :
-**le déploiement utilise `npm ci`, jamais `npm install`.**
+Un correctif publié ici atteint un site en changeant un numéro.
+
+**Le dépôt client, lui, est fabriqué par une commande**, pas par un bouton
+GitHub : `basalte init` écrit les huit entrées de départ, aucune ne contenant
+de logique.
+
+```
+mon-client/
+├── package.json        la version du socle
+├── astro.config.mjs    4 lignes
+├── site.config.ts      DA, langues, domaine
+├── content/            les JSON éditables
+├── public/media/
+├── src/blocks/         les blocs sur mesure de ce client
+├── compose.yml
+└── Caddyfile
+```
+
+C'est toute la différence : un template laisse deux cents fichiers à maintenir
+par client, `init` en laisse huit.
+
+## Distribution
+
+Le socle est un **dépôt public**. Aucun identifiant à distribuer sur les VPS,
+et `npm ci` fonctionne partout sans configuration. La sécurité du projet tient
+à son architecture, jamais à la discrétion de son code.
+
+Un tag git étant mutable, le point de figement réel est le `package-lock.json`,
+qui enregistre le commit résolu : **le déploiement utilise `npm ci`, jamais
+`npm install`.** Aucun accent circonflexe nulle part.
+
+Installer depuis git installe du TypeScript non compilé : le package porte un
+script `prepare` qui le compile à l'installation. À traiter dès l'étape 1, sans
+quoi la surprise arrive à l'étape 11.
 
 Semver appliqué strictement : *patch* sans action côté client, *minor* pour un
 ajout rétrocompatible, *major* quand le format de contenu change.
 
+## Accès git des VPS
+
+Le panel commit et pousse : chaque VPS peut donc écrire dans le dépôt de son
+site.
+
+- une **clé de déploiement par dépôt client**, jamais un jeton de ton compte —
+  une machine compromise n'ouvre que le dépôt de son propre site
+- **protection de branche** sur les dépôts clients comme sur le socle : sans
+  elle, un intrus dans le panel réécrit l'historique et détruit le `git revert`
+  qui est ton retour arrière
+
 ## Mises à jour
 
+Une commande, depuis le dépôt du client :
+
 ```bash
-npm install github:Leo-BERNARD38/basalte#v1.5.0
-npm run check      # valide tous les contenus contre les schémas, puis build
-git commit -am "socle v1.5.0" && git push
+npm run update
 ```
 
-`check` est le filet : une mise à jour qui casserait un contenu existant échoue
-au build, pas en production. Le HTML produit étant déterministe, un diff vide
-sur un patch prouve l'absence de régression.
+Elle installe, migre, valide, construit et commit — ou annule tout. Le détail,
+le format des notes de version et la mise à jour assistée sont dans
+`mise-a-jour.md`.
 
-Ordre de déploiement invariable : site de démonstration du socle → client le
-moins critique → les autres.
+`check` est le filet : une mise à jour qui casserait un contenu existant échoue
+avant le déploiement, pas en production. Le HTML produit étant déterministe, un
+diff vide sur un patch prouve l'absence de régression.
 
 Un site figé sur une version ancienne continue de fonctionner. On ne met à jour
-que pour un correctif de sécurité, une fonctionnalité demandée, ou à l'occasion
-d'une intervention.
-
-`basalte update-all` itère sur une liste de sites, pour le cas où un correctif
-de sécurité du panel doit atteindre tous les VPS rapidement.
+que pour un correctif de sécurité, une fonctionnalité demandée, ou à
+l'occasion d'une intervention.

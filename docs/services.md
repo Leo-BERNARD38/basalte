@@ -14,7 +14,8 @@ consultables dans le panel.
 
 **RGPD par construction** : mention de consentement sur le formulaire, purge
 automatique après une durée configurée (12 mois par défaut), bouton de
-suppression.
+suppression. La même purge couvre le journal de connexion du panel et les logs
+d'accès Caddy, qui sont aussi des données personnelles.
 
 ## Email
 
