@@ -23,8 +23,9 @@ Trois acteurs, à ne pas confondre :
   blocs sur mesure, écrits par toi, dans `src/blocks/`. Le client final n'y
   touche pas.
 
-Le socle est publié sous le nom npm `@leobernard/basalte`. Dans la prose, il
-reste désigné par le nom commun « le socle ».
+Le socle est un package npm nommé `@leobernard/basalte`, **installé depuis git
+par tag et non publié sur le registre npm** (D5, D16). Dans la prose, il reste
+désigné par le nom commun « le socle ».
 
 ## Les quatre contraintes fondatrices
 
@@ -33,7 +34,7 @@ reste désigné par le nom commun « le socle ».
 | C1 | SEO au plus haut niveau | HTML pré-rendu, servi depuis le disque, aucun contenu injecté au runtime |
 | C2 | Performances | Zéro JavaScript par défaut ; images traitées automatiquement |
 | C3 | Sécurité : ne pas se faire pirater, et qu'un intrus ne puisse pas « tout modifier » | Site public sans base ni serveur applicatif ; isolation par client ; plafond de dégâts borné par construction |
-| C4 | Très adapté à une utilisation avec Claude Code | Contenu en fichiers texte versionnés, schémas explicites, un seul langage, build comme test |
+| C4 | Très adapté à une utilisation avec Claude Code | Contenu en fichiers texte versionnés, schémas explicites, un seul langage, `basalte check` comme filet |
 
 Ces quatre contraintes convergent vers la même architecture, ce qui est le
 principal indice qu'elle est la bonne.

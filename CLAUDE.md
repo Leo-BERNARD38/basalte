@@ -1,8 +1,8 @@
 # basalte
 
 Socle technique pour landing pages éditables par leurs propriétaires.
-Publié en package npm `@leobernard/basalte`, installé depuis git par tag dans
-un dépôt par site.
+Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
+par site — dépôt public, jamais publié sur le registre npm.
 
 **État :** aucun code. Design validé, implémentation non commencée.
 Prochaine étape : `docs/implementation.md`, étape 1.
@@ -52,7 +52,8 @@ src/
 ├── admin/          panel : island React unique
 ├── server/         auth, écriture contenu, publication, contact
 ├── seo/            meta, JSON-LD, sitemap, hreflang
-└── cli/            init, check, inventory, update, deploy, doctor, migrate
+└── cli/            init, check, inventory, update, deploy, doctor,
+                    migrate, admin:login, update-all
 migrations/         transformations de format de contenu
 examples/demo/      site de démonstration, banc de test
 docs/

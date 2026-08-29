@@ -30,9 +30,9 @@ processus — couper l'édition coupe aussi le formulaire, et pas les visites.
 ├── DSL de champs + validation      ├── src/blocks/           blocs sur mesure
 ├── panel d'édition complet         ├── content/*.json        éditable
 ├── helpers SEO                     ├── public/media/         images
-├── endpoint contact + anti-spam    ├── compose.yml
-├── CLI (init, check, update…)      └── Caddyfile
-└── blocs de référence
+├── endpoint contact + anti-spam    ├── CLAUDE.md + .claude/  paquet agent
+├── CLI (init, check, deploy…)      ├── compose.yml
+└── blocs de référence              └── Caddyfile
 ```
 
 **Règle d'or :** plus un dépôt client contient de code, moins il est

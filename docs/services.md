@@ -26,6 +26,10 @@ gratuits en permanence — largement le volume de trois sites.
 avec deux implémentations (une API et un SMTP générique) rend le fournisseur
 configurable par site depuis `site.config.ts`.
 
+Le **nom** du fournisseur vit dans `site.config.ts`, versionné ; la **clé** vit
+dans `.env`, jamais versionné. Trois lignes en tout, et `basalte doctor` prouve
+qu'un email part vraiment — voir `depot-client.md`.
+
 L'email porte **aussi les codes de connexion**, pas seulement les leads. Trois
 conséquences :
 

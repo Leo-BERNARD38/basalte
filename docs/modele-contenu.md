@@ -143,6 +143,7 @@ et en pré-commit. Il détecte :
 - une image absente du disque
 - un format de contenu obsolète
 - un média orphelin
+- une valeur de style en dur dans un bloc (`design.md`)
 
 Dans une langue **en préparation**, une traduction manquante avertit sans
 bloquer : le panel affiche l'avancement.

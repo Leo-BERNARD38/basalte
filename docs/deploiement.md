@@ -1,9 +1,12 @@
 # Déploiement et exploitation
 
+Ce document décrit ce qui tourne sur la machine. Pour la mettre en ligne, une
+seule commande : `mise-en-prod.md`.
+
 ## Docker Compose
 
 Généré par `basalte init` : application Node et Caddy. Un nouveau client se
-provisionne en une commande, à l'identique, chez n'importe quel hébergeur.
+provisionne à l'identique, chez n'importe quel hébergeur.
 
 ## Caddy
 
@@ -60,8 +63,9 @@ quotidien.
 
 ## Reprise après sinistre
 
-`git clone` + `basalte init` + restauration du fichier SQLite.
+`git clone` du dépôt du site, `basalte deploy --host <nouvelle ip>`,
+restauration du fichier SQLite.
 
 **La procédure de restauration est celle qu'on exécute à chaque nouveau
-client**, donc elle est validée en permanence — à la différence d'un document
-que personne ne teste jamais.
+client**, à la sauvegarde SQLite près, donc elle est validée en permanence — à
+la différence d'un document que personne ne teste jamais.

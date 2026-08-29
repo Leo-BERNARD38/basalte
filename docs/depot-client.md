@@ -14,7 +14,8 @@ mon-client/
 │   │   ├── design/        régler les tokens, implémenter une maquette
 │   │   ├── contenu/       rédiger et traduire
 │   │   └── mettre-a-jour/ monter le socle de version
-│   └── commands/          /check · /deploy · /nouveau-bloc
+│   └── commands/          /check · /deploy
+├── astro.config.mjs       4 lignes
 ├── site.config.ts         DA, langues, domaine — versionné
 ├── .env                   secrets — jamais versionné
 ├── .env.example
@@ -23,21 +24,23 @@ mon-client/
 ├── src/blocks/            les blocs sur mesure de ce site
 ├── compose.yml
 ├── Caddyfile
+├── .gitignore             .env, node_modules, dist
 └── package.json
 ```
 
 Aucune de ces entrées ne contient de logique du socle.
 
-## Quatre commandes
+## Cinq commandes
 
 | Commande | Quand |
 |---|---|
 | `npm run dev` | développer — site et panel en local |
 | `npm run check` | valider avant de pousser |
-| `npm run deploy` | mettre la machine à jour (`mise-en-prod.md`) |
+| `npm run deploy` | provisionner la machine, ou la mettre à jour (`mise-en-prod.md`) |
+| `npm run doctor` | prouver que la configuration fonctionne (`mise-en-prod.md`) |
 | `npm run update` | monter le socle de version (`mise-a-jour.md`) |
 
-C'est toute la surface. Un cinquième script serait le signe qu'une commande
+C'est toute la surface. Un sixième script serait le signe qu'une commande
 manque au CLI.
 
 ## Configuration : deux fichiers, pas un
@@ -66,8 +69,10 @@ EMAIL_ADMIN=leo@exemple.fr         où partent les erreurs
 SESSION_SECRET=…                   généré par init, à ne jamais toucher
 ```
 
-`init` génère `SESSION_SECRET` lui-même. Reste **une clé à coller et deux
-adresses** : c'est toute la configuration email d'un site.
+`init` écrit ce fichier avec `SESSION_SECRET` déjà rempli et les trois lignes
+d'email laissées vides. Reste **une clé à coller et deux adresses** : c'est
+toute la configuration email d'un site. `npm run doctor` dit ce qui manque, et
+prouve que ce qui est rempli fonctionne vraiment.
 
 Le domaine vit dans `site.config.ts` et non dans `.env` : il n'est pas secret,
 et le build en a besoin pour le sitemap, les `hreflang` et l'Open Graph.
@@ -106,8 +111,9 @@ ce qu'une montée de version a changé pour ce site.
 `init` fait `git init` et le premier commit. Pour le distant :
 
 - si un `GITHUB_TOKEN` est présent, `init --repo Leo-BERNARD38/atelier-duvallon`
-  crée le dépôt privé, pousse, et installe la clé de déploiement
+  crée le dépôt privé, pousse, et génère sa clé de déploiement
 - sinon, `init` affiche les deux commandes à lancer
 
-Une clé de déploiement par dépôt, jamais un jeton de compte : voir
+Ce jeton reste sur ta machine et ne part jamais sur un VPS. La machine, elle,
+ne reçoit qu'une clé de déploiement limitée à son propre dépôt : voir
 `securite.md`.

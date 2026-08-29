@@ -7,7 +7,10 @@ dédié.
   L'interactivité est opt-in bloc par bloc : un carrousel charge son script, le
   reste de la page n'en charge aucun.
 - **Routing i18n natif d'Astro** : `/` pour la langue par défaut, `/en/`
-  ensuite, avec `hreflang` et sitemap couvrant toutes les langues.
+  ensuite, avec `hreflang` et sitemap couvrant **les langues en ligne**. Une
+  langue en préparation n'est pas construite, donc absente du sitemap et des
+  `hreflang` ; une page masquée dans une langue l'est aussi
+  (`modele-contenu.md`).
 - **Images** converties en WebP/AVIF avec `srcset` par taille d'écran.
 - **Métadonnées**, Open Graph et JSON-LD générés depuis `site.config.ts` et le
   contenu. Le bloc FAQ émet un `FAQPage`.
