@@ -22,9 +22,12 @@ d'accès Caddy, qui sont aussi des données personnelles.
 Brevo par défaut : société française, données traitées en UE, 300 emails/jour
 gratuits en permanence — largement le volume de trois sites.
 
-**Le socle n'est pas marié à un fournisseur.** Une interface `EmailProvider`
-avec deux implémentations (une API et un SMTP générique) rend le fournisseur
-configurable par site depuis `site.config.ts`.
+**Le socle n'est pas marié à un fournisseur.** L'interface `EmailProvider` est
+posée depuis la phase 2, dans `src/server/email/` : un nom, une méthode `send`,
+rien d'autre. Trois implémentations existent — `brevo` par un simple `fetch`
+sur son API transactionnelle, `console` qui écrit au lieu d'envoyer, et
+`memory` qui retient, dont `doctor` et les tests se servent. Le fournisseur se
+choisit par site depuis `site.config.ts`.
 
 Le **nom** du fournisseur vit dans `site.config.ts`, versionné ; la **clé** vit
 dans `.env`, jamais versionné. Trois lignes en tout, et `basalte doctor` prouve

@@ -96,6 +96,11 @@ Code, noms de fichiers et identifiants en anglais. Libellés d'interface,
 messages destinés au client et documentation en français. La frontière est
 nette : dès qu'une chaîne s'affiche à l'écran, elle est en français.
 
+Deux suffixes ont un sens pour l'outillage : `*.test.ts` est une suite Vitest,
+`*.fixture.ts` un banc d'essai partagé entre plusieurs suites. Les deux sont
+écartés du paquet par `tsconfig.build.json` — un banc d'essai ne part jamais
+chez un client.
+
 ## Apostrophes
 
 Les chaînes et les commentaires français prennent l'apostrophe typographique

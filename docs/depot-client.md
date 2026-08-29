@@ -24,7 +24,8 @@ mon-client/
 ├── src/blocks/            les blocs sur mesure de ce site
 ├── compose.yml
 ├── Caddyfile
-├── .gitignore             .env, node_modules, dist
+├── data/                  la base SQLite — jamais versionnée
+├── .gitignore             .env, node_modules, dist, data
 └── package.json
 ```
 
@@ -64,20 +65,29 @@ export default defineSite({
 })
 ```
 
-**`.env`** — jamais versionné, quatre lignes. *Les noms de variables sont une
-hypothèse ; le partage secret / non-secret, lui, est acté (D26).*
+**`.env`** — jamais versionné (D26) :
 
 ```
 EMAIL_API_KEY=…                    la clé du fournisseur
 EMAIL_FROM=bonjour@exemple.fr      expéditeur des emails du site
 EMAIL_ADMIN=leo@exemple.fr         où partent les erreurs
-SESSION_SECRET=…                   généré par init, à ne jamais toucher
+AUTH_EMAIL_API_KEY=…               le canal des codes de connexion
+AUTH_EMAIL_FROM=connexion@exemple.fr
 ```
 
-`init` écrit ce fichier avec `SESSION_SECRET` déjà rempli et les trois lignes
-d'email laissées vides. Reste **une clé à coller et deux adresses** : c'est
-toute la configuration email d'un site. `npm run doctor` dit ce qui manque, et
-prouve que ce qui est rempli fonctionne vraiment.
+Les deux dernières lignes sont facultatives : sans elles, les codes de
+connexion partent par le canal du formulaire de contact, et `doctor` le
+signale. Les remplir est ce qui empêche un robot spammant le formulaire
+d'épuiser le quota qui sert à se connecter (`panel.md`).
+
+Aucune variable ne porte de secret de session : les jetons sont tirés au
+hasard et stockés hachés dans `data/basalte.db`, il n'y a rien à dériver d'une
+clé.
+
+`init` écrit ce fichier avec ses lignes vides. Reste **une clé à coller et deux
+adresses** pour un site monocanal, deux clés et trois adresses pour séparer les
+canaux : c'est toute la configuration email d'un site. `npm run doctor` dit ce
+qui manque, et prouve que ce qui est rempli fonctionne vraiment.
 
 Le domaine vit dans `site.config.ts` et non dans `.env` : il n'est pas secret,
 et le build en a besoin pour le sitemap, les `hreflang` et l'Open Graph.

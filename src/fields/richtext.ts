@@ -21,11 +21,11 @@ export function renderRichtext(source: string): string {
     .split(/\n[^\S\n]*\n+/)
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph !== '')
-    .map((paragraph) => `<p>${inline(escape(paragraph))}</p>`)
+    .map((paragraph) => `<p>${inline(escapeHtml(paragraph))}</p>`)
     .join('')
 }
 
-function escape(text: string): string {
+export function escapeHtml(text: string): string {
   return text.replace(
     /[&<>"']/g,
     (character) => ESCAPES[character] ?? character,

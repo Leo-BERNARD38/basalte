@@ -1,6 +1,6 @@
 # Décisions
 
-Quarante-six décisions actées, avec l'alternative écartée et sa raison. Les
+Cinquante-quatre décisions actées, avec l'alternative écartée et sa raison. Les
 détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -51,3 +51,11 @@ détails d'application sont dans les documents thématiques.
 | D44 | Les routes des langues sont produites par `getStaticPaths` | Configuration `i18n` d'Astro : elle apporte des redirections, des replis et un `currentLocale` dont rien n'a besoin ici, et il faudrait quand même écarter les langues en préparation à la main |
 | D45 | Ce que le rendu consomme est un vrai fichier, écrit dans le dossier de génération du projet | Module purement virtuel : la collecte des styles d'Astro parcourt le graphe des modules et ne le traverse pas — les blocs perdent leur CSS, en silence et sans erreur |
 | D46 | Le site de démonstration n'est ni un paquet npm ni un workspace : il se résout par self-reference | Workspace npm : la seule présence du champ `workspaces` déclenche une installation complète dans le clone temporaire, chez chaque client, à chaque `npm ci` (`environnement.md`) |
+| D47 | La base est `node:sqlite`, le module intégré à Node 24 | `better-sqlite3` : une compilation native de plus sur chaque VPS et une famille de binaires de plus à faire coexister dans le lockfile (D32), pour une API équivalente |
+| D48 | Hachage Argon2id par `@node-rs/argon2`, aux paramètres OWASP — 19 Mio, deux passes, un fil | `argon2` : son `install` compile sur place quand aucun binaire préconstruit ne correspond, sur un VPS qui n'a pas de chaîne de compilation. `hash-wasm` : aucun binaire, mais une couche WASM là où le lockfile sait déjà porter des binaires par plateforme |
+| D49 | Le code à six chiffres est haché **avec le jeton de la tentative**, qui ne vit que dans le navigateur | Hacher le code seul : vingt bits d'entropie, qu'une base volée retrouve en une seconde. Le jeton absent de la base, l'empreinte ne se retourne plus |
+| D50 | Limitation de débit par compteur en fenêtre fixe, une ligne par fenêtre | Fenêtre glissante : une ligne par tentative, pour une précision dont rien ici n'a l'usage — l'objectif est de ramener un million d'essais à quelques dizaines |
+| D51 | Le flux d'authentification s'expose en fonctions `Request` vers `Response`, sans rien savoir du serveur qui les monte | Des routes Astro directement : le flux ne serait testable qu'à travers un serveur, et le panel de la phase 3 aurait à le réécrire pour l'éprouver |
+| D52 | Deux gardes indépendantes contre le CSRF : corps annoncé en JSON, et `Origin` du même hôte que la requête | Jeton anti-CSRF synchronisé : un état de plus à stocker et à faire circuler dans chaque formulaire, pour une propriété que `SameSite=Strict` et ces deux gardes tiennent déjà |
+| D53 | `basalte admin:login --create` crée le compte et affiche son mot de passe | Une dixième commande : la surface du CLI est un engagement (`depot-client.md`), et la création d'un compte est déjà une opération de console, au même endroit et avec les mêmes droits |
+| D54 | Les phases suivent leur numérotation : la 2 vient après la 1 | Avancer la phase 6 : un vrai site en ligne bien plus tôt, au prix d'un aller-retour sur `init` quand le panel arrivera |

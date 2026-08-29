@@ -97,7 +97,43 @@ Flux : email + mot de passe, puis code à six chiffres reçu par email.
 
 Les emails d'authentification empruntent un **canal distinct** de ceux du
 formulaire de contact, pour qu'un robot spammant le formulaire ne puisse pas
-épuiser le quota qui sert à se connecter.
+épuiser le quota qui sert à se connecter. En pratique : `AUTH_EMAIL_API_KEY` et
+`AUTH_EMAIL_FROM` dans `.env` ; sans elles le canal retombe sur celui du
+formulaire, et `doctor` le signalera.
+
+### Ce que la phase 2 a posé
+
+Le flux vit dans `src/server/`, en fonctions `Request` vers `Response` (D51) que
+le panel monte sans les réécrire. Il ne sait rien d'Astro et se déroule
+entièrement dans les tests, cookies compris.
+
+| Adresse | Ce qu'elle fait |
+|---|---|
+| `POST /api/auth/sign-in` | adresse et mot de passe ; renvoie `step: code` ou `step: panel` |
+| `POST /api/auth/code` | le code à six chiffres, et `remember` pour l'appareil |
+| `POST /api/auth/sign-out` | ferme la session |
+| `GET /api/auth/session` | le compte, ses appareils, son journal |
+| `POST /api/auth/password` | change le mot de passe, et coupe les autres sessions |
+| `POST /api/auth/devices/forget` | oublie tous les appareils, et coupe les sessions |
+| `GET /admin/rescue?token=…` | le lien de `basalte admin:login` |
+
+Trois cookies, tous `HttpOnly`, `Secure`, `SameSite=Strict`, tous limités au
+site : `basalte_session`, `basalte_attempt` (le temps du code),
+`basalte_device`. Aucun n'est lisible par du JavaScript, et aucun ne porte
+autre chose qu'un jeton dont la base ne garde que l'empreinte.
+
+Le CSRF est arrêté par deux gardes indépendantes plutôt que par un jeton
+synchronisé (D52) : le corps doit être annoncé en JSON, et l'en-tête `Origin`
+doit désigner le même hôte que la requête. Un formulaire hébergé ailleurs
+échoue sur les deux, et `SameSite=Strict` a déjà retenu le cookie.
+
+Les comptes, sessions, appareils, tentatives et le journal vivent dans
+`data/basalte.db`, ouvert par `node:sqlite` (D47). Le fichier n'est pas
+versionné ; c'est lui que sauvegarde le dump quotidien de `deploiement.md`.
+
+Le premier compte se crée en console : `basalte admin:login --user <email>
+--create` affiche le mot de passe généré une seule fois, puis le lien de
+connexion (D53).
 
 ## Médias
 

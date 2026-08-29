@@ -71,7 +71,12 @@ deux exceptions, signalées et motivées.
 | `@dnd-kit/sortable` | 10.0.0 | |
 | `zod` | 4.5.2 | |
 | `sharp` | 0.35.4 | |
+| `@node-rs/argon2` | 2.1.0 | hachage des mots de passe, liaison napi préconstruite (D48) |
 | `@types/react`, `@types/react-dom` | 19.2.18, 19.2.5 | en dépendances, pas en dev : les `.d.ts` livrés y renvoient |
+
+La base SQLite n'apparaît pas dans cette liste : c'est `node:sqlite`, intégré à
+Node 24 (D47). Une dépendance de moins, et une famille de binaires de moins à
+faire coexister dans le lockfile.
 
 **Outillage** — en `devDependencies` :
 

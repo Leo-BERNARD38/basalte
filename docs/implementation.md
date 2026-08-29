@@ -75,7 +75,22 @@ forme réelle des tokens.
 
 ---
 
-## Phase 2 — Authentifier
+## Phase 2 — Authentifier  ·  faite
+
+**Ce qu'elle a retenu.** `node:sqlite` plutôt qu'un pilote installé (D47), et
+Argon2id par `@node-rs/argon2` aux paramètres OWASP (D48). Le code à six
+chiffres est haché avec le jeton de la tentative, qui ne vit que dans le
+navigateur (D49) — une base volée seule ne le retrouve pas. La limitation de
+débit est un compteur en fenêtre fixe (D50). Le flux s'expose en fonctions
+`Request` vers `Response`, que le panel montera sans les réécrire (D51), et le
+CSRF est arrêté par deux gardes indépendantes plutôt qu'un jeton synchronisé
+(D52). `admin:login --create` crée le compte plutôt qu'une dixième commande
+(D53). Détail : D47 à D53, application dans `panel.md`.
+
+**Ce qui reste ouvert.** La purge automatique du journal est écrite mais rien
+ne la déclenche : elle attend la phase 5, qui pose la même purge pour les leads
+et les logs Caddy. `doctor` dira si les deux canaux email partagent une clé —
+phase 6.
 
 **Pourquoi.** C'est le seul endroit du projet où un bug se traduit par une
 intrusion. C'est aussi le seul morceau réellement isolable : il ne dépend de
@@ -91,9 +106,6 @@ rattrape pas après coup : réécrire l'authentification plus tard, c'est rééc
 le panel avec.
 
 **Déjà tranché.** Invariant 12 · D9 · `panel.md`, section Authentification.
-
-**À décider dans la phase.** Le schéma SQLite · la forme de la limitation de
-débit · la structure des tests · le rendu des emails.
 
 **Finie quand.** Les tests couvrent le flux entier, rejeu d'un code et
 expiration compris.
@@ -199,21 +211,17 @@ ouvres un guide.
 
 ---
 
-## Ordre, et un choix qui reste ouvert
+## Ordre
 
 L'ordre ci-dessus est celui des dépendances : chaque phase s'appuie sur les
-précédentes, et 2 pourrait se faire n'importe quand.
+précédentes.
 
-Rien n'est utilisable par un client avant la phase 4. Deux chemins :
+Le choix laissé ouvert en fin de phase 1 — avancer la phase 6 pour mettre un
+site en ligne édité par git, ou suivre la numérotation — est tranché : on suit
+la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
+4, et le premier site sortira complet.
 
-- **suivre l'ordre** — le premier site sort tard, mais complet
-- **avancer la phase 6** juste après la 1, mettre un vrai site en ligne que tu
-  édites toi-même via git, puis reprendre à la phase 2
-
-Le second valide l'architecture sur du réel très tôt et fait rentrer de
-l'argent, au prix d'un aller-retour sur `init` quand le panel arrivera.
-
-**La phase 1 est finie : c'est maintenant qu'il faut trancher.**
+**Prochaine phase : la 3, éditer.**
 
 ## Tests
 
@@ -222,6 +230,12 @@ Deux endroits, écrits en même temps que le code qu'ils couvrent :
 - **l'authentification** (phase 2) — le seul endroit où un bug devient une
   intrusion
 - **le DSL de champs** (phase 1) — tout le reste en dépend
+
+Le flux d'authentification se teste de bout en bout sans serveur : une base en
+mémoire, une horloge qu'on avance à la main, un canal email qui retient au lieu
+d'envoyer (`src/server/auth.fixture.ts`). C'est ce qui rend éprouvables les
+expirations, les rejeux et les verrouillages, qui sinon demanderaient d'attendre
+sept jours.
 
 Le reste est couvert par `basalte check` sur le site de démonstration et par le
 diff du HTML produit : sur un correctif, un diff vide prouve l'absence de
@@ -263,5 +277,5 @@ Ceux qui ne relèvent d'aucune phase en particulier.
 
 | Sujet | Question |
 |---|---|
-| Premier site avant le panel | Voir « Ordre » ci-dessus — à trancher maintenant |
 | Portée de la règle des tokens | `basalte check` refuse les valeurs de style en dur dans un bloc. Faut-il l'étendre aux composants du panel ? |
+| Purge des données personnelles | Le journal, les leads et les logs Caddy partagent une durée. Qui la déclenche sur la machine — le panel, un cron du conteneur ? Phase 5 |

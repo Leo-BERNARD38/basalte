@@ -4,10 +4,11 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** phase 1 faite — DSL de champs, moteur de blocs, intégration Astro,
-médias, `basalte check` et `basalte inventory`. Le site de démonstration se
-construit depuis son JSON (`examples/demo`). Prochaine étape : trancher l'ordre
-en tête de `docs/implementation.md`, puis la phase retenue.
+**État :** phases 1 et 2 faites. Phase 1 — DSL de champs, moteur de blocs,
+intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
+démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
+d'authentification entier, jusqu'à `basalte admin:login`. Prochaine étape : la
+phase 3, éditer (`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -52,9 +53,10 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Schémas de contenu | Zod, sous un DSL `f.*` |
 | Panel d'édition | React 19 + compilateur React, Mantine, dnd-kit |
 | Styles | CSS natif + custom properties |
-| Auth, sessions, leads | SQLite |
+| Auth, sessions, leads | SQLite, par `node:sqlite` |
 | Traitement d'images | sharp |
 | Déploiement | Docker Compose + Caddy |
+| Mots de passe | Argon2id, par `@node-rs/argon2` |
 | Email | Brevo, derrière une interface agnostique |
 
 Pas de Tailwind. Pas de framework CSS. Pas d'ORM.
@@ -75,7 +77,8 @@ src/
 │   └── <nom>/      schema.ts + <Nom>.astro
 ├── astro/          intégration Astro (routes, langues, layout)
 ├── admin/          panel : island React unique
-├── server/         auth, écriture contenu, publication, contact
+├── server/         auth, sessions, journal, email — puis contenu et contact
+│   └── email/      interface EmailProvider, brevo · console · memory
 ├── seo/            meta, JSON-LD, sitemap, hreflang
 └── cli/            init, check, inventory, update, deploy, doctor,
                     migrate, admin:login, update-all
@@ -86,8 +89,11 @@ scripts/            outillage du dépôt — jamais livré, jamais importé
 docs/
 ```
 
-`admin/`, `server/`, `seo/` et `migrations/` n'existent pas encore : ils
-arrivent avec leur phase.
+`admin/`, `seo/` et `migrations/` n'existent pas encore : ils arrivent avec leur
+phase. `server/` ne porte pour l'instant que l'authentification.
+
+Un `*.fixture.ts` est un banc d'essai : `tsconfig.build.json` l'écarte du
+paquet au même titre qu'un test.
 
 ## Conventions
 
@@ -147,7 +153,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
 | `basalte doctor` | prouve que la configuration fonctionne |
 | `basalte migrate` | applique les migrations de format |
-| `basalte admin:login --user <email>` | lien de connexion de secours (SSH) |
+| `basalte admin:login --user <email> [--create]` | lien de connexion de secours (SSH), et création du compte |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build
@@ -168,6 +174,10 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
   cours, pas au seul compte, sinon il est rejouable ailleurs.
 - Les emails d'auth empruntent un canal distinct de ceux du formulaire de
   contact.
+- **Un `const enum` ambiant est inaccessible sous `verbatimModuleSyntax`.** Les
+  liaisons napi en déclarent (`@node-rs/argon2` expose `Algorithm` ainsi) :
+  lire un de leurs membres échoue au typecheck. La valeur numérique passe, sous
+  une constante nommée.
 - Installer depuis git installe du TypeScript non compilé : le package porte un
   script `prepare` qui le compile. Node refuse d'effacer les types sous
   `node_modules`, donc rien de ce que Node charge ne peut rester en `.ts`.

@@ -61,13 +61,18 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 ## Statut
 
 Design validé en brainstorming le 2026-08-29, fondations techniques posées le
-même jour (`environnement.md`), phase 1 faite dans la foulée : DSL de champs,
-moteur de blocs, intégration Astro, médias, `basalte check` et
-`basalte inventory`. Le site de démonstration se construit depuis son JSON.
+même jour (`environnement.md`), phases 1 et 2 faites dans la foulée.
 
-Ce que la phase 1 a décidé est consigné dans D40 à D46 et reporté dans les
-documents concernés. Reste à trancher l'ordre des phases suivantes —
-`implementation.md`, section « Ordre ».
+**Phase 1** — DSL de champs, moteur de blocs, intégration Astro, médias,
+`basalte check` et `basalte inventory`. Le site de démonstration se construit
+depuis son JSON. Décisions D40 à D46.
+
+**Phase 2** — le flux d'authentification entier : mot de passe généré et haché
+en Argon2id, code à usage unique par email, appareil de confiance, sessions,
+journal, limitation de débit, et `basalte admin:login`. Décisions D47 à D53.
+
+L'ordre des phases est tranché (D54) : on suit la numérotation. Prochaine
+phase, la 3 — éditer.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

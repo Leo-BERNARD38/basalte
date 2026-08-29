@@ -1,0 +1,100 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  databasePath,
+  maybeNumber,
+  MEMORY,
+  migrate,
+  number,
+  openDatabase,
+  text,
+} from './database.js'
+
+describe('openDatabase', () => {
+  it('crée les sept tables du schéma', () => {
+    const database = openDatabase(MEMORY)
+
+    const tables = database
+      .prepare("select name from sqlite_master where type = 'table'")
+      .all()
+      .map((row) => row['name'])
+
+    for (const table of [
+      'account',
+      'login_attempt',
+      'session',
+      'device',
+      'rescue',
+      'journal',
+      'throttle',
+    ]) {
+      expect(tables).toContain(table)
+    }
+
+    database.close()
+  })
+
+  it('rejoue une migration déjà appliquée sans rien casser', () => {
+    const database = openDatabase(MEMORY)
+
+    migrate(database)
+    migrate(database)
+
+    expect(
+      number(
+        database.prepare('pragma user_version').get() ?? {},
+        'user_version',
+      ),
+    ).toBe(1)
+
+    database.close()
+  })
+
+  it('fait respecter les clés étrangères', () => {
+    const database = openDatabase(MEMORY)
+
+    expect(() =>
+      database
+        .prepare(
+          `insert into session (account_id, token_hash, created_at, seen_at, expires_at, ip, agent)
+           values (404, 'x', 0, 0, 0, '', '')`,
+        )
+        .run(),
+    ).toThrow()
+
+    database.close()
+  })
+
+  it('refuse une valeur du mauvais type dans une table stricte', () => {
+    const database = openDatabase(MEMORY)
+
+    expect(() =>
+      database
+        .prepare(
+          `insert into account (email, password_hash, created_at, password_changed_at)
+           values ('a@b.fr', 'h', 'pas un nombre', 0)`,
+        )
+        .run(),
+    ).toThrow()
+
+    database.close()
+  })
+
+  it('range le fichier sous data/', () => {
+    expect(databasePath('/site').replace(/\\/g, '/')).toBe(
+      '/site/data/basalte.db',
+    )
+  })
+})
+
+describe('lecture de colonnes', () => {
+  it('nomme la colonne fautive plutôt que de propager un undefined', () => {
+    expect(() => text({ a: 1 }, 'a')).toThrow('a')
+    expect(() => number({ a: 'x' }, 'a')).toThrow('a')
+  })
+
+  it('rend une colonne nulle comme absente', () => {
+    expect(maybeNumber({ a: null }, 'a')).toBeUndefined()
+    expect(maybeNumber({ a: 3 }, 'a')).toBe(3)
+  })
+})

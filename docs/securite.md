@@ -53,6 +53,25 @@ fonctionne et une garantie détruite — c'est ce qui les rend dangereuses.
 12. **Le mot de passe initial ne transite jamais par email** — l'email porte
     déjà le second facteur.
 
+## Ce qui n'est pas couvert, et pourquoi
+
+Deux faiblesses connues, mesurées et acceptées.
+
+**L'énumération des comptes après plusieurs échecs.** Un mot de passe faux et
+une adresse inconnue donnent le même refus, mot pour mot et pour le même temps
+de calcul. Au sixième essai sur une adresse qui existe, le message devient
+« la connexion est bloquée quelques minutes » : qui a fait cinq essais sur la
+bonne adresse apprend donc qu'elle existe. Le prix de la fermer serait de ne
+plus dire au client pourquoi il n'entre pas — or c'est précisément
+l'information qui lui manque à ce moment-là. La limitation par adresse IP borne
+l'exercice à vingt essais par quart d'heure.
+
+**Le jeton de secours passe par l'URL**, donc par les logs d'accès de Caddy. Il
+ne sert qu'une fois et vaut dix minutes ; un log lu plus tard ne contient que
+des jetons déjà consommés. Lire ce log demande par ailleurs un accès à la
+machine, c'est-à-dire à la base elle-même. Le Caddyfile de la phase 6 peut
+retirer la chaîne de requête de la ligne journalisée pour ce chemin.
+
 ## Chaîne d'approvisionnement
 
 Deux dépôts à protéger, pas un.

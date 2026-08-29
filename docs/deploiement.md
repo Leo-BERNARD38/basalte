@@ -42,6 +42,12 @@ compte pas à l'échelle de trois landing pages.
 Les en-têtes de sécurité (CSP, HSTS, `X-Frame-Options`) et les logs qui
 alimentent l'analytics sont configurés là.
 
+Deux points que le panel attend de ce fichier : `X-Forwarded-For` doit être
+posé — c'est la dernière entrée que le socle lit pour limiter le débit par
+adresse, et sans lui tout le trafic partage un seul compteur — et la chaîne de
+requête de `/admin/rescue` mérite d'être retirée des lignes journalisées, le
+jeton de secours y figurant en clair (`securite.md`).
+
 ## Dimensionnement
 
 **2 Go de RAM par VPS.** Le pic mémoire vient du traitement des images par
@@ -58,8 +64,10 @@ Le contenu et les images sont **déjà répliqués hors site** à chaque
 publication, puisque le dépôt est poussé sur GitHub. C'est le gros de la donnée,
 sauvegardé sans rien ajouter.
 
-Reste la base SQLite (comptes, sessions, leads), qui est un fichier : dump
-quotidien.
+Reste la base SQLite (comptes, sessions, appareils, journal, leads), qui est un
+fichier : `data/basalte.db` à la racine du dépôt du site, monté en volume, dump
+quotidien. Elle n'est pas versionnée — c'est la seule donnée du site que le
+dépôt ne réplique pas.
 
 ## Reprise après sinistre
 

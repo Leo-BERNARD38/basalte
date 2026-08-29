@@ -55,8 +55,10 @@ export const COMMANDS: readonly Command[] = [
   },
   {
     name: 'admin:login',
-    usage: 'admin:login --user <email>',
-    summary: 'lien de connexion de secours (SSH)',
+    usage: 'admin:login --user <email> [--create]',
+    summary: 'lien de connexion de secours (SSH), et création du compte',
+    run: async (argv, cwd) =>
+      (await import('./admin-login.js')).adminLogin(argv, cwd),
   },
   {
     name: 'update-all',
