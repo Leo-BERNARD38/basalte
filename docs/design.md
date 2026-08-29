@@ -21,16 +21,17 @@ littérale dans le CSS d'un bloc.
 Déclarés dans `site.config.ts`, injectés en variables CSS sur `:root`. La liste
 est courte exprès — elle doit tenir dans la tête.
 
-*Hypothèse de départ — la phase 1 l'établit pour de bon, au contact d'une vraie
-DA. Ce qui ne bouge pas : elle reste courte, et tout besoin non couvert devient
-un token plutôt qu'une valeur en dur.*
+Établie en phase 1 et vérifiable : `resolveTokens` refuse une famille ou un nom
+que le socle ne porte pas, ce qui rend l'arbitrage impossible à contourner par
+distraction. Un site ne déclare que ce que sa DA change ; le reste vient du
+socle.
 
 | Famille | Tokens |
 |---|---|
 | Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` |
 | Typographies | `--font-title` `--font-body` |
-| Échelle de texte | `--text-xs` → `--text-3xl` |
-| Espacement | `--space-1` → `--space-8` |
+| Échelle de texte | `--text-xs` `--text-sm` `--text-base` `--text-lg` `--text-xl` `--text-2xl` `--text-3xl` |
+| Espacement | `--space-1` → `--space-8`, de 0,25 à 4,5 rem |
 | Rayons | `--radius-sm` `--radius-md` |
 | Largeurs | `--width-content` `--width-wide` |
 

@@ -96,6 +96,14 @@ Code, noms de fichiers et identifiants en anglais. Libellés d'interface,
 messages destinés au client et documentation en français. La frontière est
 nette : dès qu'une chaîne s'affiche à l'écran, elle est en français.
 
+## Apostrophes
+
+Les chaînes et les commentaires français prennent l'apostrophe typographique
+(`’`), jamais l'apostrophe droite. Ce n'est pas une coquetterie : les chaînes
+de ce dépôt sont délimitées par des apostrophes droites, et la variante
+typographique n'a donc jamais besoin d'être échappée. La documentation, elle,
+garde l'apostrophe droite — elle n'est pas du code.
+
 ## Côté dépôt client
 
 La discipline ci-dessus vaut pour le socle. Un dépôt client, lui, ne contient

@@ -1,15 +1,15 @@
 // Vérifie que le lockfile porte les binaires des deux systèmes de
 // développement. Plusieurs dépendances (rolldown, esbuild, lightningcss, sharp)
 // publient un paquet compilé par plateforme, en dépendance optionnelle. Un
-// `npm install` lancé sur un seul système peut n'inscrire que le sien ; `npm ci`
-// échoue alors de l'autre côté sur un module introuvable.
+// `npm install` lancé sur un seul système peut n’inscrire que le sien ; `npm ci`
+// échoue alors de l’autre côté sur un module introuvable.
 //
-// La règle appliquée est exacte plutôt qu'heuristique : toute dépendance
+// La règle appliquée est exacte plutôt qu’heuristique : toute dépendance
 // optionnelle déclarée par un paquet du lockfile doit avoir sa propre entrée
-// dans ce lockfile. C'est précisément ce qu'un élagage détruit.
+// dans ce lockfile. C’est précisément ce qu’un élagage détruit.
 //
 // Une règle par famille de noms ne marcherait pas : `@img/sharp-win32-x64`
-// n'a aucune dépendance, libvips étant lié statiquement dans le binaire
+// n’a aucune dépendance, libvips étant lié statiquement dans le binaire
 // Windows, alors que `@img/sharp-linux-x64` tire `@img/sharp-libvips-linux-x64`.
 // Exiger une symétrie entre plateformes signalerait cette asymétrie légitime.
 

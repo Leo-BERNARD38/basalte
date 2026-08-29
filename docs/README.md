@@ -60,9 +60,14 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 
-Design validé en brainstorming le 2026-08-29. Fondations techniques posées le
-même jour : `environnement.md`. Aucun code de produit écrit — la phase 1 n'a pas
-commencé.
+Design validé en brainstorming le 2026-08-29, fondations techniques posées le
+même jour (`environnement.md`), phase 1 faite dans la foulée : DSL de champs,
+moteur de blocs, intégration Astro, médias, `basalte check` et
+`basalte inventory`. Le site de démonstration se construit depuis son JSON.
+
+Ce que la phase 1 a décidé est consigné dans D40 à D46 et reporté dans les
+documents concernés. Reste à trancher l'ordre des phases suivantes —
+`implementation.md`, section « Ordre ».
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

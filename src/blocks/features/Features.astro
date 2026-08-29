@@ -1,0 +1,75 @@
+---
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language } = Astro.props
+
+const title = pick(props.title, language)
+---
+
+<section class="features">
+  <div class="features__inner">
+    {title !== '' && <h2 class="features__title">{title}</h2>}
+    <ul class="features__list">
+      {
+        props.items.map((item) => (
+          <li class="features__item">
+            <h3 class="features__item-title">{pick(item.title, language)}</h3>
+            {pick(item.body, language) !== '' && (
+              <p class="features__item-body">{pick(item.body, language)}</p>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .features {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .features__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .features__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .features__list {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .features__item-title {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .features__item-body {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .features__list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-7) var(--space-6);
+    }
+  }
+</style>

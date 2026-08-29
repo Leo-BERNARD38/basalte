@@ -1,5 +1,5 @@
 // Compile `src/` vers `dist/`, puis y recopie les fichiers que tsc laisse de
-// côté. Les `.astro` traversent le package intacts : c'est le build Astro du
+// côté. Les `.astro` traversent le package intacts : c’est le build Astro du
 // dépôt client qui les compile.
 
 import { execFileSync } from 'node:child_process'
@@ -12,7 +12,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const source = path.join(root, 'src')
 const output = path.join(root, 'dist')
 
-const ASSET_EXTENSIONS = new Set(['.astro', '.css'])
+const ASSET_EXTENSIONS = new Set(['.astro', '.css', '.d.ts'])
 
 async function* walk(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

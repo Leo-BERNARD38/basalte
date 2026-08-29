@@ -1,0 +1,58 @@
+{
+  "317469df38a6a6c9": {
+    "format": "webp",
+    "width": 1600,
+    "height": 1200,
+    "widths": [480, 768, 1200, 1600],
+    "alt": {
+      "fr": "Un établi de bois clair sous une lumière rasante",
+      "en": ""
+    },
+    "focal": {
+      "x": 45,
+      "y": 40
+    }
+  },
+  "34dd7a2858aed0c1": {
+    "format": "webp",
+    "width": 1600,
+    "height": 1200,
+    "widths": [480, 768, 1200, 1600],
+    "alt": {
+      "fr": "Des outils rangés en rang sur un mur sombre",
+      "en": ""
+    },
+    "focal": {
+      "x": 60,
+      "y": 55
+    }
+  },
+  "ac12e6f2b5e4e49f": {
+    "format": "webp",
+    "width": 2400,
+    "height": 1350,
+    "widths": [480, 768, 1200, 1800, 2400],
+    "alt": {
+      "fr": "Un dégradé chaud, du sable au brun profond",
+      "en": ""
+    },
+    "focal": {
+      "x": 70,
+      "y": 32
+    }
+  },
+  "ceff58179486d4a3": {
+    "format": "webp",
+    "width": 1600,
+    "height": 1200,
+    "widths": [480, 768, 1200, 1600],
+    "alt": {
+      "fr": "Une pièce terminée posée sur un fond crème",
+      "en": ""
+    },
+    "focal": {
+      "x": 50,
+      "y": 45
+    }
+  }
+}

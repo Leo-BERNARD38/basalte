@@ -1,0 +1,66 @@
+---
+import type { PageMeta } from '../content/page.js'
+import { pick } from '../fields/translate.js'
+import type { Site } from '../site/define.js'
+import { tokensToCss } from '../site/tokens.js'
+import { urlFor } from './routes.js'
+import './base.css'
+
+type Props = {
+  site: Site
+  meta: PageMeta
+  language: string
+  route: string
+}
+
+const { site, meta, language, route } = Astro.props
+
+const origin = `https://${site.domain}`
+const title = pick(meta.title, language)
+const description = pick(meta.description, language)
+
+const canonical = origin + urlFor(route, prefix(language))
+const alternates =
+  site.languages.online.length > 1
+    ? site.languages.online.map((entry) => ({
+        hreflang: entry.code,
+        href: origin + urlFor(route, prefix(entry.code)),
+      }))
+    : []
+
+function prefix(code: string): string {
+  return code === site.languages.default.code ? '' : code
+}
+---
+
+<html lang={language}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description !== '' && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    {
+      alternates.map((alternate) => (
+        <link
+          rel="alternate"
+          hreflang={alternate.hreflang}
+          href={alternate.href}
+        />
+      ))
+    }
+    {
+      alternates.length > 0 && (
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={origin + urlFor(route, '')}
+        />
+      )
+    }
+    <style is:global set:html={tokensToCss(site.tokens)}></style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

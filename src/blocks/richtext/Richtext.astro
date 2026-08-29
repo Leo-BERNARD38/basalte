@@ -1,0 +1,50 @@
+---
+import { renderRichtext } from '../../fields/richtext.js'
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language } = Astro.props
+
+const title = pick(props.title, language)
+const body = renderRichtext(pick(props.body, language))
+---
+
+<section class="richtext">
+  <div class="richtext__inner">
+    {title !== '' && <h2 class="richtext__title">{title}</h2>}
+    <div class="richtext__body" set:html={body} />
+  </div>
+</section>
+
+<style>
+  .richtext {
+    padding: var(--space-7) var(--space-5);
+  }
+
+  .richtext__inner {
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .richtext__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .richtext__body :global(p) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .richtext__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .richtext__body :global(a) {
+    color: var(--color-accent);
+  }
+</style>

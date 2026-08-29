@@ -1,9 +1,16 @@
+import type { Result } from './run.js'
+
 export type Command = {
-  /** Nom tapé par l'utilisateur. */
+  /** Nom tapé par l’utilisateur. */
   readonly name: string
-  /** Nom suivi de ses arguments, tel que `--help` l'affiche. */
+  /** Nom suivi de ses arguments, tel que `--help` l’affiche. */
   readonly usage: string
   readonly summary: string
+  /**
+   * Absent tant que la commande n’est pas implémentée. Le module qui la porte
+   * est chargé à l’appel : `basalte --help` ne charge ni sharp ni Astro.
+   */
+  readonly run?: (argv: readonly string[], cwd: string) => Promise<Result>
 }
 
 export const COMMANDS: readonly Command[] = [
@@ -14,13 +21,17 @@ export const COMMANDS: readonly Command[] = [
   },
   {
     name: 'check',
-    usage: 'check',
-    summary: 'valide les contenus contre les schémas, puis construit',
+    usage: 'check [--build]',
+    summary:
+      'valide les contenus contre les schémas, et construit sous --build',
+    run: async (argv, cwd) => (await import('./check.js')).check(argv, cwd),
   },
   {
     name: 'inventory',
-    usage: 'inventory',
+    usage: 'inventory [--json]',
     summary: 'liste blocs, champs et helpers réutilisables',
+    run: async (argv, cwd) =>
+      (await import('./inventory.js')).inventory(argv, cwd),
   },
   {
     name: 'update',

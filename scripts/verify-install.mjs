@@ -1,9 +1,9 @@
-// Prouve le chemin d'installation réel : un dépôt client installe le socle
+// Prouve le chemin d’installation réel : un dépôt client installe le socle
 // depuis git, npm clone, exécute `prepare`, et empaquette selon `files`.
 //
 // Le clone est fabriqué depuis le dossier de travail, pas depuis `HEAD` : ce
-// qui est vérifié est le code tel qu'il est, pas tel qu'il a été commité. Le
-// dépôt distant n'est jamais sollicité.
+// qui est vérifié est le code tel qu’il est, pas tel qu’il a été commité. Le
+// dépôt distant n’est jamais sollicité.
 
 import { execFileSync } from 'node:child_process'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -118,7 +118,7 @@ function npx(cwd, args) {
 
 // npm est appelé par son fichier JavaScript plutôt que par le shim `.cmd` que
 // Windows installe : un seul chemin pour les deux systèmes. npm renseigne
-// `npm_execpath` dans les scripts qu'il lance.
+// `npm_execpath` dans les scripts qu’il lance.
 function npmCli() {
   const cli = process.env['npm_execpath']
   if (cli === undefined) {

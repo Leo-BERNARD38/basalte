@@ -1,6 +1,6 @@
 # Décisions
 
-Trente-neuf décisions actées, avec l'alternative écartée et sa raison. Les
+Quarante-six décisions actées, avec l'alternative écartée et sa raison. Les
 détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -44,3 +44,10 @@ détails d'application sont dans les documents thématiques.
 | D37 | Hooks git natifs par `core.hooksPath`, branchés par `npm run setup` | husky : s'installe par `prepare`, or `prepare` est déjà la compilation du package et s'exécute chez le client — le hook s'installerait dans le clone temporaire du consommateur |
 | D38 | CI sur les pull requests uniquement, matrice ubuntu + windows, plus un job qui installe le package depuis git | Sur chaque push : la matrice Windows double la facture de minutes pour une information que la PR donne déjà |
 | D39 | React 19.2 avec le compilateur React activé dès le départ ; `astro` en dépendance de pair à la version exacte | Compilateur branché plus tard : tout le `useMemo` écrit d'ici là devient du bruit à retirer, et le panel a été conçu autour. `astro` en dépendance ordinaire : deux copies possibles, donc deux instances de Vite et une intégration chargée deux fois, en silence |
+| D40 | Les dérivées d'une image sont produites à l'**ingestion** par sharp et versionnées ; le build ne traite aucune image | Optimisation au build par Astro : `import.meta.glob` à rebrancher, un cache d'images à préserver entre publications, et le pic mémoire de sharp sur un VPS de 2 Go à chaque mise en ligne. Le ré-encodage étant déjà obligatoire au téléversement (invariant 3), produire les largeurs dans la même passe ne coûte rien |
+| D41 | Un champ traduisible porte toujours sa carte de langues, même sur un site monolingue | Valeur nue tant qu'il n'y a qu'une langue : deux formes à lire partout, et activer une deuxième langue imposerait de réécrire tout le contenu — le coût que D18 cherchait à supprimer |
+| D42 | Le Markdown restreint est rendu par le socle, en échappant d'abord puis en réintroduisant une liste blanche | `markdown-it` plus un assainisseur : deux dépendances de plus sur chaque VPS, et une surface bien plus large que le gras, l'italique et les liens |
+| D43 | Un champ absent d'un contenu vaut vide ; le caractère requis se dit par sa borne basse | Exiger la présence de chaque clé : un JSON écrit à la main devient pénible, le message parle d'absence là où le client comprend « à remplir », et le composant doit tester deux cas |
+| D44 | Les routes des langues sont produites par `getStaticPaths` | Configuration `i18n` d'Astro : elle apporte des redirections, des replis et un `currentLocale` dont rien n'a besoin ici, et il faudrait quand même écarter les langues en préparation à la main |
+| D45 | Ce que le rendu consomme est un vrai fichier, écrit dans le dossier de génération du projet | Module purement virtuel : la collecte des styles d'Astro parcourt le graphe des modules et ne le traverse pas — les blocs perdent leur CSS, en silence et sans erreur |
+| D46 | Le site de démonstration n'est ni un paquet npm ni un workspace : il se résout par self-reference | Workspace npm : la seule présence du champ `workspaces` déclenche une installation complète dans le clone temporaire, chez chaque client, à chaque `npm ci` (`environnement.md`) |

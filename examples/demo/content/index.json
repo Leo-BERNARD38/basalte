@@ -1,0 +1,104 @@
+{
+  "$format": 1,
+  "meta": {
+    "title": { "fr": "Atelier Démonstration", "en": "" },
+    "description": {
+      "fr": "Le banc d’essai du socle : un contenu en JSON, des blocs, et pas une ligne de JavaScript servie.",
+      "en": ""
+    }
+  },
+  "blocks": [
+    {
+      "id": "h1",
+      "type": "hero",
+      "props": {
+        "title": { "fr": "Votre site, que vous modifiez vous-même", "en": "" },
+        "subtitle": {
+          "fr": "Les textes, les images, l’ordre des sections. Servi en HTML pur, sans base de données ni script.",
+          "en": ""
+        },
+        "image": "ac12e6f2b5e4e49f",
+        "cta": {
+          "label": { "fr": "Nous écrire", "en": "" },
+          "href": "/contact"
+        }
+      }
+    },
+    {
+      "id": "r1",
+      "type": "richtext",
+      "props": {
+        "title": { "fr": "Ce que ce bloc démontre", "en": "" },
+        "body": {
+          "fr": "Ce paragraphe passe par un **Markdown restreint**. Le gras, l’*italique* et les [liens](https://exemple.fr) sont rendus ; tout le reste est échappé.\n\nÉcrire <script>alert(1)</script> dans le panel n’a donc aucun effet : le texte s’affiche tel quel.",
+          "en": ""
+        }
+      }
+    },
+    {
+      "id": "f1",
+      "type": "features",
+      "props": {
+        "title": { "fr": "Trois choses qui ne bougeront pas", "en": "" },
+        "items": [
+          {
+            "title": { "fr": "Aucun JavaScript par défaut", "en": "" },
+            "body": {
+              "fr": "Une page ne charge un script que si un bloc le demande explicitement.",
+              "en": ""
+            }
+          },
+          {
+            "title": { "fr": "Les images sont préparées d’avance", "en": "" },
+            "body": {
+              "fr": "Cinq largeurs en WebP produites au dépôt de l’image, jamais au moment de la publication.",
+              "en": ""
+            }
+          },
+          {
+            "title": { "fr": "Une publication ratée ne casse rien", "en": "" },
+            "body": {
+              "fr": "Le contenu est validé contre son schéma avant que quoi que ce soit ne parte en ligne.",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "g1",
+      "type": "gallery",
+      "props": {
+        "title": {
+          "fr": "Trois images, neuf fichiers, zéro travail au build",
+          "en": ""
+        },
+        "images": [
+          {
+            "image": "317469df38a6a6c9",
+            "caption": { "fr": "L’établi", "en": "" }
+          },
+          {
+            "image": "34dd7a2858aed0c1",
+            "caption": { "fr": "Les outils", "en": "" }
+          },
+          {
+            "image": "ceff58179486d4a3",
+            "caption": { "fr": "La pièce finie", "en": "" }
+          }
+        ]
+      }
+    },
+    {
+      "id": "t1",
+      "type": "temoignage",
+      "props": {
+        "quote": {
+          "fr": "Je change mes textes moi-même, et le site reste aussi rapide qu’au premier jour.",
+          "en": ""
+        },
+        "author": "Camille Duvallon"
+      }
+    }
+  ]
+}

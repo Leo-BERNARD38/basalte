@@ -4,9 +4,10 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** fondations posées — outillage, compilation, tests, CI
-(`docs/environnement.md`). Le CLI répond, ses commandes ne sont pas encore
-implémentées. Prochaine étape : `docs/implementation.md`, phase 1.
+**État :** phase 1 faite — DSL de champs, moteur de blocs, intégration Astro,
+médias, `basalte check` et `basalte inventory`. Le site de démonstration se
+construit depuis son JSON (`examples/demo`). Prochaine étape : trancher l'ordre
+en tête de `docs/implementation.md`, puis la phase retenue.
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -66,10 +67,13 @@ départ — pas de mémoïsation écrite à la main.
 
 ```
 src/
-├── astro/          intégration Astro (injecte routes, i18n, sitemap)
+├── site/           site.config.ts : chargement, langues, tokens → CSS
 ├── fields/         DSL f.* → schéma Zod + description d'interface
+├── content/        format de page, lecture, validation, messages français
+├── media/          ingestion sharp, manifeste, résolution vers srcset
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro
+├── astro/          intégration Astro (routes, langues, layout)
 ├── admin/          panel : island React unique
 ├── server/         auth, écriture contenu, publication, contact
 ├── seo/            meta, JSON-LD, sitemap, hreflang
@@ -81,6 +85,9 @@ scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
 docs/
 ```
+
+`admin/`, `server/`, `seo/` et `migrations/` n'existent pas encore : ils
+arrivent avec leur phase.
 
 ## Conventions
 
@@ -101,6 +108,9 @@ Détail dans `docs/conventions.md`. L'essentiel :
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
   `docs/decisions.md`.
 - **Anglais dans le code**, français dès qu'une chaîne s'affiche.
+- **Apostrophe typographique** dans les chaînes et commentaires français : les
+  chaînes sont délimitées par des apostrophes droites, la variante
+  typographique n'a jamais à être échappée.
 
 ## Règles absolues
 
@@ -131,8 +141,8 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | Commande | Effet |
 |---|---|
 | `basalte init <nom>` | génère un dépôt client complet |
-| `basalte check` | valide contenus contre schémas, puis build |
-| `basalte inventory` | liste blocs, champs et helpers réutilisables |
+| `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
+| `basalte inventory [--json]` | liste blocs, champs et helpers réutilisables |
 | `basalte update` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
 | `basalte doctor` | prouve que la configuration fonctionne |
@@ -148,10 +158,12 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
 ## Pièges connus
 
 - Astro n'optimise que les images **importées** dans le code, pas celles
-  désignées par une chaîne venue d'un JSON. Passer par `import.meta.glob`.
-- Astro garde les images optimisées dans `node_modules/.astro`. Le build tourne
-  toujours dans le même dossier de travail ; seul le `dist/` est déplacé dans
-  `releases/`. Sinon tout est ré-encodé à chaque publication.
+  désignées par une chaîne venue d'un JSON. Le socle ne s'y branche pas : il
+  produit les largeurs à l'ingestion et le build recopie `public/` (D40).
+- **La collecte des styles d'Astro ne traverse pas un module virtuel.** Un bloc
+  importé depuis un module purement virtuel perd son CSS, sans erreur ni
+  avertissement. Le module que le rendu consomme est donc un vrai fichier,
+  écrit dans le dossier de génération (D45).
 - Le code email d'authentification doit être lié à la tentative de connexion en
   cours, pas au seul compte, sinon il est rejouable ailleurs.
 - Les emails d'auth empruntent un canal distinct de ceux du formulaire de

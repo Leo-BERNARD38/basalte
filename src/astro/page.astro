@@ -1,0 +1,43 @@
+---
+import { blocks, media, pages, site } from 'virtual:basalte'
+import { resolveImage } from '../media/resolve.js'
+import Layout from './Layout.astro'
+import { slugFor } from './routes.js'
+
+export function getStaticPaths() {
+  return pages.flatMap((entry) =>
+    site.languages.online.map((language) => ({
+      params: {
+        slug: slugFor(
+          entry.route,
+          language.code === site.languages.default.code ? '' : language.code,
+        ),
+      },
+      props: { entry, language: language.code },
+    })),
+  )
+}
+
+const { entry, language } = Astro.props
+
+const sections = entry.page.blocks.filter(
+  (section) => section.hidden[language] !== true,
+)
+
+const image = (key: string, sizes?: string) =>
+  resolveImage(media, key, language, sizes)
+---
+
+<Layout
+  site={site}
+  meta={entry.page.meta}
+  language={language}
+  route={entry.route}
+>
+  {
+    sections.map((section) => {
+      const Block = blocks[section.type]
+      return <Block props={section.props} language={language} image={image} />
+    })
+  }
+</Layout>

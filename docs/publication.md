@@ -40,12 +40,13 @@ travail supplémentaire, puisqu'un runtime Node tourne déjà pour le panel.
 ## Le dossier de build ne bouge pas
 
 Le build tourne **toujours dans le même dossier de travail** — le dépôt — et
-seul le `dist/` produit est déplacé dans `releases/<date>/`.
+seul le `dist/` produit est déplacé dans `releases/<date>/`. C'est le dépôt git
+du site : le panel y a commité, et c'est cet état-là qu'on construit.
 
-Astro conserve les images déjà optimisées dans `node_modules/.astro`.
-Construire dans un dossier neuf à chaque publication jetterait ce cache et
-ferait ré-encoder toutes les images à chaque fois : quelques minutes de build
-et un pic mémoire parfaitement évitables sur un VPS de 2 Go.
+Le build ne traite aucune image (D40) : les largeurs sont produites quand
+l'image entre dans le site, et `public/` est recopié tel quel. Une publication
+ne ré-encode donc rien, et il n'y a aucun cache d'images à préserver d'une
+version à l'autre.
 
 ## Bascule atomique
 

@@ -32,7 +32,20 @@ n'est pas un écart : c'est ce pour quoi elles sont là.
 
 ---
 
-## Phase 1 — Rendre
+## Phase 1 — Rendre  ·  faite
+
+**Ce qu'elle a retenu.** Les quatre blocs de rendu pur — `hero`, `richtext`,
+`features`, `gallery` ; `faq` et `contact` attendent leurs phases. Huit types
+`f.*`, dont seuls les trois qui portent de la prose acceptent `i18n`. Une carte
+de langues systématique, même en monolingue (D41). Les dérivées d'images
+produites à l'ingestion, pas au build (D40) — ce qui remplace le passage par
+`import.meta.glob` que `seo-performances.md` prévoyait. Un Markdown restreint
+écrit ici plutôt que tiré d'une dépendance (D42). Les routes par langue
+produites par `getStaticPaths` (D44). Détail : D40 à D46.
+
+**Ce qui reste ouvert.** Le sitemap, `robots.txt`, le JSON-LD et les images
+Open Graph : `meta` porte le titre et la description, le reste attend un
+`src/seo/`.
 
 **Pourquoi.** Tout le reste consomme le DSL et le moteur de blocs. C'est la
 seule phase dont un défaut se paie dans toutes les autres.
@@ -198,8 +211,9 @@ Rien n'est utilisable par un client avant la phase 4. Deux chemins :
   édites toi-même via git, puis reprendre à la phase 2
 
 Le second valide l'architecture sur du réel très tôt et fait rentrer de
-l'argent, au prix d'un aller-retour sur `init` quand le panel arrivera. À
-trancher au moment de finir la phase 1, pas maintenant.
+l'argent, au prix d'un aller-retour sur `init` quand le panel arrivera.
+
+**La phase 1 est finie : c'est maintenant qu'il faut trancher.**
 
 ## Tests
 
@@ -223,10 +237,10 @@ Les blocs livrés par le socle ne sont pas un catalogue de sections — chaque
 client aura les siennes, sur mesure. Ce sont des **exemples de référence**,
 choisis pour la mécanique que chacun démontre (D19).
 
-*Hypothèse de départ — la phase 1 confirme ou remplace :* `hero` (texte
-traduisible, image, point focal, bouton) · `richtext` (Markdown restreint) ·
-`features` (liste répétable) · `gallery` (plusieurs images, `srcset`) · `faq`
-(JS opt-in, JSON-LD) · `contact` (endpoint serveur).
+Livrés en phase 1 : `hero` (texte traduisible, image, point focal, bouton) ·
+`richtext` (Markdown restreint) · `features` (liste répétable) · `gallery`
+(plusieurs images, `srcset`). Restent à écrire avec la phase qui leur donne
+leur mécanique : `faq` (JS opt-in, JSON-LD) et `contact` (endpoint serveur).
 
 Le critère, lui, tient : un bloc de référence gagne sa place s'il démontre une
 mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou `stats` sont des
@@ -249,5 +263,5 @@ Ceux qui ne relèvent d'aucune phase en particulier.
 
 | Sujet | Question |
 |---|---|
-| Premier site avant le panel | Voir « Ordre » ci-dessus — à trancher en fin de phase 1 |
+| Premier site avant le panel | Voir « Ordre » ci-dessus — à trancher maintenant |
 | Portée de la règle des tokens | `basalte check` refuse les valeurs de style en dur dans un bloc. Faut-il l'étendre aux composants du panel ? |

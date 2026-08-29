@@ -31,13 +31,22 @@ npm run setup
 
 | Commande | Effet |
 |---|---|
-| `npm run verify` | typecheck, tests, formatage, lockfile |
+| `npm run verify` | typecheck, `.astro`, tests, formatage, lockfile |
 | `npm run verify:install` | prouve le chemin d'installation depuis git |
 | `npm run build` | compile `src/` vers `dist/` |
 | `npm test` | Vitest, une fois |
 | `npm run test:watch` | Vitest, en continu |
 | `npm run format` | applique Prettier |
 | `npm run setup` | branche `.githooks/` |
+| `npm run demo:dev` | sert le site de démonstration |
+| `npm run demo:build` | construit le site de démonstration |
+| `npm run demo:check` | typecheck des `.astro`, via `@astrojs/check` |
+
+Le site de démonstration n'a ni `package.json` ni entrée `workspaces` (D46) :
+Node résout `@leobernard/basalte` par self-reference depuis n'importe quel
+sous-dossier du dépôt. Il ressemble donc trait pour trait à un dépôt client
+sans coûter l'installation complète qu'un workspace imposerait à chaque VPS —
+voir « Ce que npm fait vraiment » plus bas.
 
 ## Versions épinglées
 

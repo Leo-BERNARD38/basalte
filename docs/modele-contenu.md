@@ -5,6 +5,10 @@
 ```json
 {
   "$format": 1,
+  "meta": {
+    "title": { "fr": "Atelier Duvallon", "en": "Duvallon Workshop" },
+    "description": { "fr": "Menuiserie sur mesure.", "en": "Bespoke joinery." }
+  },
   "blocks": [
     {
       "id": "b1a2",
@@ -12,7 +16,7 @@
       "hidden": { "fr": false, "en": false },
       "props": {
         "title": { "fr": "Votre projet mérite mieux", "en": "Your project deserves better" },
-        "image": "/media/a3f2c1d4.jpg",
+        "image": "a3f2c1d4b5e6f708",
         "cta": { "label": { "fr": "Nous écrire", "en": "Get in touch" }, "href": "/contact" }
       }
     }
@@ -28,6 +32,19 @@
 - **`hidden` par langue** : masquer sans perdre le contenu, et afficher un bloc
   dans une langue seulement.
 - **`$format`** en tête, pour rendre les migrations possibles.
+- **`meta`** porte le titre et la description de la page. Ce sont des contenus
+  comme les autres : ils passent par le même DSL, donc par la même validation
+  et le même formulaire.
+- **Le nom du fichier donne la route** : `index.json` sert `/`, `contact.json`
+  sert `/contact`. Le client ne crée pas de pages (D3), le jeu est donc fixe.
+- **Une valeur d'image est une clé de la médiathèque**, pas un chemin : le
+  rendu y trouve les largeurs disponibles, le texte alternatif et le point
+  focal (`panel.md` pour le manifeste, D40 pour la raison).
+- **La carte de langues est toujours là**, même sur un site à une seule langue
+  (D41). Ce que le client voit n'en dépend pas : le panel n'affiche un
+  sélecteur que s'il y a plusieurs langues.
+- **Un champ absent vaut vide** (D43). Un contenu écrit à la main n'a donc pas
+  à porter chaque clé, et le rendu n'a jamais à tester une absence.
 
 ## Un bloc est un dossier, deux fichiers
 
@@ -71,6 +88,23 @@ systématiquement.**
 
 Un bloc ne valide jamais rien à la main : si une vérification manque, elle
 s'ajoute à `f.*`. Voir `conventions.md`.
+
+Les types disponibles et leur signature exacte sortent du code :
+
+```bash
+basalte inventory
+```
+
+Huit à ce jour — `text`, `textarea`, `richtext`, `image`, `url`, `select`,
+`group`, `list`. Seule la prose se traduit : `i18n` existe sur `text`,
+`textarea` et `richtext`, jamais sur une clé de média, une URL ou une valeur de
+liste déroulante, et jamais sur un groupe ou une liste — leur structure est
+partagée entre les langues (D8).
+
+`f.richtext` accepte du **Markdown restreint** : gras, italique, liens. Le
+socle échappe le texte entier avant d'y réintroduire ces trois formes, et
+vérifie le schéma de chaque URL. Aucune balise ne peut donc venir du contenu
+(invariant 1, D42).
 
 ## Le registre est une convention
 

@@ -119,6 +119,16 @@ Autour de cette règle :
 JavaScript, donc une XSS permanente sur le site public. Les logos vectoriels
 sont déposés dans le dépôt.
 
+**Les largeurs sont produites au téléversement**, dans la même passe que le
+ré-encodage, et versionnées (D40). Le build ne traite donc aucune image, et il
+n'y a aucun cache à préserver d'une publication à l'autre. Une image déposée à
+la main dans le dépôt passe par la même fonction, appelée par `basalte check`.
+
+Ce que le socle sait d'une image vit dans `content/media.json`, à côté des
+pages : dimensions, largeurs produites, texte alternatif par langue, point
+focal. Un contenu ne référence qu'une clé — l'empreinte — et le rendu y trouve
+le reste.
+
 Les médias vivent dans `public/media/`, versionnés avec le contenu : un
 `git revert` restaure texte et images ensemble. Le nom dérivé de l'empreinte
 déduplique au passage — remplacer dix fois la même image ne la stocke qu'une

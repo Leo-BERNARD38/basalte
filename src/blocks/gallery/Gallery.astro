@@ -1,0 +1,107 @@
+---
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image } = Astro.props
+
+const title = pick(props.title, language)
+const sizes = '(min-width: 62rem) 22rem, (min-width: 40rem) 45vw, 100vw'
+
+const items = props.images.flatMap((item) => {
+  const resolved = image(item.image, sizes)
+
+  return resolved === undefined
+    ? []
+    : [{ caption: pick(item.caption, language), resolved }]
+})
+---
+
+<section class="gallery">
+  <div class="gallery__inner">
+    {title !== '' && <h2 class="gallery__title">{title}</h2>}
+    <ul class="gallery__list">
+      {
+        items.map((item) => (
+          <li>
+            <figure class="gallery__item">
+              <img
+                class="gallery__image"
+                src={item.resolved.src}
+                srcset={item.resolved.srcset}
+                sizes={item.resolved.sizes}
+                width={item.resolved.width}
+                height={item.resolved.height}
+                alt={item.resolved.alt}
+                style={`object-position:${item.resolved.objectPosition}`}
+                loading="lazy"
+                decoding="async"
+              />
+              {item.caption !== '' && (
+                <figcaption class="gallery__caption">{item.caption}</figcaption>
+              )}
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .gallery {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .gallery__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .gallery__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .gallery__list {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .gallery__item {
+    margin: 0;
+  }
+
+  .gallery__image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .gallery__caption {
+    margin-top: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .gallery__list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 62rem) {
+    .gallery__list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

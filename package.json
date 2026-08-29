@@ -21,6 +21,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./astro": {
+      "types": "./dist/astro/index.d.ts",
+      "import": "./dist/astro/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -28,6 +32,9 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "demo:dev": "node scripts/build.mjs && astro dev --root examples/demo",
+    "demo:build": "node scripts/build.mjs && astro build --root examples/demo",
+    "demo:check": "node scripts/build.mjs && astro check --root examples/demo",
     "prepare": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -37,7 +44,7 @@
     "lockfile:check": "node scripts/check-lockfile.mjs",
     "verify:install": "node scripts/verify-install.mjs",
     "setup": "git config core.hooksPath .githooks",
-    "verify": "npm run typecheck && npm run test && npm run format:check && npm run lockfile:check"
+    "verify": "npm run typecheck && npm run demo:check && npm run test && npm run format:check && npm run lockfile:check"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

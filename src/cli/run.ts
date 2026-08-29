@@ -6,7 +6,11 @@ export type Result = {
   readonly stderr: string
 }
 
-export function run(argv: readonly string[], version: string): Result {
+export async function run(
+  argv: readonly string[],
+  version: string,
+  cwd: string = process.cwd(),
+): Promise<Result> {
   const first = argv[0]
 
   if (first === undefined || first === '--help' || first === '-h') {
@@ -29,12 +33,20 @@ export function run(argv: readonly string[], version: string): Result {
     }
   }
 
-  return {
-    code: 1,
-    stdout: '',
-    stderr:
-      `La commande « ${command.name} » n'est pas encore implémentée.\n` +
-      'Voir docs/implementation.md pour la phase qui la porte.\n',
+  if (command.run === undefined) {
+    return {
+      code: 1,
+      stdout: '',
+      stderr:
+        `La commande « ${command.name} » n’est pas encore implémentée.\n` +
+        'Voir docs/implementation.md pour la phase qui la porte.\n',
+    }
+  }
+
+  try {
+    return await command.run(argv.slice(1), cwd)
+  } catch (cause) {
+    return { code: 1, stdout: '', stderr: `${(cause as Error).message}\n` }
   }
 }
 
