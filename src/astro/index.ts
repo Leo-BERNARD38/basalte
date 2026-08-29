@@ -53,6 +53,7 @@ export default function basalte(): AstroIntegration {
         command,
         updateConfig,
         injectRoute,
+        addMiddleware,
         addWatchFile,
         createCodegenDir,
         logger,
@@ -94,6 +95,7 @@ export default function basalte(): AstroIntegration {
         const generated = await generate(createCodegenDir(), {
           root,
           site,
+          dev: command === 'dev',
           registry,
           pages,
           media,
@@ -117,7 +119,9 @@ export default function basalte(): AstroIntegration {
           })
         }
 
-        if (panel) await mountPanel(command, updateConfig, injectRoute)
+        if (panel) {
+          await mountPanel(command, updateConfig, injectRoute, addMiddleware)
+        }
 
         addWatchFile(path.join(root, CONFIG_FILE))
 
@@ -148,6 +152,7 @@ async function mountPanel(
   command: Setup['command'],
   updateConfig: Setup['updateConfig'],
   injectRoute: Setup['injectRoute'],
+  addMiddleware: Setup['addMiddleware'],
 ): Promise<void> {
   const { default: react } = await import('@astrojs/react')
 
@@ -169,6 +174,8 @@ async function mountPanel(
 
     updateConfig({ output: 'server', adapter, integrations: [adapter] })
   }
+
+  addMiddleware({ entrypoint: own('./middleware.js'), order: 'pre' })
 
   for (const [pattern, file] of [
     ['/admin', './admin.astro'],
@@ -209,6 +216,7 @@ async function generate(
   data: {
     readonly root: string
     readonly site: Site
+    readonly dev: boolean
     readonly registry: BlockRegistry
     readonly pages: readonly RenderedPage[]
     readonly media: MediaManifest
@@ -231,6 +239,7 @@ async function generate(
     ...lines,
     `export const root = ${JSON.stringify(data.root)}`,
     `export const site = ${JSON.stringify(data.site)}`,
+    `export const dev = ${JSON.stringify(data.dev)}`,
     `export const registry = ${JSON.stringify(data.registry)}`,
     `export const pages = ${JSON.stringify(data.pages)}`,
     `export const media = ${JSON.stringify(data.media)}`,

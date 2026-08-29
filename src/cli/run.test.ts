@@ -29,12 +29,10 @@ describe('run', () => {
     expect(result.stderr).toContain('bidule')
   })
 
-  it('annonce une commande connue mais non implémentée', async () => {
-    const result = await run(['deploy'], '0.1.0')
+  it('n’annonce aucune commande en attente', () => {
+    const waiting = COMMANDS.filter((command) => command.run === undefined)
 
-    expect(result.code).toBe(1)
-    expect(result.stderr).toContain('deploy')
-    expect(result.stderr).toContain('pas encore')
+    expect(waiting.map((command) => command.name)).toEqual([])
   })
 
   it('rend le message d’une commande qui échoue, sans trace', async () => {

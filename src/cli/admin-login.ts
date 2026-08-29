@@ -13,6 +13,7 @@ import { RESCUE_PATH } from '../server/handlers.js'
 import { createRescue, RESCUE_LIFETIME } from '../server/login.js'
 import { openServer } from '../server/open.js'
 import { loadSite } from '../site/load.js'
+import { fails, heading, line, optionValue, succeeds } from './args.js'
 import type { Result } from './run.js'
 
 export async function adminLogin(
@@ -22,12 +23,9 @@ export async function adminLogin(
   const email = optionValue(argv, '--user')
 
   if (email === undefined) {
-    return {
-      code: 1,
-      stdout: '',
-      stderr:
-        'Il manque l’adresse du compte : basalte admin:login --user <email>\n',
-    }
+    return fails([
+      'Il manque l’adresse du compte : basalte admin:login --user <email>',
+    ])
   }
 
   const site = await loadSite(cwd)
@@ -52,13 +50,13 @@ export async function issueRescue(
   email: string,
   create: boolean,
 ): Promise<Result> {
-  const lines = [`basalte admin:login — ${server.site.name}`, '']
+  const lines = [...heading('admin:login', server.site.name)]
 
   if (create) {
     const created = await createAccount(server.database, email, server.now())
 
     lines.push(
-      `  ✓ compte créé pour « ${created.account.email} »`,
+      line('ok', `compte créé pour « ${created.account.email} »`),
       '',
       `  Mot de passe : ${created.password}`,
       '',
@@ -77,14 +75,5 @@ export async function issueRescue(
     '',
   )
 
-  return { code: 0, stdout: `${lines.join('\n')}\n`, stderr: '' }
-}
-
-function optionValue(
-  argv: readonly string[],
-  name: string,
-): string | undefined {
-  const index = argv.indexOf(name)
-
-  return index === -1 ? undefined : argv[index + 1]
+  return succeeds(lines)
 }

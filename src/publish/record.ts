@@ -27,6 +27,8 @@ export type Publication = {
   /** L’erreur complète, pour le mainteneur ; jamais montrée au client. */
   readonly detail: string
   readonly duration: number
+  /** Le commit construit, vide quand le dépôt n’en a pas rendu. */
+  readonly commit: string
 }
 
 export type NewPublication = Omit<Publication, 'id'>
@@ -38,8 +40,8 @@ export function recordPublication(
   database
     .prepare(
       `insert into publication
-         (account_id, email, at, outcome, release, remote, detail, duration)
-       values (?, ?, ?, ?, ?, ?, ?, ?)`,
+         (account_id, email, at, outcome, release, remote, detail, duration, commit_sha)
+       values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       entry.accountId ?? null,
@@ -50,7 +52,19 @@ export function recordPublication(
       entry.remote,
       entry.detail,
       entry.duration,
+      entry.commit,
     )
+}
+
+/** La dernière mise en ligne aboutie, celle que `current` sert. */
+export function lastRelease(database: DatabaseSync): Publication | undefined {
+  const row: Row | undefined = database
+    .prepare(
+      "select * from publication where outcome = 'published' order by at desc, id desc limit 1",
+    )
+    .get()
+
+  return row === undefined ? undefined : toPublication(row)
 }
 
 export function lastPublication(
@@ -87,5 +101,6 @@ function toPublication(row: Row): Publication {
     remote: text(row, 'remote') as Remote,
     detail: text(row, 'detail'),
     duration: number(row, 'duration'),
+    commit: text(row, 'commit_sha'),
   }
 }

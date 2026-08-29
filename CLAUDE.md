@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** phases 1 à 5 faites. Phase 1 — DSL de champs, moteur de blocs,
+**État :** les six phases sont faites. Phase 1 — DSL de champs, moteur de blocs,
 intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
 démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
 d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
@@ -14,7 +14,10 @@ rebase, build en processus enfant, bascule atomique, push, file à une place, et
 un échec qui laisse le site debout. Phase 5 — servir : formulaire de contact
 sans une ligne de JavaScript, anti-spam, messages gardés en base avant tout
 envoi, purge des données personnelles, audience lue dans les logs de Caddy.
-Prochaine étape : la phase 6, livrer (`docs/implementation.md`).
+Phase 6 — livrer : `basalte init` et le paquet Claude Code du dépôt client,
+`deploy`, `doctor`, `update`, les migrations de format, `update-all`, et les
+fichiers de la machine. Reste `src/seo/` et le bloc `faq` qui l'attend
+(`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -88,17 +91,21 @@ src/
 ├── server/         auth, sessions, journal, email, contenu, médias, git
 │   └── email/      interface EmailProvider, brevo · console · memory
 ├── publish/        mise en ligne : versions, bascule, build, distant, file
+├── client/         ce que contient un dépôt client : fichiers générés,
+│                   paquet Claude Code, dépôt distant, montée de version
+├── deploy/         la machine : runner SSH, provisionnement, sondes de doctor
+├── migrations/     transformations de format de contenu, en liste ordonnée
 ├── seo/            meta, JSON-LD, sitemap, hreflang
 └── cli/            init, check, inventory, update, deploy, doctor,
                     migrate, admin:login, update-all
-migrations/         transformations de format de contenu
+notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      site de démonstration, banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
 docs/
 ```
 
-`seo/` et `migrations/` n'existent pas encore : ils arrivent avec leur phase.
+`seo/` n'existe pas encore : il arrive avec sa phase.
 
 Un `*.fixture.ts` est un banc d'essai : `tsconfig.build.json` l'écarte du
 paquet au même titre qu'un test.
@@ -158,11 +165,11 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 |---|---|
 | `basalte init <nom>` | génère un dépôt client complet |
 | `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
-| `basalte inventory [--json]` | liste blocs, champs et helpers réutilisables |
-| `basalte update` | monte un site de version, ou annule tout |
-| `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
-| `basalte doctor` | prouve que la configuration fonctionne |
-| `basalte migrate` | applique les migrations de format |
+| `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère `.claude/basalte.md` |
+| `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
+| `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
+| `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
+| `basalte migrate [--dry-run]` | applique les migrations de format |
 | `basalte admin:login --user <email> [--create]` | lien de connexion de secours (SSH), et création du compte |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
@@ -229,3 +236,24 @@ tests (`docs/implementation.md`).
 - Le panel écrit dans `content/` et `public/media/`, et **ne commite que si la
   racine du site est la racine d'un dépôt git** : le site de démonstration, logé
   dans le dépôt du socle, ne doit pas y écrire d'historique.
+- **Le contexte du panel ne s'ouvre qu'à la première requête**, et c'est là que
+  démarrent la purge et la publication au démarrage. Une middleware l'ouvre pour
+  toute requête : sans elle, seules quelques routes le faisaient, et une machine
+  fraîchement démarrée servait `/admin` sans rien lancer (D88). La publication,
+  elle, ne part pas sous `astro dev` — aucune version n'y est jamais servie, et
+  la règle y lancerait un build de production à chaque page ouverte. Le module
+  généré porte le drapeau `dev` qui le dit.
+- **Un chemin Caddy est exact tant qu'il ne porte pas d'étoile.** `/admin/*` ne
+  couvre pas `/admin` : le Caddyfile généré achemine les deux, faute de quoi
+  l'adresse que le client tape tombe sur le serveur de fichiers, sans la moindre
+  trace côté application. Le tri des directives est du même ordre — Caddy place
+  `reverse_proxy` avant `file_server`, et seul un bloc `route` rend leur ordre
+  écrit.
+- **Une migration de format doit vivre sous `src/`.** `tsconfig.build.json` ne
+  compile que `src/`, et Node refuse d'effacer les types sous `node_modules` :
+  ailleurs, elle n'arriverait jamais exécutable chez le client (D87).
+- **`commit` est un mot réservé de SQLite** : la colonne qui porte le commit
+  d'une mise en ligne s'appelle `commit_sha`.
+- **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
+  passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
+  par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.

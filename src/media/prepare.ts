@@ -61,8 +61,10 @@ async function list(directory: string): Promise<readonly string[]> {
   try {
     const entries = await readdir(directory, { withFileTypes: true })
 
+    // Un fichier caché n’est pas une image déposée : `.gitkeep` tient le
+    // dossier dans git, et `.DS_Store` s’y invite tout seul.
     return entries
-      .filter((entry) => entry.isFile())
+      .filter((entry) => entry.isFile() && !entry.name.startsWith('.'))
       .map((entry) => entry.name)
       .sort()
   } catch {

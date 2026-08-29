@@ -55,35 +55,32 @@ Reste à outiller : rendre le diff HTML avant/après exécutable en une commande
 Objectif : qu'un agent puisse produire une landing complète dans un dépôt
 client, puis la maintenir, sans relire le socle.
 
-Le contenu du paquet et le mécanisme de synchronisation sont arrêtés dans
-`depot-client.md` : `CLAUDE.md` écrit une fois, `.claude/basalte.md` régénéré à
-chaque `npm install` et importé par le premier. Reste à construire en phase 6 :
-
-- le générateur de `.claude/basalte.md` — règles, commandes, inventaire des
-  blocs avec leurs champs
-- les quatre skills du dépôt client : `nouveau-bloc`, `design`, `contenu`,
-  `mettre-a-jour`
-- le `CLAUDE.md` initial, rempli depuis les réponses données à `init`
+**Fait en phase 6.** `CLAUDE.md` écrit une fois et rempli depuis les réponses
+données à `init` ; `.claude/basalte.md` régénéré par `basalte inventory --agent`,
+appelé par le `postinstall` du dépôt client ; les quatre skills `nouveau-bloc`,
+`design`, `contenu`, `mettre-a-jour`, et les deux commandes `/check` et
+`/deploy`.
 
 **Reste à cadrer**
 - comment un agent découvre le contenu actuel d'un site sans tout lire — piste :
   une sortie compacte de `basalte inventory --content`
 - garde-fous : un agent ne doit pas modifier `content/` en production sans
-  passer par `basalte check`
+  passer par `basalte check` — la commande `/check` le dit, rien ne l'impose
 
 ---
 
 ## Infra et déploiement
 
-- Caddyfile de référence complet : en-têtes de sécurité, cache des assets,
-  format de logs exploitable par l'analytics (le squelette est dans
-  `deploiement.md`)
-- `compose.yml` de référence
-- `basalte deploy` et `basalte doctor` — conçus dans `mise-en-prod.md`, à
-  écrire en phase 6
-- Auto-déploiement : second déclencheur à décider (voir `implementation.md`)
+**Fait en phase 6.** Caddyfile complet — en-têtes de sécurité, cache des assets,
+logs JSON aux adresses masquées, jeton de secours retiré ; `compose.yml`,
+`Dockerfile` et l'entrée du conteneur ; `basalte deploy` et `basalte doctor` ;
+le déclencheur de publication, qui est le démarrage du processus (D88).
+
+**Reste**
 - Procédure de restauration : elle est celle d'une nouvelle installation, à
   exécuter réellement une fois pour la valider
+- Sauvegarde du fichier SQLite : sans propriétaire dans le socle, assumé
+  (`deploiement.md`)
 
 ---
 

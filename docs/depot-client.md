@@ -19,11 +19,15 @@ mon-client/
 ├── site.config.ts         DA, langues, domaine — versionné
 ├── .env                   secrets — jamais versionné
 ├── .env.example
-├── content/*.json
+├── content/*.json         index et contact, au format courant
 ├── public/media/
 ├── src/blocks/            les blocs sur mesure de ce site
 ├── compose.yml
 ├── Caddyfile
+├── Dockerfile
+├── docker-entrypoint.sh   npm ci, build du panel, puis le serveur
+├── .githooks/pre-commit   npx basalte check
+├── .nvmrc · .npmrc · .gitattributes
 ├── data/                  la base SQLite — jamais versionnée
 │                          comptes, sessions, appareils, journal
 ├── .gitignore             .env, node_modules, dist, data
@@ -32,9 +36,12 @@ mon-client/
 
 Aucune de ces entrées ne contient de logique du socle.
 
-*Hypothèse de départ — la phase 6 arrête le contenu exact du paquet Claude Code
-et la liste des skills. Ce qui ne bouge pas : aucune logique du socle dans ce
-dépôt (invariant 8), et une doc agent régénérée plutôt que recopiée (D27).*
+Vingt-huit fichiers, écrits d'un seul coup : rien n'est posé sur le disque tant
+que la liste n'est pas complète, pour qu'une génération qui échoue ne laisse pas
+un dossier à moitié fait.
+
+Le hook de pré-commit est ajouté à l'index en exécutable — le bit ne se pose pas
+depuis Windows, et sans lui git ignore le hook sous Linux.
 
 ## Cinq commandes
 
@@ -47,7 +54,9 @@ dépôt (invariant 8), et une doc agent régénérée plutôt que recopiée (D27
 | `npm run update` | monter le socle de version (`mise-a-jour.md`) |
 
 C'est toute la surface. Un sixième script serait le signe qu'une commande
-manque au CLI.
+manque au CLI — à l'exception d'un `postinstall`, qui n'est pas une commande à
+retenir : il lance `basalte inventory --agent` et régénère `.claude/basalte.md`
+(D89).
 
 `npm run dev` sert le site sur `/` et le panel sur `/admin`, dans un seul
 processus. Le panel demande une session comme en production : le premier accès
@@ -137,9 +146,11 @@ ce qu'une montée de version a changé pour ce site.
 `init` fait `git init` et le premier commit. Pour le distant :
 
 - si un `GITHUB_TOKEN` est présent, `init --repo Leo-BERNARD38/atelier-duvallon`
-  crée le dépôt privé, pousse, et génère sa clé de déploiement
+  crée le dépôt privé et y pousse la branche
 - sinon, `init` affiche les deux commandes à lancer
 
-Ce jeton reste sur ta machine et ne part jamais sur un VPS. La machine, elle,
-ne reçoit qu'une clé de déploiement limitée à son propre dépôt : voir
-`securite.md`.
+Ce jeton reste sur ta machine et ne part jamais sur un VPS. La **clé de
+déploiement, elle, naît sur la machine** au premier `deploy` : sa moitié privée
+n'en sort jamais, et sa moitié publique est enregistrée sur le dépôt quand le
+jeton est là, affichée à recopier sinon (D91). Un dépôt créé à la main y a donc
+droit au même titre qu'un dépôt créé par `--repo` — voir `securite.md`.

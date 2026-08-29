@@ -11,6 +11,8 @@ import {
   type Bench,
 } from '../server/panel.fixture.js'
 import type { Build } from './publish.js'
+import { publishIfStale } from './publish.js'
+import { recordPublication } from './record.js'
 import { currentRelease, listReleases, RELEASES } from './release.js'
 
 const BY = { email: EMAIL }
@@ -205,6 +207,73 @@ describe('sans dépôt distant', () => {
 
     expect(site.publisher.state().last?.message).toBe('Ton site est en ligne.')
     expect(site.alerts).toHaveLength(0)
+
+    await site.close()
+  })
+})
+
+describe('publication au démarrage', () => {
+  /** Ce que le processus du panel interroge quand il s’ouvre. */
+  const targetOf = (site: Bench) => ({
+    root: site.root,
+    site: 'Banc d’essai',
+    database: site.harness.server.database,
+    now: site.harness.server.now,
+    environment: { BASALTE_SITE_ROOT: site.serving },
+    alert: async () => {},
+  })
+
+  it('publie quand aucune version n’est servie', async () => {
+    const site = await bench()
+
+    expect(await currentRelease(site.serving)).toBeUndefined()
+    expect(await publishIfStale(targetOf(site), site.publisher)).toBe(true)
+
+    await site.publisher.settled()
+
+    expect(await currentRelease(site.serving)).toBeDefined()
+
+    await site.close()
+  })
+
+  it('ne construit rien en développement, où rien n’est jamais servi', async () => {
+    const site = await bench()
+
+    expect(await publishIfStale(targetOf(site), site.publisher, true)).toBe(
+      false,
+    )
+    expect(await currentRelease(site.serving)).toBeUndefined()
+
+    await site.close()
+  })
+
+  it('se tait quand la version en ligne vient du commit courant', async () => {
+    const site = await bench()
+
+    await publish(site)
+
+    expect(await publishIfStale(targetOf(site), site.publisher)).toBe(false)
+
+    await site.close()
+  })
+
+  it('publie quand le dépôt a bougé depuis la dernière version', async () => {
+    const site = await bench()
+
+    await publish(site)
+
+    recordPublication(site.harness.server.database, {
+      email: EMAIL,
+      at: site.harness.server.now() + 1,
+      outcome: 'published',
+      release: 'une-version-plus-ancienne',
+      remote: 'absent',
+      detail: '',
+      duration: 0,
+      commit: 'un-commit-qui-n-est-plus-le-courant',
+    })
+
+    expect(await publishIfStale(targetOf(site), site.publisher)).toBe(true)
 
     await site.close()
   })

@@ -17,15 +17,18 @@
 import type { DatabaseSync } from 'node:sqlite'
 
 import { publicationFailed } from '../server/email/messages.js'
+import { tryGit } from '../server/git.js'
 import type { Alert } from './alert.js'
 import { buildSite, type BuildResult } from './build.js'
 import {
   lastPublication,
+  lastRelease,
   recordPublication,
   type Publication,
   type Remote,
 } from './record.js'
 import {
+  currentRelease,
   discardRelease,
   openRelease,
   publishRelease,
@@ -40,6 +43,9 @@ const REFUSED =
   'La mise en ligne a échoué. Ton site en ligne n’a pas changé, et personne d’autre que toi ne l’a vu.'
 
 const PUBLISHED = 'Ton site est en ligne.'
+
+/** Ce que le journal des mises en ligne inscrit quand personne ne l’a demandée. */
+export const DEPLOYMENT = 'déploiement'
 
 const UNSAVED =
   'Ton site est en ligne. La sauvegarde à distance n’a pas abouti — le mainteneur est prévenu.'
@@ -165,6 +171,7 @@ async function runOnce(target: PublishTarget, by: Requester): Promise<void> {
     return
   }
 
+  const commit = await headOf(target.root)
   const opened = await openRelease(serving, stampOf(started))
   const built = await (target.build ?? buildSite)(target.root, opened.partial)
 
@@ -196,6 +203,7 @@ async function runOnce(target: PublishTarget, by: Requester): Promise<void> {
     remote,
     detail: pushed.kind === 'failed' ? pushed.detail : '',
     duration: target.now() - started,
+    commit,
   })
 
   // Le site est en ligne : l’échec du push est un problème de sauvegarde, pas
@@ -225,7 +233,48 @@ async function refuse(
     remote: 'absent',
     detail,
     duration: target.now() - started,
+    commit: '',
   })
 
   await target.alert(publicationFailed(target.site, stage, detail))
+}
+
+/** Le commit servi par la version en ligne, tel que la base l’a enregistré. */
+export async function headOf(root: string): Promise<string> {
+  const found = await tryGit(root, ['rev-parse', 'HEAD'])
+
+  return found.kind === 'done' ? found.stdout.trim() : ''
+}
+
+/**
+ * Publie au démarrage quand le site en ligne ne correspond plus au dépôt :
+ * aucune version servie, ou une version construite depuis un autre commit.
+ *
+ * Une seule règle couvre le premier déploiement, un `deploy` relancé après un
+ * `git pull`, et la reprise après sinistre — et elle passe par la file à une
+ * place, là où une commande séparée ferait tourner un second build.
+ *
+ * Sauf en développement : aucune version n’y est jamais servie, et la règle y
+ * lancerait un build de production à chaque page ouverte sur un poste qui ne
+ * met rien en ligne.
+ */
+export async function publishIfStale(
+  target: PublishTarget,
+  publisher: Publisher,
+  dev = false,
+): Promise<boolean> {
+  if (dev) return false
+
+  const online = await currentRelease(siteRoot(target.root, target.environment))
+  const head = await headOf(target.root)
+
+  if (online !== undefined) {
+    const last = lastRelease(target.database)
+
+    if (head === '' || last?.commit === head) return false
+  }
+
+  publisher.request({ email: DEPLOYMENT })
+
+  return true
 }

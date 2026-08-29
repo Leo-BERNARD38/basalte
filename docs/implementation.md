@@ -87,10 +87,8 @@ CSRF est arrêté par deux gardes indépendantes plutôt qu'un jeton synchronis�
 (D52). `admin:login --create` crée le compte plutôt qu'une dixième commande
 (D53). Détail : D47 à D53, application dans `panel.md`.
 
-**Ce qui reste ouvert.** La purge automatique du journal est écrite mais rien
-ne la déclenche : elle attend la phase 5, qui pose la même purge pour les leads
-et les logs Caddy. `doctor` dira si les deux canaux email partagent une clé —
-phase 6.
+**Ce qui reste ouvert.** Rien. La purge est branchée depuis la phase 5, et
+`doctor` signale depuis la phase 6 que les deux canaux email partagent une clé.
 
 **Pourquoi.** C'est le seul endroit du projet où un bug se traduit par une
 intrusion. C'est aussi le seul morceau réellement isolable : il ne dépend de
@@ -167,11 +165,11 @@ indisponible. Les mises en ligne vivent en base, en états terminaux seulement
 et l'alerte au mainteneur emprunte le canal du site (D75). Détail : D67 à D75,
 application dans `publication.md`.
 
-**Ce qui reste ouvert.** Le premier build d'un déploiement — l'étape 6 de
-`mise-en-prod.md` — n'a pas de déclencheur : la file vit dans le processus du
-panel, et c'est la phase 6 qui décidera comment `deploy` la sollicite. Le cache
-d'images d'Astro, que cette phase redoutait, n'existe plus : D40 a retiré tout
-traitement d'image du build.
+**Ce qui reste ouvert.** Rien. Le premier build d'un déploiement — l'étape 6 de
+`mise-en-prod.md` — a reçu son déclencheur en phase 6 : le processus publie de
+lui-même au démarrage quand la version servie ne vient pas du commit courant
+(D88). Le cache d'images d'Astro, que cette phase redoutait, n'existe plus : D40
+a retiré tout traitement d'image du build.
 
 **Pourquoi.** Elle porte la promesse qui rend le reste tenable : une publication
 ratée ne casse pas un site qui fonctionne.
@@ -230,7 +228,29 @@ quand l'envoi échoue.
 
 ---
 
-## Phase 6 — Livrer
+## Phase 6 — Livrer  ·  faite
+
+**Ce qu'elle a retenu.** Les migrations vivent sous `src/migrations/`, en liste
+ordonnée écrite à la main : hors de `src/`, elles n'arriveraient jamais
+compilées chez le client (D87). La mise en ligne se déclenche d'elle-même au
+démarrage quand la version servie ne vient pas du commit courant, et une
+middleware ouvre le panel à la première requête (D88) — c'est ce qui répond au
+premier build laissé ouvert par la phase 4, et au second déclencheur, sans
+dixième commande. La doc agent est écrite par `basalte inventory --agent`,
+appelée par le `postinstall` du dépôt client (D89). Les notes de version vivent
+dans `notes/vX.Y.Z.md`, livrées dans le paquet (D90). La clé de déploiement naît
+sur la machine (D91), qui monte le dépôt du site plutôt que d'en copier une
+image (D92). `doctor` envoie un vrai email (D93), et `update` exige un arbre
+propre — c'est ce qui rend son annulation totale (D94). Détail : D87 à D94.
+
+**Ce qui reste ouvert.** Rien de la phase. Le bloc `faq` — JS opt-in, JSON-LD —
+attend toujours `src/seo/`, comme le sitemap et le JSON-LD.
+
+**Ce qu'elle a trouvé en chemin.** Le contexte du panel ne s'ouvrait que sur
+quelques routes : une machine fraîchement démarrée servait `/admin` sans avoir
+lancé ni la purge ni la moindre publication. Et `prepareMedia` prenait tout
+fichier de `public/media/` pour une image à ingérer — un `.gitkeep` suffisait à
+faire échouer `check` sur un dépôt neuf.
 
 **Pourquoi.** C'est ce qui sépare un socle d'un site. Sans elle, tu as fait un
 site pour un client.
@@ -247,10 +267,6 @@ chaque nouveau site.
 **Déjà tranché.** Invariant 8 · D5, D16, D23, D26, D27, D29, D30 ·
 `depot-client.md`, `mise-en-prod.md`, `mise-a-jour.md`.
 
-**À décider dans la phase.** Le contenu exact du paquet Claude Code · la forme
-du `CLAUDE.md` généré · le mécanisme des migrations · le second déclencheur de
-déploiement.
-
 **Finie quand.** Un nouveau client est en ligne en deux commandes, sans que tu
 ouvres un guide.
 
@@ -266,7 +282,9 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Prochaine phase : la 6, livrer.**
+**Les six phases sont faites.** Ce qui reste est nommé phase par phase, et tient
+en une ligne : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images Open Graph —
+et le bloc `faq` qui l'attend.
 
 ## Tests
 
@@ -297,6 +315,16 @@ tous les chemins d'échec s'éprouver sans lancer Astro — tandis que le rebase
 le push, eux, s'éprouvent contre de vrais dépôts git. Son interface React, elle, se
 vérifie dans un vrai navigateur — c'est là que se voient les cookies
 `HttpOnly`, le réordonnancement au clavier et l'absence de script sur l'aperçu.
+
+La **livraison** s'éprouve par les mêmes leviers, poussés d'un cran : le dépôt
+qu'`init` produit est comparé fichier par fichier sans qu'un seul soit écrit ;
+la séquence de `deploy` se déroule contre un runner qui retient les commandes au
+lieu de les exécuter, ce qui laisse Docker absent, un clone déjà là et un échec
+en plein milieu s'exercer sans VPS ; les sondes de `doctor` reçoivent leur
+résolution DNS et leur canal email ; `update` monte et s'annule contre un vrai
+dépôt jetable, avec un npm qui n'installe rien. Le seul morceau qui ne se teste
+pas est celui qui ne peut pas l'être : la machine réelle — et c'est `doctor`,
+lancé dessus, qui en répond.
 
 Le reste est couvert par `basalte check` sur le site de démonstration et par le
 diff du HTML produit : sur un correctif, un diff vide prouve l'absence de

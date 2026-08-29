@@ -106,6 +106,21 @@ export function leadReceived(siteName: string, lead: Lead): Letter {
   }
 }
 
+// Ce que `basalte doctor` envoie pour de bon. Une clé présente mais fausse
+// passe un contrôle de forme, et ne se découvre alors que le jour où le client
+// ne peut plus se connecter (D30).
+export function configurationProof(siteName: string, channel: string): Letter {
+  return letter(
+    `Configuration vérifiée — ${siteName}`,
+    'Le canal email fonctionne',
+    [
+      `Cet email a été envoyé par « basalte doctor » depuis le canal « ${channel} » de ${siteName}.`,
+      'Le recevoir prouve que la clé du fournisseur est valable et que l’adresse d’expédition est acceptée.',
+    ],
+    ['Rien à faire : ce message n’attend pas de réponse.'],
+  )
+}
+
 function describe(origin: Origin): string {
   return `${origin.agent === '' ? 'un navigateur inconnu' : origin.agent} (${origin.ip === '' ? 'adresse inconnue' : origin.ip})`
 }

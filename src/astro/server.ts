@@ -10,13 +10,13 @@
 // reparcourt pas les blocs. Seul le manifeste des médias est relu à chaque
 // requête, parce que le panel lui-même l’écrit.
 
-import { registry, root, site } from 'virtual:basalte'
+import { dev, registry, root, site } from 'virtual:basalte'
 
 import { accessLogPath } from '../analytics/access.js'
 import type { Schemas } from '../content/project.js'
 import { readManifest } from '../media/manifest.js'
 import { alertMaintainer } from '../publish/alert.js'
-import { createPublisher } from '../publish/publish.js'
+import { createPublisher, publishIfStale } from '../publish/publish.js'
 import type { Panel } from '../server/context.js'
 import { adminAddress, contactAddress } from '../server/email/provider.js'
 import { openServer, siteProvider } from '../server/open.js'
@@ -39,6 +39,25 @@ function open(): Panel {
 
   startPurge({ database: server.database, months, now: server.now })
 
+  const target = {
+    root,
+    site: site.name,
+    database: server.database,
+    now: server.now,
+    alert: alertMaintainer({ to: adminAddress(process.env), provider }),
+  }
+
+  const publisher = createPublisher(target)
+
+  // Le site sort de lui-même quand il ne correspond plus au dépôt : premier
+  // déploiement, machine mise à jour, ou reprise sur une machine neuve. Jamais
+  // sous `astro dev`, que le module généré signale.
+  void publishIfStale(target, publisher, dev).catch((cause: Error) => {
+    process.stderr.write(
+      `La publication au démarrage a échoué : ${cause.message}\n`,
+    )
+  })
+
   return {
     server,
     root,
@@ -47,16 +66,7 @@ function open(): Panel {
       registry,
       media: await readManifest(root),
     }),
-    publisher: createPublisher({
-      root,
-      site: site.name,
-      database: server.database,
-      now: server.now,
-      alert: alertMaintainer({
-        to: adminAddress(process.env),
-        provider,
-      }),
-    }),
+    publisher,
     leads: {
       to: contactAddress(process.env),
       provider,

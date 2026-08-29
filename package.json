@@ -32,7 +32,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "notes"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",

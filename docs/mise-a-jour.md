@@ -10,12 +10,20 @@ npm run update
 
 Elle enchaîne, dans cet ordre :
 
-1. lit la dernière version publiée du socle
-2. affiche les notes de version — ce qui change, et si une action est requise
-3. installe la nouvelle version
+1. lit la dernière version publiée du socle — les tags du dépôt, par
+   `git ls-remote`
+2. affiche les notes de chaque version traversée — ce qui change, et si une
+   action est requise
+3. épingle la nouvelle version, puis installe
 4. applique les migrations de contenu si le format a changé
 5. valide tous les contenus, puis construit le site
 6. commit
+
+Le commit emporte `.claude/basalte.md` avec le reste : l'installation vient de
+le réécrire à la nouvelle version (D89), et le laisser dehors salirait l'arbre
+de travail — sur la machine du mainteneur, où la commande suivante refuserait
+alors de commencer, et sur le VPS, où le `git pull --ff-only` de `deploy` et le
+rebase du panel s'arrêteraient net.
 
 ## Elle réussit, ou elle n'a pas eu lieu
 
@@ -25,6 +33,11 @@ reste propre et le message d'erreur nomme l'étape qui a lâché.
 
 Un site à moitié migré est le pire état possible. La commande ne peut pas y
 laisser le dépôt.
+
+Ce qui rend cette annulation totale est sa garde de départ : **l'arbre de
+travail doit être propre** (D94). Sur un dépôt qui porte déjà des modifications,
+rendre les chemins touchés à leur état d'avant effacerait un travail que
+la commande n'a pas écrit. Elle refuse donc de commencer, et le dit.
 
 Rien n'est mis en ligne : `update` prépare le dépôt. C'est la publication qui
 remplace le site, et le site en ligne ne bouge pas d'ici là.
@@ -40,8 +53,10 @@ fichiers qui changeraient. N'écrit rien.
 
 ## Notes de version
 
-Chaque tag du socle porte des notes au format fixe, pour rester lisibles autant
-par toi que par un agent :
+Chaque version du socle porte ses notes dans `notes/vX.Y.Z.md`, au format fixe,
+pour rester lisibles autant par toi que par un agent (D90). Le fichier est
+livré dans le paquet — les notes de la version installée se lisent donc hors
+ligne — et lu sur le dépôt public pour les versions qu'on n'a pas encore :
 
 ```md
 ## v1.5.0
@@ -79,6 +94,13 @@ fait, dans l'ordre :
 Ce qui rend ça possible : la sortie de `basalte update` est structurée, et les
 notes de version ont toujours les mêmes titres. C'est la seule raison pour
 laquelle ces deux formats sont figés.
+
+```bash
+npm run update -- --json
+```
+
+rend `{ from, to, action, notes, steps }` — `action` étant la plus forte
+exigence de toutes les versions traversées.
 
 ## Ordre de déploiement
 

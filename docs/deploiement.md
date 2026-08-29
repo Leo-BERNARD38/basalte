@@ -8,18 +8,69 @@ seule commande : `mise-en-prod.md`.
 Généré par `basalte init` : application Node et Caddy. Un nouveau client se
 provisionne à l'identique, chez n'importe quel hébergeur.
 
+Le dépôt du site est **monté** dans le conteneur de l'application, jamais copié
+dans son image (D92). C'est ce qui fait que le contenu écrit par le panel, ses
+commits et ses push atterrissent dans le dépôt que `deploy` met à jour — une
+image qui porterait une copie les perdrait à chaque redémarrage.
+
+L'installation et la construction du panel ont donc lieu au démarrage du
+conteneur, et sont sautées tant que `package-lock.json` n'a pas changé :
+
+```sh
+stamp=.basalte/install.stamp
+lock=$(sha256sum package-lock.json | cut -d " " -f 1)
+
+if [ ! -f dist/server/entry.mjs ] || [ "$(cat "$stamp" 2>/dev/null)" != "$lock" ]; then
+  npm ci
+  BASALTE_MODE=panel npx astro build
+  mkdir -p .basalte
+  printf %s "$lock" > "$stamp"
+fi
+
+exec node dist/server/entry.mjs
+```
+
+L'image est bâtie sur `node:24-bookworm-slim` — base glibc imposée par D32 —
+avec `git` et `openssh-client`, puisque le panel commite et pousse depuis ce
+conteneur. `npm ci`, jamais `npm install`, et jamais `--ignore-scripts` : il
+saute le `prepare` du socle sans erreur, et le paquet arrive sans `dist/`.
+
 ## Caddy
 
 Le Caddyfile complet tient sur un écran, HTTPS compris :
 
 ```
 exemple.com {
-    handle /admin/*  { reverse_proxy app:3000 }
-    handle /api/*    { reverse_proxy app:3000 }
-    handle /media/*  { reverse_proxy app:3000 }
-    handle /_panel/* { reverse_proxy app:3000 }
+    encode zstd gzip
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
+        -Server
+    }
+
+    handle /admin /admin/* { reverse_proxy app:3000 }
+    handle /api/*          { reverse_proxy app:3000 }
+    handle /_panel/*       { reverse_proxy app:3000 }
+
+    handle /media/* {
+        root * /srv/site/current
+        header Cache-Control "public, max-age=31536000, immutable"
+        route {
+            file_server {
+                pass_thru
+            }
+            reverse_proxy app:3000
+        }
+    }
+
     handle {
         root * /srv/site/current
+        @immutable path /_astro/*
+        header @immutable Cache-Control "public, max-age=31536000, immutable"
         file_server
     }
 
@@ -30,7 +81,10 @@ exemple.com {
         format filter {
             wrap json
             request>remote_ip ip_mask 24 48
-            request>client_ip  ip_mask 24 48
+            request>client_ip ip_mask 24 48
+            request>uri query {
+                delete token
+            }
         }
     }
 }
@@ -60,11 +114,12 @@ alimentent l'analytics sont configurés là.
 donné à l'application par `BASALTE_SITE_ROOT` (D69) ; hors production, le socle
 retombe sur `.basalte/site` dans le dépôt.
 
-Quatre points que le panel attend de ce fichier.
+Six points que le panel attend de ce fichier.
 
 - **`X-Forwarded-For` doit être posé** — c'est la dernière entrée que le socle
   lit pour limiter le débit par adresse, sur le panel comme sur le formulaire de
-  contact. Sans lui, tout le trafic partage un seul compteur.
+  contact. Sans lui, tout le trafic partage un seul compteur. `reverse_proxy` le
+  pose de lui-même : c'est la raison pour laquelle rien ne le déclare ici.
 - **`/_panel/*` va à l'application** : le panel y range ses fichiers, le site
   public garde `_astro/` (D85). Un dossier commun ferait chercher l'island du
   panel parmi les fichiers du site, et la page resterait vide sans la moindre
@@ -74,8 +129,20 @@ Quatre points que le panel attend de ce fichier.
   d'adresse complète entre les mains. `roll_keep_for` porte la durée de
   conservation : c'est ici que se règle la purge du troisième gisement de
   données personnelles, les deux autres étant en base.
-- **La chaîne de requête de `/admin/rescue` mérite d'être retirée** des lignes
-  journalisées, le jeton de secours y figurant en clair (`securite.md`).
+- **Le jeton de `/admin/rescue` est retiré des lignes journalisées** par le
+  filtre `query { delete token }` : il voyage dans l'URL, et un log d'accès
+  conservé un an ne doit pas le porter en clair (`securite.md`).
+- **`/admin` est acheminé en plus de `/admin/*`.** Un chemin Caddy est exact
+  tant qu'il ne porte pas d'étoile, et `/admin/*` ne couvre donc pas `/admin` —
+  c'est-à-dire l'adresse que le client tape. Sans les deux, la page d'édition
+  tombe sur le serveur de fichiers et rend un 404 sans la moindre trace côté
+  application.
+- **Les images sortent du disque, l'application n'étant que le recours.** Un nom
+  de média est dérivé d'une empreinte : ce que Caddy sert depuis `current` peut
+  donc être mis en cache pour un an. `pass_thru` renvoie à l'application ce
+  qu'elle seule a — un téléversement que le panel affiche avant la mise en ligne
+  (D64). L'ordre compte : `route` empêche Caddy de trier le proxy avant le
+  serveur de fichiers, ce qu'il ferait sans lui.
 
 Le socle lit `/var/log/caddy/access.log` par défaut ; `BASALTE_ACCESS_LOG` le
 déplace. Le fichier doit être lisible par le conteneur de l'application — un
@@ -106,13 +173,23 @@ l'être : elles se reconstruisent depuis le dépôt en une commande.
 
 Reste la base SQLite (comptes, sessions, appareils, journal, mises en ligne,
 messages du formulaire), qui est un fichier : `data/basalte.db` à la racine du
-dépôt du site, monté en volume, dump quotidien. Elle n'est pas versionnée — c'est la seule donnée du site que le
-dépôt ne réplique pas.
+dépôt du site, monté en volume. Elle n'est pas versionnée — c'est la seule
+donnée du site que le dépôt ne réplique pas.
+
+**Sa sauvegarde n'a pas de propriétaire dans le socle, et c'est assumé.** Un
+cron dans le conteneur serait un composant de plus à provisionner et à
+surveiller (D83), et le processus du panel n'a de mission que de purge. Ce qui
+compte se perd sans elle : les sessions ouvertes et le journal. Les comptes se
+recréent par `basalte admin:login --create`, et les messages du formulaire déjà
+notifiés sont dans une boîte. La copier relève de l'hébergeur — un instantané de
+volume — ou d'une ligne de cron posée à la main sur la machine.
 
 ## Reprise après sinistre
 
-`git clone` du dépôt du site, `basalte deploy --host <nouvelle ip>`,
-restauration du fichier SQLite.
+`git clone` du dépôt du site, `npx basalte deploy --host <nouvelle ip>`,
+restauration du fichier SQLite si on en a une. La machine neuve republie
+d'elle-même : aucune version n'y est servie, donc le processus construit le site
+au premier appel (D88).
 
 **La procédure de restauration est celle qu'on exécute à chaque nouveau
 client**, à la sauvegarde SQLite près, donc elle est validée en permanence — à

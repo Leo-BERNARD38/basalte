@@ -2,13 +2,23 @@
 // C’est ce qui rend tenable la règle « chercher avant d’écrire » de
 // docs/conventions.md — un inventaire écrit à la main est faux en deux
 // semaines.
+//
+// Sous `--agent`, la même sortie est écrite dans `.claude/basalte.md` du dépôt
+// plutôt qu’affichée : c’est le `postinstall` d’un dépôt client qui l’appelle,
+// et c’est ce qui tient la doc agent à jour sans jamais la recopier (D27).
+
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
+import { AGENT_DOC, basalteDoc } from '../client/agent.js'
+import { readSocle } from '../client/socle.js'
 import { FIELD_TYPES } from '../fields/define.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
+import { hasFlag, line, succeeds } from './args.js'
 import type { Result } from './run.js'
 
-type Entry = {
+export type Entry = {
   readonly name: string
   readonly origin: string
   readonly label: string
@@ -20,11 +30,31 @@ export async function inventory(
   argv: readonly string[],
   cwd: string,
 ): Promise<Result> {
-  const sources = await findBlocks(blockRoots(cwd))
+  const blocks = await readEntries(cwd)
 
+  if (hasFlag(argv, '--json')) {
+    return {
+      code: 0,
+      stdout: `${JSON.stringify({ fieldTypes: FIELD_TYPES, blocks }, null, 2)}\n`,
+      stderr: '',
+    }
+  }
+
+  if (hasFlag(argv, '--agent')) {
+    const file = await writeAgentDoc(cwd, blocks)
+
+    return succeeds([line('ok', `« ${file} » régénéré`)])
+  }
+
+  return succeeds(render(blocks))
+}
+
+/** Les blocs disponibles depuis un dépôt : ceux du socle, puis les siens. */
+export async function readEntries(cwd: string): Promise<readonly Entry[]> {
+  const sources = await findBlocks(blockRoots(cwd))
   const registry = await loadRegistry(sources)
 
-  const blocks: Entry[] = sources.map((source) => {
+  return sources.map((source) => {
     const definition = registry[source.name]
 
     return {
@@ -35,19 +65,22 @@ export async function inventory(
       fields: describeFields(definition?.fields ?? {}),
     }
   })
-
-  if (argv.includes('--json')) {
-    return {
-      code: 0,
-      stdout: `${JSON.stringify({ fieldTypes: FIELD_TYPES, blocks }, null, 2)}\n`,
-      stderr: '',
-    }
-  }
-
-  return { code: 0, stdout: `${render(blocks).join('\n')}\n`, stderr: '' }
 }
 
-function render(blocks: readonly Entry[]): readonly string[] {
+/** Écrit `.claude/basalte.md`, et rend son chemin relatif à la racine. */
+export async function writeAgentDoc(
+  cwd: string,
+  blocks: readonly Entry[],
+): Promise<string> {
+  const file = path.join(cwd, AGENT_DOC)
+
+  await mkdir(path.dirname(file), { recursive: true })
+  await writeFile(file, basalteDoc(render(blocks), readSocle().version), 'utf8')
+
+  return AGENT_DOC
+}
+
+export function render(blocks: readonly Entry[]): readonly string[] {
   const lines = ['basalte inventory', '', 'Types de champs']
 
   const width = Math.max(...FIELD_TYPES.map((type) => type.kind.length))

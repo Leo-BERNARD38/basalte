@@ -162,16 +162,26 @@ langue, ni dans ses `hreflang`.
 Les migrations vivent **dans le socle**, jamais dans un dépôt client :
 
 ```
-migrations/002-cta-devient-groupe.ts
+src/migrations/index.ts    { to: 2, label: 'le bouton devient un groupe', page }
 ```
 
-Chacune transforme le JSON d'un format vers le suivant. Elles arrivent chez le
-client avec `npm install` — il n'y a rien de plus à brancher.
+La liste est écrite à la main plutôt que découverte sur le disque : l'ordre est
+ce qui donne son sens à une suite de migrations, et un dossier parcouru le
+confierait à un tri de noms de fichiers. Elle vit sous `src/` parce qu'une
+migration hors de `src/` n'arriverait jamais compilée chez le client — Node
+refuse d'effacer les types sous `node_modules` (D87).
+
+Chacune transforme le JSON brut d'une page d'un format vers le suivant — brut,
+parce qu'elle travaille justement sur une forme que le socle installé ne sait
+plus lire. Elles arrivent chez le client avec `npm install` — il n'y a rien de
+plus à brancher.
 
 `basalte migrate` lit le `$format` de chaque fichier, applique dans l'ordre
-celles qui manquent, met à jour le numéro et commit. `basalte check` refuse de
-construire un contenu en retard de format, avec un message qui nomme la
-commande à lancer.
+celles qui manquent, met à jour le numéro et commit — `--dry-run` dit ce qui
+changerait sans rien écrire. Une page écrite par un socle **plus récent** que
+celui installé est nommée et laissée intacte : la migrer à l'envers perdrait ce
+qu'elle porte. `basalte check` refuse de construire un contenu en retard de
+format, avec un message qui nomme la commande à lancer.
 
 Le résultat étant un commit, `git revert` annule une migration comme le reste.
 `npm run update` les enchaîne automatiquement, et annule tout en cas d'échec —

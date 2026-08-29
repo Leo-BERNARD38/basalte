@@ -12,6 +12,8 @@ declare module 'virtual:basalte' {
 
   export const root: string
   export const site: Site
+  /** Vrai sous `astro dev` : le panel y sert à écrire, jamais à mettre en ligne. */
+  export const dev: boolean
   export const registry: BlockRegistry
   export const pages: readonly RenderedPage[]
   export const media: MediaManifest

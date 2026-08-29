@@ -62,7 +62,7 @@ fonctionne et une garantie détruite — c'est ce qui les rend dangereuses.
 
 ## Ce qui n'est pas couvert, et pourquoi
 
-Deux faiblesses connues, mesurées et acceptées.
+Une faiblesse connue, mesurée et acceptée.
 
 **L'énumération des comptes après plusieurs échecs.** Un mot de passe faux et
 une adresse inconnue donnent le même refus, mot pour mot et pour le même temps
@@ -73,11 +73,9 @@ plus dire au client pourquoi il n'entre pas — or c'est précisément
 l'information qui lui manque à ce moment-là. La limitation par adresse IP borne
 l'exercice à vingt essais par quart d'heure.
 
-**Le jeton de secours passe par l'URL**, donc par les logs d'accès de Caddy. Il
-ne sert qu'une fois et vaut dix minutes ; un log lu plus tard ne contient que
-des jetons déjà consommés. Lire ce log demande par ailleurs un accès à la
-machine, c'est-à-dire à la base elle-même. Le Caddyfile de la phase 6 peut
-retirer la chaîne de requête de la ligne journalisée pour ce chemin.
+Le jeton de secours, lui, passait par l'URL et donc par les logs d'accès de
+Caddy. Le Caddyfile généré le retire désormais des lignes journalisées, par le
+filtre `query { delete token }` (`deploiement.md`).
 
 ## Chaîne d'approvisionnement
 
@@ -89,6 +87,13 @@ Son caractère public supprime tout secret à distribuer.
 
 **Chaque dépôt client** reçoit une clé de déploiement qui lui est propre,
 jamais un jeton de ton compte, et la protection de branche y est activée aussi.
+
+Cette clé **naît sur la machine** au premier `deploy` : sa moitié privée n'en
+sort jamais, et seule sa moitié publique remonte vers GitHub — enregistrée par
+ton jeton s'il est là, affichée à recopier sinon (D91). Le jeton, lui, reste sur
+ta machine. Une machine compromise n'ouvre donc que le dépôt de son propre site,
+et la reprise après sinistre engendre une clé neuve sans rien avoir à
+transporter.
 
 ## En-têtes
 

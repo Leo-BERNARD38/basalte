@@ -135,6 +135,9 @@ const STEPS: readonly string[] = [
   create index journal_account on journal (account_id, at);
   create index lead_unread on lead (read_at);
   `,
+  `
+  alter table publication add column commit_sha text not null default '';
+  `,
 ]
 
 /** La version que le socle attend : le nombre d’étapes écrites ci-dessus. */

@@ -18,6 +18,7 @@ export const COMMANDS: readonly Command[] = [
     name: 'init',
     usage: 'init <nom>',
     summary: 'génère un dépôt client complet',
+    run: async (argv, cwd) => (await import('./init.js')).init(argv, cwd),
   },
   {
     name: 'check',
@@ -28,30 +29,34 @@ export const COMMANDS: readonly Command[] = [
   },
   {
     name: 'inventory',
-    usage: 'inventory [--json]',
-    summary: 'liste blocs, champs et helpers réutilisables',
+    usage: 'inventory [--json|--agent]',
+    summary: 'liste blocs et champs, ou régénère .claude/basalte.md',
     run: async (argv, cwd) =>
       (await import('./inventory.js')).inventory(argv, cwd),
   },
   {
     name: 'update',
-    usage: 'update',
+    usage: 'update [--dry-run] [--json]',
     summary: 'monte un site de version, ou annule tout',
+    run: async (argv, cwd) => (await import('./update.js')).update(argv, cwd),
   },
   {
     name: 'deploy',
-    usage: 'deploy --host <ip>',
+    usage: 'deploy --host <ip> [--dry-run]',
     summary: 'provisionne le VPS, ou le met à jour',
+    run: async (argv, cwd) => (await import('./deploy.js')).deploy(argv, cwd),
   },
   {
     name: 'doctor',
-    usage: 'doctor',
+    usage: 'doctor [--host <ip>] [--no-email]',
     summary: 'prouve que la configuration fonctionne',
+    run: async (argv, cwd) => (await import('./doctor.js')).doctor(argv, cwd),
   },
   {
     name: 'migrate',
-    usage: 'migrate',
+    usage: 'migrate [--dry-run]',
     summary: 'applique les migrations de format',
+    run: async (argv, cwd) => (await import('./migrate.js')).migrate(argv, cwd),
   },
   {
     name: 'admin:login',
@@ -64,5 +69,7 @@ export const COMMANDS: readonly Command[] = [
     name: 'update-all',
     usage: 'update-all <liste>',
     summary: 'monte de version une liste de sites',
+    run: async (argv, cwd) =>
+      (await import('./update-all.js')).updateAll(argv, cwd),
   },
 ]

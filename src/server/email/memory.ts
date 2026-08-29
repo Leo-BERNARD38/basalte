@@ -1,6 +1,5 @@
-// Le fournisseur qui retient au lieu d’envoyer : `basalte doctor` s’en sert
-// pour prouver un rendu sans consommer de quota, et les tests pour lire ce
-// qu’un email contient vraiment.
+// Le fournisseur qui retient au lieu d’envoyer : les tests y lisent ce qu’un
+// email contient vraiment, sans réseau ni quota.
 
 import type { EmailMessage, EmailProvider } from './provider.js'
 

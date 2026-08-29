@@ -70,8 +70,8 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 | Commande | Effet |
 |---|---|
 | `basalte init <nom>` | génère un dépôt client complet |
-| `basalte check` | valide les contenus contre les schémas, puis build |
-| `basalte inventory` | liste ce qui est réutilisable : blocs, champs, helpers |
+| `basalte check [--build]` | valide les contenus contre les schémas, et construit sous `--build` |
+| `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère la doc agent |
 | `basalte update` | monte ce site de version, ou annule tout |
 | `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
 | `basalte doctor` | prouve que la configuration fonctionne |
@@ -88,6 +88,10 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 
 ## Statut
 
-Design validé. Fondations techniques en place — outillage, compilation, tests,
-CI (`docs/environnement.md`). Le CLI répond, ses commandes ne sont pas encore
-implémentées. Prochaine étape : `docs/implementation.md`, phase 1.
+Les six phases d'implémentation sont faites : rendu, authentification, panel,
+mise en ligne, formulaire de contact, et livraison. Un nouveau site se crée, se
+met en production et se monte de version en une commande chacune.
+
+Ce qui reste est nommé : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images
+Open Graph — et le bloc `faq` qui l'attend. Détail dans
+`docs/implementation.md`.

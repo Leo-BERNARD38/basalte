@@ -61,7 +61,7 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 ## Statut
 
 Design validé en brainstorming le 2026-08-29, fondations techniques posées le
-même jour (`environnement.md`), phases 1 à 3 faites dans la foulée.
+même jour (`environnement.md`), les six phases faites dans la foulée.
 
 **Phase 1** — DSL de champs, moteur de blocs, intégration Astro, médias,
 `basalte check` et `basalte inventory`. Le site de démonstration se construit
@@ -76,8 +76,20 @@ enregistrement validé puis commité, médiathèque avec texte alternatif et poi
 focal, réordonnancement, visibilité par langue, aperçu du contenu non publié.
 Décisions D55 à D65.
 
-L'ordre des phases est tranché (D54) : on suit la numérotation. Prochaine
-phase, la 4 — publier.
+**Phase 4** — la mise en ligne : rebase, build en processus enfant, bascule
+atomique, push, file à une place, et un échec qui laisse le site debout.
+Décisions D67 à D75.
+
+**Phase 5** — servir : formulaire de contact sans une ligne de JavaScript,
+anti-spam, messages gardés en base avant tout envoi, purge des données
+personnelles, audience lue dans les logs de Caddy. Décisions D76 à D85.
+
+**Phase 6** — livrer : `basalte init` et le paquet Claude Code du dépôt client,
+`deploy`, `doctor`, `update`, les migrations de format, `update-all`, et les
+fichiers de la machine. Décisions D87 à D94.
+
+Ce qui reste est nommé : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images
+Open Graph — et le bloc `faq` qui l'attend.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

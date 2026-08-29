@@ -21,13 +21,27 @@ c'est le défaut même que ce socle corrige.
 
 En SSH, dans cet ordre :
 
-1. installe Docker s'il est absent
-2. clone le dépôt du site
-3. dépose le `.env` (lu depuis ta machine, jamais versionné)
-4. `docker compose up -d` — l'application Node et Caddy
-5. Caddy obtient le certificat, le domaine pointant déjà vers la machine
-6. premier build et bascule
+1. installe `curl` et Docker s'ils sont absents
+2. engendre la clé de déploiement de la machine, et l'enregistre sur le dépôt
+   quand un `GITHUB_TOKEN` est là — sinon l'affiche, à recopier (D91)
+3. clone le dépôt du site, ou le met à jour
+4. dépose le `.env` (lu depuis ta machine, poussé par l'entrée standard, jamais
+   écrit dans un fichier temporaire)
+5. `docker compose up -d --build` — l'application Node et Caddy
+6. frappe l'application sur le réseau des conteneurs, jusqu'à ce qu'une version
+   soit servie : elle s'ouvre à la première requête et **publie d'elle-même**,
+   aucune version n'étant encore là (D88). Jamais par le domaine — ni le
+   certificat ni l'enregistrement DNS n'ont à être en place pour un build
 7. crée le compte du client et affiche son mot de passe
+
+Chaque étape est idempotente, et la séquence s'arrête à la première qui lâche.
+
+```bash
+npm run deploy -- --host 51.75.12.34 --dry-run
+```
+
+affiche la séquence, commande par commande, sans qu'une seule connexion ne
+parte.
 
 ```
   Compte créé : contact@atelier-duvallon.fr
@@ -53,20 +67,28 @@ npm run doctor
 ```
 
 ```
-  ✓ site.config.ts valide
-  ✓ .env complet
-  ✓ email — test envoyé à leo@exemple.fr, accepté par le fournisseur
+  ✓ site.config.ts — « Atelier Duvallon » sur atelier-duvallon.fr — fr en ligne
+  ✓ .env — canal du site — bonjour@atelier-duvallon.fr
+  ⚠ canaux email — les codes de connexion partagent la clé du formulaire
+      → renseigne AUTH_EMAIL_API_KEY et AUTH_EMAIL_FROM
+  ✓ CONTACT_EMAIL — contact@atelier-duvallon.fr
+  ✓ EMAIL_ADMIN — leo@exemple.fr
+  ✓ email — envoyé à leo@exemple.fr, accepté par brevo
   ✗ DNS — atelier-duvallon.fr pointe vers 1.2.3.4, la machine est en 5.6.7.8
       → corrige l'enregistrement A chez le registrar, puis relance
-  ✓ dépôt git joignable en écriture
-  ✓ 2 Go de RAM, 14 Go libres
+  ✓ dépôt git — joignable en écriture
+  ✓ ressources — 2.0 Go de RAM, 14.2 Go libres
 ```
 
 `doctor` **prouve** au lieu de vérifier : il envoie un vrai email et résout
-vraiment le DNS. Une clé présente mais fausse passe un contrôle de forme, et se
-découvre le jour où le client ne peut plus se connecter.
+vraiment le DNS (D93). Une clé présente mais fausse passe un contrôle de forme,
+et se découvre le jour où le client ne peut plus se connecter. `--no-email`
+saute le seul envoi, quand le quota du jour compte plus que la preuve.
 
-Il tourne en fin de `deploy`, et se relance seul à tout moment.
+Il tourne **là où on l'appelle** : depuis ta machine il éprouve la configuration
+du dépôt, sur le VPS il éprouve aussi les siennes. `--host <ip>` lui donne
+l'adresse que le domaine doit désigner. Il tourne en fin de `deploy`, et se
+relance seul à tout moment.
 
 ## Retours en arrière
 

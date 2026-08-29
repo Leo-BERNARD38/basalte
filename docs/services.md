@@ -100,8 +100,13 @@ gratuits en permanence — largement le volume de trois sites.
 posée depuis la phase 2, dans `src/server/email/` : un nom, une méthode `send`,
 rien d'autre. Trois implémentations existent — `brevo` par un simple `fetch`
 sur son API transactionnelle, `console` qui écrit au lieu d'envoyer, et
-`memory` qui retient, dont `doctor` et les tests se servent. Le fournisseur se
-choisit par site depuis `site.config.ts`.
+`memory` qui retient, dont les tests se servent. Le fournisseur se choisit par
+site depuis `site.config.ts`.
+
+`basalte doctor`, lui, **envoie pour de bon** : une clé présente mais fausse
+passe un contrôle de forme, et se découvre le jour où le client ne peut plus se
+connecter (D30, D93). `--no-email` saute cet unique envoi quand le quota du jour
+compte plus que la preuve.
 
 Le **nom** du fournisseur vit dans `site.config.ts`, versionné ; la **clé** vit
 dans `.env`, jamais versionné. Les deux destinataires de la machine y vivent

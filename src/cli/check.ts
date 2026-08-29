@@ -6,13 +6,14 @@
 // qu’il référence.
 
 import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
 import path from 'node:path'
 
 import { errorsOf, readProject, type Project } from '../content/project.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
 import { countMediaUsage } from '../media/usage.js'
+import { astroBinary } from '../publish/build.js'
+import { fails, hasFlag, heading, line, succeeds } from './args.js'
 import type { Result } from './run.js'
 
 /** Où `--build` écrit, à côté de la racine servie en local et jamais dans `dist/`. */
@@ -22,13 +23,15 @@ export async function check(
   argv: readonly string[],
   cwd: string,
 ): Promise<Result> {
-  const build = argv.includes('--build')
+  const build = hasFlag(argv, '--build')
   const prepared = await prepareMedia(cwd)
   const project = await readProject(cwd)
-  const lines = [`basalte check — ${project.site.name}`, '']
+  const lines = [...heading('check', project.site.name)]
 
   for (const media of prepared) {
-    lines.push(`  ✓ « ${media.from} » intégré sous la clé « ${media.key} »`)
+    lines.push(
+      line('ok', `« ${media.from} » intégré sous la clé « ${media.key} »`),
+    )
   }
 
   const issues = [...project.issues, ...orphans(project)]
@@ -41,22 +44,25 @@ export async function check(
 
   for (const issue of issues) {
     lines.push(
-      `  ${issue.severity === 'error' ? '✗' : '⚠'} ${renderIssue(issue)}`,
+      line(
+        issue.severity === 'error' ? 'error' : 'warning',
+        renderIssue(issue),
+      ),
     )
   }
 
   if (errors.length > 0) {
-    lines.push(
-      '',
+    return fails(
+      lines,
       `${errors.length} problème(s) à corriger. Rien n’a été construit.`,
-      '',
     )
-
-    return { code: 1, stdout: '', stderr: lines.join('\n') }
   }
 
   lines.push(
-    `  ✓ ${count(project.pages.length, 'page')}, ${count(sections, 'section')}, ${count(project.sources.length, 'bloc')} disponible(s)`,
+    line(
+      'ok',
+      `${count(project.pages.length, 'page')}, ${count(sections, 'section')}, ${count(project.sources.length, 'bloc')} disponible(s)`,
+    ),
   )
 
   // La sortie précède la construction : Astro écrit directement sur le
@@ -67,13 +73,13 @@ export async function check(
     try {
       buildSite(cwd)
     } catch {
-      return { code: 1, stdout: '', stderr: 'La construction a échoué.\n' }
+      return fails(['La construction a échoué.'])
     }
 
     return { code: 0, stdout: '', stderr: '' }
   }
 
-  return { code: 0, stdout: `${lines.join('\n')}\n`, stderr: '' }
+  return succeeds(lines)
 }
 
 // Une image que plus aucune section ne cite reste dans le dépôt : git ne
@@ -105,16 +111,9 @@ function count(value: number, noun: string): string {
 // que la machine exécute. Vérifier que le site se construit ne doit pas
 // remplacer l’écran qui sert à le corriger (D68).
 function buildSite(cwd: string): void {
-  const require = createRequire(path.join(cwd, 'package.json'))
-  const astro = path.join(
-    path.dirname(require.resolve('astro/package.json')),
-    'bin',
-    'astro.mjs',
-  )
-
   execFileSync(
     process.execPath,
-    [astro, 'build', '--outDir', path.join(cwd, CHECK_OUT)],
+    [astroBinary(cwd), 'build', '--outDir', path.join(cwd, CHECK_OUT)],
     { cwd, stdio: 'inherit' },
   )
 }
