@@ -82,7 +82,4 @@ le socle mettrait alors à jour la doc automatiquement.
 
 ## Points ouverts
 
-| Sujet | Question |
-|---|---|
-| Reverse proxy | Caddy (acté en D15) ou nginx ? Caddy gère les certificats seul ; nginx demande certbot et une config plus longue |
-| Blocs v1 | Liste de la section 17 du spec à valider |
+Voir `implementation.md`.
