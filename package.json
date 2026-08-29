@@ -1,0 +1,69 @@
+{
+  "name": "@leobernard/basalte",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Socle technique pour landing pages éditables par leurs propriétaires",
+  "license": "UNLICENSED",
+  "author": "Leo BERNARD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Leo-BERNARD38/basalte.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "bin": {
+    "basalte": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepare": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lockfile:check": "node scripts/check-lockfile.mjs",
+    "verify:install": "node scripts/verify-install.mjs",
+    "setup": "git config core.hooksPath .githooks",
+    "verify": "npm run typecheck && npm run test && npm run format:check && npm run lockfile:check"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/node": "24.13.3",
+    "astro": "7.2.9",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  },
+  "dependencies": {
+    "@astrojs/node": "11.1.4",
+    "@astrojs/react": "6.0.4",
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "10.0.0",
+    "@mantine/core": "9.5.2",
+    "@mantine/hooks": "9.5.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "babel-plugin-react-compiler": "1.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sharp": "0.35.4",
+    "zod": "4.5.2"
+  },
+  "peerDependencies": {
+    "astro": "7.2.9"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.astro/
+.githooks/
+package-lock.json
+
+# La documentation est écrite à la main, calibrée sur 79 colonnes. Prettier y
+# aligne les tableaux cellule par cellule, ce qui allonge les lignes bien
+# au-delà et rend l'édition pénible. Ses fins de ligne sont tenues par
+# .gitattributes.
+*.md

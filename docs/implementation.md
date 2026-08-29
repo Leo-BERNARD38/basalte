@@ -48,11 +48,14 @@ le panel, la validation et le rendu. Une erreur là se répare par une migration
 de format, donc tôt et pour pas cher — d'où le site de démonstration dès
 maintenant, plutôt qu'à la fin.
 
-**Déjà tranché.** Invariants 1, 5, 7, 9, 10 · D7, D8 · `modele-contenu.md`.
+**Déjà tranché.** Invariants 1, 5, 7, 9, 10 · D7, D8 · D32 à D38 ·
+`modele-contenu.md`, `environnement.md`. L'outillage, la compilation et le
+script `prepare` sont en place : la phase démarre sur un dépôt qui s'installe,
+se vérifie et se construit.
 
 **À décider dans la phase.** La liste des types `f.*` et leur signature · la
 sortie de `basalte inventory` · la résolution des images venues d'un JSON · la
-forme réelle des tokens · le script `prepare`.
+forme réelle des tokens.
 
 **Finie quand.** Le site de démonstration se construit depuis son JSON, et
 `check` refuse un contenu invalide comme il accepte un contenu valide.

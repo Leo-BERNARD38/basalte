@@ -32,6 +32,16 @@ dans le dossier de son domaine : `src/fields/`, `src/server/`, `src/seo/`.
 Un fourre-tout est un endroit que personne ne lit et où tout le monde ajoute.
 C'est mécaniquement là que la duplication s'accumule.
 
+`scripts/`, à la racine, n'est pas une exception : il ne contient pas de code
+partagé mais des exécutables autonomes appelés par un script npm, qui ne
+s'appellent pas entre eux et que rien de `src/` n'importe.
+
+## Formatage
+
+Prettier s'en charge — `npm run format`, vérifié en pré-commit et en CI. Ne
+discute pas d'une mise en forme : lance la commande. La documentation en est
+exclue, elle est calibrée à la main (`environnement.md`).
+
 ## Un bloc ne valide rien à la main
 
 Toute contrainte sur un contenu passe par `f.*`. Si une vérification manque, on

@@ -88,5 +88,6 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 
 ## Statut
 
-Design validé, implémentation non commencée. Prochaine étape :
-`docs/implementation.md`, phase 1.
+Design validé. Fondations techniques en place — outillage, compilation, tests,
+CI (`docs/environnement.md`). Le CLI répond, ses commandes ne sont pas encore
+implémentées. Prochaine étape : `docs/implementation.md`, phase 1.

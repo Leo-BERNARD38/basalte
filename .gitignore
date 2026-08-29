@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.astro/
+*.tsbuildinfo
+
+.env
+.env.local
+
+*.db
+*.db-journal
+*.db-wal
+
+releases/
+
+.DS_Store
+Thumbs.db

@@ -4,8 +4,11 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** aucun code. Design validé, implémentation non commencée.
-Prochaine étape : `docs/implementation.md`, phase 1.
+**État :** fondations posées — outillage, compilation, tests, CI
+(`docs/environnement.md`). Le CLI répond, ses commandes ne sont pas encore
+implémentées. Prochaine étape : `docs/implementation.md`, phase 1.
+
+**Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
 ## Où lire quoi
 
@@ -14,6 +17,7 @@ Prochaine étape : `docs/implementation.md`, phase 1.
 | Tu travailles sur… | Lis |
 |---|---|
 | n'importe quoi dans ce dépôt | `docs/conventions.md` |
+| l'outillage, les versions, la CI | `docs/environnement.md` |
 | un bloc, un schéma, du contenu | `docs/modele-contenu.md` |
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
@@ -45,7 +49,7 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Tout le code | TypeScript |
 | Rendu du site public | Astro, statique |
 | Schémas de contenu | Zod, sous un DSL `f.*` |
-| Panel d'édition | React + Mantine + dnd-kit |
+| Panel d'édition | React 19 + compilateur React, Mantine, dnd-kit |
 | Styles | CSS natif + custom properties |
 | Auth, sessions, leads | SQLite |
 | Traitement d'images | sharp |
@@ -53,6 +57,10 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Email | Brevo, derrière une interface agnostique |
 
 Pas de Tailwind. Pas de framework CSS. Pas d'ORM.
+
+Versions épinglées à l'exact, et les deux qui ne sont volontairement pas les
+dernières : `docs/environnement.md`. Le compilateur React est actif dès le
+départ — pas de mémoïsation écrite à la main.
 
 ## Structure
 
@@ -69,6 +77,8 @@ src/
                     migrate, admin:login, update-all
 migrations/         transformations de format de contenu
 examples/demo/      site de démonstration, banc de test
+scripts/            outillage du dépôt — jamais livré, jamais importé
+.githooks/          pré-commit et pré-push
 docs/
 ```
 
@@ -146,5 +156,11 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
   cours, pas au seul compte, sinon il est rejouable ailleurs.
 - Les emails d'auth empruntent un canal distinct de ceux du formulaire de
   contact.
-- Installer depuis git installe du TypeScript non compilé : le package a besoin
-  d'un script `prepare`.
+- Installer depuis git installe du TypeScript non compilé : le package porte un
+  script `prepare` qui le compile. Node refuse d'effacer les types sous
+  `node_modules`, donc rien de ce que Node charge ne peut rester en `.ts`.
+- Installer une dépendance git déclenche un `npm install` complet dans le clone
+  temporaire, **chez le client**, dès qu'une clé parmi `prepare`, `postinstall`,
+  `preinstall`, `install`, `prepack`, `build` ou le champ `workspaces` existe.
+  `--omit=dev` n'y change rien, `--ignore-scripts` casse l'installation en
+  silence. Détail et vérification dans `docs/environnement.md`.

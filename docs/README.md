@@ -9,6 +9,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | comprendre le projet en cinq minutes | `contexte.md` puis `architecture.md` |
 | savoir pourquoi un choix a été fait | `decisions.md` |
 | écrire du code dans ce dépôt | `conventions.md` |
+| installer le dépôt, régler l'outillage | `environnement.md` |
 | savoir ce qu'un dépôt client contient | `depot-client.md` |
 | implémenter une maquette, régler la DA | `design.md` |
 | écrire ou modifier un bloc | `modele-contenu.md` |
@@ -25,9 +26,10 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | Fichier | Contenu |
 |---|---|
 | `contexte.md` | Le besoin, les quatre contraintes fondatrices, le vocabulaire |
-| `decisions.md` | Les trente décisions, avec l'alternative écartée et sa raison |
+| `decisions.md` | Les décisions actées, avec l'alternative écartée et sa raison |
 | `architecture.md` | Vue d'ensemble, répartition socle / dépôt client, package vs template, accès git |
 | `conventions.md` | Discipline de code : inventaire, commentaires, pas de fourre-tout |
+| `environnement.md` | Les deux machines, versions épinglées, lockfile, formatage, hooks, CI |
 | `depot-client.md` | Ce que `basalte init` génère, configuration, paquet Claude Code |
 | `design.md` | Tokens, plancher non négociable, implémentation d'une maquette |
 | `modele-contenu.md` | Format des pages, définition d'un bloc, DSL de champs, langues, migrations |
@@ -58,7 +60,9 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 
-Design validé en brainstorming le 2026-08-29. Aucun code écrit.
+Design validé en brainstorming le 2026-08-29. Fondations techniques posées le
+même jour : `environnement.md`. Aucun code de produit écrit — la phase 1 n'a pas
+commencé.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.
