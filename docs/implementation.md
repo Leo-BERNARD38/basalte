@@ -1,42 +1,210 @@
 # Implémentation
 
-## Ordre
+## Comment lire ce document
 
-Chaque étape produit quelque chose de démontrable.
+Ce document décrit **six phases**, pas une suite de tâches. Chacune dit
+pourquoi elle existe, ce qu'elle doit produire, ce qui est en jeu, et où passe
+la frontière entre ce qui est déjà tranché et ce qui lui appartient.
 
-1. Squelette du socle : intégration Astro, `defineSite`, tokens CSS, un bloc
-   `hero`, rendu statique, script `prepare` → un premier site s'affiche.
-2. DSL de champs, validation, `basalte check`, `basalte inventory`.
-3. Blocs de référence et helpers SEO.
-4. Authentification du panel — morceau critique, isolé et testable seul.
-5. Panel : génération des formulaires, enregistrement, commit.
-6. Médias : téléversement, traitement, médiathèque, point focal.
-7. Réordonnancement, `hidden`, langues en préparation, preview.
-8. Pipeline de publication : bascule atomique, file d'attente, push, gestion
-   d'échec.
-9. Formulaire de contact, Brevo, stockage, purge.
-10. Analytics par logs.
-11. `basalte init` : dépôt client, paquet Claude Code, Docker Compose.
-12. `basalte deploy` et `basalte doctor` — du VPS vide au site en ligne.
-13. `basalte update`, migrations, `basalte update-all`.
+Le *comment* n'est pas ici, et c'est volontaire. Décider maintenant, à l'aveugle,
+des détails d'une phase qu'on n'a pas commencée produit de la dette : des choix
+qu'on ne peut pas encore évaluer, qu'on suivra par discipline, et qu'on paiera
+plus tard. Une session entière consacrée à une phase, qui en connaît les enjeux,
+décidera mieux.
 
-Rien n'est utilisable par un client avant l'étape 8. Une option à considérer :
-faire 1 → 3 puis 11 et 12, mettre un vrai site en ligne que tu édites toi-même
-via git, et construire le panel ensuite. L'architecture est validée sur du réel
-très tôt, et le panel se construit sans pression.
+**Une phase, une session.** Elle commence par lire son cahier ci-dessous et les
+documents qu'il désigne. Elle finit par consigner ce qu'elle a décidé — dans le
+document concerné, et dans `decisions.md` si le choix engage le reste.
 
-Les étapes 11 et 12 portent le confort d'usage — paquet Claude Code du dépôt
-client, `deploy`, `doctor`. Les repousser en fin de parcours signifie
-provisionner à la main jusque-là ; les avancer coûte du temps avant d'avoir
-quoi que ce soit à déployer.
+## Trois niveaux d'engagement
+
+Toute la documentation se lit à travers ces trois niveaux. Ils disent ce qu'une
+phase a le droit de changer.
+
+| Niveau | Ce que c'est | Une phase peut-elle le changer ? |
+|---|---|---|
+| **Invariant** | les douze règles absolues (`securite.md`) | non |
+| **Décidé** | une décision numérotée (`decisions.md`) | seulement en actant la décision inverse, avec sa raison |
+| **Hypothèse** | un point de départ noté pour ne pas repartir de zéro | oui, librement — en consignant ce qu'elle retient |
+
+Les hypothèses sont signalées en italique dans les documents. Les remplacer
+n'est pas un écart : c'est ce pour quoi elles sont là.
+
+---
+
+## Phase 1 — Rendre
+
+**Pourquoi.** Tout le reste consomme le DSL et le moteur de blocs. C'est la
+seule phase dont un défaut se paie dans toutes les autres.
+
+**Ce qu'elle produit.** Un site statique construit depuis un JSON, un bloc
+`hero` qui s'affiche, `basalte check` qui valide, `basalte inventory` qui liste.
+Un site de démonstration qui sert de banc d'essai à partir de là.
+
+**Enjeux.** Le DSL doit émettre le schéma Zod *et* la description d'interface
+depuis une déclaration unique — s'ils se dédoublent, ils divergeront. Le point
+dur est l'i18n : l'endroit où les langues s'insèrent dans un champ conditionne
+le panel, la validation et le rendu. Une erreur là se répare par une migration
+de format, donc tôt et pour pas cher — d'où le site de démonstration dès
+maintenant, plutôt qu'à la fin.
+
+**Déjà tranché.** Invariants 1, 5, 7, 9, 10 · D7, D8 · `modele-contenu.md`.
+
+**À décider dans la phase.** La liste des types `f.*` et leur signature · la
+sortie de `basalte inventory` · la résolution des images venues d'un JSON · la
+forme réelle des tokens · le script `prepare`.
+
+**Finie quand.** Le site de démonstration se construit depuis son JSON, et
+`check` refuse un contenu invalide comme il accepte un contenu valide.
+
+---
+
+## Phase 2 — Authentifier
+
+**Pourquoi.** C'est le seul endroit du projet où un bug se traduit par une
+intrusion. C'est aussi le seul morceau réellement isolable : il ne dépend de
+rien de la phase 1, et se teste seul.
+
+**Ce qu'elle produit.** Le flux complet — mot de passe, code, appareil de
+confiance, sessions, journal — et `basalte admin:login`.
+
+**Enjeux.** Trois pièges connus, tous documentés : code lié à la tentative de
+connexion et non au compte, mot de passe jamais transmis par email, canal email
+distinct de celui du formulaire. Le reste est du travail standard, mais il ne se
+rattrape pas après coup : réécrire l'authentification plus tard, c'est réécrire
+le panel avec.
+
+**Déjà tranché.** Invariant 12 · D9 · `panel.md`, section Authentification.
+
+**À décider dans la phase.** Le schéma SQLite · la forme de la limitation de
+débit · la structure des tests · le rendu des emails.
+
+**Finie quand.** Les tests couvrent le flux entier, rejeu d'un code et
+expiration compris.
+
+---
+
+## Phase 3 — Éditer
+
+**Pourquoi.** C'est le produit, tel que le client le voit. Tout le reste lui est
+invisible.
+
+**Ce qu'elle produit.** Le panel : formulaires générés depuis les schémas,
+enregistrement, médias, réordonnancement, `hidden`, langues en préparation,
+preview.
+
+**Enjeux.** C'est la phase où la complexité s'accumule sans qu'on la voie. Deux
+dettes guettent. La première : un moteur de formulaires qui traite les types de
+champs un par un au lieu d'être piloté par le DSL — chaque nouveau type coûte
+alors une modification du panel, et le levier de la phase 1 est perdu. La
+seconde : une interface qui gagne un écran à chaque besoin. La contrainte de six
+pages existe pour forcer l'arbitrage, pas pour l'interdire.
+
+**Déjà tranché.** Invariant 6 · D3, D10, D25 · `panel.md`.
+
+**À décider dans la phase.** La couche de composants · la forme de l'état · le
+dialogue panel ↔ serveur · la médiathèque · le découpage réel des écrans.
+
+**Finie quand.** Un client édite sa page de bout en bout sans toi.
+
+---
+
+## Phase 4 — Publier
+
+**Pourquoi.** Elle porte la promesse qui rend le reste tenable : une publication
+ratée ne casse pas un site qui fonctionne.
+
+**Ce qu'elle produit.** Build, bascule atomique, file d'attente, push, gestion
+d'échec.
+
+**Enjeux.** Tout se joue sur ce qui arrive quand ça rate — un build interrompu,
+un conflit git, un VPS à court de mémoire. Le chemin nominal est court à écrire ;
+les chemins d'échec sont la phase. Deux endroits coûtent du temps si on les
+découvre tard : le cache d'images d'Astro et le conflit avec tes propres
+modifications.
+
+**Déjà tranché.** Invariant 11 · D11, D17 · `publication.md`.
+
+**À décider dans la phase.** Comment le build est lancé depuis le processus du
+panel · la limite mémoire · la conservation des releases · la remontée des
+erreurs.
+
+**Finie quand.** Un build volontairement cassé laisse le site en ligne intact,
+et le client lit un message qui ne l'inquiète pas.
+
+---
+
+## Phase 5 — Servir
+
+**Pourquoi.** Un formulaire qui perd un lead coûte plus cher que tout le reste
+du site réuni.
+
+**Ce qu'elle produit.** Formulaire de contact, anti-spam, envoi d'email,
+stockage local, purge, analytics par logs.
+
+**Enjeux.** L'interface `EmailProvider` doit être posée avant la première
+implémentation, sinon le socle est marié à Brevo sans qu'on l'ait décidé.
+L'analytics par logs est, assumé, le morceau le plus approximatif du projet :
+c'est un ordre de grandeur, et il ne mérite pas trois jours.
+
+**Déjà tranché.** D4, D13, D14 · `services.md`.
+
+**À décider dans la phase.** Le stockage des leads · le réglage de l'anti-spam ·
+le format de log et son analyse.
+
+**Finie quand.** Un lead arrive par email *et* se retrouve dans le panel — même
+quand l'envoi échoue.
+
+---
+
+## Phase 6 — Livrer
+
+**Pourquoi.** C'est ce qui sépare un socle d'un site. Sans elle, tu as fait un
+site pour un client.
+
+**Ce qu'elle produit.** `basalte init` et le paquet Claude Code du dépôt client,
+`deploy`, `doctor`, `update`, les migrations, `update-all`.
+
+**Enjeux.** Cette phase décide si tu gagnes du temps sur le deuxième et le
+troisième client. Deux morceaux à ne pas bâcler : le générateur de
+`.claude/basalte.md`, qui rend la doc agent vraie en permanence, et `doctor`,
+qui remplace un guide de provisionnement. Tout ce qui est bâclé ici se paie à
+chaque nouveau site.
+
+**Déjà tranché.** Invariant 8 · D5, D16, D23, D26, D27, D29, D30 ·
+`depot-client.md`, `mise-en-prod.md`, `mise-a-jour.md`.
+
+**À décider dans la phase.** Le contenu exact du paquet Claude Code · la forme
+du `CLAUDE.md` généré · le mécanisme des migrations · le second déclencheur de
+déploiement.
+
+**Finie quand.** Un nouveau client est en ligne en deux commandes, sans que tu
+ouvres un guide.
+
+---
+
+## Ordre, et un choix qui reste ouvert
+
+L'ordre ci-dessus est celui des dépendances : chaque phase s'appuie sur les
+précédentes, et 2 pourrait se faire n'importe quand.
+
+Rien n'est utilisable par un client avant la phase 4. Deux chemins :
+
+- **suivre l'ordre** — le premier site sort tard, mais complet
+- **avancer la phase 6** juste après la 1, mettre un vrai site en ligne que tu
+  édites toi-même via git, puis reprendre à la phase 2
+
+Le second valide l'architecture sur du réel très tôt et fait rentrer de
+l'argent, au prix d'un aller-retour sur `init` quand le panel arrivera. À
+trancher au moment de finir la phase 1, pas maintenant.
 
 ## Tests
 
-Deux endroits seulement, écrits en même temps que le code qu'ils couvrent :
+Deux endroits, écrits en même temps que le code qu'ils couvrent :
 
-- **l'authentification** (étape 4) — le seul endroit où un bug se traduit par
-  une intrusion
-- **le DSL de champs** (étape 2) — tout le reste en dépend
+- **l'authentification** (phase 2) — le seul endroit où un bug devient une
+  intrusion
+- **le DSL de champs** (phase 1) — tout le reste en dépend
 
 Le reste est couvert par `basalte check` sur le site de démonstration et par le
 diff du HTML produit : sur un correctif, un diff vide prouve l'absence de
@@ -48,25 +216,20 @@ d'images, ni à la bascule atomique.
 
 ## Blocs de référence
 
-Les blocs livrés par le socle ne sont pas un catalogue de sections : chaque
+Les blocs livrés par le socle ne sont pas un catalogue de sections — chaque
 client aura les siennes, sur mesure. Ce sont des **exemples de référence**,
-choisis pour la mécanique que chacun démontre.
+choisis pour la mécanique que chacun démontre (D19).
 
-| Bloc | Ce qu'il démontre |
-|---|---|
-| `hero` | texte traduisible, image, point focal, bouton |
-| `richtext` | Markdown restreint et son assainissement |
-| `features` | une liste répétable (`f.list`) |
-| `gallery` | plusieurs images, `srcset` |
-| `faq` | accordéon — le seul bloc avec du JS opt-in — et JSON-LD |
-| `contact` | branchement à l'endpoint serveur |
+*Hypothèse de départ — la phase 1 confirme ou remplace :* `hero` (texte
+traduisible, image, point focal, bouton) · `richtext` (Markdown restreint) ·
+`features` (liste répétable) · `gallery` (plusieurs images, `srcset`) · `faq`
+(JS opt-in, JSON-LD) · `contact` (endpoint serveur).
 
-Six blocs, et toutes les mécaniques du socle sont couvertes au moins une fois.
-`testimonials`, `logos` ou `stats` sont des `features` habillés autrement :
-ils n'enseignent rien de neuf, donc ils relèvent du sur-mesure client.
+Le critère, lui, tient : un bloc de référence gagne sa place s'il démontre une
+mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou `stats` sont des
+`features` habillés autrement — ils relèvent du sur-mesure client.
 
-Plus deux éléments de site configurés hors flux de blocs : `header`
-(navigation) et `footer`.
+Plus deux éléments configurés hors flux de blocs : `header` et `footer`.
 
 ## Hors périmètre
 
@@ -79,8 +242,9 @@ contenu les accueille sans réécriture.
 
 ## Points ouverts
 
+Ceux qui ne relèvent d'aucune phase en particulier.
+
 | Sujet | Question |
 |---|---|
-| Auto-déploiement | Le panel construit et bascule lui-même sur sa machine. Reste à décider s'il existe un second déclencheur — webhook après un push depuis ta machine, ou geste manuel en SSH |
-| Premier site avant le panel | Livrer un site édité par toi dès l'étape 12, ou attendre l'étape 8 ? |
-| Vérification des tokens | `basalte check` refuse les valeurs de style en dur (`design.md`). Reste à décider si la règle porte sur le CSS des blocs seulement, ou aussi sur les composants du panel |
+| Premier site avant le panel | Voir « Ordre » ci-dessus — à trancher en fin de phase 1 |
+| Portée de la règle des tokens | `basalte check` refuse les valeurs de style en dur dans un bloc. Faut-il l'étendre aux composants du panel ? |

@@ -71,7 +71,8 @@ ou dans une issue, pas dans un fichier source où il vieillira sans être vu.
 
 ## Signaux de taille
 
-Aucun n'est un refus. Chacun déclenche une question.
+Aucun n'est un refus. Chacun déclenche une question. *Hypothèse — les seuils se
+calibrent sur le vrai code, pas avant.*
 
 | Seuil | Question |
 |---|---|

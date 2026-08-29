@@ -57,8 +57,7 @@ client, puis la maintenir, sans relire le socle.
 
 Le contenu du paquet et le mécanisme de synchronisation sont arrêtés dans
 `depot-client.md` : `CLAUDE.md` écrit une fois, `.claude/basalte.md` régénéré à
-chaque `npm install` et importé par le premier. Reste à construire, à l'étape
-11 :
+chaque `npm install` et importé par le premier. Reste à construire en phase 6 :
 
 - le générateur de `.claude/basalte.md` — règles, commandes, inventaire des
   blocs avec leurs champs
@@ -81,7 +80,7 @@ chaque `npm install` et importé par le premier. Reste à construire, à l'étap
   `deploiement.md`)
 - `compose.yml` de référence
 - `basalte deploy` et `basalte doctor` — conçus dans `mise-en-prod.md`, à
-  écrire à l'étape 12
+  écrire en phase 6
 - Auto-déploiement : second déclencheur à décider (voir `implementation.md`)
 - Procédure de restauration : elle est celle d'une nouvelle installation, à
   exécuter réellement une fois pour la valider

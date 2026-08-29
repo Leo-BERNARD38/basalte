@@ -1,6 +1,6 @@
 # Décisions
 
-Trente décisions actées, avec l'alternative écartée et sa raison. Les
+Trente et une décisions actées, avec l'alternative écartée et sa raison. Les
 détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -35,3 +35,4 @@ détails d'application sont dans les documents thématiques.
 | D28 | Un bloc ne contient aucune valeur de style en dur : tout passe par un token | Valeurs en dur : la DA n'est plus pilotable depuis `site.config.ts` et chaque bloc dérive |
 | D29 | La mise en production est une commande idempotente lancée depuis ta machine | Guide de provisionnement : jamais à jour, et chaque VPS finit différent — le défaut que D15 corrige |
 | D30 | `basalte doctor` prouve la configuration au lieu de la vérifier : email réellement envoyé, DNS réellement résolu | Contrôle de forme : une clé présente mais fausse passe, et se découvre le jour où le client ne peut plus se connecter |
+| D31 | Trois niveaux d'engagement — invariant, décidé, hypothèse — et le *comment* d'une phase se décide dans la phase | Tout figer d'avance : des choix pris sans pouvoir les évaluer, suivis par discipline, payés en dette. Ne rien figer : les invariants se perdent |

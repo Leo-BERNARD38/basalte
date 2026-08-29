@@ -23,7 +23,9 @@ serveur.
 Le panel aura beaucoup de fonctions. Elles ne doivent jamais être visibles en
 même temps.
 
-**Six pages, et pas davantage.**
+**Six pages, et pas davantage.** *Hypothèse de départ — la phase 3 confirme ou
+remplace ce découpage. Ce qui ne bouge pas : leur nombre reste petit, et la
+hiérarchie suit la fréquence d'usage.*
 
 | Page | Contenu |
 |---|---|
@@ -58,9 +60,10 @@ de publication, toujours à la même place à l'écran. Jamais deux boutons
 *mettre en ligne*. Une dizaine de mots fixés une fois et tenus partout.
 
 Mantine fournit des composants corrects, pas une hiérarchie. Une petite couche
-maison — `PageHeader`, `Section`, `EmptyState`, `SaveBar` — garantit que toutes
-les pages se ressemblent, et empêche que chaque écran soit redessiné un peu
-différemment.
+maison garantit que toutes les pages se ressemblent, et empêche que chaque écran
+soit redessiné un peu différemment. *Hypothèse — `PageHeader`, `Section`,
+`EmptyState`, `SaveBar` : la phase 3 la dessine depuis les écrans réels, pas
+l'inverse.*
 
 ## Authentification
 

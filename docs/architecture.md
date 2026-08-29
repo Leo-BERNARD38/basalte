@@ -81,8 +81,8 @@ qui enregistre le commit résolu : **le déploiement utilise `npm ci`, jamais
 `npm install`.** Aucun accent circonflexe nulle part.
 
 Installer depuis git installe du TypeScript non compilé : le package porte un
-script `prepare` qui le compile à l'installation. À traiter dès l'étape 1, sans
-quoi la surprise arrive à l'étape 11.
+script `prepare` qui le compile à l'installation. À traiter dès la phase 1, sans
+quoi la surprise arrive à la phase 6.
 
 Semver appliqué strictement : *patch* sans action côté client, *minor* pour un
 ajout rétrocompatible, *major* quand le format de contenu change.

@@ -21,6 +21,10 @@ littérale dans le CSS d'un bloc.
 Déclarés dans `site.config.ts`, injectés en variables CSS sur `:root`. La liste
 est courte exprès — elle doit tenir dans la tête.
 
+*Hypothèse de départ — la phase 1 l'établit pour de bon, au contact d'une vraie
+DA. Ce qui ne bouge pas : elle reste courte, et tout besoin non couvert devient
+un token plutôt qu'une valeur en dur.*
+
 | Famille | Tokens |
 |---|---|
 | Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` |
@@ -54,7 +58,7 @@ Il s'applique à tout bloc, sur mesure comme de référence.
 
 ## Pratiques de landing
 
-Courtes, et elles ne remplacent pas ta DA.
+Courtes, et elles ne remplacent pas ta DA. Ce sont des repères, pas des règles.
 
 - **Un seul objectif par page**, donc une seule action principale, répétée.
   Deux appels à l'action concurrents en annulent un.

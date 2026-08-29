@@ -5,7 +5,7 @@ Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
 **État :** aucun code. Design validé, implémentation non commencée.
-Prochaine étape : `docs/implementation.md`, étape 1.
+Prochaine étape : `docs/implementation.md`, phase 1.
 
 ## Où lire quoi
 
@@ -24,6 +24,19 @@ Prochaine étape : `docs/implementation.md`, étape 1.
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
+
+## Trois niveaux d'engagement
+
+Tout ce qui est écrit dans `docs/` n'engage pas au même degré :
+
+- **Invariant** — les douze règles absolues ci-dessous. Jamais contourné.
+- **Décidé** — une décision numérotée de `docs/decisions.md`. On ne s'en écarte
+  qu'en actant la décision inverse, avec sa raison.
+- **Hypothèse** — signalée *en italique*. Un point de départ, pas une consigne :
+  la phase concernée la confirme ou la remplace, et consigne ce qu'elle retient.
+
+Le *comment* d'une phase se décide dans la phase, pas d'avance
+(`docs/implementation.md`).
 
 ## Stack
 

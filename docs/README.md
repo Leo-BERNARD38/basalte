@@ -39,8 +39,22 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `services.md` | Formulaire de contact, email, analytics |
 | `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
-| `implementation.md` | Ordre des treize étapes, tests, blocs de référence, hors périmètre |
+| `implementation.md` | Les six phases, leurs enjeux, tests, hors périmètre |
 | `roadmap-outillage-ia.md` | Chantiers d'outillage IA restants |
+
+## Trois niveaux de lecture
+
+Tout ce qui est écrit ici n'engage pas au même degré. `implementation.md`
+détaille la règle ; en résumé :
+
+| Niveau | Une phase peut-elle le changer ? |
+|---|---|
+| **Invariant** — les douze règles absolues de `securite.md` | non |
+| **Décidé** — une décision numérotée de `decisions.md` | seulement en actant la décision inverse |
+| **Hypothèse** — signalée en italique | oui, librement, en consignant ce qu'elle retient |
+
+Une hypothèse est un point de départ pour ne pas repartir de zéro, pas une
+consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 

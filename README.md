@@ -89,4 +89,4 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 ## Statut
 
 Design validé, implémentation non commencée. Prochaine étape :
-`docs/implementation.md`, étape 1.
+`docs/implementation.md`, phase 1.

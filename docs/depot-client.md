@@ -30,6 +30,10 @@ mon-client/
 
 Aucune de ces entrées ne contient de logique du socle.
 
+*Hypothèse de départ — la phase 6 arrête le contenu exact du paquet Claude Code
+et la liste des skills. Ce qui ne bouge pas : aucune logique du socle dans ce
+dépôt (invariant 8), et une doc agent régénérée plutôt que recopiée (D27).*
+
 ## Cinq commandes
 
 | Commande | Quand |
@@ -60,7 +64,8 @@ export default defineSite({
 })
 ```
 
-**`.env`** — jamais versionné, quatre lignes :
+**`.env`** — jamais versionné, quatre lignes. *Les noms de variables sont une
+hypothèse ; le partage secret / non-secret, lui, est acté (D26).*
 
 ```
 EMAIL_API_KEY=…                    la clé du fournisseur
