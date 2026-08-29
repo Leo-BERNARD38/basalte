@@ -87,7 +87,8 @@ nette : dès qu'une chaîne s'affiche à l'écran, elle est en français.
 
 ## Côté dépôt client
 
-La discipline ci-dessus vaut pour le socle. Un dépôt client, lui, tient sur
-huit entrées et ne contient aucune logique : la seule règle qui s'y applique
-est de ne jamais y copier de code du socle. Un besoin non couvert se traite en
-ajoutant un point d'extension ici.
+La discipline ci-dessus vaut pour le socle. Un dépôt client, lui, ne contient
+aucune logique (`depot-client.md`) : les seules règles qui s'y appliquent sont
+de ne jamais y copier de code du socle, et de ne jamais y écrire une valeur de
+style en dur (`design.md`). Un besoin non couvert se traite en ajoutant un
+point d'extension ici.

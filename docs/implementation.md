@@ -16,13 +16,19 @@ Chaque étape produit quelque chose de démontrable.
    d'échec.
 9. Formulaire de contact, Brevo, stockage, purge.
 10. Analytics par logs.
-11. `basalte init`, Docker Compose, provisionnement.
-12. `basalte update`, migrations, `basalte update-all`.
+11. `basalte init` : dépôt client, paquet Claude Code, Docker Compose.
+12. `basalte deploy` et `basalte doctor` — du VPS vide au site en ligne.
+13. `basalte update`, migrations, `basalte update-all`.
 
 Rien n'est utilisable par un client avant l'étape 8. Une option à considérer :
-faire 1 → 3 puis 11, mettre un vrai site en ligne que tu édites toi-même via
-git, et construire le panel ensuite. L'architecture est validée sur du réel
+faire 1 → 3 puis 11 et 12, mettre un vrai site en ligne que tu édites toi-même
+via git, et construire le panel ensuite. L'architecture est validée sur du réel
 très tôt, et le panel se construit sans pression.
+
+Les étapes 11 et 12 portent le confort d'usage — paquet Claude Code du dépôt
+client, `deploy`, `doctor`. Les repousser en fin de parcours signifie
+provisionner à la main jusque-là ; les avancer coûte du temps avant d'avoir
+quoi que ce soit à déployer.
 
 ## Tests
 
@@ -76,4 +82,5 @@ contenu les accueille sans réécriture.
 | Sujet | Question |
 |---|---|
 | Auto-déploiement | Le panel construit et bascule lui-même sur sa machine. Reste à décider s'il existe un second déclencheur — webhook après un push depuis ta machine, ou geste manuel en SSH |
-| Premier site avant le panel | Livrer un site édité par toi dès l'étape 11, ou attendre l'étape 8 ? |
+| Premier site avant le panel | Livrer un site édité par toi dès l'étape 12, ou attendre l'étape 8 ? |
+| Vérification des tokens | `basalte check` refuse les valeurs de style en dur (`design.md`). Reste à décider si la règle porte sur le CSS des blocs seulement, ou aussi sur les composants du panel |

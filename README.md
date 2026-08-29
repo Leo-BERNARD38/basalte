@@ -17,6 +17,24 @@ cd mon-client
 npm run dev
 ```
 
+Le dépôt généré embarque son propre paquet Claude Code : `CLAUDE.md`,
+l'inventaire des blocs disponibles, et les skills pour créer un bloc, régler
+la DA, rédiger le contenu et monter le socle de version. Voir
+`docs/depot-client.md`.
+
+## Mettre un site en ligne
+
+Deux gestes manuels — commander le VPS, faire pointer le domaine — puis :
+
+```bash
+npm run deploy -- --host 51.75.12.34
+```
+
+Installe Docker, clone, démarre, obtient le certificat, construit, crée le
+compte du client. La même commande relancée met la machine à jour. Il n'y a pas
+de guide : `npm run doctor` prouve que tout fonctionne, email et DNS compris.
+Détail dans `docs/mise-en-prod.md`.
+
 ## Mettre à jour un site — une commande
 
 Depuis le dépôt du client :
@@ -55,6 +73,8 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 | `basalte check` | valide les contenus contre les schémas, puis build |
 | `basalte inventory` | liste ce qui est réutilisable : blocs, champs, helpers |
 | `basalte update` | monte ce site de version, ou annule tout |
+| `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
+| `basalte doctor` | prouve que la configuration fonctionne |
 | `basalte migrate` | applique les migrations de format |
 | `basalte admin:login --user <email>` | lien de connexion de secours (SSH) |
 | `basalte update-all <liste>` | monte de version plusieurs sites |
@@ -63,7 +83,8 @@ atteint tous les sites en changeant un numéro. Voir `docs/architecture.md`.
 
 `docs/README.md` est l'index. Pour comprendre le projet en cinq minutes :
 `docs/contexte.md` puis `docs/architecture.md`. Pour écrire du code ici :
-`docs/conventions.md`.
+`docs/conventions.md`. Pour savoir ce que contient un dépôt client :
+`docs/depot-client.md`.
 
 ## Statut
 

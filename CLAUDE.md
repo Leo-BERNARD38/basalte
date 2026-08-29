@@ -18,6 +18,9 @@ Prochaine étape : `docs/implementation.md`, étape 1.
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
 | une montée de version | `docs/mise-a-jour.md` |
+| ce que contient un dépôt client | `docs/depot-client.md` |
+| les tokens, une maquette à implémenter | `docs/design.md` |
+| la mise en ligne d'un site | `docs/mise-en-prod.md` |
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
@@ -49,7 +52,7 @@ src/
 ├── admin/          panel : island React unique
 ├── server/         auth, écriture contenu, publication, contact
 ├── seo/            meta, JSON-LD, sitemap, hreflang
-└── cli/            init, check, inventory, update, migrate, admin:login
+└── cli/            init, check, inventory, update, deploy, doctor, migrate
 migrations/         transformations de format de contenu
 examples/demo/      site de démonstration, banc de test
 docs/
@@ -66,6 +69,9 @@ Détail dans `docs/conventions.md`. L'essentiel :
   son domaine. Un fourre-tout est là où la duplication s'accumule.
 - **Un bloc ne valide rien à la main.** Une vérification manquante s'ajoute à
   `f.*`.
+- **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
+  typographies passent par un token — `docs/design.md`. Un besoin non couvert
+  est un token à ajouter, jamais un `padding: 27px` isolé.
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
@@ -104,6 +110,8 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte check` | valide contenus contre schémas, puis build |
 | `basalte inventory` | liste blocs, champs et helpers réutilisables |
 | `basalte update` | monte un site de version, ou annule tout |
+| `basalte deploy --host <ip>` | provisionne le VPS, ou le met à jour |
+| `basalte doctor` | prouve que la configuration fonctionne |
 | `basalte migrate` | applique les migrations de format |
 | `basalte admin:login --user <email>` | lien de connexion de secours (SSH) |
 | `basalte update-all <liste>` | monte de version une liste de sites |

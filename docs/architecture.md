@@ -63,23 +63,12 @@ une version, et le code arrive dans `node_modules/` au `npm install` :
 Un correctif publié ici atteint un site en changeant un numéro.
 
 **Le dépôt client, lui, est fabriqué par une commande**, pas par un bouton
-GitHub : `basalte init` écrit les huit entrées de départ, aucune ne contenant
-de logique.
-
-```
-mon-client/
-├── package.json        la version du socle
-├── astro.config.mjs    4 lignes
-├── site.config.ts      DA, langues, domaine
-├── content/            les JSON éditables
-├── public/media/
-├── src/blocks/         les blocs sur mesure de ce client
-├── compose.yml
-└── Caddyfile
-```
+GitHub : `basalte init` écrit les fichiers de départ, dont aucun ne contient de
+logique — config, contenu, blocs sur mesure, et le paquet Claude Code du site.
+Le détail est dans `depot-client.md`.
 
 C'est toute la différence : un template laisse deux cents fichiers à maintenir
-par client, `init` en laisse huit.
+par client, `init` en laisse une dizaine.
 
 ## Distribution
 

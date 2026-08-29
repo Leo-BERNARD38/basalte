@@ -1,6 +1,6 @@
 # Décisions
 
-Vingt-cinq décisions actées, avec l'alternative écartée et sa raison. Les
+Trente décisions actées, avec l'alternative écartée et sa raison. Les
 détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -30,3 +30,8 @@ détails d'application sont dans les documents thématiques.
 | D23 | Une mise à jour est atomique : elle aboutit entièrement, ou le dépôt revient à l'état d'avant | Suite d'étapes manuelles : un site à moitié migré est le pire état possible |
 | D24 | Caddy comme reverse proxy | nginx : certificats à gérer avec certbot et son renouvellement, configuration quatre fois plus longue, en-têtes de proxy faciles à oublier |
 | D25 | Le panel emploie le vocabulaire du client (« section », « mettre en ligne »), jamais celui du code | Vocabulaire technique : le client doit apprendre un modèle mental qui n'est pas le sien pour utiliser son propre site |
+| D26 | Configuration en deux fichiers : `site.config.ts` versionné, `.env` non versionné | Tout dans un seul fichier : soit les clés partent sur GitHub, soit la DA cesse d'être versionnée |
+| D27 | La doc agent du dépôt client est régénérée à chaque `npm install` dans `.claude/basalte.md`, importée par un `CLAUDE.md` écrit à la main | Doc générée une seule fois à l'init : fausse dès la première montée de version. Doc laissée dans `node_modules` : un agent ne la lit pas de façon fiable |
+| D28 | Un bloc ne contient aucune valeur de style en dur : tout passe par un token | Valeurs en dur : la DA n'est plus pilotable depuis `site.config.ts` et chaque bloc dérive |
+| D29 | La mise en production est une commande idempotente lancée depuis ta machine | Guide de provisionnement : jamais à jour, et chaque VPS finit différent — le défaut que D15 corrige |
+| D30 | `basalte doctor` prouve la configuration au lieu de la vérifier : email réellement envoyé, DNS réellement résolu | Contrôle de forme : une clé présente mais fausse passe, et se découvre le jour où le client ne peut plus se connecter |

@@ -9,12 +9,15 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | comprendre le projet en cinq minutes | `contexte.md` puis `architecture.md` |
 | savoir pourquoi un choix a été fait | `decisions.md` |
 | écrire du code dans ce dépôt | `conventions.md` |
+| savoir ce qu'un dépôt client contient | `depot-client.md` |
+| implémenter une maquette, régler la DA | `design.md` |
 | écrire ou modifier un bloc | `modele-contenu.md` |
 | travailler sur le panel d'édition | `panel.md`, puis `securite.md` |
 | toucher au build ou à la mise en ligne | `publication.md` |
 | monter un site de version | `mise-a-jour.md` |
 | brancher email, contact ou analytics | `services.md` |
-| déployer ou provisionner un VPS | `deploiement.md` |
+| mettre un site en ligne sur un VPS | `mise-en-prod.md` |
+| comprendre Docker, Caddy, les sauvegardes | `deploiement.md` |
 | savoir quoi construire ensuite | `implementation.md` |
 
 ## Les documents
@@ -22,9 +25,11 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | Fichier | Contenu |
 |---|---|
 | `contexte.md` | Le besoin, les quatre contraintes fondatrices, le vocabulaire |
-| `decisions.md` | Les vingt-cinq décisions, avec l'alternative écartée et sa raison |
+| `decisions.md` | Les trente décisions, avec l'alternative écartée et sa raison |
 | `architecture.md` | Vue d'ensemble, répartition socle / dépôt client, package vs template, accès git |
 | `conventions.md` | Discipline de code : inventaire, commentaires, pas de fourre-tout |
+| `depot-client.md` | Ce que `basalte init` génère, configuration, paquet Claude Code |
+| `design.md` | Tokens, plancher non négociable, implémentation d'une maquette |
 | `modele-contenu.md` | Format des pages, définition d'un bloc, DSL de champs, langues, migrations |
 | `panel.md` | Structure de l'interface, authentification, médias |
 | `publication.md` | Du clic « Publier » au HTML en ligne |
@@ -32,8 +37,9 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `seo-performances.md` | Ce qui produit le SEO et les performances |
 | `securite.md` | Modèle de menace, plafond de dégâts, invariants |
 | `services.md` | Formulaire de contact, email, analytics |
+| `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
-| `implementation.md` | Ordre des douze étapes, tests, blocs de référence, hors périmètre |
+| `implementation.md` | Ordre des treize étapes, tests, blocs de référence, hors périmètre |
 | `roadmap-outillage-ia.md` | Chantiers d'outillage IA restants |
 
 ## Statut
