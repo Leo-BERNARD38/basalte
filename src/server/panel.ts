@@ -8,10 +8,12 @@
 
 import { z } from 'zod'
 
+import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
 import { readPages } from '../content/project.js'
 import { languageName, renderIssue } from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
+import type { Account } from './account.js'
 import type { Panel } from './context.js'
 import { commitFiles, isRepositoryRoot } from './git.js'
 import { authenticate } from './handlers.js'
@@ -78,6 +80,7 @@ export type PanelPayload = {
     readonly message: string
   }[]
   readonly tracked: boolean
+  readonly publication: PublishState
 }
 
 /**
@@ -127,6 +130,10 @@ export async function handlePanel(
     return media(panel, request, route[1] ?? '', commit)
   }
 
+  if (route[0] === 'publish' && route.length === 1) {
+    return publish(panel, request, account)
+  }
+
   return json({ ok: false, message: 'Adresse inconnue.' }, 404)
 }
 
@@ -165,6 +172,7 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
       message: renderIssue(issue),
     })),
     tracked: await isRepositoryRoot(panel.root),
+    publication: panel.publisher.state(),
   }
 
   return json(payload)
@@ -211,6 +219,28 @@ async function save(
   }
 
   return json({ ok: true, page: result.page, commit: result.commit })
+}
+
+// Une mise en ligne dure plus longtemps qu’une requête : la demande rend l’état
+// obtenu, et le panel revient le lire jusqu’à ce que la file soit vide.
+function publish(panel: Panel, request: Request, account: Account): Response {
+  if (request.method === 'GET') {
+    return json({ ok: true, publication: panel.publisher.state() })
+  }
+
+  if (request.method !== 'POST') return refuseMethod()
+
+  const guard = guardWrite(request)
+
+  if (guard !== undefined) return guard
+
+  return json({
+    ok: true,
+    publication: panel.publisher.request({
+      accountId: account.id,
+      email: account.email,
+    }),
+  })
 }
 
 async function media(

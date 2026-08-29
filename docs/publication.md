@@ -50,11 +50,39 @@ endroit où une traduction se relit avant de sortir.
 
 Le bouton « Aperçu » du panel enregistre d'abord si quelque chose attend.
 
+## L'ordre : rebaser, construire, basculer, pousser
+
+Il porte tout ce qui suit (D72).
+
+**Rebaser d'abord** fait construire exactement ce qui sera poussé, et fait
+échouer le conflit — le seul échec vraiment probable — avant qu'une seconde de
+build n'ait été dépensée.
+
+**Basculer avant de pousser** fait que le site sort dès qu'il est
+constructible, même si GitHub est indisponible. Un push en échec après la
+bascule n'est pas une publication ratée : le site est en ligne, la sauvegarde
+manque. Le client le lit ainsi, et le mainteneur reçoit l'erreur.
+
+Le rebase comme le push sont gardés par la règle qui protège déjà les commits :
+la racine du site doit être la racine du dépôt (D74). Sans elle, git répondrait
+pour le dépôt le plus proche au-dessus, et publier un dossier logé ailleurs
+pousserait ce dépôt-là.
+
 ## Le dossier de build ne bouge pas
 
-Le build tourne **toujours dans le même dossier de travail** — le dépôt — et
-seul le `dist/` produit est déplacé dans `releases/<date>/`. C'est le dépôt git
-du site : le panel y a commité, et c'est cet état-là qu'on construit.
+Le build tourne **toujours dans le même dossier de travail** — le dépôt. C'est
+le dépôt git du site : le panel y a commité, et c'est cet état-là qu'on
+construit.
+
+Sa **sortie**, elle, est écrite directement dans le dossier de la version, à
+côté des autres et sur le même système de fichiers (D68). Deux raisons : `dist/`
+porte le panel construit, celui que le processus en cours exécute, et un
+déplacement entre deux volumes ne serait plus un renommage. La rendre visible
+n'est donc qu'un renommage, puis un lien remplacé.
+
+Il tourne en **processus enfant** (D67), plafonné à 1 Go de tas et à dix
+minutes. Un build qui sature la mémoire ou qui ne revient jamais emporterait
+sinon avec lui le seul écran capable de le relancer.
 
 Le build ne traite aucune image (D40) : les largeurs sont produites quand
 l'image entre dans le site, et `public/` est recopié tel quel. Une publication
@@ -78,16 +106,49 @@ fois terminé, par changement de lien symbolique. Trois propriétés :
    pas casser un site qui fonctionnait**.
 3. Le retour arrière est instantané, sans rebuild.
 
-Les cinq dernières versions sont conservées, les plus anciennes supprimées.
+Les cinq dernières versions sont conservées, les plus anciennes supprimées —
+jamais celle qui est en ligne, même si elle est plus ancienne que les cinq.
+
+La racine servie vient de `BASALTE_SITE_ROOT` (D69) : le conteneur la monte sur
+`/srv/site`, partagée avec Caddy ; hors production elle vit dans `.basalte/site`
+à la racine du dépôt, où rien ne la partage.
 
 ## File d'attente
 
-Une seule place : une publication demandée pendant un build attend ; une
+Une seule place (D71) : une publication demandée pendant un build attend ; une
 seconde demande remplace celle en attente au lieu de s'empiler. Deux builds
-Astro simultanés saturent la mémoire d'un petit VPS.
+Astro simultanés saturent la mémoire d'un petit VPS, et trois clics d'un client
+impatient ne valent qu'une seule mise en ligne.
+
+Un build dure des secondes, pas des millisecondes : `POST /api/publish` rend
+l'état obtenu sans attendre, et le panel revient le lire jusqu'à ce que la file
+soit vide. Rien de tout cela ne survit à un redémarrage — seuls les états
+terminaux sont écrits en base (D73), une ligne « en cours » y mentirait pour
+toujours.
 
 ## En cas d'échec
 
-Le client voit « la publication a échoué, ton site en ligne n'a pas changé »,
-jamais une trace d'erreur. L'erreur complète part par email au mainteneur. Le
-site continue de tourner sur la version précédente.
+Le client lit :
+
+> La mise en ligne a échoué. Ton site en ligne n'a pas changé, et personne
+> d'autre que toi ne l'a vu.
+
+Jamais une trace d'erreur — le panel n'en reçoit même pas. L'erreur complète
+part par email au mainteneur, sur le canal du site et non sur celui des codes de
+connexion (D75) : une machine qui échoue en boucle ne doit pas épuiser le quota
+qui sert à se connecter.
+
+Le site continue de tourner sur la version précédente, et le dossier de version
+inachevé est effacé. Un dépôt laissé au milieu d'un rebase serait pire qu'un
+build raté : le prochain enregistrement du client y échouerait sans qu'il
+comprenne pourquoi — le panel l'annule donc systématiquement.
+
+## Le bouton
+
+La barre du bas porte « Mettre en ligne », à côté d'« Aperçu » et
+d'« Enregistrer ». Il enregistre d'abord si quelque chose attend : un chantier
+laissé dans le navigateur sortirait sinon sans son dernier paragraphe.
+
+Une ligne dit en permanence où en est le site — « jamais mis en ligne », « mise
+en ligne en cours… », « en ligne depuis le 29/08/2026 18:48 ». C'est là que le
+client vient vérifier que ce qu'il a écrit est bien sorti.

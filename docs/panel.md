@@ -188,6 +188,17 @@ propres adresses, de la même forme.
 | `GET /admin/preview/<slug>` | l'aperçu du dépôt tel qu'il est |
 | `GET /media/<fichier>` | les images du dépôt, pas celles de la version en ligne (D64) |
 
+### Ce que la phase 4 a ajouté
+
+| Adresse | Ce qu'elle fait |
+|---|---|
+| `POST /api/publish` | demande la mise en ligne, et rend la main sans attendre le build |
+| `GET /api/publish` | où en est la file, et ce qu'a donné la dernière mise en ligne |
+
+Le panel revient lire la seconde toutes les secondes et demie tant que la file
+tourne : un build dure des secondes, une requête ne les attend pas
+(`publication.md`).
+
 Les mêmes gardes que l'authentification, avec une nuance : un formulaire
 hébergé ailleurs *peut* annoncer `multipart/form-data`. Le téléversement n'est
 donc protégé que par l'origine et par `SameSite=Strict`, là où les autres

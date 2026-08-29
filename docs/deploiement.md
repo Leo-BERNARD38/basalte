@@ -42,6 +42,11 @@ compte pas à l'échelle de trois landing pages.
 Les en-têtes de sécurité (CSP, HSTS, `X-Frame-Options`) et les logs qui
 alimentent l'analytics sont configurés là.
 
+`/srv/site` est un volume partagé entre les deux conteneurs : l'application y
+écrit ses versions et y bascule le lien, Caddy sert `current`. Le chemin est
+donné à l'application par `BASALTE_SITE_ROOT` (D69) ; hors production, le socle
+retombe sur `.basalte/site` dans le dépôt.
+
 Deux points que le panel attend de ce fichier : `X-Forwarded-For` doit être
 posé — c'est la dernière entrée que le socle lit pour limiter le débit par
 adresse, et sans lui tout le trafic partage un seul compteur — et la chaîne de
@@ -51,8 +56,12 @@ jeton de secours y figurant en clair (`securite.md`).
 ## Dimensionnement
 
 **2 Go de RAM par VPS.** Le pic mémoire vient du traitement des images par
-sharp au build. 1 Go fonctionne en bridant la concurrence de sharp, mais laisse
-peu de marge le jour où un client téléverse quinze photos d'un coup.
+sharp, désormais fait à l'ingestion et non au build (D40) : c'est donc un
+téléversement, pas une mise en ligne, qui pousse la machine.
+
+Le build de publication tourne en processus enfant plafonné à 1 Go de tas
+(D67), et la file n'en laisse jamais tourner deux (D71). Ce qui reste tient
+l'application, Caddy et le système.
 
 Le build tournant sur la machine, le VPS porte aussi les dépendances de
 développement du socle. L'image Docker est grosse ; c'est le prix de
@@ -64,8 +73,11 @@ Le contenu et les images sont **déjà répliqués hors site** à chaque
 publication, puisque le dépôt est poussé sur GitHub. C'est le gros de la donnée,
 sauvegardé sans rien ajouter.
 
-Reste la base SQLite (comptes, sessions, appareils, journal, leads), qui est un
-fichier : `data/basalte.db` à la racine du dépôt du site, monté en volume, dump
+Les **versions construites**, elles, ne sont pas sauvegardées et n'ont pas à
+l'être : elles se reconstruisent depuis le dépôt en une commande.
+
+Reste la base SQLite (comptes, sessions, appareils, journal, mises en ligne,
+leads), qui est un fichier : `data/basalte.db` à la racine du dépôt du site, monté en volume, dump
 quotidien. Elle n'est pas versionnée — c'est la seule donnée du site que le
 dépôt ne réplique pas.
 

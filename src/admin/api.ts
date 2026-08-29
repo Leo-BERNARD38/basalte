@@ -2,6 +2,7 @@
 // attendue, ou bien un message français et, s’il y en a, la liste de ce qui
 // reste à corriger. Aucun écran n’a donc à interpréter un code HTTP.
 
+import type { PublishState } from '../publish/publish.js'
 import type { MediaSummary } from '../server/library.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
@@ -45,6 +46,17 @@ export function savePage(
   draft: Draft,
 ): Promise<Answer<{ readonly page: DraftPage; readonly commit: boolean }>> {
   return send('PUT', `/api/pages/${name}`, draft)
+}
+
+export type Published = { readonly publication: PublishState }
+
+/** Demande la mise en ligne. Elle rend la main sans attendre le build. */
+export function publishSite(): Promise<Answer<Published>> {
+  return send('POST', '/api/publish', {})
+}
+
+export function readPublication(): Promise<Answer<Published>> {
+  return send('GET', '/api/publish')
 }
 
 export function signIn(

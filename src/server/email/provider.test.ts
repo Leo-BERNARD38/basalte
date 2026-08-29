@@ -3,7 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { brevoProvider } from './brevo.js'
 import { consoleProvider } from './console.js'
 import { memoryProvider } from './memory.js'
-import { describeMissing, readSettings, VARIABLES } from './provider.js'
+import {
+  adminAddress,
+  describeMissing,
+  readSettings,
+  VARIABLES,
+} from './provider.js'
 
 const MESSAGE = {
   to: 'client@exemple.fr',
@@ -51,6 +56,48 @@ describe('readSettings', () => {
       key: '',
       from: '',
     })
+  })
+})
+
+describe('readSettings — le canal du site', () => {
+  it('ne prend jamais les variables du canal d’authentification', () => {
+    const settings = readSettings(
+      {
+        [VARIABLES.key]: 'clé du site',
+        [VARIABLES.from]: 'bonjour@exemple.fr',
+        [VARIABLES.authKey]: 'clé des codes',
+        [VARIABLES.authFrom]: 'connexion@exemple.fr',
+      },
+      'brevo',
+      'Atelier',
+      'site',
+    )
+
+    expect(settings.key).toBe('clé du site')
+    expect(settings.from).toBe('bonjour@exemple.fr')
+  })
+
+  it('reste vide quand seul le canal d’authentification est renseigné', () => {
+    const settings = readSettings(
+      {
+        [VARIABLES.authKey]: 'clé des codes',
+        [VARIABLES.authFrom]: 'connexion@exemple.fr',
+      },
+      'brevo',
+      'Atelier',
+      'site',
+    )
+
+    expect(describeMissing(settings)).toBeDefined()
+  })
+})
+
+describe('adminAddress', () => {
+  it('lit l’adresse où partent les erreurs', () => {
+    expect(adminAddress({ [VARIABLES.admin]: ' leo@exemple.fr ' })).toBe(
+      'leo@exemple.fr',
+    )
+    expect(adminAddress({})).toBe('')
   })
 })
 

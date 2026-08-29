@@ -33,21 +33,40 @@ export type Environment = Readonly<Record<string, string | undefined>>
 export const VARIABLES = {
   key: 'EMAIL_API_KEY',
   from: 'EMAIL_FROM',
+  admin: 'EMAIL_ADMIN',
   authKey: 'AUTH_EMAIL_API_KEY',
   authFrom: 'AUTH_EMAIL_FROM',
 } as const
+
+/**
+ * Le canal demandé. `auth` prend les variables `AUTH_EMAIL_*` et retombe sur
+ * celles du site ; `site` ne lit que les siennes — une alerte au mainteneur
+ * n’a rien à faire sur le canal qui porte les codes de connexion.
+ */
+export type Channel = 'auth' | 'site'
 
 export function readSettings(
   environment: Environment,
   provider: string,
   sender: string,
+  channel: Channel = 'auth',
 ): EmailSettings {
-  return {
-    provider,
-    sender,
-    key: environment[VARIABLES.authKey] ?? environment[VARIABLES.key] ?? '',
-    from: environment[VARIABLES.authFrom] ?? environment[VARIABLES.from] ?? '',
-  }
+  const key = environment[VARIABLES.key] ?? ''
+  const from = environment[VARIABLES.from] ?? ''
+
+  return channel === 'site'
+    ? { provider, sender, key, from }
+    : {
+        provider,
+        sender,
+        key: environment[VARIABLES.authKey] ?? key,
+        from: environment[VARIABLES.authFrom] ?? from,
+      }
+}
+
+/** L’adresse où partent les erreurs de la machine (`depot-client.md`). */
+export function adminAddress(environment: Environment): string {
+  return (environment[VARIABLES.admin] ?? '').trim()
 }
 
 export function describeMissing(settings: EmailSettings): string | undefined {

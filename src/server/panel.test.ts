@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
-import { bench, defaultPage, IMAGE } from './panel.fixture.js'
+import { bench, buildsBadly, defaultPage, IMAGE } from './panel.fixture.js'
 
 describe('GET /api/panel', () => {
   it('décrit le site, ses champs, ses pages et ses médias', async () => {
@@ -70,9 +70,11 @@ describe('GET /api/panel', () => {
 
   it('ouvre une page cassée plutôt que de se dérober', async () => {
     const site = await bench({
-      $format: CONTENT_FORMAT,
-      meta: { title: { fr: '' } },
-      blocks: [{ id: 'h1', type: 'hero', hidden: {}, props: {} }],
+      content: {
+        $format: CONTENT_FORMAT,
+        meta: { title: { fr: '' } },
+        blocks: [{ id: 'h1', type: 'hero', hidden: {}, props: {} }],
+      },
     })
 
     const payload = await (await site.call('GET', '/api/panel')).json()
@@ -81,6 +83,100 @@ describe('GET /api/panel', () => {
     expect(
       payload.problems.some((issue: any) => issue.severity === 'error'),
     ).toBe(true)
+
+    await site.close()
+  })
+})
+
+describe('/api/publish', () => {
+  it('lance la mise en ligne et rend l’état obtenu', async () => {
+    const site = await bench()
+    const body = await (await site.call('POST', '/api/publish', {})).json()
+
+    expect(body.ok).toBe(true)
+    expect(body.publication.running).toBe(true)
+
+    await site.publisher.settled()
+
+    const after = await (await site.call('GET', '/api/publish')).json()
+
+    expect(after.publication.running).toBe(false)
+    expect(after.publication.last.outcome).toBe('published')
+
+    await site.close()
+  })
+
+  it('porte le dernier état dans la charge utile de démarrage', async () => {
+    const site = await bench()
+
+    const before = await (await site.call('GET', '/api/panel')).json()
+
+    expect(before.publication).toEqual({ running: false, queued: false })
+
+    site.publisher.request({ email: 'client@exemple.fr' })
+    await site.publisher.settled()
+
+    const after = await (await site.call('GET', '/api/panel')).json()
+
+    expect(after.publication.last.message).toBe('Ton site est en ligne.')
+
+    await site.close()
+  })
+
+  it('ne dit jamais la trace de l’erreur au client', async () => {
+    const site = await bench({ build: buildsBadly('Error: EACCES /srv/site') })
+
+    site.publisher.request({ email: 'client@exemple.fr' })
+    await site.publisher.settled()
+
+    const body = await (await site.call('GET', '/api/publish')).json()
+
+    expect(JSON.stringify(body)).not.toContain('EACCES')
+    expect(body.publication.last.message).toContain('n’a pas changé')
+
+    await site.close()
+  })
+
+  it('refuse un corps qui n’est pas annoncé en JSON', async () => {
+    const site = await bench()
+
+    const response = await site.call(
+      'POST',
+      '/api/publish',
+      {},
+      {
+        json: false,
+      },
+    )
+
+    expect(response.status).toBe(415)
+    expect(site.publisher.state().running).toBe(false)
+
+    await site.close()
+  })
+
+  it('refuse une requête sans origine', async () => {
+    const site = await bench()
+
+    const response = await site.call(
+      'POST',
+      '/api/publish',
+      {},
+      {
+        origin: null,
+      },
+    )
+
+    expect(response.status).toBe(403)
+    expect(site.publisher.state().running).toBe(false)
+
+    await site.close()
+  })
+
+  it('refuse une méthode que l’adresse ne porte pas', async () => {
+    const site = await bench()
+
+    expect((await site.call('DELETE', '/api/publish')).status).toBe(405)
 
     await site.close()
   })
@@ -241,6 +337,24 @@ describe('gardes', () => {
 
     expect((await site.call('POST', '/api/panel', {})).status).toBe(405)
     expect((await site.call('GET', '/api/pages/index')).status).toBe(405)
+
+    await site.close()
+  })
+
+  it('refuse une mise en ligne à qui n’est pas connecté', async () => {
+    const site = await bench()
+
+    const response = await site.call(
+      'POST',
+      '/api/publish',
+      {},
+      {
+        cookie: false,
+      },
+    )
+
+    expect(response.status).toBe(401)
+    expect(site.publisher.state().running).toBe(false)
 
     await site.close()
   })

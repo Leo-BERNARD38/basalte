@@ -64,6 +64,26 @@ export function repeatedFailures(
   )
 }
 
+// L’alerte du mainteneur. Elle porte la sortie complète, que le client ne voit
+// jamais : lui lit une phrase, celui qui peut réparer lit la trace.
+export function publicationFailed(
+  siteName: string,
+  stage: string,
+  detail: string,
+): Letter {
+  return letter(
+    `Mise en ligne en échec — ${siteName}`,
+    'Une mise en ligne a échoué',
+    [
+      `${stage} n’a pas abouti sur ${siteName}. Le site en ligne n’a pas changé, et le client a lu qu’il n’avait rien perdu.`,
+      detail === '' ? 'Aucun détail.' : detail,
+    ],
+    [
+      'Cet email part de la machine du site, pas du canal des codes de connexion.',
+    ],
+  )
+}
+
 function describe(origin: Origin): string {
   return `${origin.agent === '' ? 'un navigateur inconnu' : origin.agent} (${origin.ip === '' ? 'adresse inconnue' : origin.ip})`
 }

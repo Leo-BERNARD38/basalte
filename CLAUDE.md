@@ -4,13 +4,15 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** phases 1 à 3 faites. Phase 1 — DSL de champs, moteur de blocs,
+**État :** phases 1 à 4 faites. Phase 1 — DSL de champs, moteur de blocs,
 intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
 démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
 d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
 formulaires produits depuis les schémas, enregistrement avec commit, médiathèque,
-réordonnancement, visibilité par langue, aperçu. Prochaine étape : la phase 4,
-publier (`docs/implementation.md`).
+réordonnancement, visibilité par langue, aperçu. Phase 4 — la mise en ligne :
+rebase, build en processus enfant, bascule atomique, push, file à une place, et
+un échec qui laisse le site debout. Prochaine étape : la phase 5, servir
+(`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 
@@ -82,6 +84,7 @@ src/
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git
 │   └── email/      interface EmailProvider, brevo · console · memory
+├── publish/        mise en ligne : versions, bascule, build, distant, file
 ├── seo/            meta, JSON-LD, sitemap, hreflang
 └── cli/            init, check, inventory, update, deploy, doctor,
                     migrate, admin:login, update-all
@@ -191,6 +194,12 @@ test d'intégration : l'auth, les images et la bascule ont leurs propres tests
   `preinstall`, `install`, `prepack`, `build` ou le champ `workspaces` existe.
   `--omit=dev` n'y change rien, `--ignore-scripts` casse l'installation en
   silence. Détail et vérification dans `docs/environnement.md`.
+- **git répond pour le dépôt le plus proche au-dessus.** Commiter, rebaser ou
+  pousser depuis un dossier logé dans un autre dépôt agit sur ce dépôt-là. Toute
+  opération git du panel est donc gardée par `isRepositoryRoot` (D62, D74).
+- **Le build d'une mise en ligne n'écrit jamais dans `dist/`** : le panel
+  construit y vit, et c'est lui que le processus exécute. Sa sortie va
+  directement dans le dossier de la version (D68).
 - **Une valeur lue seulement dans un `return` de frontmatter `.astro` est vue
   comme inutilisée** par `astro check`. La lire aussi dans la condition qui
   précède le `return` suffit — ce qui pousse la logique hors du template, où

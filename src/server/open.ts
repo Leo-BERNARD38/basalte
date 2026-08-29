@@ -21,6 +21,8 @@ import {
   type Environment,
 } from './email/provider.js'
 
+const BREVO = 'brevo'
+
 const LOCAL = 'En attendant, les emails s’affichent dans le terminal.'
 const ENV_FILE = '.env'
 
@@ -63,11 +65,34 @@ export function authProvider(
     return consoleProvider()
   }
 
-  if (auth.provider !== 'brevo') {
+  if (auth.provider !== BREVO) {
     throw new Error(
-      `Fournisseur d’email inconnu : « ${auth.provider} ». Attendu « brevo ».`,
+      `Fournisseur d’email inconnu : « ${auth.provider} ». Attendu « ${BREVO} ».`,
     )
   }
 
   return brevoProvider(auth)
+}
+
+/**
+ * Le canal du site — celui des alertes au mainteneur, et du formulaire de
+ * contact à venir. Absent tant qu’il n’est pas configuré : une alerte se dit
+ * alors sur la sortie d’erreur, sans jamais emprunter le canal des codes de
+ * connexion.
+ */
+export function siteProvider(
+  site: Site,
+  environment: Environment,
+): EmailProvider | undefined {
+  const settings = readSettings(
+    environment,
+    site.email?.provider ?? BREVO,
+    site.name,
+    'site',
+  )
+
+  if (describeMissing(settings) !== undefined) return undefined
+  if (settings.provider !== BREVO) return undefined
+
+  return brevoProvider(settings)
 }

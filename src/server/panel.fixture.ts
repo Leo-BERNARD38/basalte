@@ -14,7 +14,13 @@ import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
 import { MANIFEST_PATH, type MediaManifest } from '../media/manifest.js'
+import {
+  createPublisher,
+  type Build,
+  type Publisher,
+} from '../publish/publish.js'
 import { defineSite } from '../site/define.js'
+import type { Letter } from './email/messages.js'
 import { harness, HERE, type Harness } from './auth.fixture.js'
 import type { Panel } from './context.js'
 import { COOKIES } from './cookies.js'
@@ -44,10 +50,21 @@ export type CallOptions = {
   readonly cookie?: boolean
 }
 
+export type BenchOptions = {
+  readonly content?: unknown
+  /** Le build employé par la file. Par défaut, il écrit une page et réussit. */
+  readonly build?: Build
+}
+
 export type Bench = {
   readonly panel: Panel
   readonly root: string
   readonly harness: Harness
+  readonly publisher: Publisher
+  /** La racine servie : `releases/` et `current` y vivent. */
+  readonly serving: string
+  /** Les alertes parties au mainteneur, dans l’ordre. */
+  readonly alerts: readonly Letter[]
   /** L’en-tête `Cookie` d’une session ouverte, pour une requête écrite à la main. */
   readonly cookie: string
   call(
@@ -61,14 +78,32 @@ export type Bench = {
   close(): Promise<void>
 }
 
-export async function bench(content: unknown = defaultPage()): Promise<Bench> {
+/** Un build court : il écrit une page dans le dossier reçu, et réussit. */
+export const buildsFine: Build = async (_root, outDir) => {
+  await mkdir(outDir, { recursive: true })
+  await writeFile(path.join(outDir, 'index.html'), '<p>banc</p>', 'utf8')
+
+  return { kind: 'built' }
+}
+
+/** Un build qui échoue, comme le ferait un contenu invalide. */
+export function buildsBadly(detail = 'le contenu ne passe pas'): Build {
+  return async () => ({ kind: 'failed', detail })
+}
+
+export async function bench(settings: BenchOptions = {}): Promise<Bench> {
   await mkdir(WORK, { recursive: true })
 
   const root = await mkdtemp(path.join(WORK, 'site-'))
+  const serving = path.join(root, '.basalte', 'site')
   const carrier = await harness()
+  const alerts: Letter[] = []
 
   await mkdir(path.join(root, 'content'), { recursive: true })
-  await write(path.join(root, 'content', 'index.json'), content)
+  await write(
+    path.join(root, 'content', 'index.json'),
+    settings.content ?? defaultPage(),
+  )
   await write(path.join(root, MANIFEST_PATH), MANIFEST)
 
   const registry = await loadRegistry(await findBlocks(blockRoots(root)))
@@ -79,6 +114,18 @@ export async function bench(content: unknown = defaultPage()): Promise<Bench> {
     languages: { fr: { default: true }, en: { draft: true } },
   })
 
+  const publisher = createPublisher({
+    root,
+    site: site.name,
+    database: carrier.server.database,
+    now: carrier.server.now,
+    environment: { BASALTE_SITE_ROOT: serving },
+    build: settings.build ?? buildsFine,
+    alert: async (letter) => {
+      alerts.push(letter)
+    },
+  })
+
   const panel: Panel = {
     server: carrier.server,
     root,
@@ -87,6 +134,7 @@ export async function bench(content: unknown = defaultPage()): Promise<Bench> {
       registry,
       media: (await read(path.join(root, MANIFEST_PATH))) as MediaManifest,
     }),
+    publisher,
   }
 
   const session = openSession(
@@ -102,6 +150,9 @@ export async function bench(content: unknown = defaultPage()): Promise<Bench> {
     panel,
     root,
     harness: carrier,
+    publisher,
+    serving,
+    alerts,
     cookie,
 
     async call(method, address, body, options = {}) {

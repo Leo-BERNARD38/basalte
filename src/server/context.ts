@@ -8,6 +8,7 @@
 import type { DatabaseSync } from 'node:sqlite'
 
 import type { Schemas } from '../content/project.js'
+import type { Publisher } from '../publish/publish.js'
 import type { EmailProvider } from './email/provider.js'
 
 export type Server = {
@@ -28,6 +29,8 @@ export type Panel = {
   readonly server: Server
   readonly root: string
   schemas(): Promise<Schemas>
+  /** La file de mise en ligne, unique pour le processus (D71). */
+  readonly publisher: Publisher
 }
 
 export type SiteIdentity = {

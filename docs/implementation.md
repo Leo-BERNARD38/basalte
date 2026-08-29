@@ -152,7 +152,26 @@ pages existe pour forcer l'arbitrage, pas pour l'interdire.
 
 ---
 
-## Phase 4 — Publier
+## Phase 4 — Publier  ·  faite
+
+**Ce qu'elle a retenu.** Le build tourne en processus enfant, plafonné à 1 Go
+et à dix minutes (D67), et sa sortie va directement dans le dossier de la
+version — jamais dans `dist/`, où vit le panel que le processus exécute (D68).
+La racine servie vient de `BASALTE_SITE_ROOT` (D69), et la bascule écrit le lien
+à côté avant de le renommer par-dessus (D70). La file n'a qu'une place, et une
+demande de plus remplace celle qui attend (D71). L'ordre est rebaser,
+construire, basculer, pousser (D72) : le conflit, seul échec vraiment probable,
+ne coûte alors aucune seconde de build, et le site sort même quand GitHub est
+indisponible. Les mises en ligne vivent en base, en états terminaux seulement
+(D73). Le rebase et le push sont gardés par la même règle que les commits (D74),
+et l'alerte au mainteneur emprunte le canal du site (D75). Détail : D67 à D75,
+application dans `publication.md`.
+
+**Ce qui reste ouvert.** Le premier build d'un déploiement — l'étape 6 de
+`mise-en-prod.md` — n'a pas de déclencheur : la file vit dans le processus du
+panel, et c'est la phase 6 qui décidera comment `deploy` la sollicite. Le cache
+d'images d'Astro, que cette phase redoutait, n'existe plus : D40 a retiré tout
+traitement d'image du build.
 
 **Pourquoi.** Elle porte la promesse qui rend le reste tenable : une publication
 ratée ne casse pas un site qui fonctionne.
@@ -162,15 +181,9 @@ d'échec.
 
 **Enjeux.** Tout se joue sur ce qui arrive quand ça rate — un build interrompu,
 un conflit git, un VPS à court de mémoire. Le chemin nominal est court à écrire ;
-les chemins d'échec sont la phase. Deux endroits coûtent du temps si on les
-découvre tard : le cache d'images d'Astro et le conflit avec tes propres
-modifications.
+les chemins d'échec sont la phase.
 
 **Déjà tranché.** Invariant 11 · D11, D17 · `publication.md`.
-
-**À décider dans la phase.** Comment le build est lancé depuis le processus du
-panel · la limite mémoire · la conservation des releases · la remontée des
-erreurs.
 
 **Finie quand.** Un build volontairement cassé laisse le site en ligne intact,
 et le client lit un message qui ne l'inquiète pas.
@@ -236,7 +249,7 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Prochaine phase : la 4, publier.**
+**Prochaine phase : la 5, servir.**
 
 ## Tests
 
@@ -254,7 +267,10 @@ sept jours.
 
 Le **panel** s'y est ajouté par sa partie serveur, testable de la même façon :
 un dépôt de site jetable, une session ouverte, et des requêtes appelées
-directement (`src/server/panel.fixture.ts`). Son interface React, elle, se
+directement (`src/server/panel.fixture.ts`). La **mise en ligne** s'y branche par
+le même banc : son build est injectable, ce qui laisse la file, la bascule et
+tous les chemins d'échec s'éprouver sans lancer Astro — tandis que le rebase et
+le push, eux, s'éprouvent contre de vrais dépôts git. Son interface React, elle, se
 vérifie dans un vrai navigateur — c'est là que se voient les cookies
 `HttpOnly`, le réordonnancement au clavier et l'absence de script sur l'aperçu.
 

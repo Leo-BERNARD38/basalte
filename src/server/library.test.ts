@@ -238,7 +238,7 @@ describe('DELETE /api/media/:clé', () => {
 
     page.blocks[0].props.image = IMAGE
 
-    const site = await bench(page)
+    const site = await bench({ content: page })
     const response = await site.call('DELETE', `/api/media/${IMAGE}`)
 
     expect(response.status).toBe(409)
@@ -286,7 +286,7 @@ describe('médias et contenu', () => {
 
     page.blocks[0].props.image = IMAGE
 
-    const site = await bench(page)
+    const site = await bench({ content: page })
     const payload = await (await site.call('GET', '/api/panel')).json()
 
     expect(payload.media[0].usage).toBe(1)

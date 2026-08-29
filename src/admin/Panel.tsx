@@ -27,10 +27,11 @@ import {
 import { useEffect, useState } from 'react'
 
 import { slugFor } from '../astro/routes.js'
+import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
 import { Account } from './Account.js'
-import { loadPanel, savePage } from './api.js'
+import { loadPanel, publishSite, readPublication, savePage } from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
 import { EditingContext, type Editing } from './editing.js'
@@ -41,6 +42,11 @@ import { SignIn } from './SignIn.js'
 
 const PREVIEW = '/admin/preview/'
 const EMPTY: Draft = { meta: {}, blocks: [] }
+const IDLE: PublishState = { running: false, queued: false }
+
+// Un build dure des secondes, pas des millisecondes : le panel revient lire
+// l’état plutôt que de tenir une requête ouverte pendant ce temps.
+const POLL = 1500
 
 type Picker = {
   readonly current: string
@@ -59,6 +65,7 @@ export default function Panel() {
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
   const [asked, setAsked] = useState<string | undefined>(undefined)
+  const [publication, setPublication] = useState<PublishState>(IDLE)
 
   // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
   // est.
@@ -75,6 +82,7 @@ export default function Panel() {
     const data = answer.data
 
     setPayload(data)
+    setPublication(data.publication)
     setLanguage(
       (current) =>
         current ||
@@ -112,6 +120,28 @@ export default function Panel() {
 
     return () => window.removeEventListener('hashchange', follow)
   }, [])
+
+  const online = publication.running || publication.queued
+
+  useEffect(() => {
+    if (!online) return undefined
+
+    const timer = setInterval(async () => {
+      const answer = await readPublication()
+
+      if (!answer.ok) return
+
+      setPublication(answer.data.publication)
+
+      // Une mise en ligne qui s’achève a pu buter sur un contenu que le panel
+      // ne connaissait pas encore : relire dit au client ce qui cloche.
+      if (!answer.data.publication.running && !answer.data.publication.queued) {
+        await refresh()
+      }
+    }, POLL)
+
+    return () => clearInterval(timer)
+  }, [online])
 
   const page = payload?.pages.find((entry) => entry.name === selected)
   const dirty =
@@ -199,6 +229,17 @@ export default function Panel() {
     else tab.location.replace(address)
   }
 
+  // Ce qui part en ligne est ce qui est enregistré : un chantier laissé dans le
+  // navigateur sortirait sinon sans son dernier paragraphe.
+  const goOnline = async () => {
+    if (dirty && !(await save())) return
+
+    const answer = await publishSite()
+
+    if (answer.ok) setPublication(answer.data.publication)
+    else setProblems([answer.message])
+  }
+
   const select = (name: string) => {
     if (name === selected) return
 
@@ -246,8 +287,10 @@ export default function Panel() {
           busy={busy}
           savedAt={savedAt}
           problems={problems}
+          publication={publication}
           onSave={() => void save()}
           onPreview={() => void preview()}
+          onPublish={() => void goOnline()}
           onSignedOut={() => setPayload(undefined)}
         >
           {screen === 'edit' && (

@@ -7,11 +7,19 @@ import {
   migrate,
   number,
   openDatabase,
+  SCHEMA_VERSION,
   text,
 } from './database.js'
 
+function version(database: ReturnType<typeof openDatabase>): number {
+  return number(
+    database.prepare('pragma user_version').get() ?? {},
+    'user_version',
+  )
+}
+
 describe('openDatabase', () => {
-  it('crée les sept tables du schéma', () => {
+  it('crée les huit tables du schéma', () => {
     const database = openDatabase(MEMORY)
 
     const tables = database
@@ -27,6 +35,7 @@ describe('openDatabase', () => {
       'rescue',
       'journal',
       'throttle',
+      'publication',
     ]) {
       expect(tables).toContain(table)
     }
@@ -40,12 +49,39 @@ describe('openDatabase', () => {
     migrate(database)
     migrate(database)
 
+    expect(version(database)).toBe(SCHEMA_VERSION)
+
+    database.close()
+  })
+
+  it('monte une base restée à une version antérieure sans perdre ses lignes', () => {
+    const database = openDatabase(MEMORY)
+
+    database
+      .prepare(
+        `insert into account (email, password_hash, created_at, password_changed_at)
+         values ('client@exemple.fr', 'x', 0, 0)`,
+      )
+      .run()
+
+    // On rembobine la base à la première étape : la suivante doit s’y jouer
+    // seule, et ce qui existait déjà rester en place.
+    database.exec('drop table publication')
+    database.exec('pragma user_version = 1')
+
+    migrate(database)
+
+    expect(version(database)).toBe(SCHEMA_VERSION)
     expect(
-      number(
-        database.prepare('pragma user_version').get() ?? {},
-        'user_version',
-      ),
+      database.prepare('select count(*) as total from account').get()?.[
+        'total'
+      ],
     ).toBe(1)
+    expect(
+      database.prepare('select count(*) as total from publication').get()?.[
+        'total'
+      ],
+    ).toBe(0)
 
     database.close()
   })

@@ -1,6 +1,6 @@
-// Les commits du panel. Enregistrer, c’est écrire le fichier puis le commiter
-// localement (D17) : instantané, sans réseau, et chaque enregistrement devient
-// un point de retour. Le push, lui, appartient à la mise en ligne.
+// Les commandes git du panel. Enregistrer, c’est écrire le fichier puis le
+// commiter localement (D17) : instantané, sans réseau, et chaque enregistrement
+// devient un point de retour. Le push, lui, appartient à la mise en ligne.
 //
 // Le commit n’a lieu que si la racine du site est bien la racine d’un dépôt
 // git. Un dossier qui n’en est pas un — le site de démonstration, logé dans le
@@ -12,9 +12,9 @@
 // qui édite est celle qui doit figurer dans l’historique.
 //
 // Un git en panne — un verrou, un hook, un chemin disparu — ne fait pas échouer
-// ce qui est déjà écrit sur le disque. L’échec part sur la sortie d’erreur et
-// l’enregistrement reste acquis : le client a sauvé son texte, il perd son
-// point de retour, pas son travail.
+// ce qui est déjà écrit sur le disque. L’échec est rendu comme une valeur et
+// part sur la sortie d’erreur ; l’enregistrement reste acquis : le client a
+// sauvé son texte, il perd son point de retour, pas son travail (D66).
 
 import { execFile } from 'node:child_process'
 import path from 'node:path'
@@ -24,24 +24,39 @@ const run = promisify(execFile)
 
 const AUTHOR = 'Panel basalte'
 
-export async function isRepositoryRoot(root: string): Promise<boolean> {
-  try {
-    const { stdout } = await run('git', [
-      '-C',
-      root,
-      'rev-parse',
-      '--show-toplevel',
-    ])
+export type GitRun =
+  | { readonly kind: 'done'; readonly stdout: string }
+  | { readonly kind: 'failed'; readonly detail: string }
 
-    return path.resolve(stdout.trim()) === path.resolve(root)
-  } catch {
-    return false
+/**
+ * Lance git dans le dépôt donné. C’est le seul endroit du socle qui appelle la
+ * commande, et il rend l’échec au lieu de le lever.
+ */
+export async function tryGit(
+  root: string,
+  args: readonly string[],
+): Promise<GitRun> {
+  try {
+    const { stdout } = await run('git', ['-C', root, ...args])
+
+    return { kind: 'done', stdout }
+  } catch (cause) {
+    return { kind: 'failed', detail: detailOf(cause) }
   }
+}
+
+export async function isRepositoryRoot(root: string): Promise<boolean> {
+  const result = await tryGit(root, ['rev-parse', '--show-toplevel'])
+
+  return (
+    result.kind === 'done' &&
+    path.resolve(result.stdout.trim()) === path.resolve(root)
+  )
 }
 
 /**
  * Commite les chemins donnés, relatifs à la racine. Rend `false` si le dossier
- * n’est pas un dépôt ou si rien n’a changé.
+ * n’est pas un dépôt, si rien n’a changé, ou si git a échoué.
  */
 export async function commitFiles(
   root: string,
@@ -53,45 +68,48 @@ export async function commitFiles(
   if (!(await isRepositoryRoot(root))) return false
 
   const paths = files.map((file) => file.split(path.sep).join('/'))
+  const added = await tryGit(root, ['add', '--', ...paths])
 
-  try {
-    await run('git', ['-C', root, 'add', '--', ...paths])
+  if (added.kind === 'failed') return abandon(added.detail)
 
-    if (await indexClean(root)) return false
+  if (await indexClean(root)) return false
 
-    await run('git', [
-      '-C',
-      root,
-      '-c',
-      `user.name=${AUTHOR}`,
-      '-c',
-      `user.email=${email}`,
-      'commit',
-      '--no-verify',
-      '--message',
-      message,
-      '--',
-      ...paths,
-    ])
-  } catch (cause) {
-    process.stderr.write(
-      `Le commit n’a pas eu lieu : ${(cause as Error).message}
-`,
-    )
+  const committed = await tryGit(root, [
+    '-c',
+    `user.name=${AUTHOR}`,
+    '-c',
+    `user.email=${email}`,
+    'commit',
+    '--no-verify',
+    '--message',
+    message,
+    '--',
+    ...paths,
+  ])
 
-    return false
-  }
-
-  return true
+  return committed.kind === 'failed' ? abandon(committed.detail) : true
 }
 
 /** Vrai quand l’index ne porte aucune modification. */
 async function indexClean(root: string): Promise<boolean> {
-  try {
-    await run('git', ['-C', root, 'diff', '--cached', '--quiet'])
+  return (await tryGit(root, ['diff', '--cached', '--quiet'])).kind === 'done'
+}
 
-    return true
-  } catch {
-    return false
+function abandon(detail: string): false {
+  process.stderr.write(`Le commit n’a pas eu lieu : ${detail}\n`)
+
+  return false
+}
+
+function detailOf(cause: unknown): string {
+  const error = cause as {
+    readonly stdout?: string
+    readonly stderr?: string
+    readonly message?: string
   }
+
+  return [error.stderr, error.stdout, error.message]
+    .map((part) => (part ?? '').trim())
+    .filter((part) => part !== '')
+    .join('\n')
 }

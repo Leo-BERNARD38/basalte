@@ -53,9 +53,11 @@ describe('resolvePreview', () => {
 
   it('dit ce qui cloche quand la page ne passe pas la validation', async () => {
     const site = await bench({
-      $format: CONTENT_FORMAT,
-      meta: { title: { fr: '' } },
-      blocks: [],
+      content: {
+        $format: CONTENT_FORMAT,
+        meta: { title: { fr: '' } },
+        blocks: [],
+      },
     })
 
     const view = await resolvePreview(site.panel, visit(site.cookie), '')

@@ -1,9 +1,10 @@
-// La base du site : comptes, sessions, appareils de confiance, journal. Un
-// seul fichier SQLite, ouvert par le module `node:sqlite` intégré à Node — le
-// VPS ne reçoit donc aucune dépendance native de plus.
+// La base du site : comptes, sessions, appareils de confiance, journal, et les
+// mises en ligne. Un seul fichier SQLite, ouvert par le module `node:sqlite`
+// intégré à Node — le VPS ne reçoit donc aucune dépendance native de plus.
 //
 // Le schéma s’applique par `PRAGMA user_version` : chaque étape est jouée une
-// fois, dans l’ordre, et une base déjà à jour ne bouge pas.
+// fois, dans l’ordre, et une base déjà à jour ne bouge pas. Une étape ajoutée
+// à la suite monte une base existante sans rien lui faire perdre.
 
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
@@ -93,7 +94,25 @@ const STEPS: readonly string[] = [
     primary key (bucket, key, window_start)
   ) strict;
   `,
+  `
+  create table publication (
+    id integer primary key,
+    account_id integer,
+    email text not null,
+    at integer not null,
+    outcome text not null,
+    release text,
+    remote text not null default 'absent',
+    detail text not null default '',
+    duration integer not null default 0
+  ) strict;
+
+  create index publication_at on publication (at);
+  `,
 ]
+
+/** La version que le socle attend : le nombre d’étapes écrites ci-dessus. */
+export const SCHEMA_VERSION = STEPS.length
 
 export function databasePath(root: string): string {
   return path.join(root, DATA_DIR, DATABASE_FILE)
