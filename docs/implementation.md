@@ -367,4 +367,5 @@ personnelles sur la machine — est tranché : le processus du panel pour ce qui
 est en base, Caddy pour ses propres logs (D83).
 
 La portée de la règle des tokens l'est aussi : elle s'arrête aux blocs. Le
-panel emploie l'échelle de Mantine (D65).
+panel n'emploie pas ceux du site (D65) — il porte sa propre couche, dans
+`src/admin/theme.ts` (D95).

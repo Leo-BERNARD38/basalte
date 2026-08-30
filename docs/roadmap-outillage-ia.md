@@ -1,13 +1,15 @@
 # Outillage IA — ce qui reste à construire
 
-Deux chantiers distincts, à traiter pendant et après l'implémentation du socle.
+Deux chantiers distincts, à traiter après l'implémentation du socle.
 
-Ce qui était en question ici et se trouve désormais décidé a rejoint les
-documents concernés : la discipline de code dans `conventions.md`, la commande
-de mise à jour et le format des notes de version dans `mise-a-jour.md`, le
-contenu du dépôt client dans `depot-client.md`, les règles de design dans
+Ce document ne garde que ce qui est **ouvert**. Ce qui a été décidé a rejoint
+les documents concernés : la discipline de code dans `conventions.md`, la
+commande de mise à jour et le format des notes de version dans `mise-a-jour.md`,
+le contenu du dépôt client dans `depot-client.md`, les règles de design dans
 `design.md`, la mise en ligne dans `mise-en-prod.md`, la couverture de tests
-dans `implementation.md`.
+dans `implementation.md`. Ce qui a été construit est consigné phase par phase
+dans `implementation.md` — le paquet Claude Code du dépôt client et toute
+l'infrastructure de déploiement y sont, en phase 6.
 
 ---
 
@@ -16,9 +18,9 @@ dans `implementation.md`.
 Objectif : que ce dépôt soit un environnement où un agent code juste, vérifie
 son travail seul, et ne casse pas les invariants.
 
+`CLAUDE.md` et `docs/conventions.md` posent le contexte. Reste :
+
 **Contexte**
-- `CLAUDE.md` racine — fait, à maintenir à chaque évolution de la stack
-- `docs/conventions.md` — fait
 - Convention de commit et procédure de release (tag, semver, notes de version)
 - Session-start hook pour Claude Code sur le web (install, build, checks prêts)
 
@@ -53,15 +55,9 @@ Reste à outiller : rendre le diff HTML avant/après exécutable en une commande
 ## Chantier B — Package IA embarqué dans les dépôts clients
 
 Objectif : qu'un agent puisse produire une landing complète dans un dépôt
-client, puis la maintenir, sans relire le socle.
+client, puis la maintenir, sans relire le socle. Le paquet lui-même est livré
+(phase 6). Reste à cadrer :
 
-**Fait en phase 6.** `CLAUDE.md` écrit une fois et rempli depuis les réponses
-données à `init` ; `.claude/basalte.md` régénéré par `basalte inventory --agent`,
-appelé par le `postinstall` du dépôt client ; les quatre skills `nouveau-bloc`,
-`design`, `contenu`, `mettre-a-jour`, et les deux commandes `/check` et
-`/deploy`.
-
-**Reste à cadrer**
 - comment un agent découvre le contenu actuel d'un site sans tout lire — piste :
   une sortie compacte de `basalte inventory --content`
 - garde-fous : un agent ne doit pas modifier `content/` en production sans
@@ -71,12 +67,8 @@ appelé par le `postinstall` du dépôt client ; les quatre skills `nouveau-bloc
 
 ## Infra et déploiement
 
-**Fait en phase 6.** Caddyfile complet — en-têtes de sécurité, cache des assets,
-logs JSON aux adresses masquées, jeton de secours retiré ; `compose.yml`,
-`Dockerfile` et l'entrée du conteneur ; `basalte deploy` et `basalte doctor` ;
-le déclencheur de publication, qui est le démarrage du processus (D88).
+Le provisionnement est livré (phase 6). Reste :
 
-**Reste**
 - Procédure de restauration : elle est celle d'une nouvelle installation, à
   exécuter réellement une fois pour la valider
 - Sauvegarde du fichier SQLite : sans propriétaire dans le socle, assumé

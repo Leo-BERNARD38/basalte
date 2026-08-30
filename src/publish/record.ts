@@ -77,16 +77,6 @@ export function lastPublication(
   return row === undefined ? undefined : toPublication(row)
 }
 
-export function recentPublications(
-  database: DatabaseSync,
-  limit: number,
-): readonly Publication[] {
-  return database
-    .prepare('select * from publication order by at desc, id desc limit ?')
-    .all(limit)
-    .map((row) => toPublication(row))
-}
-
 function toPublication(row: Row): Publication {
   const accountId = maybeNumber(row, 'account_id')
   const release = row['release']

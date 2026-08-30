@@ -85,9 +85,6 @@ export type AnyField =
   | GroupField
   | ListField
 
-export type TranslatableField =
-  TextField<true> | TextareaField<true> | RichtextField<true>
-
 export type Value<F> =
   F extends GroupField<infer S>
     ? Values<S>

@@ -88,6 +88,10 @@ personnelles, audience lue dans les logs de Caddy. Décisions D76 à D85.
 `deploy`, `doctor`, `update`, les migrations de format, `update-all`, et les
 fichiers de la machine. Décisions D87 à D94.
 
+**Après les phases** — le panel a repris sa direction artistique : une couche de
+tokens à lui dans `src/admin/theme.ts`, l'aperçu au centre de l'écran
+d'édition, et aucune bordure. Décisions D95 à D97.
+
 Ce qui reste est nommé : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images
 Open Graph — et le bloc `faq` qui l'attend.
 

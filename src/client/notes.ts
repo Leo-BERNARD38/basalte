@@ -6,10 +6,6 @@
 // de décider quoi que ce soit, et une ligne qui change de forme la rendrait
 // muette.
 
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { socleRawUrl, type Socle } from './socle.js'
 
 export const NOTES_DIR = 'notes'
@@ -43,24 +39,6 @@ export async function fetchNote(
       : missing(version)
   } catch {
     return missing(version)
-  }
-}
-
-/** La note de la version installée, lue dans le paquet, sans réseau. */
-export async function localNote(
-  version: string,
-): Promise<ReleaseNote | undefined> {
-  const file = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    '..',
-    '..',
-    ...noteFile(version).split('/'),
-  )
-
-  try {
-    return readNote(version, await readFile(file, 'utf8'))
-  } catch {
-    return undefined
   }
 }
 

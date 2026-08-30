@@ -47,10 +47,6 @@ export type Project = Schemas &
     readonly sources: readonly BlockSource[]
   }
 
-export async function readSchemas(root: string): Promise<Schemas> {
-  return schemasOf(root, await findBlocks(blockRoots(root)))
-}
-
 async function schemasOf(
   root: string,
   sources: readonly BlockSource[],
