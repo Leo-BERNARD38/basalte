@@ -7,12 +7,19 @@
 // blocs produit depuis le code. Le premier importe le second, ce qui met la
 // doc agent à jour dans le même geste qu’une montée de version, sans jamais
 // écraser ce qui a été écrit à la main.
+//
+// Il importe aussi `docs/CONTEXT.md` et `docs/DESIGN.md` : qui est le client,
+// et ce que sa direction artistique cherche. Ces deux-là sont longs, révisés,
+// et rédigés par entretien — les tenir hors de `CLAUDE.md`, qui porte les
+// règles du dépôt, garde chacun lisible.
 
 import type { GeneratedFile, SiteAnswers } from './files.js'
 
 export const AGENT_DIR = '.claude'
 export const AGENT_DOC = `${AGENT_DIR}/basalte.md`
 export const AGENT_IMPORT = `@${AGENT_DOC}`
+export const CONTEXT_DOC = 'docs/CONTEXT.md'
+export const DESIGN_DOC = 'docs/DESIGN.md'
 
 const GENERATED =
   'Fichier généré par @leobernard/basalte à chaque installation. Ne pas modifier : la prochaine montée de version l’écrasera.'
@@ -103,18 +110,17 @@ export function claudeDoc(answers: SiteAnswers): GeneratedFile {
       `# ${answers.name}`,
       '',
       AGENT_IMPORT,
+      `@${CONTEXT_DOC}`,
+      `@${DESIGN_DOC}`,
       '',
       '## Ce site',
       '',
       `- Domaine : ${answers.domain}`,
       `- Langues : ${answers.languages.join(', ')} — la première est celle par défaut`,
-      '- Client : à compléter — qui c’est, ce qu’il vend, à qui.',
-      '- Ton : à compléter — vouvoiement ou tutoiement, registre, longueur des phrases.',
       '',
-      '## Direction artistique',
-      '',
-      'Elle vit entièrement dans les `tokens` de `site.config.ts`. Pour la',
-      'régler ou implémenter une maquette, la skill `design`.',
+      `Qui est le client, ce qu’il vend et à qui : ${CONTEXT_DOC}.`,
+      `Ce que la direction artistique cherche : ${DESIGN_DOC}.`,
+      'Les deux se remplissent par entretien — la skill « contexte ».',
       '',
       '## Ce qu’il ne faut pas toucher',
       '',
@@ -129,4 +135,81 @@ export function claudeDoc(answers: SiteAnswers): GeneratedFile {
       '',
     ].join('\n'),
   }
+}
+
+// Le contexte du site, en deux fichiers que l’agent charge à chaque session.
+// Ils partent en squelette de questions plutôt qu’en page blanche : une section
+// vide se voit, et se remplit.
+export function contextDocs(answers: SiteAnswers): readonly GeneratedFile[] {
+  return [
+    {
+      path: CONTEXT_DOC,
+      contents: [
+        `# ${answers.name} — le client`,
+        '',
+        'Écrit par entretien, jamais deviné. Une section vide vaut mieux qu’une',
+        'section inventée : ce fichier est lu comme vrai.',
+        '',
+        '## Ce qu’il fait',
+        '',
+        'à compléter — le métier en une phrase, puis ce qu’il vend vraiment.',
+        '',
+        '## À qui',
+        '',
+        'à compléter — qui achète, sur quelle zone, et ce qui les décide.',
+        '',
+        '## Ce qui le distingue',
+        '',
+        'à compléter — ce qu’un concurrent ne pourrait pas écrire de lui-même.',
+        '',
+        '## Le ton',
+        '',
+        'à compléter — vouvoiement ou tutoiement, registre, longueur des',
+        'phrases, et un exemple de phrase juste.',
+        '',
+        '## Les mots',
+        '',
+        'à compléter — le vocabulaire du métier à employer, et celui à éviter.',
+        '',
+        '## Ce qu’il ne dit jamais',
+        '',
+        'à compléter — promesses interdites, comparaisons, prix affichés.',
+        '',
+      ].join('\n'),
+    },
+    {
+      path: DESIGN_DOC,
+      contents: [
+        `# ${answers.name} — la direction artistique`,
+        '',
+        'L’intention, pas les valeurs : les valeurs vivent dans les tokens de',
+        'site.config.ts, et nulle part ailleurs. Ce fichier dit pourquoi elles',
+        'sont ce qu’elles sont.',
+        '',
+        '## Ce qu’on cherche',
+        '',
+        'à compléter — trois adjectifs, et ce qu’ils veulent dire ici.',
+        '',
+        '## Ce qu’on évite',
+        '',
+        'à compléter — ce qui trahirait le client.',
+        '',
+        '## Références',
+        '',
+        'à compléter — des sites ou des images, avec ce qu’on leur prend.',
+        '',
+        '## Les tokens retenus',
+        '',
+        'à compléter — chaque écart au défaut du socle, et sa raison.',
+        '',
+        '## Le plancher',
+        '',
+        'Non négociable, quelle que soit la maquette : lisible à 375 px,',
+        'contraste de 4,5:1, focus clavier visible, cibles de 44 px, texte',
+        'alternatif sur chaque image porteuse de sens, aucun décalage au',
+        'chargement.',
+        '',
+      ].join('\n'),
+    },
+  ]
 }

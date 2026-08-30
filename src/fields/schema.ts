@@ -18,7 +18,10 @@ import type { AnyField, Fields } from './types.js'
 
 type LeafField = Extract<
   AnyField,
-  { kind: 'text' | 'textarea' | 'richtext' | 'image' | 'url' | 'select' }
+  {
+    kind:
+      'text' | 'textarea' | 'richtext' | 'image' | 'document' | 'url' | 'select'
+  }
 >
 
 export const TRANSLATION_MISSING = 'translation-missing'
@@ -128,6 +131,7 @@ function leafOf(field: LeafField): z.ZodType {
         .default('')
 
     case 'image':
+    case 'document':
       return bounded(field.required ? 1 : 0).default('')
 
     case 'richtext':

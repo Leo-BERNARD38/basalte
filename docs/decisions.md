@@ -1,6 +1,6 @@
 # Décisions
 
-Quatre-vingt-quatorze décisions actées, avec l'alternative écartée et sa raison.
+Cent-deux décisions actées, avec l'alternative écartée et sa raison.
 Les détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -102,3 +102,8 @@ Les détails d'application sont dans les documents thématiques.
 | D95 | Le panel porte sa propre couche de tokens (`src/admin/theme.ts`), injectée dans le thème Mantine et posée en variables `--panel-*` | Subir l'échelle par défaut de Mantine (D65 lue au pied de la lettre) : la DA se serait alors écrite composant par composant, et chaque écran aurait dérivé de son côté — le défaut que la règle des tokens interdit aux blocs |
 | D96 | L'aperçu est le centre de l'écran d'édition, entre la liste des sections et le panneau de la section choisie ; il montre le dernier enregistrement | Le bouton « Aperçu » qui ouvrait un onglet : le client écrivait sans voir, et vérifiait après coup. Montrer le brouillon non enregistré demanderait une route de rendu qui accepte un contenu en transit — c'est la phase suivante, pas un préalable |
 | D97 | Le panel ne dessine aucune bordure : un écart de valeur et une ombre très douce séparent deux plans | Le trait de 1 px de Mantine : sur un écran qui empile listes, cartes et panneaux, les traits s'accumulent et durcissent l'outil que le client ouvre chaque semaine |
+| D98 | Un site déclare ce qu'il fait dans `capabilities` de `site.config.ts`, lu à l'exécution ; `init` n'écrit jamais deux socles différents | Des drapeaux d'`init` qui bifurqueraient la génération : trois interrupteurs feraient huit variantes à maintenir, et la promesse de D5 — un correctif atteint un site en changeant un numéro — ne tiendrait plus |
+| D99 | La grammaire enrichie de `f.richtext` — titres et listes — est déclarée champ par champ, par `headings` et `lists` | Un neuvième type `f.prose()` : un type de plus dans le DSL, le Zod, la description et le panel pour la même mécanique. L'étendre partout : un `##` deviendrait possible dans un corps de section qui porte déjà son titre |
+| D100 | Un document légal est une page de contenu ordinaire portant une section `richtext`, pré-remplie par `init` d'un canevas à compléter | Un type de page ou un bloc dédié : D19 refuse un bloc qui est un `richtext` habillé autrement, et une page à part demanderait une exception dans `getStaticPaths`, la liste du panel et le sitemap |
+| D101 | Les faits de l'entreprise n'ont pas de source structurée : ils vivent dans le contenu que le client édite | Un `business.ts` typé : les faits n'ont qu'un consommateur — la page qui les affiche — que le client gère déjà, et une source de plus ouvrirait un sixième écran de panel que D63 refuse |
+| D102 | Le PDF est accepté en téléchargement seul, sous six conditions écrites dans `securite.md` — seule exception à l'invariant 3 | Le refus pur : un client qui a des conditions générales signées ne peut pas les retranscrire. L'accepter sans condition : un PDF est un format à script, et rien ne le ré-encode |

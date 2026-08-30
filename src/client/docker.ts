@@ -134,6 +134,11 @@ function compose(): string {
 // d’une empreinte. L’application ne les rend que si le fichier n’est pas encore
 // publié : c’est le cas d’un téléversement que le panel affiche avant la mise
 // en ligne.
+//
+// Les documents suivent le même chemin, avec un en-tête de plus : ils sont
+// servis en pièce jointe et ne s’affichent jamais dans une page. C’est la
+// condition à laquelle un PDF échappe à l’invariant 3 (`docs/securite.md`),
+// et la CSP interdit déjà de l’incruster.
 function caddyfile(domain: string): string {
   return [
     `${domain} {`,
@@ -151,6 +156,18 @@ function caddyfile(domain: string): string {
     `    handle /admin /admin/* { reverse_proxy app:${APP_PORT} }`,
     `    handle /api/*          { reverse_proxy app:${APP_PORT} }`,
     `    handle /_panel/*       { reverse_proxy app:${APP_PORT} }`,
+    '',
+    '    handle /documents/* {',
+    `        root * ${SERVED_ROOT}/current`,
+    '        header Cache-Control "public, max-age=31536000, immutable"',
+    '        header Content-Disposition attachment',
+    '        route {',
+    '            file_server {',
+    '                pass_thru',
+    '            }',
+    `            reverse_proxy app:${APP_PORT}`,
+    '        }',
+    '    }',
     '',
     '    handle /media/* {',
     `        root * ${SERVED_ROOT}/current`,

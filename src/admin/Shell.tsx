@@ -11,6 +11,7 @@ import type { ReactNode } from 'react'
 
 import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
+import type { Capabilities } from '../site/capabilities.js'
 import { signOut } from './api.js'
 
 export type Screen = 'edit' | 'media' | 'messages' | 'stats' | 'account'
@@ -27,6 +28,14 @@ export const SCREENS: readonly {
   { value: 'stats', label: 'Statistiques' },
   { value: 'account', label: 'Compte' },
 ]
+
+// Cinq écrans (D63), dont un que le site peut ne pas déclarer : un onglet qui
+// mène à un rapport vide vaut moins que pas d’onglet du tout.
+export function screensFor(capabilities: Capabilities): typeof SCREENS {
+  return SCREENS.filter(
+    (screen) => screen.value !== 'stats' || capabilities.analytics,
+  )
+}
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
 
@@ -85,7 +94,7 @@ export function Shell({
           onChange={(value) => onScreen((value ?? 'edit') as Screen)}
         >
           <Tabs.List>
-            {SCREENS.map((entry) => (
+            {screensFor(payload.site.capabilities).map((entry) => (
               <Tabs.Tab
                 key={entry.value}
                 value={entry.value}

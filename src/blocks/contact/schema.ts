@@ -47,12 +47,11 @@ export default block({
         }),
       },
     }),
-    consent: f.textarea({
+    consent: f.richtext({
       label: 'Mention de consentement',
-      help: 'Obligatoire en pratique : elle dit à quoi servent les coordonnées.',
+      help: 'Obligatoire en pratique : elle dit à quoi servent les coordonnées, et mène à la politique de confidentialité — [libellé](/confidentialite).',
       i18n: true,
       max: 300,
-      rows: 2,
     }),
   },
 })

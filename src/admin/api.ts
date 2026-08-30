@@ -4,6 +4,7 @@
 
 import type { AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
+import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import type { DraftPage } from '../server/pages.js'
 import type { LeadSummary, PanelPayload } from '../server/panel.js'
@@ -139,6 +140,20 @@ export async function uploadMedia(
   form.set('alt', JSON.stringify(alt))
 
   return receive(fetch('/api/media', { method: 'POST', body: form }))
+}
+
+export function deleteDocument(key: string): Promise<Answer<unknown>> {
+  return send('DELETE', `/api/documents/${key}`)
+}
+
+export async function uploadDocument(
+  file: File,
+): Promise<Answer<{ readonly document: DocumentSummary }>> {
+  const form = new FormData()
+
+  form.set('file', file)
+
+  return receive(fetch('/api/documents', { method: 'POST', body: form }))
 }
 
 async function send<T>(

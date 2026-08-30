@@ -329,6 +329,19 @@ site.
 
 **Texte alternatif obligatoire** au téléversement, et traduisible.
 
+### Les documents
+
+L'écran « Médias » porte aussi les documents, quand le site déclare la capacité
+`documents` — pas un sixième écran, D63 tient. Un document n'a rien à décrire :
+il n'est jamais affiché, seulement téléchargé, et le nom du fichier est tout ce
+que le manifeste retient.
+
+Ils vivent dans `public/documents/`, décrits par `content/documents.json`, et
+suivent les mêmes règles qu'une image pour tout ce qui peut l'être : type lu
+sur les octets réels, nom dérivé de l'empreinte, suppression refusée tant
+qu'une section l'emploie. Ce qui les sépare — le ré-encodage impossible, et les
+conditions qui le compensent — est dans `securite.md`.
+
 **Point focal** réglable (transformé en `object-position`) plutôt qu'un outil de
 recadrage : cela résout les visages coupés pour une fraction du travail.
 

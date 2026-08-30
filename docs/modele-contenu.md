@@ -103,16 +103,35 @@ Les types disponibles et leur signature exacte sortent du code :
 basalte inventory
 ```
 
-Huit à ce jour — `text`, `textarea`, `richtext`, `image`, `url`, `select`,
-`group`, `list`. Seule la prose se traduit : `i18n` existe sur `text`,
-`textarea` et `richtext`, jamais sur une clé de média, une URL ou une valeur de
-liste déroulante, et jamais sur un groupe ou une liste — leur structure est
-partagée entre les langues (D8).
+Neuf à ce jour — `text`, `textarea`, `richtext`, `image`, `document`, `url`,
+`select`, `group`, `list`. Seule la prose se traduit : `i18n` existe sur
+`text`, `textarea` et `richtext`, jamais sur une clé de média, une URL ou une
+valeur de liste déroulante, et jamais sur un groupe ou une liste — leur
+structure est partagée entre les langues (D8).
 
 `f.richtext` accepte du **Markdown restreint** : gras, italique, liens. Le
 socle échappe le texte entier avant d'y réintroduire ces trois formes, et
 vérifie le schéma de chaque URL. Aucune balise ne peut donc venir du contenu
 (invariant 1, D42).
+
+**La grammaire s'élargit champ par champ**, jamais globalement :
+`f.richtext({ headings: true, lists: true })` ajoute les titres `##` et `###`
+— rendus en `h2` et `h3` — et les listes à puces et numérotées. Le moteur ne
+change pas : échappement complet, puis liste blanche. Un `#` seul reste du
+texte, le `h1` d'une page étant le sien.
+
+Sans ces drapeaux, un `##` posé dans un corps de section s'affiche tel quel.
+C'est voulu : une section porte déjà son titre, et un client qui découvre le
+Markdown ne doit pas pouvoir casser la hiérarchie des titres depuis un champ
+qui ne l'attend pas. Le bloc `richtext` les déclare tous les deux — c'est lui
+qui porte un document légal ; la mention de consentement du bloc `contact`, qui
+n'a besoin que d'un lien, garde la grammaire minimale.
+
+`f.document` porte une clé de document — un PDF, servi en téléchargement et
+jamais rendu dans une page. Ce que le socle en sait vit dans
+`content/documents.json`, à côté de `content/media.json` : le nom d'affichage
+et le poids. Les conditions auxquelles un PDF est accepté sont dans
+`securite.md`, et un site qui ne déclare pas la capacité `documents` le refuse.
 
 Un lien — dans `f.url` comme dans `f.richtext` — s'écrit `http://`, `https://`,
 `mailto:`, `tel:`, `#ancre` ou `/chemin`. **Une seule barre :** `//hote` est

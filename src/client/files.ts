@@ -17,6 +17,41 @@ export type SiteAnswers = {
   readonly domain: string
   /** Les codes de langue, la première étant celle par défaut. */
   readonly languages: readonly string[]
+  readonly profile: SiteProfile
+}
+
+// Un profil est un jeu de réponses, jamais une branche : il choisit ce qui est
+// écrit au premier jour — les capacités déclarées et les pages de départ — et
+// rien du socle ne s’exécute différemment selon lui. C’est ce qui permet d’en
+// ajouter sans multiplier ce qu’il y a à maintenir (D98).
+export type Profile = {
+  readonly label: string
+  readonly capabilities: Readonly<Record<string, boolean>>
+  /** Les pages qui s’ajoutent à celles de tout site. */
+  readonly pages: (answers: SiteAnswers) => readonly GeneratedFile[]
+}
+
+export const PROFILES = {
+  vitrine: {
+    label: 'une page d’accueil, un formulaire, les documents légaux',
+    capabilities: {},
+    pages: () => [],
+  },
+  artisan: {
+    label: 'la vitrine, plus une page de services et les devis en PDF',
+    capabilities: { documents: true },
+    pages: (answers: SiteAnswers) => [
+      { path: 'content/services.json', contents: services(answers) },
+    ],
+  },
+} satisfies Readonly<Record<string, Profile>>
+
+export type SiteProfile = keyof typeof PROFILES
+
+export const DEFAULT_PROFILE: SiteProfile = 'vitrine'
+
+export function isProfile(name: string): name is SiteProfile {
+  return Object.hasOwn(PROFILES, name)
 }
 
 export type GeneratedFile = {
@@ -47,6 +82,9 @@ export function clientFiles(
     { path: '.githooks/pre-commit', contents: preCommit(), executable: true },
     { path: 'content/index.json', contents: home(answers) },
     { path: 'content/contact.json', contents: contact(answers) },
+    { path: 'content/mentions-legales.json', contents: notice(answers) },
+    { path: 'content/confidentialite.json', contents: privacy(answers) },
+    ...PROFILES[answers.profile].pages(answers),
     { path: 'content/media.json', contents: json({}) },
     { path: 'public/media/.gitkeep', contents: '' },
     { path: 'src/blocks/.gitkeep', contents: '' },
@@ -91,6 +129,8 @@ function siteConfig(answers: SiteAnswers): string {
       : `    ${code}: { draft: true },`,
   )
 
+  const declared = Object.entries(PROFILES[answers.profile].capabilities)
+
   return [
     "import { defineSite } from '@leobernard/basalte'",
     '',
@@ -102,6 +142,16 @@ function siteConfig(answers: SiteAnswers): string {
     '  },',
     "  email: { provider: 'brevo' },",
     '  leads: { purgeAfterMonths: 12 },',
+    '  // Ce que ce site fait, lu à l’exécution et modifiable après coup. Une',
+    '  // capacité absente garde la valeur du socle : notifyLeads (oui),',
+    '  // analytics (oui), documents (non).',
+    ...(declared.length === 0
+      ? ['  capabilities: {},']
+      : [
+          '  capabilities: {',
+          ...declared.map(([name, value]) => `    ${name}: ${value},`),
+          '  },',
+        ]),
     '  // La direction artistique du site. Un token non déclaré garde la valeur',
     '  // du socle — voir la skill « design ».',
     '  tokens: {',
@@ -223,8 +273,153 @@ function contact(answers: SiteAnswers): string {
           title: translated(answers, 'Nous écrire'),
           consent: translated(
             answers,
-            'Vos coordonnées servent uniquement à répondre à ce message.',
+            'Vos coordonnées servent uniquement à répondre à ce message. Voir notre [politique de confidentialité](/confidentialite).',
           ),
+        },
+      },
+    ],
+  })
+}
+
+// Les deux documents que le droit réclame d’un site en ligne. Ce sont des
+// pages ordinaires — le client les édite comme les autres — et leur texte est
+// un canevas à compléter, pas un conseil juridique : les crochets nomment ce
+// qui manque, et le premier paragraphe le dit.
+function notice(answers: SiteAnswers): string {
+  return document(
+    answers,
+    'Mentions légales',
+    'Les informations légales du site : éditeur, hébergeur, propriété intellectuelle.',
+    [
+      CANVAS,
+      '',
+      '## Éditeur du site',
+      '',
+      '- [Raison sociale], [forme juridique] au capital de [montant] euros',
+      '- Siège social : [adresse complète]',
+      '- SIREN [numéro], immatriculée au RCS de [ville]',
+      '- TVA intracommunautaire : [numéro]',
+      '- Téléphone : [numéro] — email : [adresse]',
+      '',
+      '## Directeur de la publication',
+      '',
+      '[Prénom Nom], en qualité de [fonction].',
+      '',
+      '## Hébergement',
+      '',
+      'Le site est hébergé par [hébergeur], [adresse de l’hébergeur], [téléphone de l’hébergeur].',
+      '',
+      '## Propriété intellectuelle',
+      '',
+      'Les textes, les images et les éléments graphiques de ce site appartiennent à [Raison sociale], sauf mention contraire. Toute reproduction, même partielle, demande une autorisation écrite.',
+      '',
+      '## Nous joindre',
+      '',
+      'Pour toute question sur ce site : [adresse email], ou par le [formulaire de contact](/contact).',
+    ],
+  )
+}
+
+function privacy(answers: SiteAnswers): string {
+  return document(
+    answers,
+    'Politique de confidentialité',
+    'Ce que ce site collecte, pourquoi, combien de temps, et les droits qui vous restent.',
+    [
+      CANVAS,
+      '',
+      '## Qui traite vos données',
+      '',
+      '[Raison sociale], [adresse complète], répond des données recueillies sur ce site. Pour toute question : [adresse email].',
+      '',
+      '## Ce qui est collecté, et pourquoi',
+      '',
+      'Le formulaire de contact enregistre votre nom, votre adresse email et votre message. Ces données servent à vous répondre, et à rien d’autre. La base légale de ce traitement est votre consentement, donné en envoyant le formulaire.',
+      '',
+      'Le site ne dépose aucun cookie et n’embarque aucun traceur. La fréquentation est mesurée depuis les journaux du serveur, sur des adresses tronquées qui ne permettent pas de vous identifier.',
+      '',
+      '## Combien de temps',
+      '',
+      'Un message est conservé [douze] mois, puis effacé automatiquement.',
+      '',
+      '## Qui y a accès',
+      '',
+      '- [Raison sociale], pour vous répondre',
+      '- [hébergeur], qui héberge le site',
+      '- [fournisseur d’email], qui achemine les messages',
+      '',
+      'Aucune donnée n’est vendue ni cédée à un tiers.',
+      '',
+      '## Vos droits',
+      '',
+      'Vous pouvez demander l’accès à vos données, leur rectification, leur effacement, ou vous opposer à leur traitement. Écrivez à [adresse email] : la réponse vous parvient sous un mois. Vous pouvez aussi saisir la CNIL.',
+    ],
+  )
+}
+
+// La page de services du profil artisan : trois points à renommer, pas trois
+// points inventés. Le contenu de départ nomme ce qu’il attend.
+function services(answers: SiteAnswers): string {
+  const point = (title: string, body: string) => ({
+    title: translated(answers, title),
+    body: translated(answers, body),
+  })
+
+  return json({
+    $format: CONTENT_FORMAT,
+    meta: {
+      title: translated(answers, 'Nos services'),
+      description: translated(
+        answers,
+        'Ce que nous faisons, et sur quelle zone.',
+      ),
+    },
+    blocks: [
+      {
+        id: 'services',
+        type: 'features',
+        props: {
+          title: translated(answers, 'Ce que nous faisons'),
+          items: [
+            point(
+              'Premier service',
+              'Ce qu’il comprend, pour qui, et ce qui le distingue.',
+            ),
+            point('Deuxième service', 'Une phrase, deux au maximum.'),
+            point(
+              'Troisième service',
+              'Remplace ces trois points par les tiens.',
+            ),
+          ],
+        },
+      },
+    ],
+  })
+}
+
+const CANVAS =
+  'Ce texte est un canevas : il est à compléter et à relire, et il ne vaut pas conseil juridique.'
+
+/** Une page d’un seul bloc de prose, titrée comme la page elle-même. */
+function document(
+  answers: SiteAnswers,
+  title: string,
+  description: string,
+  body: readonly string[],
+): string {
+  return json({
+    $format: CONTENT_FORMAT,
+    meta: {
+      title: translated(answers, title),
+      description: translated(answers, description),
+    },
+    blocks: [
+      {
+        id: 'texte',
+        type: 'richtext',
+        props: {
+          title: translated(answers, title),
+          body: translated(answers, body.join('\n')),
         },
       },
     ],

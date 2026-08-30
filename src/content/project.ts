@@ -10,6 +10,7 @@ import {
   loadRegistry,
   type BlockSource,
 } from '../blocks/scan.js'
+import { readDocuments, type DocumentManifest } from '../media/documents.js'
 import { readManifest, type MediaManifest } from '../media/manifest.js'
 import type { Site } from '../site/define.js'
 import { loadSite } from '../site/load.js'
@@ -35,6 +36,7 @@ export type Schemas = {
   readonly site: Site
   readonly registry: BlockRegistry
   readonly media: MediaManifest
+  readonly documents: DocumentManifest
 }
 
 export type Content = {
@@ -55,6 +57,7 @@ async function schemasOf(
     site: await loadSite(root),
     registry: await loadRegistry(sources),
     media: await readManifest(root),
+    documents: await readDocuments(root),
   }
 }
 
@@ -81,6 +84,7 @@ export function validateFiles(
       registry: schemas.registry,
       languages: schemas.site.languages,
       media: schemas.media,
+      documents: schemas.documents,
     })
 
     issues.push(...result.issues)

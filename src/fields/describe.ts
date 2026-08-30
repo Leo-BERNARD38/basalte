@@ -19,6 +19,8 @@ export type FieldDescription = {
   readonly min?: number
   readonly max?: number
   readonly rows?: number
+  readonly headings?: boolean
+  readonly lists?: boolean
   readonly ratio?: string
   readonly external?: boolean
   readonly itemLabel?: string
@@ -54,10 +56,17 @@ function detail(field: AnyField): Partial<FieldDescription> {
       }
 
     case 'richtext':
-      return field.max === undefined ? {} : { max: field.max }
+      return {
+        ...(field.max === undefined ? {} : { max: field.max }),
+        ...(field.headings === true ? { headings: true } : {}),
+        ...(field.lists === true ? { lists: true } : {}),
+      }
 
     case 'image':
       return field.ratio === undefined ? {} : { ratio: field.ratio }
+
+    case 'document':
+      return {}
 
     case 'url':
       return field.external === undefined ? {} : { external: field.external }

@@ -25,6 +25,7 @@ import type { BlockSource } from '../blocks/scan.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { errorsOf, readProject, type RenderedPage } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
+import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
 import type { Site } from '../site/define.js'
 import { CONFIG_FILE } from '../site/load.js'
@@ -62,7 +63,7 @@ export default function basalte(): AstroIntegration {
         const panel = command === 'dev' || process.env[MODE] === PANEL
         const publicSite = command === 'dev' || !panel
 
-        const { site, sources, registry, pages, media, issues } =
+        const { site, sources, registry, pages, media, documents, issues } =
           await readProject(root)
         const errors = errorsOf(issues)
 
@@ -99,6 +100,7 @@ export default function basalte(): AstroIntegration {
           registry,
           pages,
           media,
+          documents,
           sources: panel
             ? sources
             : sources.filter((source) => used.has(source.name)),
@@ -121,6 +123,16 @@ export default function basalte(): AstroIntegration {
 
         if (panel) {
           await mountPanel(command, updateConfig, injectRoute, addMiddleware)
+        }
+
+        // Le banc de blocs n’existe que pendant qu’on développe : il rend des
+        // valeurs d’exemple, et aucune version publiée n’a à le porter.
+        if (command === 'dev') {
+          injectRoute({
+            pattern: '/__blocs',
+            entrypoint: own('./blocks.astro'),
+            prerender: false,
+          })
         }
 
         addWatchFile(path.join(root, CONFIG_FILE))
@@ -183,6 +195,7 @@ async function mountPanel(
     ['/admin/preview/[...slug]', './preview.astro'],
     ['/api/[...route]', './api.js'],
     ['/media/[file]', './media.js'],
+    ['/documents/[file]', './documents.js'],
   ] as const) {
     injectRoute({ pattern, entrypoint: own(file), prerender: false })
   }
@@ -220,6 +233,7 @@ async function generate(
     readonly registry: BlockRegistry
     readonly pages: readonly RenderedPage[]
     readonly media: MediaManifest
+    readonly documents: DocumentManifest
     readonly sources: readonly BlockSource[]
   },
 ): Promise<string> {
@@ -243,6 +257,7 @@ async function generate(
     `export const registry = ${JSON.stringify(data.registry)}`,
     `export const pages = ${JSON.stringify(data.pages)}`,
     `export const media = ${JSON.stringify(data.media)}`,
+    `export const documents = ${JSON.stringify(data.documents)}`,
     `export const blocks = { ${entries.join(', ')} }`,
     '',
   ].join('\n')

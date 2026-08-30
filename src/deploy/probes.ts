@@ -119,19 +119,29 @@ function channels(target: Diagnosis): readonly Probe[] {
   return probes
 }
 
+// Une adresse de contact absente n’est un manque que si le site déclare
+// notifier ses messages : sans la capacité, l’absence est le réglage, et un
+// avertissement dirait le contraire de ce qui a été décidé.
 function addresses(target: Diagnosis): readonly Probe[] {
   const admin = adminAddress(target.environment)
   const contact = contactAddress(target.environment)
+  const notifies = target.site.capabilities.notifyLeads
 
   return [
     contact === ''
-      ? {
-          label: VARIABLES.contact,
-          level: 'warning',
-          detail:
-            'absent — un message resterait dans le panel sans être notifié',
-          fix: `renseigne ${VARIABLES.contact} avec l’adresse du client.`,
-        }
+      ? notifies
+        ? {
+            label: VARIABLES.contact,
+            level: 'warning',
+            detail:
+              'absent — un message resterait dans le panel sans être notifié',
+            fix: `renseigne ${VARIABLES.contact} avec l’adresse du client.`,
+          }
+        : {
+            label: VARIABLES.contact,
+            level: 'ok',
+            detail: 'sans objet — ce site ne notifie pas ses messages',
+          }
       : { label: VARIABLES.contact, level: 'ok', detail: contact },
     admin === ''
       ? {

@@ -8,7 +8,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { claudeDoc } from './agent.js'
+import { claudeDoc, contextDocs } from './agent.js'
 import { machineFiles } from './docker.js'
 import { clientFiles, type GeneratedFile, type SiteAnswers } from './files.js'
 import { agentSkills } from './skills.js'
@@ -22,6 +22,7 @@ export function siteFiles(
     ...clientFiles(answers, socle),
     ...machineFiles(answers),
     claudeDoc(answers),
+    ...contextDocs(answers),
     ...agentSkills(),
   ]
 }

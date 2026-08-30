@@ -3,6 +3,11 @@
 // jamais sur la déclaration brute.
 
 import {
+  resolveCapabilities,
+  type CapabilityOverrides,
+  type Capabilities,
+} from './capabilities.js'
+import {
   resolveLanguages,
   type LanguageDeclaration,
   type Languages,
@@ -14,6 +19,7 @@ export type SiteDeclaration = {
   readonly domain: string
   readonly languages: Readonly<Record<string, LanguageDeclaration>>
   readonly tokens?: TokenOverrides
+  readonly capabilities?: CapabilityOverrides
   readonly email?: { readonly provider: string }
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -23,6 +29,7 @@ export type Site = {
   readonly domain: string
   readonly languages: Languages
   readonly tokens: Tokens
+  readonly capabilities: Capabilities
   readonly email?: { readonly provider: string }
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -46,6 +53,7 @@ export function defineSite(declaration: SiteDeclaration): Site {
     domain: declaration.domain,
     languages: resolveLanguages(declaration.languages),
     tokens: resolveTokens(declaration.tokens),
+    capabilities: resolveCapabilities(declaration.capabilities),
     ...(declaration.email === undefined ? {} : { email: declaration.email }),
     ...(declaration.leads === undefined ? {} : { leads: declaration.leads }),
   }

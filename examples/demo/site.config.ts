@@ -7,6 +7,9 @@ export default defineSite({
     fr: { default: true },
     en: { draft: true },
   },
+  capabilities: {
+    documents: true,
+  },
   tokens: {
     color: {
       bg: '#ffffff',

@@ -3,6 +3,7 @@
 // un type ajouté sans sa ligne de documentation fait échouer la suite.
 
 import type {
+  DocumentField,
   Fields,
   FieldKind,
   GroupField,
@@ -27,8 +28,13 @@ type Bounded = { readonly min?: number; readonly max?: number }
 
 type TextOptions = Translatable & Bounded
 type TextareaOptions = TextOptions & { readonly rows?: number }
-type RichtextOptions = Translatable & { readonly max?: number }
+type RichtextOptions = Translatable & {
+  readonly max?: number
+  readonly headings?: boolean
+  readonly lists?: boolean
+}
 type ImageOptions = Common & { readonly ratio?: string }
+type DocumentOptions = Common
 type UrlOptions = Common & { readonly external?: boolean }
 type SelectOptions = Common & { readonly options: readonly SelectOption[] }
 type GroupOptions<S extends Fields> = Common & { readonly fields: S }
@@ -76,6 +82,10 @@ export const f = {
 
   image(options: ImageOptions = {}): ImageField {
     return { ...options, ...base(options), kind: 'image' }
+  },
+
+  document(options: DocumentOptions = {}): DocumentField {
+    return { ...options, ...base(options), kind: 'document' }
   },
 
   url(options: UrlOptions = {}): UrlField {
@@ -128,12 +138,23 @@ export const FIELD_TYPES: readonly FieldTypeDoc[] = [
   {
     kind: 'richtext',
     summary: 'Markdown restreint : gras, italique, liens.',
-    options: [...COMMON, TRANSLATABLE, 'max — borne en caractères'],
+    options: [
+      ...COMMON,
+      TRANSLATABLE,
+      'max — borne en caractères',
+      'headings — accepte les titres ## et ###, rendus en h2 et h3',
+      'lists — accepte les listes à puces et numérotées',
+    ],
   },
   {
     kind: 'image',
     summary: 'Une clé de la médiathèque.',
     options: [...COMMON, 'ratio — proportions attendues, par exemple « 16/9 »'],
+  },
+  {
+    kind: 'document',
+    summary: 'Une clé de document — un PDF, servi en téléchargement.',
+    options: [...COMMON],
   },
   {
     kind: 'url',

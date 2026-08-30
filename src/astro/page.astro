@@ -1,6 +1,6 @@
 ---
-import { blocks, media, pages, site } from 'virtual:basalte'
-import { resolveImage } from '../media/resolve.js'
+import { blocks, documents, media, pages, site } from 'virtual:basalte'
+import { resolveDocument, resolveImage } from '../media/resolve.js'
 import Layout from './Layout.astro'
 import { slugFor } from './routes.js'
 
@@ -26,6 +26,8 @@ const sections = entry.page.blocks.filter(
 
 const image = (key: string, sizes?: string) =>
   resolveImage(media, key, language, sizes)
+
+const document = (key: string) => resolveDocument(documents, key)
 ---
 
 <Layout
@@ -37,7 +39,14 @@ const image = (key: string, sizes?: string) =>
   {
     sections.map((section) => {
       const Block = blocks[section.type]
-      return <Block props={section.props} language={language} image={image} />
+      return (
+        <Block
+          props={section.props}
+          language={language}
+          image={image}
+          document={document}
+        />
+      )
     })
   }
 </Layout>

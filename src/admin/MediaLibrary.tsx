@@ -1,6 +1,9 @@
 // L’écran « Médias ». Chaque image y porte ce que le rendu ira chercher : sa
 // description par langue et son point focal — réglable plutôt qu’un outil de
 // recadrage, ce qui résout les visages coupés pour une fraction du travail.
+//
+// Les documents partagent cet écran plutôt qu’un sixième onglet (D63), et ne
+// s’y montrent que si le site les accepte.
 
 import {
   Alert,
@@ -14,8 +17,10 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
+import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import { deleteMedia, updateMedia } from './api.js'
+import { DocumentPanel } from './Documents.js'
 import { useEditing } from './editing.js'
 import { MediaGrid, thumbnail, UploadButton } from './Media.js'
 
@@ -23,9 +28,11 @@ const CENTRE = 50
 
 export function MediaLibrary({
   media,
+  documents,
   onChanged,
 }: {
   readonly media: readonly MediaSummary[]
+  readonly documents: readonly DocumentSummary[]
   readonly onChanged: () => void
 }) {
   const editing = useEditing()
@@ -72,6 +79,10 @@ export function MediaLibrary({
           }}
           onError={setProblem}
         />
+      )}
+
+      {editing.capabilities.documents && (
+        <DocumentPanel documents={documents} onChanged={onChanged} />
       )}
     </Stack>
   )

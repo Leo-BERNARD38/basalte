@@ -1,0 +1,79 @@
+---
+// Le seul bloc qui mène à un fichier. Le lien porte l’attribut `download` et
+// le serveur répond en pièce jointe : un PDF n’est jamais rendu dans la page,
+// c’est la condition à laquelle il échappe à l’invariant 3.
+//
+// Le poids et le format sont annoncés dans le libellé du lien : c’est ce que
+// le visiteur a besoin de savoir avant de cliquer, et ce qu’un lecteur
+// d’écran énonce.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, document } = Astro.props
+
+const title = pick(props.title, language)
+const description = pick(props.description, language)
+const label = pick(props.label, language)
+const file = document(props.file)
+---
+
+{
+  file !== undefined && (
+    <section class="download">
+      <div class="download__inner">
+        {title !== '' && <h2 class="download__title">{title}</h2>}
+        {description !== '' && (
+          <p class="download__description">{description}</p>
+        )}
+        <a class="download__link" href={file.href} download={file.name}>
+          {label === '' ? 'Télécharger' : label}
+          <span class="download__weight">PDF · {file.weight}</span>
+        </a>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .download {
+    padding: var(--space-7) var(--space-5);
+  }
+
+  .download__inner {
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .download__title {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .download__description {
+    margin: 0 0 var(--space-4);
+    color: var(--color-muted);
+  }
+
+  .download__link {
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-height: 44px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-family: var(--font-body);
+    text-decoration: none;
+  }
+
+  .download__weight {
+    font-size: var(--text-xs);
+    opacity: 0.85;
+  }
+</style>

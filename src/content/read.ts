@@ -5,6 +5,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { DOCUMENTS_FILE } from '../media/documents.js'
 import { MANIFEST_FILE } from '../media/manifest.js'
 import { CONTENT_DIR } from './page.js'
 
@@ -16,6 +17,11 @@ export type ContentFile = {
 }
 
 const NAME = /^[a-z0-9][a-z0-9-]*$/
+
+// Les manifestes vivent dans `content/` parce qu’ils sont versionnés avec les
+// pages et fusionnés comme elles, mais ce ne sont pas des pages : leur nom ne
+// fait aucune route.
+const MANIFESTS: ReadonlySet<string> = new Set([MANIFEST_FILE, DOCUMENTS_FILE])
 
 export async function readContent(
   root: string,
@@ -52,7 +58,7 @@ async function pageNames(root: string): Promise<readonly string[]> {
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     if (!entry.isFile()) continue
     if (path.extname(entry.name) !== '.json') continue
-    if (entry.name === MANIFEST_FILE) continue
+    if (MANIFESTS.has(entry.name)) continue
 
     const name = path.basename(entry.name, '.json')
 

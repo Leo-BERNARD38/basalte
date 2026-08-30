@@ -41,6 +41,23 @@ jamais une valeur en dur dans un bloc.
 C'est ce qui fait que le même bloc `hero` a une allure radicalement différente
 d'un client à l'autre sans qu'une ligne de son code change.
 
+## Le banc de blocs
+
+Régler une direction artistique en rechargeant la page d'accueil, c'est régler
+deux blocs sur cinq. Sous `npm run dev`, l'adresse **`/__blocs`** rend tous les
+blocs disponibles — ceux du socle et ceux du dépôt — sur une seule page, dans
+les tokens réels du site. Un bloc écrit ce matin y apparaît sans que rien n'ait
+été déclaré.
+
+Les valeurs affichées sont dérivées des descripteurs `f.*` : un texte vient du
+libellé de son champ, une liste porte trois éléments, une image prend la
+première clé de la médiathèque. Un libellé trop long pour la place qu'il occupe
+se voit donc immédiatement.
+
+C'est aussi là que le plancher ci-dessous se vérifie à l'œil, sur tous les
+blocs à la fois. La route n'existe que pendant qu'on développe : aucune version
+publiée ne la porte.
+
 ## Plancher, non négociable
 
 Il s'applique à tout bloc, sur mesure comme de référence.

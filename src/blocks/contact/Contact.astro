@@ -6,6 +6,7 @@
 // `MARKERS` dans `src/server/contact.ts`, qu’un test compare à ce fichier. Ils
 // ne sont pas importés : ce module entraînerait la base SQLite dans le build du
 // site public, qui n’a rien à en faire.
+import { renderRichtext } from '../../fields/richtext.js'
 import { pick } from '../../fields/translate.js'
 import type { BlockProps } from '../define.js'
 import schema from './schema.js'
@@ -22,6 +23,7 @@ const say = (value: Record<string, string>, fallback: string): string =>
 const title = pick(props.title, language)
 const intro = pick(props.intro, language)
 const consent = pick(props.consent, language)
+const consentHtml = renderRichtext(consent, schema.fields.consent)
 ---
 
 <section class="contact">
@@ -119,7 +121,11 @@ const consent = pick(props.consent, language)
         {say(props.labels.submit, 'Envoyer')}
       </button>
 
-      {consent !== '' && <p class="contact__consent">{consent}</p>}
+      {
+        consent !== '' && (
+          <div class="contact__consent" set:html={consentHtml} />
+        )
+      }
     </form>
   </div>
 </section>
@@ -223,8 +229,19 @@ const consent = pick(props.consent, language)
   }
 
   .contact__consent {
-    margin: 0;
     color: var(--color-muted);
     font-size: var(--text-sm);
+  }
+
+  .contact__consent :global(p) {
+    margin: 0 0 var(--space-2);
+  }
+
+  .contact__consent :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .contact__consent :global(a) {
+    color: inherit;
   }
 </style>

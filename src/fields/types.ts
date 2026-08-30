@@ -40,11 +40,17 @@ export type RichtextField<I extends boolean = boolean> = Base & {
   readonly kind: 'richtext'
   readonly i18n: I
   readonly max?: number
+  readonly headings?: boolean
+  readonly lists?: boolean
 }
 
 export type ImageField = Base & {
   readonly kind: 'image'
   readonly ratio?: string
+}
+
+export type DocumentField = Base & {
+  readonly kind: 'document'
 }
 
 export type UrlField = Base & {
@@ -80,6 +86,7 @@ export type AnyField =
   | TextareaField
   | RichtextField
   | ImageField
+  | DocumentField
   | UrlField
   | SelectField
   | GroupField

@@ -3,8 +3,9 @@
 // du panel l’ignore.
 //
 // L’aperçu du Markdown restreint passe par la fonction du socle, celle-là même
-// qui rend le site : le client voit ce que la page affichera, et aucune balise
-// ne peut venir du texte saisi (invariant 1).
+// qui rend le site, et reçoit la grammaire déclarée par le champ : le client
+// voit ce que la page affichera, et aucune balise ne peut venir du texte saisi
+// (invariant 1).
 
 import { Textarea, TextInput } from '@mantine/core'
 
@@ -14,6 +15,8 @@ import { useEditing } from '../editing.js'
 import { hint, type ControlProps } from './Field.js'
 
 const ROWS = 4
+
+const INLINE = '**gras**, *italique*, [lien](https://exemple.fr)'
 
 export function Prose({ description, value, onChange }: ControlProps) {
   const editing = useEditing()
@@ -46,18 +49,21 @@ export function Prose({ description, value, onChange }: ControlProps) {
     return <Textarea {...shared} autosize minRows={description.rows ?? ROWS} />
   }
 
+  const placeholder = [
+    ...(description.headings === true ? ['## titre'] : []),
+    ...(description.lists === true ? ['- élément'] : []),
+    INLINE,
+  ].join(', ')
+
   return (
     <div>
-      <Textarea
-        {...shared}
-        autosize
-        minRows={ROWS}
-        placeholder="**gras**, *italique*, [lien](https://exemple.fr)"
-      />
+      <Textarea {...shared} autosize minRows={ROWS} placeholder={placeholder} />
       {text.trim() !== '' && (
         <div
           className="basalte-markdown"
-          dangerouslySetInnerHTML={{ __html: renderRichtext(text) }}
+          dangerouslySetInnerHTML={{
+            __html: renderRichtext(text, description),
+          }}
         />
       )}
     </div>

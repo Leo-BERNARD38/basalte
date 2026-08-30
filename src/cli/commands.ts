@@ -16,7 +16,7 @@ export type Command = {
 export const COMMANDS: readonly Command[] = [
   {
     name: 'init',
-    usage: 'init <nom>',
+    usage: 'init <nom> [--profile <nom>]',
     summary: 'génère un dépôt client complet',
     run: async (argv, cwd) => (await import('./init.js')).init(argv, cwd),
   },

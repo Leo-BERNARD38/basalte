@@ -9,7 +9,7 @@ type Props = BlockProps<(typeof schema)['fields']>
 const { props, language } = Astro.props
 
 const title = pick(props.title, language)
-const body = renderRichtext(pick(props.body, language))
+const body = renderRichtext(pick(props.body, language), schema.fields.body)
 ---
 
 <section class="richtext">
@@ -36,12 +36,37 @@ const body = renderRichtext(pick(props.body, language))
     line-height: 1.2;
   }
 
-  .richtext__body :global(p) {
+  .richtext__body :global(p),
+  .richtext__body :global(ul),
+  .richtext__body :global(ol) {
     margin: 0 0 var(--space-4);
   }
 
-  .richtext__body :global(p:last-child) {
+  .richtext__body :global(h2),
+  .richtext__body :global(h3) {
+    margin: var(--space-6) 0 var(--space-3);
+    font-family: var(--font-title);
+    line-height: 1.3;
+  }
+
+  .richtext__body :global(h2) {
+    font-size: var(--text-xl);
+  }
+
+  .richtext__body :global(h3) {
+    font-size: var(--text-lg);
+  }
+
+  .richtext__body :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .richtext__body :global(:last-child) {
     margin-bottom: 0;
+  }
+
+  .richtext__body :global(li) {
+    margin-bottom: var(--space-2);
   }
 
   .richtext__body :global(a) {

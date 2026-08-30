@@ -10,7 +10,13 @@ import path from 'node:path'
 import { createInterface } from 'node:readline/promises'
 
 import { executables, siteFiles, writeSite } from '../client/create.js'
-import type { SiteAnswers } from '../client/files.js'
+import {
+  DEFAULT_PROFILE,
+  isProfile,
+  PROFILES,
+  type SiteAnswers,
+  type SiteProfile,
+} from '../client/files.js'
 import { runNpm } from '../client/npm.js'
 import {
   attachRemote,
@@ -32,7 +38,7 @@ import {
 import { readEntries, writeAgentDoc } from './inventory.js'
 import type { Result } from './run.js'
 
-const VALUED = ['--name', '--domain', '--languages', '--repo']
+const VALUED = ['--name', '--domain', '--languages', '--profile', '--repo']
 
 const SLUG = /^[a-z0-9][a-z0-9-]*$/
 
@@ -53,6 +59,14 @@ export async function init(
 
   if (await occupied(root)) {
     return fails([`« ${slug} » existe déjà et n’est pas vide.`])
+  }
+
+  const asked = optionValue(argv, '--profile')
+
+  if (asked !== undefined && !isProfile(asked)) {
+    return fails([
+      `« ${asked} » n’est pas un profil — les profils sont ${Object.keys(PROFILES).join(', ')}.`,
+    ])
   }
 
   const answers = await ask(argv, slug)
@@ -147,6 +161,7 @@ async function ask(
     name: optionValue(argv, '--name'),
     domain: optionValue(argv, '--domain'),
     languages: optionValue(argv, '--languages'),
+    profile: optionValue(argv, '--profile'),
   }
 
   const silent = hasFlag(argv, '--yes') || !process.stdin.isTTY
@@ -158,7 +173,16 @@ async function ask(
     name: fallback(answered.name, slug),
     domain: fallback(answered.domain, `${slug}.fr`),
     languages: codes(fallback(answered.languages, 'fr')),
+    profile: profileOf(answered.profile),
   }
+}
+
+// Un profil inconnu tapé à la question ramène au défaut : la commande refuse
+// déjà un `--profile` faux avant d’écrire quoi que ce soit.
+function profileOf(answer: string | undefined): SiteProfile {
+  const given = (answer ?? '').trim()
+
+  return isProfile(given) ? given : DEFAULT_PROFILE
 }
 
 /** Une réponse vide vaut la valeur proposée entre crochets. */
@@ -172,6 +196,7 @@ type Given = {
   name?: string | undefined
   domain?: string | undefined
   languages?: string | undefined
+  profile?: string | undefined
 }
 
 async function prompt(given: Given, slug: string): Promise<Given> {
@@ -184,10 +209,19 @@ async function prompt(given: Given, slug: string): Promise<Given> {
       languages:
         given.languages ??
         (await rl.question('Langues, la première par défaut [fr] : ')),
+      profile: given.profile ?? (await rl.question(profileQuestion())),
     }
   } finally {
     rl.close()
   }
+}
+
+function profileQuestion(): string {
+  const lines = Object.entries(PROFILES).map(
+    ([name, profile]) => `  ${name} — ${profile.label}`,
+  )
+
+  return `\nProfil du site :\n${lines.join('\n')}\nLequel [${DEFAULT_PROFILE}] : `
 }
 
 function codes(declared: string): readonly string[] {

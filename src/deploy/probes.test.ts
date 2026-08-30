@@ -19,11 +19,11 @@ const FILLED: Environment = {
 
 async function probes(
   environment: Environment,
-  parts: { host?: string; resolved?: readonly string[] } = {},
+  parts: { host?: string; resolved?: readonly string[]; site?: Site } = {},
 ): Promise<Map<string, Probe>> {
   const found = await diagnose({
     root: 'un-dossier-qui-n-est-pas-un-depot',
-    site: SITE,
+    site: parts.site ?? SITE,
     environment,
     ...(parts.host === undefined ? {} : { host: parts.host }),
     send: false,
@@ -132,5 +132,26 @@ describe('dépôt git', () => {
 
     expect(probe?.level).toBe('error')
     expect(probe?.fix).toContain('push --set-upstream')
+  })
+})
+
+describe('la capacité « notifyLeads »', () => {
+  it('ne réclame pas d’adresse de contact quand le site ne notifie pas', async () => {
+    const probe = (
+      await probes(
+        {},
+        {
+          site: defineSite({
+            name: 'Atelier Duvallon',
+            domain: 'atelier-duvallon.fr',
+            languages: { fr: { default: true } },
+            capabilities: { notifyLeads: false },
+          }),
+        },
+      )
+    ).get(VARIABLES.contact)
+
+    expect(probe?.level).toBe('ok')
+    expect(probe?.detail).toContain('sans objet')
   })
 })

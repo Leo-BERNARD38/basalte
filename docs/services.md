@@ -121,6 +121,16 @@ Sans `CONTACT_EMAIL`, un message reste dans le panel et rien ne part : il n'est
 jamais perdu, il n'est simplement pas notifié. `basalte doctor` prouve qu'un
 email part vraiment — voir `depot-client.md`.
 
+**Un site peut le déclarer plutôt que le subir.** La capacité `notifyLeads`,
+posée à `false` dans `site.config.ts`, dit que ce site ne notifie pas ses
+messages : ils restent dans le panel, et `doctor` cesse de réclamer une adresse
+de contact au lieu d'avertir qu'il en manque une. La différence est celle d'un
+réglage et d'un oubli, et elle se lit.
+
+**Couper la notification ne coupe pas l'authentification.** Le code à six
+chiffres part par email (D9) : un site sans `notifyLeads` garde son canal de
+connexion, et un réglage qui promettrait un site sans aucun email mentirait.
+
 L'email porte **aussi les codes de connexion**, pas seulement les leads. Trois
 conséquences :
 

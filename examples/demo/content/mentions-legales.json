@@ -1,0 +1,48 @@
+{
+  "$format": 1,
+  "meta": {
+    "title": {
+      "fr": "Mentions légales — Atelier Démonstration",
+      "en": ""
+    },
+    "description": {
+      "fr": "Éditeur, hébergeur, données collectées : la page qui exerce les titres et les listes du Markdown restreint.",
+      "en": ""
+    }
+  },
+  "blocks": [
+    {
+      "id": "l1",
+      "type": "richtext",
+      "props": {
+        "title": {
+          "fr": "Mentions légales",
+          "en": ""
+        },
+        "body": {
+          "fr": "Cette page est le banc d’essai de la grammaire enrichie : elle porte des titres et des listes, et rien d’autre que ce que la liste blanche autorise.\n\n## Éditeur du site\n\n- Atelier Démonstration, société fictive au capital de zéro euro\n- Siège social : nulle part, ce site ne sert qu’à tester le socle\n- SIREN 000 000 000, immatriculée nulle part\n\n## Directeur de la publication\n\nCamille Duvallon, en qualité de personnage de démonstration.\n\n## Ce que ce site collecte\n\nLe formulaire de contact enregistre un nom, une adresse email et un message. Ces données servent à répondre, et **à rien d’autre**. Elles sont effacées au bout de douze mois.\n\nLe site ne dépose aucun cookie et n’embarque aucun traceur.\n\n## Vos droits\n\n1. Demander l’accès aux données vous concernant\n2. En demander la rectification ou l’effacement\n3. Vous opposer à leur traitement\n\nÉcrire au [formulaire de contact](/contact) suffit.",
+          "en": ""
+        }
+      }
+    },
+    {
+      "id": "l2",
+      "type": "download",
+      "props": {
+        "title": {
+          "fr": "Nos conditions générales",
+          "en": ""
+        },
+        "description": {
+          "fr": "Le seul fichier que ce site sert autrement qu’en HTML. Il se télécharge, il ne s’ouvre jamais dans la page.",
+          "en": ""
+        },
+        "file": "c91b89365fa64a90",
+        "label": {
+          "fr": "",
+          "en": ""
+        }
+      }
+    }
+  ]
+}

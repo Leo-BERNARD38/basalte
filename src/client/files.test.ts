@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
+import { findBlocks, loadRegistry, socleBlocks } from '../blocks/scan.js'
 import { CONTENT_FORMAT } from '../content/page.js'
+import { errorsOf } from '../content/project.js'
+import { validatePage } from '../content/validate.js'
 import { VARIABLES } from '../server/email/provider.js'
+import { resolveLanguages } from '../site/languages.js'
 import { basalteDoc } from './agent.js'
 import { executables, siteFiles } from './create.js'
 import type { GeneratedFile, SiteAnswers } from './files.js'
@@ -19,6 +23,7 @@ const ANSWERS: SiteAnswers = {
   name: 'Atelier Duvallon',
   domain: 'atelier-duvallon.fr',
   languages: ['fr', 'en'],
+  profile: 'vitrine',
 }
 
 function generated(answers: SiteAnswers = ANSWERS): Map<string, string> {
@@ -51,6 +56,8 @@ describe('le dépôt généré', () => {
       '.gitignore',
       'content/index.json',
       'content/contact.json',
+      'content/mentions-legales.json',
+      'content/confidentialite.json',
       'content/media.json',
       'compose.yml',
       'Caddyfile',
@@ -62,6 +69,10 @@ describe('le dépôt généré', () => {
       '.claude/skills/mettre-a-jour/SKILL.md',
       '.claude/commands/check.md',
       '.claude/commands/deploy.md',
+      '.claude/skills/contexte/SKILL.md',
+      '.claude/skills/nouvelle-page/SKILL.md',
+      'docs/CONTEXT.md',
+      'docs/DESIGN.md',
     ]) {
       expect(paths).toContain(expected)
     }
@@ -133,6 +144,85 @@ describe('le dépôt généré', () => {
     expect(page.blocks.map((block) => block.type)).toEqual(['hero', 'richtext'])
   })
 
+  it('écrit des documents légaux structurés en titres et en listes', () => {
+    for (const path of [
+      'content/mentions-legales.json',
+      'content/confidentialite.json',
+    ]) {
+      const page = JSON.parse(read(path)) as {
+        $format: number
+        blocks: readonly {
+          type: string
+          props: { body: Record<string, string> }
+        }[]
+      }
+      const body = page.blocks[0]?.props.body['fr'] ?? ''
+
+      expect(page.$format).toBe(CONTENT_FORMAT)
+      expect(page.blocks[0]?.type).toBe('richtext')
+      expect(body).toContain('## ')
+      expect(body).toContain('canevas')
+    }
+
+    expect(read('content/confidentialite.json')).toContain('- [')
+  })
+
+  it('mène du formulaire à la politique de confidentialité', () => {
+    expect(read('content/contact.json')).toContain(
+      '[politique de confidentialité](/confidentialite)',
+    )
+  })
+
+  it.each(['vitrine', 'artisan'] as const)(
+    'produit avec le profil %s un contenu que les schémas du socle acceptent',
+    async (profile) => {
+      const registry = await loadRegistry(
+        await findBlocks([{ dir: socleBlocks(), origin: 'socle' }]),
+      )
+      const languages = resolveLanguages({
+        fr: { default: true },
+        en: { draft: true },
+      })
+
+      for (const [path, contents] of generated({ ...ANSWERS, profile })) {
+        if (!path.startsWith('content/') || path.endsWith('media.json'))
+          continue
+
+        const { issues } = validatePage({
+          name: path,
+          source: JSON.parse(contents),
+          registry,
+          languages,
+          media: {},
+          documents: {},
+        })
+
+        expect(errorsOf(issues).map((issue) => issue.message)).toEqual([])
+      }
+    },
+  )
+
+  it('déclare les capacités du profil, et rien de plus', () => {
+    expect(read('site.config.ts')).toContain('capabilities: {}')
+    expect(read('site.config.ts')).toContain('notifyLeads')
+
+    const artisan = read('site.config.ts', {
+      ...ANSWERS,
+      profile: 'artisan',
+    })
+
+    expect(artisan).toContain('documents: true')
+  })
+
+  it('donne à l’artisan une page de plus, sans dupliquer une ligne du socle', () => {
+    const vitrine = [...generated().keys()]
+    const artisan = [...generated({ ...ANSWERS, profile: 'artisan' }).keys()]
+
+    expect(vitrine).not.toContain('content/services.json')
+    expect(artisan).toContain('content/services.json')
+    expect(artisan.length).toBe(vitrine.length + 1)
+  })
+
   it('pose le hook de pré-commit en exécutable', () => {
     expect(executables(siteFiles(ANSWERS, SOCLE))).toContain(
       '.githooks/pre-commit',
@@ -170,6 +260,24 @@ describe('le dépôt généré', () => {
 
   it('importe la doc générée depuis le CLAUDE.md écrit une fois', () => {
     expect(read('CLAUDE.md')).toContain('@.claude/basalte.md')
+  })
+
+  it('charge le contexte du site à chaque session', () => {
+    const claude = read('CLAUDE.md')
+
+    expect(claude).toContain('@docs/CONTEXT.md')
+    expect(claude).toContain('@docs/DESIGN.md')
+  })
+
+  it('ouvre le contexte sur des questions, jamais sur une page blanche', () => {
+    const context = read('docs/CONTEXT.md')
+
+    expect(context).toContain('Atelier Duvallon')
+    expect(context).toContain('à compléter')
+    expect(read('docs/DESIGN.md')).toContain('à compléter')
+    expect(read('.claude/skills/contexte/SKILL.md')).toContain(
+      'docs/CONTEXT.md',
+    )
   })
 })
 

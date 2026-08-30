@@ -82,22 +82,40 @@ export async function check(
   return succeeds(lines)
 }
 
-// Une image que plus aucune section ne cite reste dans le dépôt : git ne
-// supprime rien, et la retirer à la main casserait un retour arrière. Le
-// signaler suffit — c’est le panel qui sait la supprimer proprement.
+// Une image ou un document que plus aucune section ne cite reste dans le
+// dépôt : git ne supprime rien, et le retirer à la main casserait un retour
+// arrière. Le signaler suffit — c’est le panel qui sait supprimer proprement.
 function orphans(project: Project): readonly ContentIssue[] {
-  const usage = countMediaUsage(
-    project.registry,
-    project.pages.map((entry) => entry.page),
-  )
+  const pages = project.pages.map((entry) => entry.page)
 
-  return Object.keys(project.media)
-    .filter((key) => (usage.get(key) ?? 0) === 0)
-    .map((key) => ({
-      severity: 'warning' as const,
-      page: 'médiathèque',
-      message: `l’image « ${key} » n’est employée par aucune section`,
-    }))
+  const unused = (
+    keys: readonly string[],
+    kind: 'image' | 'document',
+    say: (key: string) => string,
+  ): readonly ContentIssue[] => {
+    const usage = countMediaUsage(project.registry, pages, kind)
+
+    return keys
+      .filter((key) => (usage.get(key) ?? 0) === 0)
+      .map((key) => ({
+        severity: 'warning' as const,
+        page: 'médiathèque',
+        message: say(key),
+      }))
+  }
+
+  return [
+    ...unused(
+      Object.keys(project.media),
+      'image',
+      (key) => `l’image « ${key} » n’est employée par aucune section`,
+    ),
+    ...unused(
+      Object.keys(project.documents),
+      'document',
+      (key) => `le document « ${key} » n’est employé par aucune section`,
+    ),
+  ]
 }
 
 function count(value: number, noun: string): string {

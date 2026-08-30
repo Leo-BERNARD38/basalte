@@ -15,7 +15,14 @@ import { validateFiles } from '../content/project.js'
 import { readContent } from '../content/read.js'
 import { languageName, renderIssue } from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
+import type { Capabilities } from '../site/capabilities.js'
 import type { Account } from './account.js'
+import {
+  deleteDocument,
+  describeDocuments,
+  uploadDocument,
+  type DocumentSummary,
+} from './documents.js'
 import type { Panel } from './context.js'
 import { commitFiles, isRepositoryRoot } from './git.js'
 import { authenticate } from './handlers.js'
@@ -85,11 +92,13 @@ export type PanelPayload = {
   readonly site: {
     readonly name: string
     readonly languages: readonly PanelLanguage[]
+    readonly capabilities: Capabilities
   }
   readonly meta: readonly FieldDescription[]
   readonly library: readonly PanelBlockType[]
   readonly pages: readonly DraftPage[]
   readonly media: readonly MediaSummary[]
+  readonly documents: readonly DocumentSummary[]
   readonly problems: readonly {
     readonly severity: 'error' | 'warning'
     readonly message: string
@@ -154,6 +163,29 @@ export async function handlePanel(
     return media(panel, request, route[1] ?? '', commit)
   }
 
+  if (route[0] === 'documents' && route.length === 1) {
+    if (request.method !== 'POST') return refuseMethod()
+
+    const guard = guardOrigin(request)
+
+    if (guard !== undefined) return guard
+
+    return uploadDocument(panel, request, await panel.schemas(), commit)
+  }
+
+  if (route[0] === 'documents' && route.length === 2) {
+    if (request.method !== 'DELETE') return refuseMethod()
+
+    const guard = guardOrigin(request)
+
+    if (guard !== undefined) return guard
+
+    const schemas = await panel.schemas()
+    const pages = await readDrafts(panel.root, schemas)
+
+    return deleteDocument(panel, route[1] ?? '', pages, schemas, commit)
+  }
+
   if (route[0] === 'publish' && route.length === 1) {
     return publish(panel, request, account)
   }
@@ -167,7 +199,22 @@ export async function handlePanel(
   }
 
   if (route[0] === 'stats' && route.length === 1) {
-    return request.method === 'GET' ? describeAudience(panel) : refuseMethod()
+    if (request.method !== 'GET') return refuseMethod()
+
+    const { site } = await panel.schemas()
+
+    if (!site.capabilities.analytics) {
+      return json(
+        {
+          ok: false,
+          message:
+            'Ce site ne mesure pas son audience. Déclare « analytics » dans les capacités de site.config.ts.',
+        },
+        409,
+      )
+    }
+
+    return describeAudience(panel)
   }
 
   return json({ ok: false, message: 'Adresse inconnue.' }, 404)
@@ -197,6 +244,7 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
         default: language.default,
         draft: language.draft,
       })),
+      capabilities: schemas.site.capabilities,
     },
     meta: describeFields(META_FIELDS),
     library: Object.values(schemas.registry).map((definition) => ({
@@ -207,6 +255,7 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
     })),
     pages,
     media: describeMedia(schemas.media, pages, schemas),
+    documents: describeDocuments(schemas.documents, pages, schemas),
     problems: issues.map((issue) => ({
       severity: issue.severity,
       message: renderIssue(issue),

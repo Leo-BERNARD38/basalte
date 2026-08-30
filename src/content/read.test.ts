@@ -21,11 +21,12 @@ async function project(
 }
 
 describe('readContent', () => {
-  it('lit les pages et laisse le manifeste des médias de côté', async () => {
+  it('lit les pages et laisse les manifestes de côté', async () => {
     const root = await project({
       'index.json': '{"$format":1}',
       'contact.json': '{"$format":1}',
       'media.json': '{}',
+      'documents.json': '{}',
       'notes.txt': 'ignoré',
     })
 

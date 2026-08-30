@@ -7,12 +7,22 @@
 
 import path from 'node:path'
 
-import { AGENT_DIR } from './agent.js'
+import { AGENT_DIR, CONTEXT_DOC, DESIGN_DOC } from './agent.js'
 import type { GeneratedFile } from './files.js'
 
 export function agentSkills(): readonly GeneratedFile[] {
   return [
     skill('nouveau-bloc', 'Créer un bloc sur mesure pour ce site.', block()),
+    skill(
+      'contexte',
+      'Interroger le mainteneur et écrire le contexte du site.',
+      context(),
+    ),
+    skill(
+      'nouvelle-page',
+      'Ajouter une page au site, avec sa route et son contenu.',
+      newPage(),
+    ),
     skill('design', 'Régler les tokens, implémenter une maquette.', design()),
     skill('contenu', 'Rédiger et traduire le contenu des pages.', content()),
     skill(
@@ -108,11 +118,90 @@ function block(): readonly string[] {
   ]
 }
 
+// Le contexte est écrit par entretien parce qu’il n’est déductible de rien :
+// ni le code ni le contenu ne disent pour qui le site est fait. Une réponse
+// inventée serait relue comme vraie à chaque session suivante.
+function context(): readonly string[] {
+  return [
+    `Deux fichiers portent le contexte de ce site : \`${CONTEXT_DOC}\` dit qui`,
+    `est le client et comment il parle, \`${DESIGN_DOC}\` dit ce que sa`,
+    'direction artistique cherche. Les deux sont chargés à chaque session.',
+    '',
+    '## La règle',
+    '',
+    'N’écris que ce qui t’a été dit. Une section laissée « à compléter » est un',
+    'trou visible ; une section inventée est un mensonge qui sera relu comme',
+    'vrai pendant des mois. Dans le doute, laisse le trou et dis-le.',
+    '',
+    '## Comment mener l’entretien',
+    '',
+    '1. Lis les deux fichiers : les sections déjà remplies ne se redemandent',
+    '   pas.',
+    '2. Pose **une question à la fois**, et propose des réponses quand tu peux',
+    '   — il est plus facile de corriger une proposition que de partir de rien.',
+    '3. Sur le ton, demande un exemple de phrase que le client aurait écrite,',
+    '   puis une phrase qu’il n’écrirait jamais. C’est ce qui se transmet.',
+    '4. Sur la DA, demande deux ou trois références et ce qu’on leur prend —',
+    '   pas ce qu’on aime.',
+    '5. Écris au fur et à mesure, dans les sections existantes. N’en ajoute une',
+    '   que si une réponse ne rentre nulle part.',
+    '',
+    '## Ensuite',
+    '',
+    'Les valeurs de la DA ne vont pas dans la prose : elles vont dans les',
+    `\`tokens\` de \`site.config.ts\`. \`${DESIGN_DOC}\` dit *pourquoi* elles sont`,
+    'ce qu’elles sont — voir la skill « design ».',
+  ]
+}
+
+// D3 borne le client, pas le mainteneur : le client n’ajoute pas de page, toi
+// si. Une page est un fichier de `content/`, et son nom fait sa route.
+function newPage(): readonly string[] {
+  return [
+    'Une page de ce site est un fichier `content/<nom>.json`, et son nom donne',
+    'sa route : `tarifs.json` sert `/tarifs`. Il n’y a rien d’autre à',
+    'déclarer — ni route, ni entrée de menu, ni registre.',
+    '',
+    'Le client, lui, ne crée pas de pages (D3). Cette skill est pour toi.',
+    '',
+    '## Le nom',
+    '',
+    'En minuscules, chiffres et tirets. C’est une adresse : elle se lit, elle',
+    'se dicte au téléphone, et elle ne se renomme pas sans casser des liens.',
+    '',
+    '## Le fichier',
+    '',
+    '1. Ouvre une page existante et relève son `$format` : c’est le même pour',
+    '   toutes, et l’inventer ferait échouer `npm run check`.',
+    '2. Écris `meta.title` et `meta.description` dans **chaque** langue',
+    '   déclarée, même vides pour une langue en préparation.',
+    '3. Ajoute les sections. Chaque `id` est stable et ne se renomme jamais :',
+    '   c’est lui qui porte l’historique d’édition de la section.',
+    '4. `npx basalte inventory` liste les blocs disponibles et leurs bornes.',
+    '   Emploie un bloc existant avant d’en écrire un — voir « nouveau-bloc ».',
+    '',
+    '## Toujours finir par',
+    '',
+    '`npm run check`, puis relie la page depuis une autre : une page qu’aucun',
+    'lien n’atteint n’existe pour personne.',
+  ]
+}
+
 function design(): readonly string[] {
   return [
     'La direction artistique de ce site vit dans les `tokens` de',
     '`site.config.ts`, et nulle part ailleurs. Le CSS d’un bloc ne se modifie',
     'pas pour changer une couleur.',
+    '',
+    `L’intention derrière ces valeurs — ce qu’on cherche, ce qu’on évite, les`,
+    `références — vit dans \`${DESIGN_DOC}\`. Une valeur qui change s’y note`,
+    'avec sa raison.',
+    '',
+    '## Voir tous les blocs d’un coup',
+    '',
+    'Sous `npm run dev`, l’adresse `/__blocs` rend chaque bloc disponible avec',
+    'du contenu d’exemple, dans les tokens réels du site. C’est là qu’un',
+    'réglage se juge : la page d’accueil n’en montre que deux ou trois.',
     '',
     '## Face à une maquette',
     '',

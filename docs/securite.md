@@ -49,6 +49,8 @@ fonctionne et une garantie détruite — c'est ce qui les rend dangereuses.
    qui rend vraie la section précédente.
 2. **SVG refusé au téléversement.**
 3. **L'image stockée n'est jamais celle reçue** — ré-encodage systématique.
+   Un PDF y échappe, et lui seul : voir « Le document, seule exception à
+   l'invariant 3 » ci-dessous.
 4. **Aucun `^` dans les dépendances**, `npm ci` au déploiement.
 5. **Le site public n'embarque aucun JavaScript par défaut.**
 6. **Le panel est une island React unique.**
@@ -59,6 +61,33 @@ fonctionne et une garantie détruite — c'est ce qui les rend dangereuses.
 11. **Le build ne remplace jamais le site en place.**
 12. **Le mot de passe initial ne transite jamais par email** — l'email porte
     déjà le second facteur.
+
+## Le document, seule exception à l'invariant 3
+
+Un PDF ne se ré-encode pas : rien ne sait le reconstruire en neutralisant ce
+qu'il transporte, comme sharp le fait d'une image. Le socle l'accepte tout de
+même, parce qu'un client qui a des conditions générales signées ne peut pas les
+retranscrire — mais à six conditions, et elles tiennent ensemble :
+
+1. **Un site l'accepte, ou ne l'accepte pas.** La capacité `documents` de
+   `site.config.ts` vaut `false` par défaut ; le téléversement est refusé tant
+   qu'elle n'est pas déclarée.
+2. **Le type est lu sur les octets réels** — l'en-tête `%PDF-` — jamais sur
+   l'extension ni sur le `Content-Type` annoncé.
+3. **Le nom vient de l'empreinte du contenu.** Le nom d'origine ne sert qu'à
+   l'affichage dans le panel, débarrassé de tout chemin.
+4. **Il est servi en pièce jointe**, avec `Content-Disposition: attachment` et
+   `X-Content-Type-Options: nosniff` — par le Caddyfile en production, par la
+   route du panel avant publication.
+5. **Aucun composant ne l'incruste dans une page.** La CSP porte déjà
+   `object-src 'none'`, et le seul bloc qui le sert produit un lien.
+6. **Il vit dans `public/documents/`**, hors du chemin des images : les règles
+   de cache et d'en-têtes des deux ne se mélangent pas.
+
+Ce qui reste : un PDF téléchargé est ouvert par le lecteur du visiteur, avec ce
+que ce lecteur accepte de faire. C'est le même risque qu'un fichier reçu par
+email, et il n'est pas réduit par le socle. Ce que le socle garantit, c'est
+qu'aucun PDF ne s'exécute dans l'origine du site.
 
 ## Ce qui n'est pas couvert, et pourquoi
 

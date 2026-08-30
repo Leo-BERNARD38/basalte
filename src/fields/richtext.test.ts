@@ -116,3 +116,85 @@ describe('renderRichtext — aucun HTML libre (invariant 1)', () => {
     expect(html).not.toMatch(/href="[^"]*"[a-z]/)
   })
 })
+
+describe('renderRichtext — grammaire par défaut', () => {
+  it('laisse un dièse et un tiret en texte', () => {
+    expect(renderRichtext('## Titre')).toBe('<p>## Titre</p>')
+    expect(renderRichtext('- un\n- deux')).toBe('<p>- un<br>- deux</p>')
+    expect(renderRichtext('1. un')).toBe('<p>1. un</p>')
+  })
+})
+
+describe('renderRichtext — titres', () => {
+  const grammar = { headings: true }
+
+  it('rend deux et trois dièses en titres de second et troisième rang', () => {
+    expect(renderRichtext('## Deux\n\n### Trois', grammar)).toBe(
+      '<h2>Deux</h2><h3>Trois</h3>',
+    )
+  })
+
+  it('laisse un dièse seul en texte : le premier titre est celui de la page', () => {
+    expect(renderRichtext('# Titre', grammar)).toBe('<p># Titre</p>')
+    expect(renderRichtext('#### Titre', grammar)).toBe('<p>#### Titre</p>')
+  })
+
+  it('ouvre un paragraphe après un titre sans ligne vide', () => {
+    expect(renderRichtext('## Titre\nUn texte.', grammar)).toBe(
+      '<h2>Titre</h2><p>Un texte.</p>',
+    )
+  })
+
+  it('rend le gras et les liens dans un titre', () => {
+    expect(renderRichtext('## **Fort** et [lié](/a)', grammar)).toBe(
+      '<h2><strong>Fort</strong> et <a href="/a">lié</a></h2>',
+    )
+  })
+
+  it('échappe une balise dans un titre', () => {
+    expect(renderRichtext('## <script>alert(1)</script>', grammar)).toBe(
+      '<h2>&lt;script&gt;alert(1)&lt;/script&gt;</h2>',
+    )
+  })
+})
+
+describe('renderRichtext — listes', () => {
+  const grammar = { lists: true }
+
+  it('rend une liste à puces, tiret ou étoile', () => {
+    expect(renderRichtext('- un\n* deux', grammar)).toBe(
+      '<ul><li>un</li><li>deux</li></ul>',
+    )
+  })
+
+  it('rend une liste numérotée', () => {
+    expect(renderRichtext('1. un\n2. deux', grammar)).toBe(
+      '<ol><li>un</li><li>deux</li></ol>',
+    )
+  })
+
+  it('sépare une liste à puces d’une liste numérotée qui la suit', () => {
+    expect(renderRichtext('- un\n1. deux', grammar)).toBe(
+      '<ul><li>un</li></ul><ol><li>deux</li></ol>',
+    )
+  })
+
+  it('reprend un paragraphe après la liste', () => {
+    expect(renderRichtext('- un\n\nDeux.', grammar)).toBe(
+      '<ul><li>un</li></ul><p>Deux.</p>',
+    )
+  })
+
+  it('rend le gras et les liens dans un élément', () => {
+    expect(renderRichtext('- **un** [deux](/a)', grammar)).toBe(
+      '<ul><li><strong>un</strong> <a href="/a">deux</a></li></ul>',
+    )
+  })
+
+  it('échappe une balise dans un élément', () => {
+    expect(
+      renderRichtext('- <img src=x onerror="alert(1)">', grammar),
+    ).toContain('&lt;img')
+    expect(renderRichtext('- <img src=x>', grammar)).not.toContain('<img')
+  })
+})

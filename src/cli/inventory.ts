@@ -143,6 +143,8 @@ function constraints(field: FieldDescription): string {
   if (field.min !== undefined) parts.push(`min ${field.min}`)
   if (field.max !== undefined) parts.push(`max ${field.max}`)
   if (field.ratio !== undefined) parts.push(`ratio ${field.ratio}`)
+  if (field.headings === true) parts.push('titres ## et ###')
+  if (field.lists === true) parts.push('listes')
   if (field.external === true) parts.push('externe')
 
   if (field.options !== undefined) {

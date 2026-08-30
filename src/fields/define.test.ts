@@ -32,6 +32,14 @@ describe('f', () => {
     })
   })
 
+  it('déclare un document par sa seule clé, jamais traduite', () => {
+    const field = f.document({ label: 'Nos conditions générales' })
+
+    expect(field.kind).toBe('document')
+    expect(field.required).toBe(false)
+    expectTypeOf<Value<typeof field>>().toEqualTypeOf<string>()
+  })
+
   it('un champ traduisible se type par langue, un autre non', () => {
     expectTypeOf<Value<ReturnType<typeof title>>>().toEqualTypeOf<
       Translated<string>

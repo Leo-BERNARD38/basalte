@@ -6,6 +6,14 @@ import { resolveLanguages } from '../site/languages.js'
 import { renderIssue } from './report.js'
 import { validatePage } from './validate.js'
 
+const brochure = block({
+  name: 'brochure',
+  label: 'Document à télécharger',
+  fields: {
+    file: f.document({ label: 'Le fichier' }),
+  },
+})
+
 const hero = block({
   name: 'hero',
   label: 'Bandeau principal',
@@ -22,7 +30,7 @@ const hero = block({
   },
 })
 
-const registry = { hero }
+const registry = { hero, brochure }
 const media = {
   a3f2c1d4b5e6f708: {
     format: 'webp',
@@ -31,6 +39,9 @@ const media = {
     widths: [480, 1200],
     alt: { fr: 'Une image', en: 'A picture' },
   },
+}
+const documents = {
+  '9f1c2d3e4a5b6c70': { name: 'Conditions générales.pdf', bytes: 12_400 },
 }
 const mono = resolveLanguages({ fr: { default: true } })
 const bothOnline = resolveLanguages({ fr: { default: true }, en: {} })
@@ -59,8 +70,45 @@ function page(overrides: Record<string, unknown> = {}) {
 }
 
 function run(source: unknown, languages = mono) {
-  return validatePage({ name: 'index', source, registry, languages, media })
+  return validatePage({
+    name: 'index',
+    source,
+    registry,
+    languages,
+    media,
+    documents,
+  })
 }
+
+describe('validatePage — les documents', () => {
+  it('accepte un document présent au manifeste', () => {
+    const result = run(
+      page({
+        blocks: [
+          {
+            id: 'd1',
+            type: 'brochure',
+            props: { file: '9f1c2d3e4a5b6c70' },
+          },
+        ],
+      }),
+    )
+
+    expect(result.issues).toEqual([])
+  })
+
+  it('refuse un document absent du manifeste', () => {
+    const result = run(
+      page({
+        blocks: [{ id: 'd1', type: 'brochure', props: { file: 'disparu' } }],
+      }),
+    )
+
+    expect(renderIssue(result.issues[0]!)).toBe(
+      'index › section 1 « Document à télécharger » › Le fichier : le document « disparu » n’est pas dans la médiathèque',
+    )
+  })
+})
 
 describe('validatePage', () => {
   it('accepte un contenu valide et le rend', () => {
@@ -224,6 +272,7 @@ describe('validatePage', () => {
         ],
       }),
       registry,
+      documents,
       languages: bothOnline,
       media: {
         a3f2c1d4b5e6f708: {
@@ -285,6 +334,7 @@ describe('validatePage', () => {
         ],
       }),
       registry: { gallery },
+      documents,
       languages: mono,
       media,
     })

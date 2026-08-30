@@ -11,16 +11,22 @@ mon-client/
 │   ├── basalte.md         GÉNÉRÉ à chaque npm install — ne pas éditer
 │   ├── skills/
 │   │   ├── nouveau-bloc/  créer un bloc sur mesure pour ce site
+│   │   ├── contexte/      interroger, puis écrire docs/CONTEXT.md et DESIGN.md
+│   │   ├── nouvelle-page/ ajouter une page au site
 │   │   ├── design/        régler les tokens, implémenter une maquette
 │   │   ├── contenu/       rédiger et traduire
 │   │   └── mettre-a-jour/ monter le socle de version
 │   └── commands/          /check · /deploy
+├── docs/
+│   ├── CONTEXT.md         qui est le client, ce qu'il vend, son ton
+│   └── DESIGN.md          ce que la direction artistique cherche, et pourquoi
 ├── astro.config.mjs       4 lignes
 ├── site.config.ts         DA, langues, domaine — versionné
 ├── .env                   secrets — jamais versionné
 ├── .env.example
-├── content/*.json         index et contact, au format courant
-├── public/media/
+├── content/*.json         index, contact, et les deux documents légaux
+├── content/media.json · documents.json   les manifestes, pas des pages
+├── public/media/ · public/documents/
 ├── src/blocks/            les blocs sur mesure de ce site
 ├── compose.yml
 ├── Caddyfile
@@ -36,9 +42,17 @@ mon-client/
 
 Aucune de ces entrées ne contient de logique du socle.
 
-Vingt-huit fichiers, écrits d'un seul coup : rien n'est posé sur le disque tant
-que la liste n'est pas complète, pour qu'une génération qui échoue ne laisse pas
-un dossier à moitié fait.
+Écrits d'un seul coup : rien n'est posé sur le disque tant que la liste n'est
+pas complète, pour qu'une génération qui échoue ne laisse pas un dossier à
+moitié fait.
+
+**Deux pages légales sont générées** — `mentions-legales.json` et
+`confidentialite.json` — chacune portant une section de prose pré-remplie d'un
+canevas français, marqueurs entre crochets à compléter. Ce n'est pas un conseil
+juridique, et le canevas le dit dans sa première phrase. Le client les édite
+comme les autres pages : il n'existe pas de source séparée pour les faits de
+l'entreprise (D101). La mention de consentement du formulaire est pré-remplie
+avec le lien vers `/confidentialite`, le seul que le RGPD attend là.
 
 Le hook de pré-commit est ajouté à l'index en exécutable — le bit ne se pose pas
 depuis Windows, et sans lui git ignore le hook sous Linux.
@@ -75,9 +89,37 @@ export default defineSite({
   languages: { fr: { default: true } },
   email: { provider: 'brevo' },     // le nom, jamais la clé
   leads: { purgeAfterMonths: 12 },
+  capabilities: { documents: true },// ce que ce site fait
   tokens: { /* la DA — voir design.md */ },
 })
 ```
+
+**`capabilities` dit ce que le site fait**, et se lit à l'exécution : rien de
+ce qu'`init` a choisi n'est irréversible, une capacité se change en modifiant
+une ligne (D98). La liste est fermée comme celle des tokens — un nom inconnu
+est refusé au chargement.
+
+| Capacité | Défaut | Effet |
+|---|---|---|
+| `notifyLeads` | `true` | un message reçu part par email ; à `false` il reste dans le panel |
+| `analytics` | `true` | l'écran « Audience », lu dans les journaux de Caddy |
+| `documents` | `false` | le téléversement de PDF, et l'écran qui les porte |
+
+## Les profils
+
+`basalte init <nom> --profile <profil>` — un profil est un **jeu de réponses**,
+pas une branche : il choisit ce qui est écrit au premier jour, et rien du socle
+ne s'exécute différemment selon lui. En ajouter un ne multiplie donc pas ce
+qu'il y a à maintenir.
+
+| Profil | Ce qu'il change |
+|---|---|
+| `vitrine` (défaut) | rien — l'accueil, le formulaire, les deux documents légaux |
+| `artisan` | une page « services » de plus, et `documents: true` : un artisan a des devis et des CGV à joindre |
+
+Sans `--profile`, la question est posée comme les trois autres. Tout ce qu'un
+profil pose se change ensuite en éditant un fichier — c'est la même règle que
+pour les capacités.
 
 **`.env`** — jamais versionné (D26) :
 
@@ -116,9 +158,20 @@ et le build en a besoin pour le sitemap, les `hreflang` et l'Open Graph.
 
 Deux fichiers, avec deux durées de vie opposées.
 
-**`CLAUDE.md`** est écrit une fois par `init` et t'appartient. Il décrit *ce
-site* : le client, le ton, la DA, ce qu'il ne faut pas toucher. Rien ne le
-régénère jamais.
+**`CLAUDE.md`** est écrit une fois par `init` et t'appartient. Il pose les
+règles du dépôt et importe le reste. Rien ne le régénère jamais.
+
+**`docs/CONTEXT.md` et `docs/DESIGN.md`** portent le contexte du site : qui est
+le client, ce qu'il vend, à qui, comment il parle — et ce que sa direction
+artistique cherche, ce qu'elle évite, pourquoi chaque token s'écarte du défaut.
+`CLAUDE.md` les importe, donc ils sont chargés à chaque session : un agent qui
+ouvre le dépôt sait pour qui il écrit avant d'avoir lu une ligne de contenu.
+
+`init` les écrit en squelette de sections marquées « à compléter », jamais en
+page blanche, et la skill `contexte` les remplit par entretien — une question à
+la fois, et rien d'inventé : ce qui est écrit là sera relu comme vrai pendant
+des mois. Ils sont tenus hors de `CLAUDE.md` parce qu'ils sont longs, révisés
+souvent, et d'une autre nature que des règles de dépôt.
 
 **`.claude/basalte.md`** est **régénéré à chaque `npm install`**. Il contient ce
 qui vient du socle : les règles absolues, les commandes, et l'inventaire des

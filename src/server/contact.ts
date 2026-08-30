@@ -139,7 +139,15 @@ export async function handleContact(
  * sur la sortie d’erreur et n’enlève rien au visiteur, qui a bien été reçu.
  */
 async function notify(panel: Panel, lead: Lead): Promise<void> {
-  const { to, provider } = panel.leads
+  const { notify: allowed, to, provider } = panel.leads
+
+  if (!allowed) {
+    process.stderr.write(
+      `Message reçu de ${lead.email}, gardé dans le panel : ce site ne notifie pas les messages.\n`,
+    )
+
+    return
+  }
 
   if (to === '' || provider === undefined) {
     process.stderr.write(

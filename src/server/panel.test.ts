@@ -368,3 +368,18 @@ describe('gardes', () => {
     await site.close()
   })
 })
+
+describe('la capacité « analytics »', () => {
+  it('refuse le rapport d’audience quand elle est éteinte', async () => {
+    const site = await bench({ capabilities: { analytics: false } })
+    const response = await site.call('GET', '/api/stats')
+
+    expect(response.status).toBe(409)
+
+    const payload = await (await site.call('GET', '/api/panel')).json()
+
+    expect(payload.site.capabilities.analytics).toBe(false)
+
+    await site.close()
+  })
+})

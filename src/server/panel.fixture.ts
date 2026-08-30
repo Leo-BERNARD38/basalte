@@ -13,12 +13,14 @@ import { fileURLToPath } from 'node:url'
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
+import { readDocuments } from '../media/documents.js'
 import { MANIFEST_PATH, type MediaManifest } from '../media/manifest.js'
 import {
   createPublisher,
   type Build,
   type Publisher,
 } from '../publish/publish.js'
+import type { CapabilityOverrides } from '../site/capabilities.js'
 import { defineSite } from '../site/define.js'
 import type { Letter } from './email/messages.js'
 import { memoryProvider, type MemoryProvider } from './email/memory.js'
@@ -62,6 +64,8 @@ export type BenchOptions = {
   readonly contactTo?: string
   /** Le log d’accès que lit le rapport d’audience. */
   readonly accessLog?: string
+  /** Ce que le site déclare faire. Par défaut, les valeurs du socle. */
+  readonly capabilities?: CapabilityOverrides
 }
 
 export type Bench = {
@@ -143,6 +147,9 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     name: 'Banc d’essai',
     domain: 'banc.test',
     languages: { fr: { default: true }, en: { draft: true } },
+    ...(settings.capabilities === undefined
+      ? {}
+      : { capabilities: settings.capabilities }),
   })
 
   const publisher = createPublisher({
@@ -166,9 +173,11 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
       site,
       registry,
       media: (await read(path.join(root, MANIFEST_PATH))) as MediaManifest,
+      documents: await readDocuments(root),
     }),
     publisher,
     leads: {
+      notify: site.capabilities.notifyLeads,
       to: settings.contactTo ?? 'client@exemple.fr',
       provider: mail,
       months: 12,

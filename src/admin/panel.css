@@ -271,11 +271,25 @@ body {
   line-height: 1.6;
 }
 
-.basalte-markdown :where(p) {
+.basalte-markdown :where(p, ul, ol) {
   margin: 0 0 var(--panel-space-2);
 }
 
-.basalte-markdown :where(p:last-child) {
+.basalte-markdown :where(h2, h3) {
+  margin: var(--panel-space-3) 0 var(--panel-space-2);
+  font-size: var(--panel-text-body);
+  font-weight: 600;
+}
+
+.basalte-markdown :where(ul, ol) {
+  padding-left: var(--panel-space-4);
+}
+
+.basalte-markdown :where(:first-child) {
+  margin-top: 0;
+}
+
+.basalte-markdown :where(:last-child) {
   margin-bottom: 0;
 }
 

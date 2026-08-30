@@ -3,7 +3,7 @@
 // et le dépôt client sont parcourus (invariant 7).
 
 import type { Fields, Values } from '../fields/types.js'
-import type { ResolvedImage } from '../media/resolve.js'
+import type { ResolvedDocument, ResolvedImage } from '../media/resolve.js'
 
 export type BlockDefinition<S extends Fields = Fields> = {
   /** Le type écrit dans le JSON de contenu, et le nom du dossier. */
@@ -22,6 +22,7 @@ export type BlockProps<S extends Fields> = {
   readonly props: Values<S>
   readonly language: string
   readonly image: ImageResolver
+  readonly document: DocumentResolver
 }
 
 // Une clé de média devient ce qu’un `img` attend. Le `sizes` appartient au
@@ -30,6 +31,9 @@ export type ImageResolver = (
   key: string,
   sizes?: string,
 ) => ResolvedImage | undefined
+
+/** Une clé de document devient un lien de téléchargement, jamais un rendu. */
+export type DocumentResolver = (key: string) => ResolvedDocument | undefined
 
 const NAME = /^[a-z][a-z0-9-]*$/
 

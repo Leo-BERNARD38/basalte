@@ -1,0 +1,104 @@
+---
+// Le banc de blocs : tous les blocs disponibles sur une page, dans les tokens
+// réels du site.
+//
+// Régler une direction artistique en rechargeant la page d’accueil, c’est
+// régler deux blocs sur cinq. Ici ils y sont tous — ceux du socle et ceux du
+// dépôt — remplis de valeurs dérivées de leurs descripteurs : un bloc écrit ce
+// matin apparaît sans que rien n’ait été déclaré.
+//
+// La route n’existe que sous `astro dev` : elle n’est injectée nulle part
+// ailleurs, et aucune version publiée ne la porte.
+import { blocks, documents, media, registry, site } from 'virtual:basalte'
+import { sampleValues } from '../fields/sample.js'
+import { resolveDocument, resolveImage } from '../media/resolve.js'
+import Layout from './Layout.astro'
+
+export const prerender = false
+
+const language = site.languages.default.code
+
+const context = {
+  languages: site.languages.all.map((entry) => entry.code),
+  ...(Object.keys(media)[0] === undefined
+    ? {}
+    : { image: Object.keys(media)[0] }),
+  ...(Object.keys(documents)[0] === undefined
+    ? {}
+    : { document: Object.keys(documents)[0] }),
+}
+
+const bench = Object.values(registry)
+  .filter((definition) => blocks[definition.name] !== undefined)
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((definition) => ({
+    definition,
+    props: sampleValues(definition.fields, context),
+  }))
+
+const meta = {
+  title: { [language]: `Blocs — ${site.name}` },
+  description: { [language]: '' },
+}
+
+const image = (key: string, sizes?: string) =>
+  resolveImage(media, key, language, sizes)
+
+const document = (key: string) => resolveDocument(documents, key)
+---
+
+<Layout site={site} meta={meta} language={language} route="/__blocs">
+  <div class="bench__intro">
+    <p>
+      {bench.length} bloc{bench.length > 1 ? 's' : ''} disponible{
+        bench.length > 1 ? 's' : ''
+      }, remplis de valeurs d’exemple. Cette page n’existe que sous <code
+        >npm run dev</code
+      >.
+    </p>
+  </div>
+
+  {
+    bench.map((entry) => {
+      const Block = blocks[entry.definition.name]
+      return (
+        <section class="bench__block">
+          <p class="bench__name">
+            {entry.definition.name} — {entry.definition.label}
+          </p>
+          <Block
+            props={entry.props}
+            language={language}
+            image={image}
+            document={document}
+          />
+        </section>
+      )
+    })
+  }
+</Layout>
+
+<style>
+  .bench__intro {
+    padding: var(--space-5);
+    color: var(--color-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+  }
+
+  .bench__intro p {
+    max-width: var(--width-content);
+    margin: 0 auto;
+  }
+
+  .bench__name {
+    max-width: var(--width-wide);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5) 0;
+    color: var(--color-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

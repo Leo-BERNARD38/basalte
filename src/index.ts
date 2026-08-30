@@ -9,6 +9,7 @@ export type {
   Languages,
 } from './site/languages.js'
 export type { Tokens, TokenOverrides } from './site/tokens.js'
+export type { Capabilities, CapabilityOverrides } from './site/capabilities.js'
 
 export { f } from './fields/define.js'
 export { pick } from './fields/translate.js'
@@ -32,7 +33,8 @@ export { CONTENT_FORMAT } from './content/page.js'
 export type { Page, PageBlock, PageMeta } from './content/page.js'
 export type { Project, RenderedPage } from './content/project.js'
 
-export { resolveImage } from './media/resolve.js'
-export type { ResolvedImage } from './media/resolve.js'
+export { resolveImage, resolveDocument } from './media/resolve.js'
+export type { ResolvedImage, ResolvedDocument } from './media/resolve.js'
 export type { MediaEntry, MediaManifest } from './media/manifest.js'
-export type { ImageResolver } from './blocks/define.js'
+export type { DocumentEntry, DocumentManifest } from './media/documents.js'
+export type { DocumentResolver, ImageResolver } from './blocks/define.js'

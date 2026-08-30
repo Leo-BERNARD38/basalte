@@ -103,6 +103,7 @@ export async function savePage(
     registry: schemas.registry,
     languages: schemas.site.languages,
     media: schemas.media,
+    documents: schemas.documents,
   })
 
   if (result.page === undefined) {

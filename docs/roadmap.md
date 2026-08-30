@@ -66,7 +66,7 @@ livre un site sans navigation ni mentions légales.
 
 | # | Nom | Ce qu’elle règle |
 |---|---|---|
-| 7 | **Outiller** | un `init` réglable, le contexte d’un site, les documents légaux |
+| 7 | **Outiller** · faite | un `init` réglable, le contexte d’un site, les documents légaux |
 | 8 | **Adapter** | deux rendus servis selon le support, une seule source de contenu |
 | 9 | **Encadrer** | le chrome — navigation, pied de page |
 | 10 | **Cadrer** | le cadrage des images, et `src/seo/` |
@@ -110,7 +110,26 @@ variable vide.
 
 ---
 
-## Phase 7 — Outiller
+## Phase 7 — Outiller · faite
+
+**Ce qu’elle a retenu, et ce qu’elle a remplacé.** Les hypothèses de départ ont
+tenu pour l’essentiel — capacités déclarées dans `site.config.ts`, `--profile`,
+skills d’entretien, route de développement rendant tous les blocs, `f.document`
+— avec trois écarts, actés en D98 à D102 :
+
+- **Pas de fichier typé pour les faits de l’entreprise.** Ils n’ont qu’un
+  consommateur — la page qui les affiche — que le client gère déjà. Le contexte
+  reste de la prose : `docs/CONTEXT.md` et `docs/DESIGN.md` (D101). Le JSON-LD
+  local de la phase 10 aura donc à décider d’où il tire ses données.
+- **Pas de commande pour ajouter une page.** Une page est un fichier de
+  `content/` : une skill du dépôt client suffit, et le CLI reste à neuf
+  commandes (D89).
+- **La prose enrichie étend `f.richtext` plutôt que de lui succéder**, par deux
+  drapeaux déclarés champ par champ (D99).
+
+**Ce qui reste ouvert.** Une page légale n’a pas de `h1` : le titre de sa
+section rend un `h2`, comme la page de contact avant elle. C’est le chrome de
+la phase 9 qui referme ce point, pour toutes les pages à la fois.
 
 **Pourquoi.** `init` produit le même site pour tout le monde, et aucun de ses
 fichiers ne dit qui est le client, ce qu’il vend, à qui, ni ce que sa direction

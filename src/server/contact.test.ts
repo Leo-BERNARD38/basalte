@@ -370,3 +370,20 @@ describe('la taille du corps', () => {
     await site.close()
   })
 })
+
+describe('la capacité « notifyLeads »', () => {
+  it('garde le message au panel sans rien envoyer quand elle est éteinte', async () => {
+    const site = await bench({
+      content: contactPage(),
+      capabilities: { notifyLeads: false },
+    })
+
+    const response = await site.submit(VALID)
+
+    expect(response.headers.get('location')).toBe(`/${SENT}`)
+    expect(listLeads(site.panel.server.database, 10)).toHaveLength(1)
+    expect(site.mail.sent).toHaveLength(0)
+
+    await site.close()
+  })
+})

@@ -37,10 +37,12 @@ export type Panel = {
   readonly accessLog: string
 }
 
-// Le canal du site, pas celui des codes de connexion (D75). Sans destinataire
-// ni fournisseur, un message reste dans le panel : il n’est jamais perdu, il
-// n’est simplement pas notifié.
+// Le canal du site, pas celui des codes de connexion (D75). Sans destinataire,
+// sans fournisseur, ou sans la capacité qui l’autorise, un message reste dans
+// le panel : il n’est jamais perdu, il n’est simplement pas notifié.
 export type Leads = {
+  /** Ce que le site déclare : à `false`, aucun message ne part par email. */
+  readonly notify: boolean
   readonly to: string
   readonly provider?: EmailProvider | undefined
   /** Durée de conservation, en mois. */

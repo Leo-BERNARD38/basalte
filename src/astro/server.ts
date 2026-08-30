@@ -14,6 +14,7 @@ import { dev, registry, root, site } from 'virtual:basalte'
 
 import { accessLogPath } from '../analytics/access.js'
 import type { Schemas } from '../content/project.js'
+import { readDocuments } from '../media/documents.js'
 import { readManifest } from '../media/manifest.js'
 import { alertMaintainer } from '../publish/alert.js'
 import { createPublisher, publishIfStale } from '../publish/publish.js'
@@ -65,9 +66,11 @@ function open(): Panel {
       site,
       registry,
       media: await readManifest(root),
+      documents: await readDocuments(root),
     }),
     publisher,
     leads: {
+      notify: site.capabilities.notifyLeads,
       to: contactAddress(process.env),
       provider,
       months,

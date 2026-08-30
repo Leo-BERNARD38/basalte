@@ -5,6 +5,7 @@
 declare module 'virtual:basalte' {
   import type {
     BlockRegistry,
+    DocumentManifest,
     MediaManifest,
     RenderedPage,
     Site,
@@ -17,6 +18,7 @@ declare module 'virtual:basalte' {
   export const registry: BlockRegistry
   export const pages: readonly RenderedPage[]
   export const media: MediaManifest
+  export const documents: DocumentManifest
   export const blocks: Readonly<
     Record<string, (props: Record<string, unknown>) => unknown>
   >

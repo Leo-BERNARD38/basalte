@@ -13,6 +13,7 @@ import {
 import { toZod } from '../fields/schema.js'
 import { walkValues } from '../fields/walk.js'
 import type { Fields } from '../fields/types.js'
+import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
 import type { Languages } from '../site/languages.js'
 import {
@@ -41,6 +42,7 @@ export type ValidateInput = {
   readonly registry: BlockRegistry
   readonly languages: Languages
   readonly media: MediaManifest
+  readonly documents: DocumentManifest
 }
 
 export function validatePage(input: ValidateInput): PageValidation {
@@ -107,6 +109,7 @@ export function validatePage(input: ValidateInput): PageValidation {
     values: page.meta,
     languages,
     media: input.media,
+    documents: input.documents,
   })
 
   for (const [index, section] of page.blocks.entries()) {
@@ -130,6 +133,7 @@ export function validatePage(input: ValidateInput): PageValidation {
         values: section.props,
         languages,
         media: input.media,
+        documents: input.documents,
         section: { index, id: section.id, label: definition.label },
       }),
     })
@@ -169,6 +173,7 @@ function collect(
     readonly values: unknown
     readonly languages: Languages
     readonly media: MediaManifest
+    readonly documents: DocumentManifest
     readonly section?: ContentIssue['section']
   },
 ): Readonly<Record<string, unknown>> {
@@ -189,17 +194,18 @@ function collect(
     ...translationProgress(input.fields, input.values, input.languages),
   )
 
-  media(issues, input)
+  references(issues, input)
 
   return parsed.success
     ? (parsed.data as Readonly<Record<string, unknown>>)
     : (input.values as Readonly<Record<string, unknown>>)
 }
 
-// Une image référencée doit exister dans la médiathèque et porter son texte
-// alternatif dans chaque langue en ligne : il est obligatoire au
-// téléversement, et le plancher de design.md l’exige sur chaque image.
-function media(
+// Une image ou un document référencé doit exister dans la médiathèque. Une
+// image doit en plus porter son texte alternatif dans chaque langue en ligne :
+// il est obligatoire au téléversement, et le plancher de design.md l’exige sur
+// chaque image.
+function references(
   issues: ContentIssue[],
   input: {
     readonly name: string
@@ -207,11 +213,12 @@ function media(
     readonly values: unknown
     readonly languages: Languages
     readonly media: MediaManifest
+    readonly documents: DocumentManifest
     readonly section?: ContentIssue['section']
   },
 ): void {
   walkValues(input.fields, input.values, (field, value, path) => {
-    if (field.kind !== 'image') return
+    if (field.kind !== 'image' && field.kind !== 'document') return
 
     const key = typeof value === 'string' ? value.trim() : ''
 
@@ -225,6 +232,17 @@ function media(
       ...(located.labels.length === 0
         ? {}
         : { field: located.labels.join(' › ') }),
+    }
+
+    if (field.kind === 'document') {
+      if (input.documents[key] === undefined) {
+        issues.push({
+          ...where,
+          message: `le document « ${key} » n’est pas dans la médiathèque`,
+        })
+      }
+
+      return
     }
 
     const entry = input.media[key]

@@ -34,10 +34,11 @@ import { loadPanel, publishSite, readPublication, savePage } from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
 import { EditingContext, pageLabel, type Editing } from './editing.js'
+import { DocumentPicker } from './DocumentPicker.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
 import { Messages } from './Messages.js'
-import { SCREENS, Shell, type Screen } from './Shell.js'
+import { screensFor, SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
 import { Stats } from './Stats.js'
 import { cssVariables, theme } from './theme.js'
@@ -65,6 +66,9 @@ export default function Panel({ site }: { readonly site: string }) {
   const [problems, setProblems] = useState<readonly string[]>([])
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
+  const [documentPicker, setDocumentPicker] = useState<Picker | undefined>(
+    undefined,
+  )
   const [asked, setAsked] = useState<string | undefined>(undefined)
   const [publication, setPublication] = useState<PublishState>(IDLE)
 
@@ -189,6 +193,13 @@ export default function Panel({ site }: { readonly site: string }) {
 
   const known = payload
 
+  // Une adresse ancienne peut nommer un écran que le site ne déclare plus :
+  // elle ramène à l’édition plutôt qu’à un écran vide.
+  const available = screensFor(known.site.capabilities)
+  const shown = available.some((entry) => entry.value === screen)
+    ? screen
+    : 'edit'
+
   const save = async (): Promise<boolean> => {
     setBusy(true)
 
@@ -248,9 +259,13 @@ export default function Panel({ site }: { readonly site: string }) {
   const editing: Editing = {
     language,
     languages: known.site.languages,
+    capabilities: known.site.capabilities,
     media: known.media,
+    documents: known.documents,
     pickImage: (current) =>
       new Promise((resolve) => setPicker({ current, resolve })),
+    pickDocument: (current) =>
+      new Promise((resolve) => setDocumentPicker({ current, resolve })),
   }
 
   const answerPicker = (key: string | undefined) => {
@@ -258,14 +273,19 @@ export default function Panel({ site }: { readonly site: string }) {
     setPicker(undefined)
   }
 
+  const answerDocumentPicker = (key: string | undefined) => {
+    documentPicker?.resolve(key)
+    setDocumentPicker(undefined)
+  }
+
   return (
     <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
       <EditingContext.Provider value={editing}>
         <Shell
           payload={known}
-          screen={screen}
+          screen={shown}
           heading={heading(
-            screen,
+            shown,
             page === undefined ? undefined : pageLabel(page.name),
           )}
           onScreen={goTo}
@@ -280,7 +300,7 @@ export default function Panel({ site }: { readonly site: string }) {
           onPublish={() => void goOnline()}
           onSignedOut={() => setPayload(undefined)}
         >
-          {screen === 'edit' && (
+          {shown === 'edit' && (
             <Edit
               payload={known}
               selected={selected}
@@ -292,14 +312,15 @@ export default function Panel({ site }: { readonly site: string }) {
             />
           )}
 
-          {screen === 'media' && (
+          {shown === 'media' && (
             <MediaLibrary
               media={known.media}
+              documents={known.documents}
               onChanged={() => void refresh()}
             />
           )}
 
-          {screen === 'messages' && (
+          {shown === 'messages' && (
             <Messages
               retention={known.retention}
               onChanged={() => void refresh()}
@@ -307,11 +328,11 @@ export default function Panel({ site }: { readonly site: string }) {
             />
           )}
 
-          {screen === 'stats' && (
+          {shown === 'stats' && (
             <Stats onSignedOut={() => setPayload(undefined)} />
           )}
 
-          {screen === 'account' && (
+          {shown === 'account' && (
             <Account onSignedOut={() => setPayload(undefined)} />
           )}
         </Shell>
@@ -323,6 +344,15 @@ export default function Panel({ site }: { readonly site: string }) {
           onChanged={() => void refresh()}
           onClose={() => answerPicker(undefined)}
           onChoose={answerPicker}
+        />
+
+        <DocumentPicker
+          opened={documentPicker !== undefined}
+          documents={known.documents}
+          current={documentPicker?.current ?? ''}
+          onChanged={() => void refresh()}
+          onClose={() => answerDocumentPicker(undefined)}
+          onChoose={answerDocumentPicker}
         />
 
         <Modal

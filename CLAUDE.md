@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases sont faites. Phase 1 — DSL de champs, moteur de blocs,
+**État :** les six phases et la phase 7 sont faites. Phase 1 — DSL de champs, moteur de blocs,
 intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
 démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
 d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
@@ -16,8 +16,11 @@ sans une ligne de JavaScript, anti-spam, messages gardés en base avant tout
 envoi, purge des données personnelles, audience lue dans les logs de Caddy.
 Phase 6 — livrer : `basalte init` et le paquet Claude Code du dépôt client,
 `deploy`, `doctor`, `update`, les migrations de format, `update-all`, et les
-fichiers de la machine. Reste `src/seo/` et le bloc `faq` qui l'attend
-(`docs/implementation.md`).
+fichiers de la machine. Phase 7 — outiller : la grammaire enrichie de
+`f.richtext`, les documents légaux générés, le PDF téléchargeable, le contexte
+du site en `docs/`, le banc de blocs `/__blocs`, les capacités déclarées et les
+profils d'`init`. Reste `src/seo/` et le bloc `faq` qui l'attend
+(`docs/roadmap.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 **Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
@@ -84,10 +87,12 @@ départ — pas de mémoïsation écrite à la main.
 
 ```
 src/
-├── site/           site.config.ts : chargement, langues, tokens → CSS
+├── site/           site.config.ts : chargement, langues, tokens → CSS,
+│                   capacités déclarées
 ├── fields/         DSL f.* → schéma Zod + description d'interface
 ├── content/        format de page, lecture, validation, messages français
-├── media/          ingestion sharp, manifeste, résolution, emplois
+├── media/          ingestion sharp, manifeste, résolution, emplois ;
+│                   documents PDF, seule exception à l'invariant 3
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro
 ├── astro/          intégration : routes du site, du panel, aperçu, API
@@ -127,6 +132,10 @@ Détail dans `docs/conventions.md`. L'essentiel :
   son domaine. Un fourre-tout est là où la duplication s'accumule.
 - **Un bloc ne valide rien à la main.** Une vérification manquante s'ajoute à
   `f.*`.
+- **Ce qu'un site fait se lit, jamais ne bifurque.** Un réglage vit dans
+  `capabilities` de `site.config.ts` et se lit au moment où le comportement se
+  joue (D98). Un `--profile` ne change que ce qui est *écrit* au premier jour —
+  jamais ce que le socle exécute.
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
   est un token à ajouter, jamais un `padding: 27px` isolé. Le panel a sa propre
@@ -171,7 +180,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 
 | Commande | Effet |
 |---|---|
-| `basalte init <nom>` | génère un dépôt client complet |
+| `basalte init <nom> [--profile <nom>]` | génère un dépôt client complet |
 | `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère `.claude/basalte.md` |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
@@ -262,6 +271,14 @@ tests (`docs/implementation.md`).
   ailleurs, elle n'arriverait jamais exécutable chez le client (D87).
 - **`commit` est un mot réservé de SQLite** : la colonne qui porte le commit
   d'une mise en ligne s'appelle `commit_sha`.
+- **Un manifeste de `content/` n'est pas une page.** `media.json` et
+  `documents.json` y vivent parce qu'ils sont versionnés et fusionnés comme les
+  pages, mais `readContent` les écarte : en oublier un le rend page, et
+  `basalte check` échoue sur un `$format` absent.
+- **Un PDF n'est jamais ré-encodé.** C'est la seule exception à l'invariant 3,
+  et elle ne tient qu'à ses six conditions (`docs/securite.md`) : capacité
+  déclarée, octets réels vérifiés, nom d'empreinte, servi en pièce jointe,
+  jamais incrusté, rangé hors du chemin des images.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.
