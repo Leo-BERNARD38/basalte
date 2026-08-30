@@ -9,6 +9,12 @@
 // L’installation et la construction du panel ont donc lieu au démarrage du
 // conteneur, et sont sautées tant que le verrou de dépendances n’a pas changé.
 
+import {
+  DESKTOP_PREFIX,
+  MOBILE_HINT,
+  MOBILE_HINT_FALSE,
+  MOBILE_USER_AGENT,
+} from '../render/supports.js'
 import type { GeneratedFile, SiteAnswers } from './files.js'
 
 export const ENTRYPOINT = 'docker-entrypoint.sh'
@@ -130,10 +136,33 @@ function compose(): string {
 // motif en `/admin/*` ne fait pas — un chemin ne prend son suffixe qu’avec
 // l’étoile, et l’adresse que le client tape est justement celle sans barre.
 //
+// Deux chemins ne s’écrivent pas sur un `handle`, qui n’accepte qu’un motif :
+// ils passent par un matcher nommé. Et un bloc ne s’ouvre jamais en fin de
+// ligne — Caddy refuse d’adapter le fichier entier, sans servir une seule
+// requête. C’est ce que `caddy validate` dit, et ce qu’un test compare.
+//
 // Les images sont servies depuis le disque, avec le cache d’un nom dérivé
 // d’une empreinte. L’application ne les rend que si le fichier n’est pas encore
 // publié : c’est le cas d’un téléversement que le panel affiche avant la mise
 // en ligne.
+//
+// L’aiguillage entre les deux rendus est ici, et nulle part ailleurs : le site
+// public est servi depuis le disque, indépendamment du panel, et le confier au
+// processus Node ferait qu’une édition coupée couperait aussi les visites
+// (D105). Deux réécritures se relaient, dans cet ordre : l’indication client
+// tranche quand elle est là, le User-Agent à défaut. Elles s’excluent — la
+// seconde exige l’absence de l’en-tête que la première lit.
+//
+// Le fichier ne bifurque pas selon les capacités du site (D106). La condition
+// de fichier ne réécrit que si la page bureau existe, si bien qu’un site à un
+// seul rendu tombe sur son rendu mobile sans qu’une ligne change ici. C’est ce
+// qui rend le second rendu activable après coup, sans toucher à la machine.
+//
+// La réécriture vise le fichier trouvé plutôt que son dossier : `file_server`
+// ajoute la barre finale d’un dossier par une redirection, qui divulguerait le
+// préfixe au navigateur. Le préfixe est d’ailleurs refusé en direct, faute de
+// quoi les deux rendus auraient chacun leur adresse — du contenu dupliqué aux
+// yeux de Google.
 //
 // Les documents suivent le même chemin, avec un en-tête de plus : ils sont
 // servis en pièce jointe et ne s’affichent jamais dans une page. C’est la
@@ -153,9 +182,10 @@ function caddyfile(domain: string): string {
     '        -Server',
     '    }',
     '',
-    `    handle /admin /admin/* { reverse_proxy app:${APP_PORT} }`,
-    `    handle /api/*          { reverse_proxy app:${APP_PORT} }`,
-    `    handle /_panel/*       { reverse_proxy app:${APP_PORT} }`,
+    '    @panel path /admin /admin/* /api/* /_panel/*',
+    '    handle @panel {',
+    `        reverse_proxy app:${APP_PORT}`,
+    '    }',
     '',
     '    handle /documents/* {',
     `        root * ${SERVED_ROOT}/current`,
@@ -184,7 +214,32 @@ function caddyfile(domain: string): string {
     `        root * ${SERVED_ROOT}/current`,
     '        @immutable path /_astro/*',
     '        header @immutable Cache-Control "public, max-age=31536000, immutable"',
-    '        file_server',
+    '        @page not path /_astro/*',
+    `        header @page Vary "User-Agent, ${MOBILE_HINT}"`,
+    '',
+    '        route {',
+    `            @exposed path /${DESKTOP_PREFIX} /${DESKTOP_PREFIX}/*`,
+    '            respond @exposed 404',
+    '',
+    '            @hinted {',
+    `                header ${MOBILE_HINT} ${MOBILE_HINT_FALSE}`,
+    '                file {',
+    `                    try_files /${DESKTOP_PREFIX}{path} /${DESKTOP_PREFIX}{path}/index.html`,
+    '                }',
+    '            }',
+    '            rewrite @hinted {file_match.relative}',
+    '',
+    '            @guessed {',
+    `                header !${MOBILE_HINT}`,
+    `                not header_regexp User-Agent (${MOBILE_USER_AGENT.source})`,
+    '                file {',
+    `                    try_files /${DESKTOP_PREFIX}{path} /${DESKTOP_PREFIX}{path}/index.html`,
+    '                }',
+    '            }',
+    '            rewrite @guessed {file_match.relative}',
+    '',
+    '            file_server',
+    '        }',
     '    }',
     '',
     '    log {',

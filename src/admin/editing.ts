@@ -7,7 +7,7 @@ import { createContext, useContext } from 'react'
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import type { PanelLanguage } from '../server/panel.js'
-import type { Capabilities } from '../site/capabilities.js'
+import { resolveCapabilities, type Capabilities } from '../site/capabilities.js'
 
 export type Editing = {
   readonly language: string
@@ -22,7 +22,7 @@ export type Editing = {
 const EMPTY: Editing = {
   language: '',
   languages: [],
-  capabilities: { notifyLeads: true, analytics: true, documents: false },
+  capabilities: resolveCapabilities(),
   media: [],
   documents: [],
   pickImage: async () => undefined,

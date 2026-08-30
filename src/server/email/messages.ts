@@ -85,6 +85,29 @@ export function publicationFailed(
   )
 }
 
+/**
+ * Le contrat des deux rendus rompu. Le site est en ligne — c’est du
+ * référencement, pas une panne (D108) — et le client n’a rien à en faire : ce
+ * qu’il faut corriger est une variante de bloc, donc du code.
+ */
+export function renderContractBroken(
+  siteName: string,
+  said: readonly string[],
+): Letter {
+  return letter(
+    `Rendus divergents — ${siteName}`,
+    'Le rendu bureau porte ce que le mobile n’a pas',
+    [
+      `${siteName} est en ligne, avec ses deux rendus. Mais le rendu bureau montre ce que le rendu mobile ne montre pas, et c’est le mobile que Google indexe : ce qui suit ne sera jamais vu.`,
+      ...said,
+    ],
+    [
+      'Le rendu mobile est la référence : une variante bureau présente autrement, elle n’ajoute rien.',
+      'Cet email part de la machine du site, pas du canal des codes de connexion.',
+    ],
+  )
+}
+
 // Le message reçu par le formulaire. La réponse part vers le visiteur, pas
 // vers l’expéditeur du site : le client répond depuis sa boîte, sans recopier
 // une adresse.

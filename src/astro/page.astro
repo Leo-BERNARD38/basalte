@@ -1,24 +1,30 @@
 ---
-import { blocks, documents, media, pages, site } from 'virtual:basalte'
+import { blocks, desktop, documents, media, pages, site } from 'virtual:basalte'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
+import { slugIn, supportsOf } from '../render/supports.js'
 import Layout from './Layout.astro'
 import { slugFor } from './routes.js'
 
 export function getStaticPaths() {
   return pages.flatMap((entry) =>
-    site.languages.online.map((language) => ({
-      params: {
-        slug: slugFor(
-          entry.route,
-          language.code === site.languages.default.code ? '' : language.code,
-        ),
-      },
-      props: { entry, language: language.code },
-    })),
+    site.languages.online.flatMap((language) => {
+      const slug = slugFor(
+        entry.route,
+        language.code === site.languages.default.code ? '' : language.code,
+      )
+
+      return supportsOf(site).map((support) => ({
+        params: { slug: slugIn(support, slug) },
+        props: { entry, language: language.code, support },
+      }))
+    }),
   )
 }
 
-const { entry, language } = Astro.props
+const { entry, language, support } = Astro.props
+
+// Le mobile est le rendu de référence : un bloc sans variante bureau y retombe.
+const components = support === 'desktop' ? desktop : {}
 
 const sections = entry.page.blocks.filter(
   (section) => section.hidden[language] !== true,
@@ -38,7 +44,7 @@ const document = (key: string) => resolveDocument(documents, key)
 >
   {
     sections.map((section) => {
-      const Block = blocks[section.type]
+      const Block = components[section.type] ?? blocks[section.type]
       return (
         <Block
           props={section.props}

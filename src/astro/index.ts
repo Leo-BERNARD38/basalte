@@ -22,6 +22,7 @@ import type { AstroIntegration } from 'astro'
 
 import type { BlockRegistry } from '../blocks/define.js'
 import type { BlockSource } from '../blocks/scan.js'
+import { supportsOf } from '../render/supports.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { errorsOf, readProject, type RenderedPage } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
@@ -219,7 +220,8 @@ function virtualModule(generated: string): VirtualPlugin {
 
 // Les composants sont importés par un chemin relatif au fichier généré : une
 // instruction d’import ne porte donc jamais de séparateur de chemin propre à
-// un système.
+// un système. Les variantes bureau passent par les mêmes imports : c’est ce qui
+// leur fait porter leur CSS jusqu’au rendu (D45).
 //
 // Le registre y est écrit en JSON plutôt que reparcouru à l’exécution : une
 // fois le serveur du panel groupé, `import.meta.url` ne désigne plus le dossier
@@ -248,9 +250,31 @@ async function generate(
     (source, index) => `${JSON.stringify(source.name)}: Block${index}`,
   )
 
+  // Les variantes bureau ne sont importées que si le site en sert : sans cette
+  // garde, leur CSS entrerait dans le paquet d’un site à un seul rendu, que
+  // rien ne le rende ou non — la collecte des styles d’Astro parcourt le graphe
+  // des modules, pas les pages.
+  const built = supportsOf(data.site).includes('desktop')
+
+  const withVariant = data.sources.flatMap((source, index) =>
+    !built || source.desktop === undefined
+      ? []
+      : [{ name: source.name, from: source.desktop, index }],
+  )
+
+  const variants = withVariant.map(
+    ({ from, index }) =>
+      `import Desktop${index} from ${JSON.stringify(specifier(file, from))}`,
+  )
+
+  const desktops = withVariant.map(
+    ({ name, index }) => `${JSON.stringify(name)}: Desktop${index}`,
+  )
+
   const contents = [
     '// Fichier généré par @leobernard/basalte à chaque démarrage. Ne pas modifier.',
     ...lines,
+    ...variants,
     `export const root = ${JSON.stringify(data.root)}`,
     `export const site = ${JSON.stringify(data.site)}`,
     `export const dev = ${JSON.stringify(data.dev)}`,
@@ -259,6 +283,7 @@ async function generate(
     `export const media = ${JSON.stringify(data.media)}`,
     `export const documents = ${JSON.stringify(data.documents)}`,
     `export const blocks = { ${entries.join(', ')} }`,
+    `export const desktop = { ${desktops.join(', ')} }`,
     '',
   ].join('\n')
 

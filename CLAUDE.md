@@ -4,23 +4,26 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases et la phase 7 sont faites. Phase 1 — DSL de champs, moteur de blocs,
-intégration Astro, médias, `basalte check` et `basalte inventory` ; le site de
-démonstration se construit depuis son JSON (`examples/demo`). Phase 2 — le flux
-d'authentification entier, jusqu'à `basalte admin:login`. Phase 3 — le panel :
-formulaires produits depuis les schémas, enregistrement avec commit, médiathèque,
-réordonnancement, visibilité par langue, aperçu. Phase 4 — la mise en ligne :
-rebase, build en processus enfant, bascule atomique, push, file à une place, et
-un échec qui laisse le site debout. Phase 5 — servir : formulaire de contact
-sans une ligne de JavaScript, anti-spam, messages gardés en base avant tout
-envoi, purge des données personnelles, audience lue dans les logs de Caddy.
-Phase 6 — livrer : `basalte init` et le paquet Claude Code du dépôt client,
-`deploy`, `doctor`, `update`, les migrations de format, `update-all`, et les
-fichiers de la machine. Phase 7 — outiller : la grammaire enrichie de
-`f.richtext`, les documents légaux générés, le PDF téléchargeable, le contexte
-du site en `docs/`, le banc de blocs `/__blocs`, les capacités déclarées et les
-profils d'`init`. Reste `src/seo/` et le bloc `faq` qui l'attend
-(`docs/roadmap.md`).
+**État :** les six phases, la phase 7 et la phase 8 sont faites. Phase 1 — DSL
+de champs, moteur de blocs, intégration Astro, médias, `basalte check` et
+`basalte inventory` ; le site de démonstration se construit depuis son JSON
+(`examples/demo`). Phase 2 — le flux d'authentification entier, jusqu'à
+`basalte admin:login`. Phase 3 — le panel : formulaires produits depuis les
+schémas, enregistrement avec commit, médiathèque, réordonnancement, visibilité
+par langue, aperçu. Phase 4 — la mise en ligne : rebase, build en processus
+enfant, bascule atomique, push, file à une place, et un échec qui laisse le
+site debout. Phase 5 — servir : formulaire de contact sans une ligne de
+JavaScript, anti-spam, messages gardés en base avant tout envoi, purge des
+données personnelles, audience lue dans les logs de Caddy. Phase 6 — livrer :
+`basalte init` et le paquet Claude Code du dépôt client, `deploy`, `doctor`,
+`update`, les migrations de format, `update-all`, et les fichiers de la
+machine. Phase 7 — outiller : la grammaire enrichie de `f.richtext`, les
+documents légaux générés, le PDF téléchargeable, le contexte du site en
+`docs/`, le banc de blocs `/__blocs`, les capacités déclarées et les profils
+d'`init`. Phase 8 — adapter : deux rendus construits depuis le même contenu et
+servis chacun à son support, la variante bureau d'un bloc, et le contrat qui
+garantit que le mobile porte tout. Reste `src/seo/` et le bloc `faq` qui
+l'attend (`docs/roadmap.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 **Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
@@ -94,13 +97,16 @@ src/
 ├── media/          ingestion sharp, manifeste, résolution, emplois ;
 │                   documents PDF, seule exception à l'invariant 3
 ├── blocks/         blocs de référence
-│   └── <nom>/      schema.ts + <Nom>.astro
+│   └── <nom>/      schema.ts + <Nom>.astro, plus <Nom>.desktop.astro
+│                   quand le bloc porte une variante bureau
 ├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
 │   ├── theme.ts    les tokens du panel → thème Mantine + variables --panel-*
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git
 │   └── email/      interface EmailProvider, brevo · console · memory
+├── render/         les deux supports : la règle d'aiguillage, le préfixe du
+│                   rendu bureau, et le contrat que les deux rendus tiennent
 ├── publish/        mise en ligne : versions, bascule, build, distant, file
 ├── client/         ce que contient un dépôt client : fichiers générés,
 │                   paquet Claude Code, dépôt distant, montée de version
@@ -168,7 +174,8 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 5. **Le site public n'embarque aucun JavaScript par défaut.** Interactivité
    opt-in, bloc par bloc.
 6. **Le panel est une island React unique**, montée en `client:only="react"`.
-7. **Un bloc = un dossier, deux fichiers.** Aucun registre central à éditer.
+7. **Un bloc = un dossier, deux fichiers** — plus, au choix, sa variante
+   bureau. Aucun registre central à éditer.
 8. **Aucun code du socle copié dans un dépôt client.**
 9. **Les langues sont imbriquées dans les champs**, jamais un fichier par langue.
 10. **`id` de bloc stable**, jamais l'index de position.
@@ -231,6 +238,12 @@ tests (`docs/implementation.md`).
   (D85). Le proxy sert le site depuis le disque et le panel depuis
   l'application : un dossier commun fait chercher l'island du panel parmi les
   fichiers du site — une page vide, sans la moindre erreur côté serveur.
+- **Un `default` de Zod 4 n’est pas retraversé, un `prefault` l’est.** Le
+  premier rend sa valeur telle quelle : une clé absente échappait donc à sa
+  propre borne, et `required` ne valait que pour une clé présente ; un groupe
+  absent rendait `{}` plutôt que ses champs remplis, et le composant du bloc
+  plantait sur `props.labels.name`. Tout `src/fields/schema.ts` est en
+  `prefault`.
 - **`Number(null)` vaut zéro, pas `NaN`.** Un en-tête absent lu par
   `headers.get` puis converti passe donc toutes les bornes hautes : une garde
   de taille écrite ainsi ne garde rien. L'absence se teste pour elle-même
@@ -279,6 +292,22 @@ tests (`docs/implementation.md`).
   et elle ne tient qu'à ses six conditions (`docs/securite.md`) : capacité
   déclarée, octets réels vérifiés, nom d'empreinte, servi en pièce jointe,
   jamais incrusté, rangé hors du chemin des images.
+- **Le rendu mobile est le composant du bloc, le bureau une variante.** Un
+  `<Nom>.desktop.astro` reçoit les mêmes props et ne doit rien montrer que le
+  mobile ne montre pas : Google indexe au robot smartphone, et `checkRenders`
+  compare les deux HTML après chaque build. Il avertit, il ne bloque pas (D108).
+- **Les deux rendus sortent d'un seul build**, rangés dans la même version : le
+  bureau sous `_desktop/`, à côté de `_astro/` et de `_panel/` (D85). Le préfixe
+  ne sort jamais du disque — les pages y portent les URL publiques, et Caddy y
+  achemine par réécriture interne.
+- **Une directive `handle` de Caddy n'accepte qu'un seul motif**, et aucun bloc
+  ne s'ouvre en fin de ligne. Deux chemins passent par un matcher nommé. Se
+  tromper fait échouer l'adaptation du fichier *entier* : Caddy ne sert alors
+  plus une seule requête, et rien dans le dépôt ne le dit. `caddy validate` le
+  dit, et un test de forme en tient la trace.
+- **Une middleware Astro ne reçoit pas les en-têtes d'une route pré-rendue.**
+  Aiguiller les deux rendus sous `astro dev` par là aurait servi le bureau à
+  tout le monde, en silence. En développement, `/_desktop/` s'atteint en direct.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.

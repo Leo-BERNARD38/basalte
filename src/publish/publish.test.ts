@@ -45,6 +45,31 @@ function held() {
   return { build, outputs, go }
 }
 
+/**
+ * Un build qui produit deux rendus, celui du bureau portant un mot de plus :
+ * exactement ce que le contrat de la phase 8 interdit.
+ */
+function buildsTwoRenders(extra: string): Build {
+  return async (_root, outDir) => {
+    const page = (body: string) =>
+      `<html><head><title>Banc</title></head><body>${body}</body></html>`
+
+    await mkdir(path.join(outDir, '_desktop'), { recursive: true })
+    await writeFile(
+      path.join(outDir, 'index.html'),
+      page('<p>banc</p>'),
+      'utf8',
+    )
+    await writeFile(
+      path.join(outDir, '_desktop', 'index.html'),
+      page(`<p>banc</p><p>${extra}</p>`),
+      'utf8',
+    )
+
+    return { kind: 'built' }
+  }
+}
+
 /** Un build qui réussit jusqu’à ce que le test décide qu’il échoue. */
 function switchable() {
   let refuse: string | undefined
@@ -274,6 +299,34 @@ describe('publication au démarrage', () => {
     })
 
     expect(await publishIfStale(targetOf(site), site.publisher)).toBe(true)
+
+    await site.publisher.settled()
+    await site.close()
+  })
+})
+
+describe('contrat des deux rendus', () => {
+  it('met le site en ligne quand même, et prévient le mainteneur', async () => {
+    const site = await bench({ build: buildsTwoRenders('Devis gratuit') })
+
+    await publish(site)
+
+    expect(site.publisher.state().last?.outcome).toBe('published')
+    expect(await currentRelease(site.serving)).toBeDefined()
+    expect(site.alerts).toHaveLength(1)
+    expect(site.alerts[0]?.subject).toContain('Rendus divergents')
+    expect(site.alerts[0]?.text).toContain('devis')
+
+    await site.close()
+  })
+
+  it('ne dit rien quand les deux rendus portent le même texte', async () => {
+    const site = await bench({ build: buildsTwoRenders('banc') })
+
+    await publish(site)
+
+    expect(site.publisher.state().last?.outcome).toBe('published')
+    expect(site.alerts).toHaveLength(0)
 
     await site.close()
   })

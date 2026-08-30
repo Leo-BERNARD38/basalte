@@ -232,14 +232,73 @@ describe('le dépôt généré', () => {
   it('sert le panel et le site depuis deux dossiers distincts', () => {
     const caddy = read('Caddyfile')
 
-    expect(caddy).toContain('handle /_panel/*')
+    expect(caddy).toContain('/_panel/*')
     expect(caddy).toContain('atelier-duvallon.fr {')
     expect(caddy).toContain('delete token')
     expect(caddy).toContain('Content-Security-Policy')
   })
 
   it('achemine « /admin » lui-même, pas seulement ce qui le suit', () => {
-    expect(read('Caddyfile')).toContain('handle /admin /admin/*')
+    expect(read('Caddyfile')).toContain('@panel path /admin /admin/*')
+  })
+
+  // Caddy refuse d’adapter le fichier entier plutôt que la seule ligne fautive,
+  // et n’en sert alors aucune requête : la forme se vérifie ici, faute de
+  // pouvoir lancer Caddy dans une suite de tests.
+  it('n’ouvre jamais un bloc en fin de ligne, et ne donne qu’un motif à handle', () => {
+    for (const raw of read('Caddyfile').split('\n')) {
+      const written = raw.trim()
+
+      if (written.endsWith('{')) {
+        expect(written.split('{')).toHaveLength(2)
+      }
+
+      if (written.startsWith('handle')) {
+        const given = written
+          .replace(/\s*\{$/, '')
+          .split(/\s+/)
+          .slice(1)
+
+        expect(given.length).toBeLessThan(2)
+      }
+    }
+  })
+
+  it('aiguille vers le rendu bureau sur l’indication client, puis le User-Agent', () => {
+    const caddy = read('Caddyfile')
+    const hinted = caddy.indexOf('header Sec-CH-UA-Mobile ?0')
+    const guessed = caddy.indexOf('header !Sec-CH-UA-Mobile')
+
+    expect(hinted).toBeGreaterThan(-1)
+    expect(hinted).toBeLessThan(guessed)
+    expect(caddy).toContain('not header_regexp User-Agent (Mobi|Android)')
+    expect(caddy).toContain('rewrite @hinted {file_match.relative}')
+    expect(caddy).toContain('rewrite @guessed {file_match.relative}')
+  })
+
+  it('ne réécrit que si la page bureau existe, quelle que soit la capacité', () => {
+    const caddy = read('Caddyfile')
+
+    expect(
+      caddy.match(
+        /try_files \/_desktop\{path} \/_desktop\{path}\/index\.html/g,
+      ),
+    ).toHaveLength(2)
+    expect(caddy).not.toContain('desktopRender')
+  })
+
+  it('fait varier les pages sur les deux signaux, et jamais les fichiers du site', () => {
+    const caddy = read('Caddyfile')
+
+    expect(caddy).toContain('@page not path /_astro/*')
+    expect(caddy).toContain('header @page Vary "User-Agent, Sec-CH-UA-Mobile"')
+  })
+
+  it('refuse le préfixe du rendu bureau en direct, pour ne pas dupliquer une page', () => {
+    const caddy = read('Caddyfile')
+
+    expect(caddy).toContain('@exposed path /_desktop /_desktop/*')
+    expect(caddy).toContain('respond @exposed 404')
   })
 
   it('sert les images depuis le disque, et l’application en dernier recours', () => {

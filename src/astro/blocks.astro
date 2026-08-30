@@ -7,9 +7,20 @@
 // dépôt — remplis de valeurs dérivées de leurs descripteurs : un bloc écrit ce
 // matin apparaît sans que rien n’ait été déclaré.
 //
+// Un bloc qui porte une variante bureau y est deux fois, l’un sous l’autre :
+// c’est le seul endroit où les deux rendus d’une même section se comparent
+// sans changer d’onglet ni de largeur de fenêtre.
+//
 // La route n’existe que sous `astro dev` : elle n’est injectée nulle part
 // ailleurs, et aucune version publiée ne la porte.
-import { blocks, documents, media, registry, site } from 'virtual:basalte'
+import {
+  blocks,
+  desktop,
+  documents,
+  media,
+  registry,
+  site,
+} from 'virtual:basalte'
 import { sampleValues } from '../fields/sample.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import Layout from './Layout.astro'
@@ -31,10 +42,22 @@ const context = {
 const bench = Object.values(registry)
   .filter((definition) => blocks[definition.name] !== undefined)
   .sort((a, b) => a.name.localeCompare(b.name))
-  .map((definition) => ({
-    definition,
-    props: sampleValues(definition.fields, context),
-  }))
+  .flatMap((definition) => {
+    const props = sampleValues(definition.fields, context)
+    const variant = desktop[definition.name]
+
+    return variant === undefined
+      ? [{ definition, props, support: '', component: blocks[definition.name] }]
+      : [
+          {
+            definition,
+            props,
+            support: ' — mobile',
+            component: blocks[definition.name],
+          },
+          { definition, props, support: ' — bureau', component: variant },
+        ]
+  })
 
 const meta = {
   title: { [language]: `Blocs — ${site.name}` },
@@ -60,11 +83,12 @@ const document = (key: string) => resolveDocument(documents, key)
 
   {
     bench.map((entry) => {
-      const Block = blocks[entry.definition.name]
+      const Block = entry.component
       return (
         <section class="bench__block">
           <p class="bench__name">
             {entry.definition.name} — {entry.definition.label}
+            {entry.support}
           </p>
           <Block
             props={entry.props}

@@ -23,6 +23,8 @@ export type Entry = {
   readonly origin: string
   readonly label: string
   readonly help?: string
+  /** Vrai quand le bloc porte une variante bureau à côté de son composant. */
+  readonly desktop: boolean
   readonly fields: readonly FieldDescription[]
 }
 
@@ -62,6 +64,7 @@ export async function readEntries(cwd: string): Promise<readonly Entry[]> {
       origin: source.origin,
       label: definition?.label ?? source.name,
       ...(definition?.help === undefined ? {} : { help: definition.help }),
+      desktop: source.desktop !== undefined,
       fields: describeFields(definition?.fields ?? {}),
     }
   })
@@ -101,7 +104,10 @@ export function render(blocks: readonly Entry[]): readonly string[] {
     lines.push('', origin === 'socle' ? 'Blocs du socle' : 'Blocs de ce site')
 
     for (const entry of group) {
-      lines.push('', `  ${entry.name} — ${entry.label}`)
+      lines.push(
+        '',
+        `  ${entry.name} — ${entry.label}${entry.desktop ? ' (variante bureau)' : ''}`,
+      )
 
       if (entry.help !== undefined) lines.push(`    ${entry.help}`)
 

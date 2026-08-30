@@ -4,8 +4,15 @@
 // Il n’est pas un test d’intégration. Il ne touche ni à l’authentification, ni
 // à la bascule atomique — seulement au contenu, à ses schémas et aux médias
 // qu’il référence.
+//
+// Sous `--build`, deux vérifications de plus n’ont de sens qu’une fois le HTML
+// écrit : le contrat des deux rendus (D108), et le fait que la machine sache
+// les servir. La seconde regarde le `Caddyfile` du dépôt, écrit à l’`init` et
+// jamais régénéré : c’est le seul endroit où un site plus ancien que le second
+// rendu se signale avant d’être déployé.
 
 import { execFileSync } from 'node:child_process'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { errorsOf, readProject, type Project } from '../content/project.js'
@@ -13,6 +20,9 @@ import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
 import { countMediaUsage } from '../media/usage.js'
 import { astroBinary } from '../publish/build.js'
+import { checkRenders } from '../render/parity.js'
+import { DESKTOP_PREFIX } from '../render/supports.js'
+import type { Site } from '../site/define.js'
 import { fails, hasFlag, heading, line, succeeds } from './args.js'
 import type { Result } from './run.js'
 
@@ -76,10 +86,50 @@ export async function check(
       return fails(['La construction a échoué.'])
     }
 
-    return { code: 0, stdout: '', stderr: '' }
+    const built = [
+      ...(await checkRenders(path.join(cwd, CHECK_OUT))),
+      ...(await staleCaddyfile(cwd, project.site)),
+    ].map((issue) => line('warning', renderIssue(issue)))
+
+    return succeeds(
+      built.length === 0 ? [line('ok', 'construction faite')] : built,
+    )
   }
 
   return succeeds(lines)
+}
+
+/**
+ * Le `Caddyfile` d’un dépôt né avant le second rendu n’aiguille pas : le site
+ * partirait en ligne avec ses deux rendus, et tout le monde recevrait le
+ * mobile. Le fichier appartient au dépôt du client, le socle ne le réécrit
+ * pas — il le dit.
+ */
+async function staleCaddyfile(
+  cwd: string,
+  site: Site,
+): Promise<readonly ContentIssue[]> {
+  if (!site.capabilities.desktopRender) return []
+
+  const caddyfile = await readFile(path.join(cwd, 'Caddyfile'), 'utf8').catch(
+    () => undefined,
+  )
+
+  if (
+    caddyfile === undefined ||
+    caddyfile.includes(`/${DESKTOP_PREFIX}{path}`)
+  ) {
+    return []
+  }
+
+  return [
+    {
+      severity: 'warning',
+      page: 'Caddyfile',
+      message:
+        'ce site déclare un rendu bureau, et son « Caddyfile » n’aiguille pas : régénère-le depuis un « basalte init » de cette version, ou reporte son bloc « handle » final',
+    },
+  ]
 }
 
 // Une image ou un document que plus aucune section ne cite reste dans le

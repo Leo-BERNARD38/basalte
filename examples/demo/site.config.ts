@@ -9,6 +9,7 @@ export default defineSite({
   },
   capabilities: {
     documents: true,
+    desktopRender: true,
   },
   tokens: {
     color: {

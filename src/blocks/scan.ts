@@ -1,11 +1,17 @@
 // Le parcours des blocs : ceux du socle, puis ceux du dépôt client. Un dossier
 // porte un `schema.ts` et le composant du même nom en PascalCase — rien à
 // déclarer ailleurs (invariant 7).
+//
+// Ce composant est le rendu mobile, celui qui existe toujours. Un troisième
+// fichier, facultatif, porte la variante bureau : `<Nom>.desktop.astro`. Elle se
+// découvre au même endroit et de la même façon, et son absence est un repli sur
+// le composant, jamais une erreur.
 
 import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
+import { DESKTOP_SUFFIX } from '../render/supports.js'
 import type { BlockDefinition, BlockRegistry } from './define.js'
 
 export type BlockOrigin = 'socle' | 'site'
@@ -15,6 +21,8 @@ export type BlockSource = {
   readonly origin: BlockOrigin
   readonly schema: string
   readonly component: string
+  /** La variante bureau, quand le bloc en porte une. */
+  readonly desktop?: string
 }
 
 export type BlockRoot = {
@@ -100,6 +108,7 @@ export async function loadRegistry(
 async function source(root: BlockRoot, name: string): Promise<BlockSource> {
   const dir = path.join(root.dir, name)
   const component = path.join(dir, `${componentName(name)}.astro`)
+  const desktop = path.join(dir, `${componentName(name)}${DESKTOP_SUFFIX}`)
   const schema = await first(dir, ['schema.ts', 'schema.js'])
 
   if (schema === undefined) {
@@ -112,7 +121,13 @@ async function source(root: BlockRoot, name: string): Promise<BlockSource> {
     )
   }
 
-  return { name, origin: root.origin, schema, component }
+  return {
+    name,
+    origin: root.origin,
+    schema,
+    component,
+    ...((await exists(desktop)) ? { desktop } : {}),
+  }
 }
 
 async function directories(dir: string): Promise<readonly string[]> {

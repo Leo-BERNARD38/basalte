@@ -1,0 +1,115 @@
+---
+// La variante bureau du bandeau : le même contenu, en deux colonnes, sans une
+// seule media query. C’est la mécanique que la phase 8 introduit, et le seul
+// bloc de référence qui la démontre (D19, D104).
+//
+// Le mobile reste la référence : ce fichier ne peut rien afficher que
+// « Hero.astro » n’affiche pas, sous peine d’un texte que Google n’indexera
+// jamais (`src/render/parity.ts`).
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image } = Astro.props
+
+const title = pick(props.title, language)
+const subtitle = pick(props.subtitle, language)
+const label = pick(props.cta.label, language)
+const href = props.cta.href
+const illustration = image(props.image, '36rem')
+---
+
+<section class="hero">
+  <div class="hero__inner">
+    <div class="hero__text">
+      <h1 class="hero__title">{title}</h1>
+      {subtitle !== '' && <p class="hero__subtitle">{subtitle}</p>}
+      {
+        label !== '' && href !== '' && (
+          <a class="hero__cta" href={href}>
+            {label}
+          </a>
+        )
+      }
+    </div>
+    {
+      illustration !== undefined && (
+        <img
+          class="hero__image"
+          src={illustration.src}
+          srcset={illustration.srcset}
+          sizes={illustration.sizes}
+          width={illustration.width}
+          height={illustration.height}
+          alt={illustration.alt}
+          style={`object-position:${illustration.objectPosition}`}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: var(--space-8) var(--space-5);
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  .hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: center;
+    gap: var(--space-7);
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .hero__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-3xl);
+    line-height: 1.1;
+  }
+
+  .hero__subtitle {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-lg);
+  }
+
+  .hero__cta {
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .hero__cta:hover {
+    text-decoration: underline;
+  }
+
+  .hero__image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+</style>

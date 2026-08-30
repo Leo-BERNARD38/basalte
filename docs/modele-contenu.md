@@ -82,6 +82,34 @@ comme les autres, vides par défaut, et le composant retombe alors sur le
 français (D82) : le socle ne porte aucune table de traductions, et une langue
 non prévue se remplit depuis le panel.
 
+### Un troisième fichier, facultatif : la variante bureau
+
+```
+src/blocks/hero/
+├── schema.ts            ce que le bloc contient
+├── Hero.astro           comment il s'affiche
+└── Hero.desktop.astro   comment il s'affiche au bureau, si on l'écrit
+```
+
+`Hero.astro` **est** le rendu mobile : c'est celui qui existe toujours, et
+c'est lui qu'un bloc sans variante sert aux deux supports. `Hero.desktop.astro`
+reçoit exactement les mêmes props et se découvre par son nom, comme le reste —
+rien à déclarer (D104). Un bloc écrit avant la phase 8 continue donc de
+fonctionner sans être touché.
+
+Une variante n'est servie que si le site déclare `desktopRender` dans ses
+capacités (`site.config.ts`). Sinon elle n'est ni construite, ni chargée.
+
+**Ce qu'une variante n'a pas le droit de faire : montrer ce que le mobile ne
+montre pas.** Google indexe avec son robot smartphone : un texte, un lien ou une
+métadonnée présent au seul bureau ne sera jamais vu. `basalte check --build` le
+compare et le nomme, et une mise en ligne qui rompt le contrat sort quand même,
+en prévenant le mainteneur (D108).
+
+Une variante ne masque pas non plus une section : `hidden` se règle par langue,
+jamais par support (D107). Ce qui ne doit pas paraître au bureau relève de la
+présentation, donc de la variante elle-même.
+
 ## Pourquoi un DSL `f.*` plutôt que du Zod nu
 
 Un schéma Zod décrit une forme de donnée, pas une interface. Il ignore le
@@ -140,7 +168,8 @@ une adresse absolue vers un autre site sous les dehors d'un chemin interne.
 ## Le registre est une convention
 
 Le socle scanne ses propres blocs puis `src/blocks/*/schema.ts` du dépôt
-client. Rien à déclarer, aucun registre central à éditer.
+client, et relève au passage les variantes bureau. Rien à déclarer, aucun
+registre central à éditer.
 
 C'est le levier Claude Code du projet : créer un bloc, c'est écrire deux
 fichiers, sans toucher à une configuration centrale et sans risque d'oublier un

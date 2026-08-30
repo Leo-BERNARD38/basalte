@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { CAPABILITY_LABELS, resolveCapabilities } from './capabilities.js'
 
 describe('resolveCapabilities', () => {
-  it('notifie les leads et mesure l’audience, et refuse les documents', () => {
+  it('notifie les leads et mesure l’audience, et s’en tient à un rendu', () => {
     expect(resolveCapabilities()).toEqual({
       notifyLeads: true,
       analytics: true,
       documents: false,
+      desktopRender: false,
     })
   })
 
@@ -16,6 +17,7 @@ describe('resolveCapabilities', () => {
       notifyLeads: true,
       analytics: true,
       documents: true,
+      desktopRender: false,
     })
   })
 

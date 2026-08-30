@@ -17,6 +17,8 @@ const DEFAULTS = {
   analytics: true,
   /** Le téléversement de documents PDF, exception à l’invariant 3. */
   documents: false,
+  /** Un rendu bureau distinct du rendu mobile, servi selon le support. */
+  desktopRender: false,
 }
 
 export type Capabilities = { readonly [Name in keyof typeof DEFAULTS]: boolean }
@@ -28,6 +30,7 @@ export const CAPABILITY_LABELS: Readonly<Record<keyof Capabilities, string>> = {
   notifyLeads: 'notification des messages par email',
   analytics: 'mesure d’audience',
   documents: 'documents PDF téléversables',
+  desktopRender: 'rendu bureau distinct du rendu mobile',
 }
 
 export function resolveCapabilities(

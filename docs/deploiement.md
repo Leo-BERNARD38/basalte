@@ -37,7 +37,8 @@ saute le `prepare` du socle sans erreur, et le paquet arrive sans `dist/`.
 
 ## Caddy
 
-Le Caddyfile complet tient sur un écran, HTTPS compris :
+Le Caddyfile tient sur un écran, HTTPS compris — voici tout sauf le bloc
+`/documents/*`, jumeau de `/media/*` à l'en-tête de pièce jointe près :
 
 ```
 exemple.com {
@@ -52,9 +53,10 @@ exemple.com {
         -Server
     }
 
-    handle /admin /admin/* { reverse_proxy app:3000 }
-    handle /api/*          { reverse_proxy app:3000 }
-    handle /_panel/*       { reverse_proxy app:3000 }
+    @panel path /admin /admin/* /api/* /_panel/*
+    handle @panel {
+        reverse_proxy app:3000
+    }
 
     handle /media/* {
         root * /srv/site/current
@@ -71,7 +73,32 @@ exemple.com {
         root * /srv/site/current
         @immutable path /_astro/*
         header @immutable Cache-Control "public, max-age=31536000, immutable"
-        file_server
+        @page not path /_astro/*
+        header @page Vary "User-Agent, Sec-CH-UA-Mobile"
+
+        route {
+            @exposed path /_desktop /_desktop/*
+            respond @exposed 404
+
+            @hinted {
+                header Sec-CH-UA-Mobile ?0
+                file {
+                    try_files /_desktop{path} /_desktop{path}/index.html
+                }
+            }
+            rewrite @hinted {file_match.relative}
+
+            @guessed {
+                header !Sec-CH-UA-Mobile
+                not header_regexp User-Agent (Mobi|Android)
+                file {
+                    try_files /_desktop{path} /_desktop{path}/index.html
+                }
+            }
+            rewrite @guessed {file_match.relative}
+
+            file_server
+        }
     }
 
     log {
@@ -114,7 +141,7 @@ alimentent l'analytics sont configurés là.
 donné à l'application par `BASALTE_SITE_ROOT` (D69) ; hors production, le socle
 retombe sur `.basalte/site` dans le dépôt.
 
-Six points que le panel attend de ce fichier.
+Huit points que le panel attend de ce fichier.
 
 - **`X-Forwarded-For` doit être posé** — c'est la dernière entrée que le socle
   lit pour limiter le débit par adresse, sur le panel comme sur le formulaire de
@@ -136,7 +163,28 @@ Six points que le panel attend de ce fichier.
   tant qu'il ne porte pas d'étoile, et `/admin/*` ne couvre donc pas `/admin` —
   c'est-à-dire l'adresse que le client tape. Sans les deux, la page d'édition
   tombe sur le serveur de fichiers et rend un 404 sans la moindre trace côté
-  application.
+  application. Les deux chemins passent par un matcher nommé : `handle` n'accepte
+  qu'un seul motif, et lui en donner deux fait échouer l'adaptation du fichier
+  **entier** — Caddy ne sert alors plus une seule requête. Pour la même raison,
+  aucun bloc ne s'ouvre en fin de ligne.
+- **Les deux rendus sont aiguillés ici, et nulle part ailleurs** (D105). Le site
+  public est servi depuis le disque, indépendamment du panel ; confier
+  l'aiguillage au processus Node ferait qu'une édition coupée couperait aussi
+  les visites. Deux réécritures se relaient : `Sec-CH-UA-Mobile` tranche quand
+  il est là — les navigateurs Chromium l'envoient d'eux-mêmes, dès la première
+  requête — et le User-Agent à défaut, où seul le jeton `Mobi` est encore
+  fiable. Tout ce qui ne se déclare pas mobile reçoit le bureau : une tablette,
+  un robot à User-Agent d'ordinateur, un client qui n'envoie rien.
+  `Vary: User-Agent, Sec-CH-UA-Mobile` est du protocole, pas une préférence :
+  sans lui, le premier cache intermédiaire servirait le mauvais rendu au
+  visiteur suivant. Il ne porte pas sur `/_astro/*`, dont les fichiers ne
+  dépendent d'aucun support.
+- **Le fichier ne connaît pas les capacités du site** (D106). La réécriture est
+  conditionnée à l'existence de la page bureau, jamais à un réglage : un site à
+  un seul rendu tombe sur son rendu mobile avec exactement le même fichier, et
+  activer un second rendu après coup ne demande aucune intervention sur la
+  machine. Le préfixe `_desktop/` est refusé en direct, sans quoi les deux
+  rendus auraient chacun leur adresse — du contenu dupliqué aux yeux de Google.
 - **Les images sortent du disque, l'application n'étant que le recours.** Un nom
   de média est dérivé d'une empreinte : ce que Caddy sert depuis `current` peut
   donc être mis en cache pour un an. `pass_thru` renvoie à l'application ce
@@ -147,6 +195,12 @@ Six points que le panel attend de ce fichier.
 Le socle lit `/var/log/caddy/access.log` par défaut ; `BASALTE_ACCESS_LOG` le
 déplace. Le fichier doit être lisible par le conteneur de l'application — un
 volume partagé, comme `/srv/site`.
+
+**Action requise sur un site créé avant les deux rendus.** Le `Caddyfile`
+appartient au dépôt du client et n'est jamais régénéré par une montée de
+version : il faut y reporter le bloc `handle` final ci-dessus, une fois.
+`basalte check --build` le dit quand le site déclare `desktopRender` et que son
+fichier n'aiguille pas.
 
 ## Dimensionnement
 

@@ -144,7 +144,7 @@ function siteConfig(answers: SiteAnswers): string {
     '  leads: { purgeAfterMonths: 12 },',
     '  // Ce que ce site fait, lu à l’exécution et modifiable après coup. Une',
     '  // capacité absente garde la valeur du socle : notifyLeads (oui),',
-    '  // analytics (oui), documents (non).',
+    '  // analytics (oui), documents (non), desktopRender (non).',
     ...(declared.length === 0
       ? ['  capabilities: {},']
       : [

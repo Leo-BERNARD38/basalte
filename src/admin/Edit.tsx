@@ -6,6 +6,12 @@
 // page pendant qu’il la modifie. Il montre le dernier enregistrement — c’est
 // ce que le dépôt contient, et donc ce qui partira en ligne ; l’en-tête le dit
 // tant que des modifications ne sont pas enregistrées.
+//
+// La bascule bureau / mobile ne fait pas que redimensionner le cadre : elle
+// demande le rendu du support à l’aperçu, qui les sert tous les deux. Sur un
+// site à un seul rendu elle ne change donc que la largeur, ce qui est déjà ce
+// qu’elle faisait — et c’est ce qui la laisse inchangée aux yeux du client
+// (D25).
 
 import {
   ActionIcon,
@@ -19,7 +25,9 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
+import { SUPPORT_PARAM } from '../astro/preview.js'
 import { slugFor } from '../astro/routes.js'
+import { DEFAULT_SUPPORT } from '../render/supports.js'
 import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
 import { pageLabel, useEditing } from './editing.js'
@@ -52,7 +60,7 @@ export function Edit({
 }) {
   const editing = useEditing()
   const [focus, setFocus] = useState<Focus>({ kind: 'meta' })
-  const [viewport, setViewport] = useState('desktop')
+  const [viewport, setViewport] = useState<string>('desktop')
 
   const page = payload.pages.find((entry) => entry.name === selected)
 
@@ -179,7 +187,7 @@ export function Edit({
           />
           <ActionIcon
             component="a"
-            href={previewAddress(page.route, editing)}
+            href={previewAddress(page.route, editing, viewport)}
             target="_blank"
             rel="noopener"
             size="lg"
@@ -197,11 +205,11 @@ export function Edit({
         )}
 
         <iframe
-          key={savedAt ?? 0}
+          key={`${savedAt ?? 0}-${viewport}`}
           className="basalte-stage__frame"
           data-viewport={viewport}
           title="Aperçu de la page"
-          src={previewAddress(page.route, editing)}
+          src={previewAddress(page.route, editing, viewport)}
         />
       </div>
 
@@ -249,7 +257,10 @@ export function Edit({
   )
 }
 
-/** L’adresse de l’aperçu : la route de la page, préfixée si la langue n’est pas celle par défaut. */
+/**
+ * L’adresse de l’aperçu : la route de la page, préfixée si la langue n’est pas
+ * celle par défaut, et le support demandé.
+ */
 function previewAddress(
   route: string,
   editing: {
@@ -259,11 +270,14 @@ function previewAddress(
       readonly default?: boolean
     }[]
   },
+  support: string,
 ): string {
   const fallback = editing.languages.find((entry) => entry.default)?.code ?? ''
   const prefix = editing.language === fallback ? '' : editing.language
+  const asked =
+    support === DEFAULT_SUPPORT ? '' : `?${SUPPORT_PARAM}=${support}`
 
-  return `${PREVIEW}${slugFor(route, prefix) ?? ''}`
+  return `${PREVIEW}${slugFor(route, prefix) ?? ''}${asked}`
 }
 
 function HiddenMark() {

@@ -52,7 +52,7 @@ livre un site sans navigation ni mentions légales.
 | Le Markdown restreint ne produit que des `<p>` : pas de titres, pas de listes | `src/fields/richtext.ts` | 7 |
 | Aucune page légale, et le client ne peut pas en créer (D3) | `src/client/files.ts` | 7 |
 | La mention de consentement du formulaire est du texte plat : elle ne peut pas porter de lien | `src/blocks/contact/schema.ts` | 7 |
-| Un bloc est un composant unique, dont le CSS plie au media query | `src/blocks/*/` | 8 |
+| ~~Un bloc est un composant unique, dont le CSS plie au media query~~ · réglé | `src/blocks/*/` | 8 |
 | Ni header, ni footer, ni navigation : le `<body>` ne contient que `<slot />` | `src/astro/Layout.astro` | 9 |
 | Les pages qu’`init` génère ne sont reliées que par le bouton du bandeau | `src/client/files.ts` | 9 |
 | `f.image({ ratio })` existe et n’est appliqué nulle part | `src/fields/types.ts` | 10 |
@@ -67,7 +67,7 @@ livre un site sans navigation ni mentions légales.
 | # | Nom | Ce qu’elle règle |
 |---|---|---|
 | 7 | **Outiller** · faite | un `init` réglable, le contexte d’un site, les documents légaux |
-| 8 | **Adapter** | deux rendus servis selon le support, une seule source de contenu |
+| 8 | **Adapter** · faite | deux rendus servis selon le support, une seule source de contenu |
 | 9 | **Encadrer** | le chrome — navigation, pied de page |
 | 10 | **Cadrer** | le cadrage des images, et `src/seo/` |
 | 11 | **Joindre** | ne pas perdre un lead, ne pas être appelé pour rien |
@@ -218,7 +218,38 @@ mentions légales d’un site neuf sont en ligne.
 
 ---
 
-## Phase 8 — Adapter
+## Phase 8 — Adapter · faite
+
+**Ce qu'elle a retenu, et ce qu'elle a remplacé.** Deux pistes sur quatre ont
+tenu — l'aiguillage confié à Caddy, et une variante de composant à côté du
+composant avec repli sur lui. Les deux autres sont tombées, actées en D103 à
+D108 :
+
+- **Pas de mode de build supplémentaire, et pas de dossier par rendu.** Un seul
+  `astro build` produit les deux, en doublant les pages d'un préfixe `_desktop/`
+  dans la même version (D103). Le temps de build ne double donc pas — seul le
+  rendu des pages est refait, le regroupement et le CSS sont partagés — et D67
+  n'a pas eu à être révisé. La bascule reste un renommage et un lien, sur un
+  seul dossier.
+- **Le Caddyfile ne connaît pas les capacités du site** (D106). Il est écrit à
+  l'`init` et n'est jamais régénéré : le faire dépendre d'un réglage aurait rendu
+  ce réglage irréversible, ce que le principe de cette roadmap interdit. La
+  réécriture est donc conditionnée au fichier, pas à la configuration.
+- **`hidden` ne gagne pas d'axe de support** (D107), et le contrat SEO
+  **avertit sans bloquer** (D108) : il se mesure en référencement, pas en panne.
+
+**Ce qu'elle a trouvé en chemin.** Le `Caddyfile` généré n'avait jamais été
+adapté par Caddy : `handle /admin /admin/*` donne deux motifs à une directive
+qui n'en prend qu'un, et un bloc ouvert en fin de ligne est refusé. Caddy rejette
+alors le fichier entier et ne sert aucune requête — le premier déploiement réel
+l'aurait découvert. Corrigé, et tenu par un test de forme.
+
+**Ce qui reste ouvert.** L'aiguillage n'existe pas sous `astro dev` : une
+middleware ne reçoit pas les en-têtes d'une route pré-rendue, si bien qu'elle
+aurait servi le bureau à tout le monde. En développement, `/_desktop/` s'atteint
+en direct, et la bascule de l'écran d'édition sert les deux rendus. Le contrat
+SEO, lui, ne compare pas encore de données structurées : il sait les lire, il
+n'y en a aucune avant la phase 10.
 
 **Pourquoi.** Un seul HTML plié par des media queries produit un mobile qui est
 un bureau compressé, et un bureau qui est un mobile étiré. Deux rendus séparés
@@ -492,8 +523,8 @@ suppose — c’est même pour cela qu’elles sont listées.
 | 7 | Si le PDF est accepté comme document légal, et sous quelle exception écrite à l’invariant 3 |
 | 7 | Que les faits de l’entreprise n’ont qu’une source, et laquelle |
 | 7 | Qu’un site sans mailing garde son canal d’authentification, tant que le second facteur passe par email |
-| 8 | Que deux rendus sont servis selon le support, et qu’un site peut n’en avoir qu’un |
-| 8 | Que le rendu mobile porte tout le contenu — contrainte externe, pas préférence |
+| 8 | Que deux rendus sont servis selon le support, et qu’un site peut n’en avoir qu’un · acté en D103, D105 et D106 |
+| 8 | Que le rendu mobile porte tout le contenu — contrainte externe, pas préférence · acté en D104, D107 et D108 |
 | 10 | Ce qu’il advient du point focal, dont le cadrage renverse la décision |
 | 11 | Si le second facteur cesse de dépendre de l’email |
 

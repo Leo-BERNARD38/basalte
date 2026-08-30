@@ -1,9 +1,14 @@
 // Ce que l’aperçu doit rendre, décidé hors du composant : la page, sa langue,
-// ou la réponse qui arrête là.
+// son support, ou la réponse qui arrête là.
 //
 // L’aperçu montre le dépôt tel qu’il est — enregistré mais pas encore en
 // ligne — et il montre aussi les langues en préparation, absentes du site
 // construit. C’est le seul endroit où une traduction se relit avant de sortir.
+//
+// Le support, lui, est demandé plutôt que deviné : la bascule de l’écran
+// d’édition (D96) le nomme dans l’adresse. Un site à un seul rendu retombe
+// toujours sur le mobile, quoi qu’on lui demande — l’aperçu ne peut pas montrer
+// un rendu que la mise en ligne ne produirait pas.
 
 import {
   readPages,
@@ -11,15 +16,25 @@ import {
   type Schemas,
 } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
+import {
+  DEFAULT_SUPPORT,
+  isSupport,
+  supportsOf,
+  type Support,
+} from '../render/supports.js'
 import type { Panel } from '../server/context.js'
 import { authenticate, PANEL_PATH } from '../server/handlers.js'
 import { matchSlug } from './routes.js'
+
+/** Le paramètre par lequel l’écran d’édition demande un rendu. */
+export const SUPPORT_PARAM = 'support'
 
 export type Preview =
   | {
       readonly kind: 'page'
       readonly entry: RenderedPage
       readonly language: string
+      readonly support: Support
       readonly schemas: Schemas
     }
   | { readonly kind: 'stop'; readonly response: Response }
@@ -76,5 +91,18 @@ export async function resolvePreview(
     }
   }
 
-  return { kind: 'page', entry, language: target.language, schemas }
+  return {
+    kind: 'page',
+    entry,
+    language: target.language,
+    support: supportAsked(schemas, request),
+    schemas,
+  }
+}
+
+function supportAsked(schemas: Schemas, request: Request): Support {
+  const asked = new URL(request.url).searchParams.get(SUPPORT_PARAM) ?? ''
+  const built = supportsOf(schemas.site)
+
+  return isSupport(asked) && built.includes(asked) ? asked : DEFAULT_SUPPORT
 }

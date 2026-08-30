@@ -287,6 +287,11 @@ l'écran le dit et le cadre se recharge au premier enregistrement réussi.
 Modifier le texte directement dans l'aperçu demande une route de rendu qui
 accepte un contenu en transit — ce n'est pas fait.
 
+La bascule « Bureau / Mobile » redimensionne le cadre, et **demande aussi le
+rendu du support** sur un site qui en a deux : elle passe `?support=` à
+l'aperçu. Sur un site à un seul rendu elle ne change que la largeur, ce qu'elle
+faisait déjà — le client ne voit donc rien de nouveau (D25).
+
 L'enregistrement et la mise en ligne vivent dans l'en-tête, à droite du titre :
 un seul endroit pour agir sur l'état du site, à la même place sur les cinq
 écrans.

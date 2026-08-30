@@ -1,5 +1,5 @@
 ---
-import { blocks } from 'virtual:basalte'
+import { blocks, desktop } from 'virtual:basalte'
 
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import Layout from './Layout.astro'
@@ -16,7 +16,9 @@ const view = await resolvePreview(
 
 if (view.kind === 'stop') return view.response
 
-const { entry, language, schemas } = view
+const { entry, language, support, schemas } = view
+
+const components = support === 'desktop' ? desktop : {}
 
 const sections = entry.page.blocks.filter(
   (section) => section.hidden[language] !== true,
@@ -36,7 +38,7 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
 >
   {
     sections.map((section) => {
-      const Block = blocks[section.type]
+      const Block = components[section.type] ?? blocks[section.type]
       return (
         <Block
           props={section.props}

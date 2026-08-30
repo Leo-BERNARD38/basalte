@@ -54,6 +54,10 @@ libellé de son champ, une liste porte trois éléments, une image prend la
 première clé de la médiathèque. Un libellé trop long pour la place qu'il occupe
 se voit donc immédiatement.
 
+Un bloc qui porte une variante bureau y figure deux fois, l'une sous l'autre et
+étiquetées : c'est le seul endroit où les deux rendus d'une même section se
+comparent sans changer d'onglet ni de largeur de fenêtre.
+
 C'est aussi là que le plancher ci-dessous se vérifie à l'œil, sur tous les
 blocs à la fois. La route n'existe que pendant qu'on développe : aucune version
 publiée ne la porte.
@@ -63,7 +67,8 @@ publiée ne la porte.
 Il s'applique à tout bloc, sur mesure comme de référence.
 
 - **Mobile d'abord.** La maquette doit tenir à 375 px de large avant toute
-  autre chose. Les media queries montent, elles ne descendent pas.
+  autre chose. Les media queries montent, elles ne descendent pas — et le
+  composant d'un bloc **est** le rendu mobile (D104).
 - **Contraste** de 4,5:1 minimum sur le texte. Deux tokens de couleur qui ne
   passent pas ensemble sont un défaut de DA, à corriger dans les tokens.
 - **Focus visible.** Jamais `outline: none` sans remplacement.
@@ -73,6 +78,31 @@ Il s'applique à tout bloc, sur mesure comme de référence.
 - **Aucun JavaScript** sauf si le bloc le déclare explicitement. Un bloc
   interactif charge son script, la page n'en charge aucun autre.
 - **Pas de décalage de mise en page** : toute image porte ses dimensions.
+
+## Media query, ou variante bureau
+
+Un site peut déclarer un second rendu (`desktopRender` dans ses capacités), et
+un bloc peut alors porter un `<Nom>.desktop.astro` à côté de son composant. Les
+deux outils ne servent pas la même chose.
+
+| Ce que tu veux | Ce que tu écris |
+|---|---|
+| la même mise en page, respirant davantage | une media query dans le composant |
+| deux, trois colonnes là où il y en avait une | une media query, tant que l'ordre du HTML ne change pas |
+| une mise en page réellement différente — ordre, hiérarchie, ce qui porte l'attention | une variante bureau |
+
+La règle : **tant que la maquette bureau est la maquette mobile à laquelle on a
+donné de la place, c'est une media query.** Le jour où l'on se surprend à
+écrire du CSS pour défaire ce que le mobile impose — réordonner par `order`,
+sortir un élément de son flux, masquer puis réafficher — c'est qu'il fallait
+une variante.
+
+Une variante n'a besoin d'aucune media query : elle n'est servie qu'au bureau.
+
+**Ce qu'une variante n'a pas le droit de faire :** montrer ce que le mobile ne
+montre pas. Un texte, un lien ou une métadonnée présent au seul bureau ne sera
+jamais indexé, Google indexant au robot smartphone. `basalte check --build` le
+compare et le nomme.
 
 ## Pratiques de landing
 

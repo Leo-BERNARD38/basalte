@@ -1,0 +1,50 @@
+---
+// La variante bureau d’un bloc du dépôt : la citation prend toute la largeur,
+// et l’auteur passe à côté d’elle plutôt qu’en dessous. Aucune media query —
+// ce fichier n’est servi qu’au bureau.
+import { pick, type BlockProps } from '@leobernard/basalte'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language } = Astro.props
+---
+
+<figure class="temoignage">
+  <div class="temoignage__inner">
+    <blockquote class="temoignage__quote">
+      {pick(props.quote, language)}
+    </blockquote>
+    <figcaption class="temoignage__author">{props.author}</figcaption>
+  </div>
+</figure>
+
+<style>
+  .temoignage {
+    margin: 0;
+    padding: var(--space-8) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .temoignage__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+    align-items: end;
+    gap: var(--space-6);
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .temoignage__quote {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.25;
+  }
+
+  .temoignage__author {
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    text-align: right;
+  }
+</style>

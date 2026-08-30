@@ -16,7 +16,12 @@
 
 import type { DatabaseSync } from 'node:sqlite'
 
-import { publicationFailed } from '../server/email/messages.js'
+import { renderIssue } from '../content/report.js'
+import { checkRenders } from '../render/parity.js'
+import {
+  publicationFailed,
+  renderContractBroken,
+} from '../server/email/messages.js'
 import { tryGit } from '../server/git.js'
 import type { Alert } from './alert.js'
 import { buildSite, type BuildResult } from './build.js'
@@ -181,6 +186,8 @@ async function runOnce(target: PublishTarget, by: Requester): Promise<void> {
     return
   }
 
+  await reportRenders(target, opened.partial)
+
   try {
     await publishRelease(serving, opened)
   } catch (cause) {
@@ -217,6 +224,23 @@ async function runOnce(target: PublishTarget, by: Requester): Promise<void> {
       ),
     )
   }
+}
+
+/**
+ * Le contrat des deux rendus, mesuré sur ce qui vient d’être construit. Il
+ * avertit et laisse sortir (D108) : la version est déjà bonne, c’est son
+ * référencement qui est amoindri, et refuser ferait tomber un site qui marche
+ * pour un mot décoratif.
+ */
+async function reportRenders(
+  target: PublishTarget,
+  directory: string,
+): Promise<void> {
+  const issues = await checkRenders(directory).catch(() => [])
+
+  if (issues.length === 0) return
+
+  await target.alert(renderContractBroken(target.site, issues.map(renderIssue)))
 }
 
 async function refuse(

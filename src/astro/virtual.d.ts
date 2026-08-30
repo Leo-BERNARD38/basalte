@@ -22,4 +22,8 @@ declare module 'virtual:basalte' {
   export const blocks: Readonly<
     Record<string, (props: Record<string, unknown>) => unknown>
   >
+  /** Les variantes bureau, pour les seuls blocs qui en portent une. */
+  export const desktop: Readonly<
+    Record<string, (props: Record<string, unknown>) => unknown>
+  >
 }

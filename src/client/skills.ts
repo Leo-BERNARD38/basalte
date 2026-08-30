@@ -89,7 +89,8 @@ function command(
 function block(): readonly string[] {
   return [
     'Un bloc de ce site vit dans `src/blocks/<nom>/`, en deux fichiers, et rien',
-    'd’autre n’est à déclarer nulle part (invariant 7).',
+    'd’autre n’est à déclarer nulle part (invariant 7). Un troisième, facultatif,',
+    'porte sa mise en page bureau.',
     '',
     '## Avant d’écrire',
     '',
@@ -115,6 +116,22 @@ function block(): readonly string[] {
     'Ajoute une section du nouveau type dans `content/index.json`, avec un `id`',
     'stable, puis lance `npm run check`. Le panel affiche le formulaire du bloc',
     'sans qu’il y ait rien à y brancher.',
+    '',
+    '## La variante bureau, si ce site en a une',
+    '',
+    'Quand `site.config.ts` déclare `desktopRender`, un bloc peut porter un',
+    '`<Nom>.desktop.astro` à côté de son composant. Il reçoit exactement les',
+    'mêmes props, se découvre par son nom, et n’a besoin d’aucune media query :',
+    'il n’est servi qu’au bureau. Sans lui, le composant sert les deux supports.',
+    '',
+    '`<Nom>.astro` **est** le rendu mobile. La variante bureau ne peut donc rien',
+    'montrer qu’il ne montre pas — pas un mot, pas un lien, pas une métadonnée :',
+    'Google indexe au robot smartphone, et ce qui n’est qu’au bureau n’est jamais',
+    'vu. `npm run check -- --build` compare les deux et nomme l’écart.',
+    '',
+    'Écris une variante quand la mise en page change vraiment — l’ordre, la',
+    'hiérarchie, ce qui porte l’attention. Tant que le bureau n’est que le',
+    'mobile à qui on a donné de la place, une media query suffit.',
   ]
 }
 
@@ -201,7 +218,8 @@ function design(): readonly string[] {
     '',
     'Sous `npm run dev`, l’adresse `/__blocs` rend chaque bloc disponible avec',
     'du contenu d’exemple, dans les tokens réels du site. C’est là qu’un',
-    'réglage se juge : la page d’accueil n’en montre que deux ou trois.',
+    'réglage se juge : la page d’accueil n’en montre que deux ou trois. Un bloc',
+    'qui porte une variante bureau y figure deux fois, étiqueté.',
     '',
     '## Face à une maquette',
     '',

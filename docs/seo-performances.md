@@ -17,6 +17,31 @@ dédié.
 - **Métadonnées**, Open Graph et JSON-LD générés depuis `site.config.ts` et le
   contenu. Le bloc FAQ émet un `FAQPage`.
 - **`robots.txt` et sitemap** générés au build.
+- **Deux rendus, un seul contenu** sur les sites qui déclarent `desktopRender`.
+
+## Les deux rendus et l'indexation
+
+Un site peut servir deux HTML à la même adresse, selon le support (D105). C'est
+de la diffusion dynamique au sens de Google, et elle est permise à deux
+conditions, qui ne sont pas négociables :
+
+- **`Vary: User-Agent`** sur les réponses HTML. C'est du protocole : sans lui,
+  le premier cache intermédiaire sert le mauvais rendu au visiteur suivant. Le
+  Caddyfile généré le pose, avec `Sec-CH-UA-Mobile` à côté, et jamais sur
+  `/_astro/*` dont les fichiers ne dépendent d'aucun support.
+- **Le rendu mobile porte tout le contenu.** Google indexe avec son robot
+  smartphone : un texte, un lien, une métadonnée ou un JSON-LD présent au seul
+  bureau n'est jamais vu. Le rendu bureau ne fait que présenter autrement.
+
+Le socle compare les deux HTML après chaque build — titres, description,
+canonique, `hreflang`, données structurées, texte visible et liens. L'écart
+ressort en avertissement de `basalte check --build`, et une mise en ligne qui le
+porte sort quand même en prévenant le mainteneur : c'est du référencement
+amoindri, pas une panne (D108).
+
+Le gain de cette séparation n'est pas le poids — la page n'embarque aucun
+JavaScript et son CSS est déjà découpé par composant, l'écart se compte en un
+ou deux kilo-octets compressés. Le gain est la mise en page.
 
 ## Le piège que le socle contourne
 

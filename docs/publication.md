@@ -48,6 +48,11 @@ Il montre le dépôt tel qu'il est enregistré, images comprises — le panel se
 aussi les **langues en préparation**, absentes du site construit : c'est le seul
 endroit où une traduction se relit avant de sortir.
 
+Sur un site à deux rendus, il montre aussi **le rendu du support demandé** :
+`?support=desktop` sert la variante bureau, et la bascule de l'écran d'édition
+la demande. Un support que la mise en ligne ne produirait pas retombe sur le
+mobile — l'aperçu ne montre jamais ce qui ne sortirait pas.
+
 Le bouton « Aperçu » du panel enregistre d'abord si quelque chose attend.
 
 ## L'ordre : rebaser, construire, basculer, pousser
@@ -89,11 +94,26 @@ l'image entre dans le site, et `public/` est recopié tel quel. Une publication
 ne ré-encode donc rien, et il n'y a aucun cache d'images à préserver d'une
 version à l'autre.
 
+**Un site à deux rendus reste un seul build** (D103). Le rendu bureau ne sort
+pas d'un second `astro build` : ce sont les mêmes pages, produites une fois de
+plus sous le préfixe `_desktop/`. Le regroupement et le CSS sont partagés, si
+bien que seul le rendu des pages est refait — le plafond de dix minutes n'a pas
+eu à bouger, et la bascule porte toujours sur un seul dossier.
+
+Une fois le HTML écrit et avant la bascule, le socle compare les deux rendus :
+un texte, un lien ou une métadonnée présent au seul bureau ne sera jamais indexé
+(`modele-contenu.md`). **Cela n'arrête pas la mise en ligne** — la version est
+bonne, c'est son référencement qui est amoindri — mais le mainteneur le reçoit
+par email, sur le canal du site (D75, D108).
+
 ## Bascule atomique
 
 ```
 /srv/site/
 ├── releases/2026-08-29T15-21-40/     nouveau build
+│   ├── index.html                    le rendu mobile, celui qui existe toujours
+│   ├── _desktop/index.html           le rendu bureau, si le site en a un
+│   └── _astro/                       le CSS, partagé par les deux
 ├── releases/2026-08-29T14-03-12/     précédent, conservé
 └── current -> releases/2026-08-29T15-21-40
 ```

@@ -5,8 +5,8 @@ import { bench, ORIGIN } from '../server/panel.fixture.js'
 import { PANEL_PATH } from '../server/handlers.js'
 import { resolvePreview } from './preview.js'
 
-function visit(cookie?: string): Request {
-  return new Request(`${ORIGIN}/admin/preview/`, {
+function visit(cookie?: string, query = ''): Request {
+  return new Request(`${ORIGIN}/admin/preview/${query}`, {
     headers: cookie === undefined ? {} : { cookie },
   })
 }
@@ -85,6 +85,62 @@ describe('resolvePreview', () => {
     if (view.kind === 'stop') {
       expect(await view.response.text()).toContain('Aucune page')
     }
+
+    await site.close()
+  })
+
+  it('rend le mobile quand la bascule ne demande rien', async () => {
+    const site = await bench({ capabilities: { desktopRender: true } })
+    const view = await resolvePreview(site.panel, visit(site.cookie), '')
+
+    expect(view.kind).toBe('page')
+
+    if (view.kind === 'page') expect(view.support).toBe('mobile')
+
+    await site.close()
+  })
+
+  it('rend le bureau quand la bascule le demande', async () => {
+    const site = await bench({ capabilities: { desktopRender: true } })
+    const view = await resolvePreview(
+      site.panel,
+      visit(site.cookie, '?support=desktop'),
+      '',
+    )
+
+    expect(view.kind).toBe('page')
+
+    if (view.kind === 'page') expect(view.support).toBe('desktop')
+
+    await site.close()
+  })
+
+  it('ne montre pas un rendu que la mise en ligne ne produirait pas', async () => {
+    const site = await bench()
+    const view = await resolvePreview(
+      site.panel,
+      visit(site.cookie, '?support=desktop'),
+      '',
+    )
+
+    expect(view.kind).toBe('page')
+
+    if (view.kind === 'page') expect(view.support).toBe('mobile')
+
+    await site.close()
+  })
+
+  it('retombe sur le mobile devant un support inconnu', async () => {
+    const site = await bench({ capabilities: { desktopRender: true } })
+    const view = await resolvePreview(
+      site.panel,
+      visit(site.cookie, '?support=montre'),
+      '',
+    )
+
+    expect(view.kind).toBe('page')
+
+    if (view.kind === 'page') expect(view.support).toBe('mobile')
 
     await site.close()
   })
