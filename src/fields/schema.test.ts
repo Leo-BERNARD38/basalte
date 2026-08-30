@@ -166,6 +166,65 @@ describe('toZod — structures', () => {
     ).toBe(false)
   })
 
+  // Les deux moitiés de la règle « tout champ absent vaut vide » : ce qui est
+  // facultatif rend le vide, ce qui est requis est refusé par sa borne. Zod 4
+  // ne retraverse pas un `default`, d’où `prefault` — sans quoi un `required`
+  // ne vaut que pour une clé présente, et un groupe absent reste un objet vide
+  // que le composant du bloc lit comme `props.labels.name`.
+  it('remplit un groupe absent jusqu’à ses champs', () => {
+    const parse = check(
+      {
+        labels: f.group({
+          fields: { name: f.text({ i18n: true }), submit: f.text() },
+        }),
+      },
+      mono,
+    )
+
+    const parsed = parse({})
+
+    expect(parsed.success).toBe(true)
+
+    if (parsed.success) {
+      expect(parsed.data).toEqual({ labels: { name: { fr: '' }, submit: '' } })
+    }
+  })
+
+  it('refuse un champ requis dont la clé manque, quel qu’il soit', () => {
+    for (const fields of [
+      { v: f.url({ required: true }) },
+      { v: f.image({ required: true }) },
+      { v: f.document({ required: true }) },
+      { v: f.richtext({ required: true }) },
+      { v: f.text({ required: true }) },
+      { v: f.list({ of: { title: f.text() }, min: 1 }) },
+    ]) {
+      expect(check(fields)({}).success).toBe(false)
+    }
+  })
+
+  it('rend le vide d’un champ facultatif dont la clé manque', () => {
+    const parsed = check({
+      href: f.url(),
+      image: f.image(),
+      body: f.richtext(),
+      note: f.textarea(),
+      items: f.list({ of: { title: f.text() } }),
+    })({})
+
+    expect(parsed.success).toBe(true)
+
+    if (parsed.success) {
+      expect(parsed.data).toEqual({
+        href: '',
+        image: '',
+        body: '',
+        note: '',
+        items: [],
+      })
+    }
+  })
+
   it('borne le nombre d’éléments d’une liste', () => {
     const parse = check({
       items: f.list({ of: { title: f.text() }, min: 1, max: 2 }),

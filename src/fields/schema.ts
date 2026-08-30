@@ -9,6 +9,12 @@
 // Tout champ absent vaut vide : la sortie de l’analyse porte donc chaque clé,
 // et le composant qui la rend n’a jamais à tester une absence. Une valeur
 // requise se dit par sa borne basse, pas par la présence de sa clé.
+//
+// D’où `prefault` partout, et jamais `default` : un défaut est rendu tel quel,
+// sans repasser par le schéma, quand une prévaleur le traverse. La nuance porte
+// les deux moitiés de la règle — un champ facultatif absent rend le vide, un
+// champ requis absent est refusé par sa propre borne, et un groupe absent rend
+// ses champs remplis plutôt qu’un objet vide.
 
 import { z } from 'zod'
 
@@ -54,7 +60,7 @@ function objectOf(fields: Fields, languages: Languages): z.ZodType {
 
 function fieldOf(field: AnyField, languages: Languages): z.ZodType {
   if (field.kind === 'group') {
-    return objectOf(field.fields, languages).default({})
+    return objectOf(field.fields, languages).prefault({})
   }
 
   if (field.kind === 'list') {
@@ -64,7 +70,7 @@ function fieldOf(field: AnyField, languages: Languages): z.ZodType {
     if (min > 0) list = list.min(min)
     if (field.max !== undefined) list = list.max(field.max)
 
-    return list.default([])
+    return list.prefault([])
   }
 
   if ('i18n' in field && field.i18n) return translatedOf(field, languages)
@@ -80,7 +86,7 @@ function translatedOf(field: LeafField, languages: Languages): z.ZodType {
 
   for (const language of languages.all) {
     shape[language.code] = language.draft
-      ? z.string().default('')
+      ? z.string().prefault('')
       : leafOf(field)
   }
 
@@ -109,7 +115,7 @@ function translatedOf(field: LeafField, languages: Languages): z.ZodType {
       }
     })
 
-  return translated.default({})
+  return translated.prefault({})
 }
 
 function leafOf(field: LeafField): z.ZodType {
@@ -119,7 +125,7 @@ function leafOf(field: LeafField): z.ZodType {
 
       return field.required
         ? z.enum(values)
-        : z.enum([...values, '']).default('')
+        : z.enum([...values, '']).prefault('')
     }
 
     case 'url':
@@ -128,18 +134,18 @@ function leafOf(field: LeafField): z.ZodType {
           (value) =>
             value === '' || allowedHref(value, field.external === true),
         )
-        .default('')
+        .prefault('')
 
     case 'image':
     case 'document':
-      return bounded(field.required ? 1 : 0).default('')
+      return bounded(field.required ? 1 : 0).prefault('')
 
     case 'richtext':
-      return bounded(field.required ? 1 : 0, field.max).default('')
+      return bounded(field.required ? 1 : 0, field.max).prefault('')
 
     case 'text':
     case 'textarea':
-      return bounded(minimumOf(field), field.max)
+      return bounded(minimumOf(field), field.max).prefault('')
   }
 }
 
