@@ -36,8 +36,7 @@ export function MediaLibrary({
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="center">
-        <Title order={3}>Médias</Title>
+      <Group justify="flex-end" align="center">
         <UploadButton
           onDone={(added) => {
             setProblem('')
@@ -51,7 +50,7 @@ export function MediaLibrary({
       {problem !== '' && (
         <Alert
           color="red"
-          variant="light"
+
           onClose={() => setProblem('')}
           withCloseButton
         >
@@ -130,9 +129,9 @@ function MediaDetail({
   }
 
   return (
-    <Paper withBorder p="md">
+    <Paper p="md">
       <Stack gap="md">
-        <Title order={5}>Cette image</Title>
+        <Title order={4}>Cette image</Title>
 
         <div className="basalte-focal">
           <img src={thumbnail(entry)} alt="" onClick={aim} />

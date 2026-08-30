@@ -40,11 +40,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
   }, [])
 
   if (problem !== '') {
-    return (
-      <Alert color="red" variant="light">
-        {problem}
-      </Alert>
-    )
+    return <Alert color="red">{problem}</Alert>
   }
 
   if (audience === undefined) return null
@@ -52,8 +48,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
   if (!audience.readable) {
     return (
       <Stack gap="md" maw={860}>
-        <Title order={3}>Statistiques</Title>
-        <Alert color="yellow" variant="light">
+        <Alert color="orange">
           Les journaux d’accès ne sont pas lisibles depuis le panel. Le site
           continue de fonctionner : seule cette page est vide.
         </Alert>
@@ -65,12 +60,9 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
 
   return (
     <Stack gap="md" maw={860}>
-      <Group justify="space-between" align="baseline">
-        <Title order={3}>Statistiques</Title>
-        <Text size="sm" c="dimmed">
-          Du {PERIOD.format(audience.from)} au {PERIOD.format(audience.to)}
-        </Text>
-      </Group>
+      <Text size="sm" c="dimmed">
+        Du {PERIOD.format(audience.from)} au {PERIOD.format(audience.to)}
+      </Text>
 
       <Group grow align="stretch">
         <Figure label="Visites" value={audience.visits} />
@@ -78,9 +70,9 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
         <Figure label="Messages envoyés" value={audience.forms} />
       </Group>
 
-      <Paper withBorder p="md">
+      <Paper p="md">
         <Stack gap="xs">
-          <Title order={5}>Jour par jour</Title>
+          <Title order={4}>Jour par jour</Title>
           {audience.days.length === 0 ? (
             <Text size="sm" c="dimmed">
               Aucune visite sur la période.
@@ -137,7 +129,7 @@ function Figure({
   readonly value: number
 }) {
   return (
-    <Paper withBorder p="md">
+    <Paper p="md">
       <Text size="sm" c="dimmed">
         {label}
       </Text>
@@ -158,9 +150,9 @@ function Ranking({
   readonly rows: readonly Counted[]
 }) {
   return (
-    <Paper withBorder p="md">
+    <Paper p="md">
       <Stack gap="xs">
-        <Title order={5}>{title}</Title>
+        <Title order={4}>{title}</Title>
         {rows.length === 0 ? (
           <Text size="sm" c="dimmed">
             {empty}

@@ -28,6 +28,21 @@ export function useEditing(): Editing {
 }
 
 /** Le nom d’une langue tel que le client le lit, jamais son code. */
+const HOME = 'index'
+
+/**
+ * Le nom d’une page devant le client. Le titre des moteurs de recherche est
+ * une phrase, pas une étiquette : il reste dans son champ, et la navigation
+ * emploie le nom du fichier, mis en forme.
+ */
+export function pageLabel(name: string): string {
+  if (name === HOME) return 'Accueil'
+
+  const words = name.replace(/[-_]/g, ' ')
+
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
 export function languageLabel(
   languages: readonly PanelLanguage[],
   code: string,

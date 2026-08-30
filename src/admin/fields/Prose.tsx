@@ -56,7 +56,7 @@ export function Prose({ description, value, onChange }: ControlProps) {
       />
       {text.trim() !== '' && (
         <div
-          className="basalte-preview"
+          className="basalte-markdown"
           dangerouslySetInnerHTML={{ __html: renderRichtext(text) }}
         />
       )}

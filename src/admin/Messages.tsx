@@ -17,7 +17,6 @@ import {
   Modal,
   Stack,
   Text,
-  Title,
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
@@ -81,18 +80,11 @@ export function Messages({
 
   return (
     <Stack gap="md" maw={860}>
-      <Group justify="space-between" align="baseline">
-        <Title order={3}>Messages</Title>
-        <Text size="sm" c="dimmed">
-          Conservés {retention} mois, puis effacés.
-        </Text>
-      </Group>
+      <Text size="sm" c="dimmed">
+        Conservés {retention} mois, puis effacés.
+      </Text>
 
-      {problem !== '' && (
-        <Alert color="red" variant="light">
-          {problem}
-        </Alert>
-      )}
+      {problem !== '' && <Alert color="red">{problem}</Alert>}
 
       {leads !== undefined && leads.length === 0 && (
         <Text size="sm" c="dimmed">
@@ -102,7 +94,7 @@ export function Messages({
       )}
 
       {leads !== undefined && leads.length > 0 && (
-        <Accordion variant="separated" onChange={(id) => void opened(id ?? '')}>
+        <Accordion onChange={(id) => void opened(id ?? '')}>
           {leads.map((lead) => (
             <Accordion.Item key={lead.id} value={String(lead.id)}>
               <Accordion.Control>
@@ -112,9 +104,7 @@ export function Messages({
                   </Text>
                   <Group gap="xs" wrap="nowrap">
                     {lead.delivery === 'failed' && (
-                      <Badge color="orange" variant="light">
-                        non transmis par email
-                      </Badge>
+                      <Badge color="orange">non transmis par email</Badge>
                     )}
                     <Text size="sm" c="dimmed">
                       {MOMENT.format(lead.at)}

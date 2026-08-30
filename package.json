@@ -37,7 +37,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
-    "demo:dev": "node scripts/build.mjs && astro dev --root examples/demo",
+    "demo:dev": "node scripts/demo-dev.mjs",
     "demo:build": "node scripts/build.mjs && astro build --root examples/demo",
     "demo:panel": "node scripts/build.mjs && node scripts/build-panel.mjs",
     "demo:check": "node scripts/build.mjs && astro check --root examples/demo",

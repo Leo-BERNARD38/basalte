@@ -69,7 +69,7 @@ export function SignIn({
 
   return (
     <div className="basalte-signin">
-      <Paper withBorder p="xl" maw={420} w="100%">
+      <Paper p="xl" maw={420} w="100%" shadow="lg">
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -77,13 +77,9 @@ export function SignIn({
           }}
         >
           <Stack gap="md">
-            <Title order={3}>{site}</Title>
+            <Title order={2}>{site}</Title>
 
-            {problem !== '' && (
-              <Alert color="red" variant="light">
-                {problem}
-              </Alert>
-            )}
+            {problem !== '' && <Alert color="red">{problem}</Alert>}
 
             {step === 'password' ? (
               <>

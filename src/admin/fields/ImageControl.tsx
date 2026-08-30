@@ -28,7 +28,7 @@ export function ImageControl({ description, value, onChange }: ControlProps) {
       description={hint(description)}
       required={description.required}
     >
-      <Paper withBorder p="xs" mt={4}>
+      <Paper p="xs" mt={4}>
         <Group wrap="nowrap" align="center">
           {entry === undefined ? (
             <Text c="dimmed" size="sm" style={{ flex: 1 }}>

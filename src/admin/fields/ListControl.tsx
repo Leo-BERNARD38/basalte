@@ -9,6 +9,7 @@ import { Button, Group, Paper, Stack, Text } from '@mantine/core'
 import { emptyValues, move, remove, replace, translated } from '../draft.js'
 import type { Values } from '../draft.js'
 import { useEditing } from '../editing.js'
+import { Grip } from '../Grip.js'
 import { SortableItem, SortableList } from '../Sortable.js'
 import { FieldSet, type ControlProps } from './Field.js'
 
@@ -49,7 +50,12 @@ export function ListControl({ description, value, onChange }: ControlProps) {
           {items.map((item, index) => (
             <SortableItem key={index} id={String(index)}>
               {(handle) => (
-                <Paper withBorder p="sm">
+                <Paper
+                  p="sm"
+                  bg="var(--panel-sunken)"
+                  shadow="none"
+                  radius="md"
+                >
                   <Group justify="space-between" mb="xs" wrap="nowrap">
                     <Group gap="xs" wrap="nowrap">
                       <button
@@ -59,7 +65,7 @@ export function ListControl({ description, value, onChange }: ControlProps) {
                         aria-label="Déplacer cet élément"
                         {...handle.props}
                       >
-                        ⠿
+                        <Grip />
                       </button>
                       <Text fw={500} size="sm">
                         {itemLabel(

@@ -82,23 +82,13 @@ export function Account({ onSignedOut }: { readonly onSignedOut: () => void }) {
 
   return (
     <Stack gap="md" maw={720}>
-      <Title order={3}>Compte</Title>
+      {notice !== '' && <Alert color="green">{notice}</Alert>}
 
-      {notice !== '' && (
-        <Alert color="green" variant="light">
-          {notice}
-        </Alert>
-      )}
+      {problem !== '' && <Alert color="red">{problem}</Alert>}
 
-      {problem !== '' && (
-        <Alert color="red" variant="light">
-          {problem}
-        </Alert>
-      )}
-
-      <Paper withBorder p="md">
+      <Paper p="md">
         <Stack gap="md">
-          <Title order={5}>Mot de passe</Title>
+          <Title order={4}>Mot de passe</Title>
           <Text size="sm" c="dimmed">
             Douze caractères au minimum. Le changer ferme les sessions ouvertes
             ailleurs.
@@ -127,9 +117,9 @@ export function Account({ onSignedOut }: { readonly onSignedOut: () => void }) {
         </Stack>
       </Paper>
 
-      <Paper withBorder p="md">
+      <Paper p="md">
         <Stack gap="md">
-          <Title order={5}>Appareils reconnus</Title>
+          <Title order={4}>Appareils reconnus</Title>
           {session === undefined || session.devices.length === 0 ? (
             <Text size="sm" c="dimmed">
               Aucun appareil retenu : le code est demandé à chaque connexion.
@@ -157,9 +147,9 @@ export function Account({ onSignedOut }: { readonly onSignedOut: () => void }) {
         </Stack>
       </Paper>
 
-      <Paper withBorder p="md">
+      <Paper p="md">
         <Stack gap="md">
-          <Title order={5}>Connexions récentes</Title>
+          <Title order={4}>Connexions récentes</Title>
           {session === undefined || session.journal.length === 0 ? (
             <Text size="sm" c="dimmed">
               Rien à afficher pour l’instant.

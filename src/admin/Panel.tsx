@@ -26,7 +26,6 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
-import { slugFor } from '../astro/routes.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
@@ -34,15 +33,15 @@ import { Account } from './Account.js'
 import { loadPanel, publishSite, readPublication, savePage } from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
-import { EditingContext, type Editing } from './editing.js'
+import { EditingContext, pageLabel, type Editing } from './editing.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
 import { Messages } from './Messages.js'
 import { SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
 import { Stats } from './Stats.js'
+import { cssVariables, theme } from './theme.js'
 
-const PREVIEW = '/admin/preview/'
 const EMPTY: Draft = { meta: {}, blocks: [] }
 const IDLE: PublishState = { running: false, queued: false }
 
@@ -172,7 +171,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
   if (!ready) {
     return (
-      <MantineProvider>
+      <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
         <Center h="100vh">
           <Loader />
         </Center>
@@ -182,7 +181,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
   if (payload === undefined) {
     return (
-      <MantineProvider>
+      <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
         <SignIn site={site} onSignedIn={() => void load()} />
       </MantineProvider>
     )
@@ -212,30 +211,6 @@ export default function Panel({ site }: { readonly site: string }) {
     await load(selected)
 
     return true
-  }
-
-  // La fenêtre s’ouvre avant l’enregistrement : ouverte après une attente, le
-  // navigateur la prendrait pour une fenêtre surgissante et la bloquerait.
-  const preview = async () => {
-    const tab = window.open('', '_blank')
-
-    if (tab !== null) tab.opener = null
-
-    if (dirty && !(await save())) {
-      tab?.close()
-      return
-    }
-
-    const prefix =
-      language ===
-      (known.site.languages.find((entry) => entry.default)?.code ?? '')
-        ? ''
-        : language
-
-    const address = `${PREVIEW}${slugFor(page?.route ?? '/', prefix) ?? ''}`
-
-    if (tab === null) window.open(address, '_blank', 'noopener')
-    else tab.location.replace(address)
   }
 
   // Ce qui part en ligne est ce qui est enregistré : un chantier laissé dans le
@@ -284,11 +259,15 @@ export default function Panel({ site }: { readonly site: string }) {
   }
 
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
       <EditingContext.Provider value={editing}>
         <Shell
           payload={known}
           screen={screen}
+          heading={heading(
+            screen,
+            page === undefined ? undefined : pageLabel(page.name),
+          )}
           onScreen={goTo}
           language={language}
           onLanguage={setLanguage}
@@ -298,7 +277,6 @@ export default function Panel({ site }: { readonly site: string }) {
           problems={problems}
           publication={publication}
           onSave={() => void save()}
-          onPreview={() => void preview()}
           onPublish={() => void goOnline()}
           onSignedOut={() => setPayload(undefined)}
         >
@@ -307,6 +285,8 @@ export default function Panel({ site }: { readonly site: string }) {
               payload={known}
               selected={selected}
               draft={draft}
+              savedAt={savedAt}
+              dirty={dirty}
               onSelect={select}
               onDraft={setDraft}
             />
@@ -369,6 +349,13 @@ export default function Panel({ site }: { readonly site: string }) {
       </EditingContext.Provider>
     </MantineProvider>
   )
+}
+
+/** Le titre de l’en-tête : la page ouverte en édition, le nom de l’écran ailleurs. */
+function heading(screen: Screen, page: string | undefined): string {
+  if (screen === 'edit') return page ?? 'Édition'
+
+  return SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
 }
 
 function readScreen(): Screen {

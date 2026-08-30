@@ -1,9 +1,10 @@
-// Le cadre du panel : la navigation, la langue affichée, et la barre
-// d’enregistrement — seul endroit de l’écran où agir sur l’état du site.
+// Le cadre du panel : la navigation, la langue affichée, et l’en-tête d’écran
+// — seul endroit où agir sur l’état du site.
 //
 // Trois informations y sont lisibles en permanence : reste-t-il quelque chose
 // à enregistrer, quand la dernière modification a-t-elle été enregistrée, et
-// quelque chose est-il cassé.
+// quelque chose est-il cassé. Elles vivent sous le titre, à côté des deux
+// boutons, pour qu’un seul regard suffise.
 
 import { Alert, Badge, Button, Group, Select, Tabs, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
@@ -37,6 +38,7 @@ const ONLINE = new Intl.DateTimeFormat('fr-FR', {
 export function Shell({
   payload,
   screen,
+  heading,
   onScreen,
   language,
   onLanguage,
@@ -46,13 +48,13 @@ export function Shell({
   problems,
   publication,
   onSave,
-  onPreview,
   onPublish,
   onSignedOut,
   children,
 }: {
   readonly payload: PanelPayload
   readonly screen: Screen
+  readonly heading: string
   readonly onScreen: (screen: Screen) => void
   readonly language: string
   readonly onLanguage: (language: string) => void
@@ -62,7 +64,6 @@ export function Shell({
   readonly problems: readonly string[]
   readonly publication: PublishState
   readonly onSave: () => void
-  readonly onPreview: () => void
   readonly onPublish: () => void
   readonly onSignedOut: () => void
   readonly children: ReactNode
@@ -73,71 +74,129 @@ export function Shell({
 
   return (
     <div className="basalte-shell">
-      <header className="basalte-header">
-        <Group justify="space-between" align="center" wrap="nowrap">
-          <Group gap="lg" wrap="nowrap">
-            <Text fw={700}>{payload.site.name}</Text>
-            <Tabs
-              value={screen}
-              onChange={(value) => onScreen((value ?? 'edit') as Screen)}
-            >
-              <Tabs.List>
-                {SCREENS.map((entry) => (
-                  <Tabs.Tab
-                    key={entry.value}
-                    value={entry.value}
-                    rightSection={
-                      entry.value === 'messages' && payload.unread > 0 ? (
-                        <Badge size="sm" circle>
-                          {payload.unread}
-                        </Badge>
-                      ) : undefined
-                    }
-                  >
-                    {entry.label}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
-            </Tabs>
-          </Group>
+      <header className="basalte-topbar">
+        <span className="basalte-brand">
+          <span className="basalte-brand__mark" />
+          {payload.site.name}
+        </span>
 
-          <Group gap="sm" wrap="nowrap">
-            {several && (
-              <Select
-                size="xs"
-                w={160}
-                aria-label="Langue affichée"
-                data={payload.site.languages.map((entry) => ({
-                  value: entry.code,
-                  label: entry.draft
-                    ? `${entry.label} (en préparation)`
-                    : entry.label,
-                }))}
-                value={language}
-                allowDeselect={false}
-                onChange={(value) => onLanguage(value ?? language)}
-              />
-            )}
-            <Text size="sm" c="dimmed">
-              {payload.account}
-            </Text>
-            <Button
-              variant="subtle"
-              size="xs"
-              onClick={async () => {
-                await signOut()
-                onSignedOut()
-              }}
-            >
-              Se déconnecter
-            </Button>
-          </Group>
+        <Tabs
+          value={screen}
+          onChange={(value) => onScreen((value ?? 'edit') as Screen)}
+        >
+          <Tabs.List>
+            {SCREENS.map((entry) => (
+              <Tabs.Tab
+                key={entry.value}
+                value={entry.value}
+                rightSection={
+                  entry.value === 'messages' && payload.unread > 0 ? (
+                    <Badge size="sm" color="red" variant="filled" circle>
+                      {payload.unread}
+                    </Badge>
+                  ) : undefined
+                }
+              >
+                {entry.label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs>
+
+        <Group gap="sm" wrap="nowrap" ml="auto">
+          {several && (
+            <Select
+              size="sm"
+              w={150}
+              variant="unstyled"
+              aria-label="Langue affichée"
+              data={payload.site.languages.map((entry) => ({
+                value: entry.code,
+                label: entry.draft
+                  ? `${entry.label} (en préparation)`
+                  : entry.label,
+              }))}
+              value={language}
+              allowDeselect={false}
+              onChange={(value) => onLanguage(value ?? language)}
+            />
+          )}
+          <Text size="sm" c="dimmed">
+            {payload.account}
+          </Text>
+          <Button
+            variant="subtle"
+            color="gray"
+            size="sm"
+            onClick={async () => {
+              await signOut()
+              onSignedOut()
+            }}
+          >
+            Se déconnecter
+          </Button>
         </Group>
       </header>
 
       <main className="basalte-main">
+        <div className="basalte-head">
+          <div className="basalte-head__facts">
+            <div className="basalte-head__title">
+              <Text
+                component="h1"
+                fz="var(--panel-text-display)"
+                fw={700}
+                lh={1.05}
+                m={0}
+              >
+                {heading}
+              </Text>
+              {dirty ? (
+                <Badge color="orange">Modifications non enregistrées</Badge>
+              ) : (
+                <Badge color="green">Tout est enregistré</Badge>
+              )}
+            </div>
+
+            <Group gap="xs">
+              {savedAt !== undefined && (
+                <Text size="sm" c="dimmed">
+                  dernier enregistrement à {MOMENT.format(savedAt)}
+                </Text>
+              )}
+              <Text size="sm" c="dimmed">
+                {onlineLabel(publication)}
+              </Text>
+              {!payload.tracked && (
+                <Text size="sm" c="dimmed">
+                  sans historique — ce dossier n’est pas un dépôt git
+                </Text>
+              )}
+            </Group>
+          </div>
+
+          <div className="basalte-head__actions">
+            <Button
+              variant="default"
+              disabled={screen !== 'edit' || !dirty}
+              loading={busy}
+              onClick={onSave}
+            >
+              Enregistrer
+            </Button>
+            <Button
+              color="ink"
+              disabled={busy}
+              loading={busyOnline}
+              onClick={onPublish}
+            >
+              Mettre en ligne
+            </Button>
+          </div>
+        </div>
+
         {payload.problems.length > 0 && (
-          <Alert color="orange" variant="light" mb="md" title="À corriger">
+          <Alert color="orange" title="À corriger">
             {payload.problems.map((problem, rank) => (
               <Text key={`${rank}-${problem.message}`} size="sm">
                 {problem.message}
@@ -149,8 +208,6 @@ export function Shell({
         {last?.outcome === 'failed' && !busyOnline && (
           <Alert
             color="orange"
-            variant="light"
-            mb="md"
             title="La dernière mise en ligne n’a pas abouti"
           >
             <Text size="sm">{last.message}</Text>
@@ -158,12 +215,7 @@ export function Shell({
         )}
 
         {problems.length > 0 && (
-          <Alert
-            color="red"
-            variant="light"
-            mb="md"
-            title="Rien n’a été enregistré"
-          >
+          <Alert color="red" title="Rien n’a été enregistré">
             {problems.map((problem, rank) => (
               <Text key={`${rank}-${problem}`} size="sm">
                 {problem}
@@ -174,54 +226,6 @@ export function Shell({
 
         {children}
       </main>
-
-      <footer className="basalte-bar">
-        <Group justify="space-between" align="center">
-          <Group gap="sm">
-            {dirty ? (
-              <Badge color="orange">Modifications non enregistrées</Badge>
-            ) : (
-              <Badge color="green" variant="light">
-                Tout est enregistré
-              </Badge>
-            )}
-            {savedAt !== undefined && (
-              <Text size="xs" c="dimmed">
-                dernier enregistrement à {MOMENT.format(savedAt)}
-              </Text>
-            )}
-            {!payload.tracked && (
-              <Text size="xs" c="dimmed">
-                sans historique — ce dossier n’est pas un dépôt git
-              </Text>
-            )}
-            <Text size="xs" c="dimmed">
-              {onlineLabel(publication)}
-            </Text>
-          </Group>
-
-          <Group gap="sm">
-            <Button
-              variant="default"
-              disabled={screen !== 'edit' || busy}
-              onClick={onPreview}
-            >
-              Aperçu
-            </Button>
-            <Button
-              variant="default"
-              disabled={screen !== 'edit' || !dirty}
-              loading={busy}
-              onClick={onSave}
-            >
-              Enregistrer
-            </Button>
-            <Button disabled={busy} loading={busyOnline} onClick={onPublish}>
-              Mettre en ligne
-            </Button>
-          </Group>
-        </Group>
-      </footer>
     </div>
   )
 }

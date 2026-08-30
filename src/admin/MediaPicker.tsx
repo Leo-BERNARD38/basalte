@@ -34,11 +34,7 @@ export function MediaPicker({
       centered
     >
       <Stack gap="md">
-        {problem !== '' && (
-          <Alert color="red" variant="light">
-            {problem}
-          </Alert>
-        )}
+        {problem !== '' && <Alert color="red">{problem}</Alert>}
 
         <MediaGrid media={media} selected={selected} onSelect={setSelected} />
 

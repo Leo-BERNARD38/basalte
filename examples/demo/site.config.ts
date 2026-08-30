@@ -9,15 +9,12 @@ export default defineSite({
   },
   tokens: {
     color: {
-      bg: '#fbfaf7',
-      fg: '#1b1a17',
-      muted: '#585349',
-      accent: '#8a4b2a',
-      accentFg: '#fbfaf7',
-      border: '#e0dbd0',
-    },
-    font: {
-      title: 'Georgia, "Times New Roman", serif',
+      bg: '#ffffff',
+      fg: '#101014',
+      muted: '#5c5c64',
+      accent: '#16181d',
+      accentFg: '#ffffff',
+      border: '#e6e8ee',
     },
   },
 })

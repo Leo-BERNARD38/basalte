@@ -58,7 +58,7 @@ même temps.
 
 | Page | Contenu | Depuis |
 |---|---|---|
-| Édition | les pages du site et leurs sections — l'écran par défaut | phase 3 |
+| Édition | l'aperçu de la page, ses sections, et le panneau de la section choisie — l'écran par défaut | phase 3 |
 | Médias | la médiathèque | phase 3 |
 | Compte | mot de passe, appareils, journal de connexion | phase 3 |
 | Messages | les leads du formulaire de contact | phase 5 |
@@ -98,13 +98,39 @@ description — recharge la médiathèque sans toucher au texte en cours.
 
 Mantine fournit des composants corrects, pas une hiérarchie. Dessinée depuis
 les écrans réels, la couche maison s'est révélée plus courte que prévu : le
-cadre (`Shell`), une section pliable, la grille de médias, et le moteur de
+cadre (`Shell`), le panneau d'une section, la grille de médias, et le moteur de
 champs. `PageHeader` et `EmptyState` n'ont pas eu lieu d'être — deux titres et
 une phrase suffisaient.
 
 Le panel emploie l'**échelle de Mantine**, jamais les tokens du site (D65) : la
 DA d'un client ne décide pas de la lisibilité de son outil de travail. La règle
 des tokens de `design.md` reste donc bornée aux blocs.
+
+### La couche de tokens
+
+Cette échelle, le panel la **configure** plutôt que de la subir (D95). Tout vit
+dans `src/admin/theme.ts` : surfaces, encre, couleurs, échelle de texte,
+espacements, rayons, ombres. L'objet alimente `createTheme` — et donc chaque
+composant Mantine — puis, par son résolveur, les variables `--panel-*` que
+`panel.css` consomme. Une valeur n'est écrite qu'une fois.
+
+Trois principes portent l'allure :
+
+- **Aucune bordure** (D97). Ce qui sépare deux plans est un écart de valeur et
+  une ombre très douce. Entre deux lignes d'une liste, c'est l'écart seul.
+- **La couleur est réservée** aux actions et aux données. Le reste est neutre.
+  L'action qui change l'état du site est noire, une fois par écran ; l'action
+  fréquente est bleue et douce ; ce qui détruit est rouge.
+- **Le contraste vient de la graisse et de la taille**, pas de la couleur :
+  38 / 22 / 16 / 14 / 13 / 11, en 700 ou 500, et rien entre les deux.
+
+Le plancher est vérifié : 4,5:1 sur les trois premiers niveaux d'encre, focus
+visible à 3 px, cible tactile de 48 px sous 60 rem, et jamais la couleur seule
+pour porter un état.
+
+`panel.css` ne dessine plus que ce que Mantine ne sait pas dessiner : la mise
+en page des écrans, la poignée de déplacement, la vignette, la jauge, le point
+focal.
 
 ## Authentification
 
@@ -244,8 +270,26 @@ reste constructible.
 
 **Ce qui n'est pas dans le panel.** Le client n'ajoute ni page ni section
 (D3) : il modifie, réordonne, masque, et remplit ou vide une liste répétable.
-La barre du bas porte l'enregistrement et l'aperçu ; le bouton « mettre en
-ligne » arrive avec la phase 4.
+
+### L'écran d'édition
+
+Trois colonnes, et l'aperçu au centre (D96) :
+
+| Colonne | Ce qu'elle porte |
+|---|---|
+| gauche | la page ouverte, la liste de ses sections — sélection, réordonnancement, et la seule prise sur une section masquée |
+| centre | `GET /admin/preview/<slug>` dans un cadre, en bureau ou en mobile |
+| droite | le panneau de la section choisie, ou les informations de la page |
+
+L'aperçu montre **le dernier enregistrement** : c'est ce que le dépôt contient,
+donc ce qui partira en ligne. Tant que des modifications ne le sont pas,
+l'écran le dit et le cadre se recharge au premier enregistrement réussi.
+Modifier le texte directement dans l'aperçu demande une route de rendu qui
+accepte un contenu en transit — ce n'est pas fait.
+
+L'enregistrement et la mise en ligne vivent dans l'en-tête, à droite du titre :
+un seul endroit pour agir sur l'état du site, à la même place sur les cinq
+écrans.
 
 ## Médias
 

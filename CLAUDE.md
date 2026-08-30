@@ -20,6 +20,10 @@ fichiers de la machine. Reste `src/seo/` et le bloc `faq` qui l'attend
 (`docs/implementation.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
+**Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
+de démonstration s'il manque, et sert le site et son panel sur
+`localhost:4321`. Sans clé d'email, le code à six chiffres s'affiche dans le
+terminal.
 
 ## Où lire quoi
 
@@ -87,6 +91,7 @@ src/
 │   └── <nom>/      schema.ts + <Nom>.astro
 ├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
+│   ├── theme.ts    les tokens du panel → thème Mantine + variables --panel-*
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git
 │   └── email/      interface EmailProvider, brevo · console · memory
@@ -123,7 +128,9 @@ Détail dans `docs/conventions.md`. L'essentiel :
   `f.*`.
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
-  est un token à ajouter, jamais un `padding: 27px` isolé.
+  est un token à ajouter, jamais un `padding: 27px` isolé. Le panel a sa propre
+  couche de tokens, `src/admin/theme.ts` (D95), et ne dessine aucune bordure
+  (D97) : les plans se séparent par la valeur et l'ombre.
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
