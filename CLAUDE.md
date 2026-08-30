@@ -37,6 +37,7 @@ terminal.
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
 | une montée de version | `docs/mise-a-jour.md` |
+| ce qui vient après les six phases | `docs/roadmap.md` |
 | ce que contient un dépôt client | `docs/depot-client.md` |
 | les tokens, une maquette à implémenter | `docs/design.md` |
 | la mise en ligne d'un site | `docs/mise-en-prod.md` |

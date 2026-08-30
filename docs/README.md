@@ -20,6 +20,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | mettre un site en ligne sur un VPS | `mise-en-prod.md` |
 | comprendre Docker, Caddy, les sauvegardes | `deploiement.md` |
 | savoir quoi construire ensuite | `implementation.md` |
+| savoir ce qui vient après les six phases | `roadmap.md` |
 
 ## Les documents
 
@@ -42,6 +43,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
 | `implementation.md` | Les six phases, leurs enjeux, tests, hors périmètre |
+| `roadmap.md` | Les phases 7 à 11 : atelier et `init` paramétrable, double rendu, chrome, images, SEO, leads |
 | `roadmap-outillage-ia.md` | Chantiers d'outillage IA restants |
 
 ## Trois niveaux de lecture
@@ -92,8 +94,9 @@ fichiers de la machine. Décisions D87 à D94.
 tokens à lui dans `src/admin/theme.ts`, l'aperçu au centre de l'écran
 d'édition, et aucune bordure. Décisions D95 à D97.
 
-Ce qui reste est nommé : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images
-Open Graph — et le bloc `faq` qui l'attend.
+Ce qui reste est découpé en cinq phases dans `roadmap.md` : l’atelier et un
+`init` paramétrable, le double rendu mobile/bureau, le chrome, le recadrage et
+`src/seo/`, puis la notification des leads.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.
