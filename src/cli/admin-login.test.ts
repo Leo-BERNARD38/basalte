@@ -4,9 +4,10 @@ import { findAccount } from '../server/account.js'
 import { EMAIL, harness, HERE } from '../server/auth.fixture.js'
 import { RESCUE_PATH } from '../server/handlers.js'
 import { useRescue } from '../server/login.js'
-import { adminLogin, issueRescue } from './admin-login.js'
+import { adminLogin, issueRescue, rescueOrigin } from './admin-login.js'
 
 const DOMAIN = 'exemple.fr'
+const ORIGIN = `https://${DOMAIN}`
 
 function link(stdout: string): string {
   return stdout.match(/https:\/\/\S+/)?.[0] ?? ''
@@ -21,14 +22,37 @@ describe('adminLogin', () => {
   })
 })
 
+describe('rescueOrigin', () => {
+  it('prend le domaine du site quand rien n’est demandé', () => {
+    expect(rescueOrigin(undefined, DOMAIN)).toBe(ORIGIN)
+  })
+
+  it('ouvre le lien là où le serveur répond vraiment', () => {
+    expect(rescueOrigin('http://localhost:4321', DOMAIN)).toBe(
+      'http://localhost:4321',
+    )
+  })
+
+  it('laisse tomber la barre finale, qui doublerait celle du chemin', () => {
+    expect(rescueOrigin('http://localhost:4321/', DOMAIN)).toBe(
+      'http://localhost:4321',
+    )
+  })
+
+  it('refuse ce qui n’est pas une adresse', () => {
+    expect(rescueOrigin('localhost:4321', DOMAIN)).toBeUndefined()
+    expect(rescueOrigin('http://localhost:4321/admin', DOMAIN)).toBeUndefined()
+  })
+})
+
 describe('issueRescue', () => {
   it('produit un lien qui ouvre vraiment une session', async () => {
     const bench = await harness()
 
-    const result = await issueRescue(bench.server, DOMAIN, EMAIL, false)
+    const result = await issueRescue(bench.server, ORIGIN, EMAIL, false)
 
     expect(result.code).toBe(0)
-    expect(result.stdout).toContain(RESCUE_PATH)
+    expect(result.stdout).toContain(`${ORIGIN}${RESCUE_PATH}`)
     expect(result.stdout).toContain('10 minutes')
 
     const token = new URL(link(result.stdout)).searchParams.get('token') ?? ''
@@ -38,10 +62,25 @@ describe('issueRescue', () => {
     bench.close()
   })
 
+  it('ouvre le lien sur l’adresse locale quand elle est donnée', async () => {
+    const bench = await harness()
+
+    const result = await issueRescue(
+      bench.server,
+      'http://localhost:4321',
+      EMAIL,
+      false,
+    )
+
+    expect(result.stdout).toContain('http://localhost:4321/admin/rescue?token=')
+
+    bench.close()
+  })
+
   it('crée le compte et affiche son mot de passe une fois', async () => {
     const bench = await harness({ account: false })
 
-    const result = await issueRescue(bench.server, DOMAIN, EMAIL, true)
+    const result = await issueRescue(bench.server, ORIGIN, EMAIL, true)
 
     expect(result.stdout).toContain('compte créé')
     expect(findAccount(bench.server.database, EMAIL)).toBeDefined()
@@ -58,7 +97,7 @@ describe('issueRescue', () => {
     const bench = await harness()
 
     await expect(
-      issueRescue(bench.server, DOMAIN, EMAIL, true),
+      issueRescue(bench.server, ORIGIN, EMAIL, true),
     ).rejects.toThrow('existe déjà')
 
     bench.close()
@@ -68,7 +107,7 @@ describe('issueRescue', () => {
     const bench = await harness({ account: false })
 
     await expect(
-      issueRescue(bench.server, DOMAIN, EMAIL, false),
+      issueRescue(bench.server, ORIGIN, EMAIL, false),
     ).rejects.toThrow('Aucun compte')
 
     bench.close()

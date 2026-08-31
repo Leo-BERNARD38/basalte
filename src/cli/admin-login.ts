@@ -5,6 +5,10 @@
 // machine, produit un lien valable dix minutes — et crée le compte sous
 // `--create`, en affichant son mot de passe une seule fois, à l’écran, jamais
 // par email (invariant 12).
+//
+// C’est aussi elle qui ouvre le panel d’un dépôt neuf : en local, `/admin`
+// demande une session comme en production. Le lien porte alors le domaine de
+// la production, qui ne répond pas — d’où `--origin`.
 
 import { createAccount } from '../server/account.js'
 import type { Server } from '../server/context.js'
@@ -28,25 +32,49 @@ export async function adminLogin(
     ])
   }
 
+  const asked = optionValue(argv, '--origin')
   const site = await loadSite(cwd)
+  const origin = rescueOrigin(asked, site.domain)
+
+  if (origin === undefined) {
+    return fails([
+      `« ${asked} » n’est pas une adresse : attendu « http://localhost:4321 ».`,
+    ])
+  }
+
   const server = openServer(cwd, site)
 
   try {
-    return await issueRescue(
-      server,
-      site.domain,
-      email,
-      argv.includes('--create'),
-    )
+    return await issueRescue(server, origin, email, argv.includes('--create'))
   } finally {
     server.database.close()
   }
 }
 
+const ORIGIN = /^https?:\/\/[^/?#\s]+$/
+
+/**
+ * L’adresse d’où le lien s’ouvre. Sans `--origin`, le domaine du site — ce
+ * qu’il faut sur la machine, où la commande est faite pour tourner. Sous
+ * `npm run dev`, ce domaine est celui de la production et ne répond pas : le
+ * lien s’ouvrirait ailleurs, ou nulle part. Rend `undefined` quand ce qui est
+ * demandé n’est pas une adresse.
+ */
+export function rescueOrigin(
+  asked: string | undefined,
+  domain: string,
+): string | undefined {
+  if (asked === undefined) return `https://${domain}`
+
+  const trimmed = asked.replace(/\/+$/, '')
+
+  return ORIGIN.test(trimmed) ? trimmed : undefined
+}
+
 /** Le cœur de la commande, sans disque ni configuration à charger. */
 export async function issueRescue(
   server: Server,
-  domain: string,
+  origin: string,
   email: string,
   create: boolean,
 ): Promise<Result> {
@@ -71,7 +99,7 @@ export async function issueRescue(
   lines.push(
     `  Lien de connexion, valable ${Math.round(RESCUE_LIFETIME / MINUTE)} minutes et à usage unique :`,
     '',
-    `  https://${domain}${RESCUE_PATH}?token=${rescue.token}`,
+    `  ${origin}${RESCUE_PATH}?token=${rescue.token}`,
     '',
   )
 

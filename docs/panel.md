@@ -227,7 +227,9 @@ versionné ; c'est lui que sauvegarde le dump quotidien de `deploiement.md`.
 
 Le premier compte se crée en console : `basalte admin:login --user <email>
 --create` affiche le mot de passe généré une seule fois, puis le lien de
-connexion (D53).
+connexion (D53). Ce lien porte le domaine du site — ce qu'il faut sur la
+machine, où la commande est faite pour tourner. En local, `--origin
+http://localhost:4321` l'ouvre là où le serveur de développement répond.
 
 ### Ce que la phase 3 a posé
 

@@ -85,11 +85,8 @@ function slugOf(url: string): string {
 
 const VERSION = /^v(\d+)\.(\d+)\.(\d+)$/
 
-/**
- * Les versions publiées, de la plus ancienne à la plus récente. Un tag qui
- * n’est pas du semver strict est ignoré : le socle n’en publie pas d’autre.
- */
-export async function publishedVersions(
+/** Les tags du dépôt du socle, tels qu’il les porte. */
+export async function remoteTags(
   cwd: string,
   socle: Socle,
 ): Promise<readonly string[]> {
@@ -103,9 +100,37 @@ export async function publishedVersions(
 
   return lines(listed.stdout)
     .map((row) => row.split('/').at(-1)?.trim() ?? '')
+    .filter((tag) => tag !== '')
+}
+
+/**
+ * Les versions que ces tags publient, de la plus ancienne à la plus récente.
+ * Un tag qui n’est pas du semver strict est ignoré : le socle n’en publie pas
+ * d’autre.
+ */
+export function versionsOf(tags: readonly string[]): readonly string[] {
+  return tags
     .filter((tag) => VERSION.test(tag))
     .map((tag) => tag.slice(1))
     .toSorted(compareVersions)
+}
+
+/** Les versions publiées, de la plus ancienne à la plus récente. */
+export async function publishedVersions(
+  cwd: string,
+  socle: Socle,
+): Promise<readonly string[]> {
+  return versionsOf(await remoteTags(cwd, socle))
+}
+
+/**
+ * Vrai quand un tag nomme cette version sans son « v ». Le socle ne lit que
+ * `vX.Y.Z`, si bien qu’un tag `X.Y.Z` est ignoré en silence : la publication
+ * se lit alors comme absente, et la commande qui la réclame renvoie à un geste
+ * qui vient d’être fait.
+ */
+export function isMistagged(version: string, tags: readonly string[]): boolean {
+  return tags.includes(version) && !tags.includes(`v${version}`)
 }
 
 /**

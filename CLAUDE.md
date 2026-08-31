@@ -213,7 +213,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
 | `basalte migrate [--dry-run]` | applique les migrations de format |
-| `basalte admin:login --user <email> [--create]` | lien de connexion de secours (SSH), et création du compte |
+| `basalte admin:login --user <email> [--create] [--origin <url>]` | lien de connexion de secours (SSH), et création du compte |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build

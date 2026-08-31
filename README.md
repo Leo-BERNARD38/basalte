@@ -119,9 +119,9 @@ Chaque version porte ses notes dans `notes/vX.Y.Z.md`, au format fixe — c'est
 ce que `npm run update` affiche au client. Format et règles d'écriture :
 `docs/mise-a-jour.md`.
 
-> **État actuel : aucun tag n'est publié.** Le socle est en `0.1.0` et
-> `git tag` ne rend rien. Tant que `v0.1.0` n'est pas poussé, `basalte init`
-> refusera d'installer — c'est le premier geste à faire.
+> **Le `v` fait partie du tag.** Le socle ne lit que `vX.Y.Z` strict : un tag
+> `0.1.0` est ignoré, et la version se lit alors comme jamais publiée. `init`
+> reconnaît ce cas et donne les deux commandes qui le réparent.
 
 ---
 
@@ -163,13 +163,12 @@ un seul processus. Le panel demande une session comme en production : il n'y a
 pas encore de compte. Crée-le une fois, dans un second terminal :
 
 ```bash
-npx basalte admin:login --user toi@exemple.fr --create
+npx basalte admin:login --user toi@exemple.fr --create --origin http://localhost:4321
 ```
 
 La commande affiche le mot de passe — **une seule fois**, jamais par email — et
-un lien de connexion valable dix minutes. Ce lien porte le domaine du site : en
-local, remplace `https://mon-client.fr` par `http://localhost:4321` avant de
-l'ouvrir.
+un lien de connexion valable dix minutes. Sans `--origin`, le lien porte le
+domaine du site : celui de la production, qui ne répond pas en local.
 
 ### 3.3 Raconter le client à Claude
 
@@ -444,7 +443,7 @@ pourquoi.
 | `npm run deploy -- --host <ip>` | provisionne la machine, ou la met à jour |
 | `npm run doctor` | prouve que la configuration fonctionne |
 | `npm run update` | monte le socle de version, ou annule tout |
-| `npx basalte admin:login --user <email> [--create]` | connexion de secours, et création du compte |
+| `npx basalte admin:login --user <email> [--create] [--origin <url>]` | connexion de secours, et création du compte |
 | `npx basalte inventory` | les blocs disponibles et leurs champs |
 
 **Le CLI complet :**
@@ -458,7 +457,7 @@ pourquoi.
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
 | `basalte migrate [--dry-run]` | applique les migrations de format |
-| `basalte admin:login --user <email> [--create]` | lien de connexion de secours (SSH) |
+| `basalte admin:login --user <email> [--create] [--origin <url>]` | lien de connexion de secours (SSH) |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 ## Quand ça coince
@@ -466,9 +465,10 @@ pourquoi.
 | Le symptôme | La cause, et le geste |
 |---|---|
 | `init` refuse : « pas de version publiée » | la version de `package.json` n'est pas taguée — voir §2. `--no-install` écrit le dépôt sans l'installer |
+| `init` refuse : « un tag sans le `v` » | `git tag vX.Y.Z X.Y.Z && git push origin vX.Y.Z` |
 | `npm ci` refuse de s'exécuter | Node n'est pas en 24 — `nvm use 24` |
 | le panel demande une session et tu n'as pas de compte | `npx basalte admin:login --user <email> --create` |
-| le lien de connexion pointe vers le domaine, pas vers localhost | remplace `https://<domaine>` par `http://localhost:4321` |
+| le lien de connexion pointe vers le domaine, pas vers localhost | ajoute `--origin http://localhost:4321` |
 | `update` refuse de commencer | l'arbre de travail n'est pas propre — commite ou remise d'abord |
 | `check` échoue sur un `$format` | le format de contenu est en retard : `npx basalte migrate` |
 | un bloc s'affiche sans son CSS | il est importé depuis un module purement virtuel — voir D45 |

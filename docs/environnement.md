@@ -263,6 +263,14 @@ puis jouer le rituel de clone. Sans lui, une machine restée en Node 22 se heurt
 à `engine-strict=true` et n'installe rien du tout — rien ne se lance, et la
 cause n'est pas évidente.
 
+Il ouvre `nvm.sh` sous `--no-use`. En s'ouvrant, nvm active la version par
+défaut et rend 3 quand elle n'est pas installée — c'est-à-dire toujours, sur la
+machine qu'il est là pour équiper. Sous `set -e`, ce code de retour tuait le
+script entier avant la moindre installation, sans un mot : la session repartait
+sur le Node du conteneur, `npm ci` refusait de s'exécuter, et rien ne disait
+pourquoi. Un hook qui prépare une machine ne peut pas mourir de la panne qu'il
+corrige.
+
 Il emploie `npm ci`, là où un hook de démarrage prendrait plutôt `npm install`
 pour profiter du cache de conteneur : le lockfile de ce dépôt est un artefact
 versionné qui porte les binaires de deux plateformes, et `npm install` sous

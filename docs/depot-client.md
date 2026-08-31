@@ -77,7 +77,11 @@ retenir : il lance `basalte inventory --agent` et régénère `.claude/basalte.m
 
 `npm run dev` sert le site sur `/` et le panel sur `/admin`, dans un seul
 processus. Le panel demande une session comme en production : le premier accès
-passe par `basalte admin:login --user <email> --create`, une fois.
+passe par `basalte admin:login --user <email> --create --origin
+http://localhost:4321`, une fois. Sans `--origin`, le lien porte le domaine du
+site, qui ne répond pas en local. La commande est nommée dans
+`.claude/basalte.md` : un dépôt neuf sert sinon un écran de connexion que rien
+n'explique.
 
 ## Configuration : deux fichiers, pas un
 

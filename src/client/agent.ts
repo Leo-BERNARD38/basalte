@@ -38,6 +38,8 @@ export function basalteDoc(
     '',
     ...commands(),
     '',
+    ...firstLogin(),
+    '',
     '## Ce qui est réutilisable',
     '',
     'Avant d’écrire une fonction ou un bloc, le chercher ici. Écrire une',
@@ -99,6 +101,26 @@ function commands(): readonly string[] {
     'une traduction manquante dans une langue en ligne, une image absente du',
     'disque, et un format de contenu en retard — auquel cas il nomme',
     '`basalte migrate`.',
+  ]
+}
+
+// Le panel demande une session dès le premier accès, y compris en local : sans
+// cette section, un dépôt neuf sert un écran de connexion que rien n’explique,
+// et la commande qui en sort n’est nommée nulle part dans le dépôt.
+function firstLogin(): readonly string[] {
+  return [
+    '## Ouvrir le panel la première fois',
+    '',
+    'Sous `npm run dev`, `/admin` demande une session comme en production, et',
+    'un dépôt neuf n’a pas encore de compte. Il s’en crée un, une fois :',
+    '',
+    '```bash',
+    'npx basalte admin:login --user <email> --create --origin http://localhost:4321',
+    '```',
+    '',
+    'Elle affiche le mot de passe une seule fois — jamais par email — et un',
+    'lien valable dix minutes. Sans `--origin`, le lien porte le domaine du',
+    'site : celui de la production, qui ne répond pas en local.',
   ]
 }
 
