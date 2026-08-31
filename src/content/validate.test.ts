@@ -129,6 +129,29 @@ describe('validatePage', () => {
     expect(result.page).toBeUndefined()
   })
 
+  it('refuse une page sans description : c’est ce que Google affiche sous le titre', () => {
+    const result = run(page({ meta: { title: { fr: 'Accueil' } } }))
+
+    expect(renderIssue(result.issues[0]!)).toBe(
+      'index › Description (français) : doit être rempli',
+    )
+    expect(result.page).toBeUndefined()
+  })
+
+  it('n’exige pas la description d’une langue en préparation', () => {
+    const result = run(
+      page({
+        meta: {
+          title: { fr: 'Accueil', en: 'Home' },
+          description: { fr: 'Une page.' },
+        },
+      }),
+      withDraft,
+    )
+
+    expect(result.page).toBeDefined()
+  })
+
   it('refuse un champ requis laissé vide', () => {
     const result = run(
       page({
@@ -146,7 +169,7 @@ describe('validatePage', () => {
       page({
         meta: {
           title: { fr: 'Accueil', en: 'Home' },
-          description: { fr: '', en: '' },
+          description: { fr: 'Une page.', en: 'A page.' },
         },
         blocks: [
           {
@@ -171,7 +194,7 @@ describe('validatePage', () => {
       page({
         meta: {
           title: { fr: 'Accueil', en: 'Home' },
-          description: { fr: '', en: '' },
+          description: { fr: 'Une page.', en: 'A page.' },
         },
         blocks: [
           {
@@ -258,7 +281,7 @@ describe('validatePage', () => {
       source: page({
         meta: {
           title: { fr: 'Accueil', en: 'Home' },
-          description: { fr: '', en: '' },
+          description: { fr: 'Une page.', en: 'A page.' },
         },
         blocks: [
           {

@@ -332,7 +332,7 @@ export function defaultPage(): Readonly<Record<string, unknown>> {
     $format: CONTENT_FORMAT,
     meta: {
       title: { fr: 'Accueil', en: '' },
-      description: { fr: '', en: '' },
+      description: { fr: 'La page d’accueil du banc.', en: '' },
     },
     blocks: [
       {

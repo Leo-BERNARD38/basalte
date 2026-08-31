@@ -55,7 +55,7 @@ describe('resolvePreview', () => {
     const site = await bench({
       content: {
         $format: CONTENT_FORMAT,
-        meta: { title: { fr: '' } },
+        meta: { title: { fr: '' }, description: { fr: '' } },
         blocks: [],
       },
     })

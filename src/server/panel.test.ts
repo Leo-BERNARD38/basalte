@@ -52,7 +52,7 @@ describe('GET /api/panel', () => {
     const payload = await (await site.call('GET', '/api/panel')).json()
 
     expect(payload.pages[0].progress).toEqual([
-      { language: 'en', filled: 0, total: 3 },
+      { language: 'en', filled: 0, total: 4 },
     ])
 
     await site.close()

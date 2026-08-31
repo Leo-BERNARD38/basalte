@@ -18,7 +18,8 @@ import path from 'node:path'
 import { errorsOf, readProject, type Project } from '../content/project.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
-import { checkRatios, countMediaUsage, withLineage } from '../media/usage.js'
+import { checkRatios, unusedMedia } from '../media/usage.js'
+import { findableIssues } from '../seo/findable.js'
 import { danglingRedirects, shadowedRedirects } from '../seo/redirects.js'
 import { astroBinary } from '../publish/build.js'
 import { checkHeadings } from '../render/outline.js'
@@ -55,6 +56,12 @@ export async function check(
     ),
     ...redirectIssues(project),
     ...orphans(project),
+    ...findableIssues({
+      pages: project.pages,
+      registry: project.registry,
+      languages: project.site.languages,
+      business: project.business,
+    }),
   ]
   const sections = project.pages.reduce(
     (total, entry) => total + entry.page.blocks.length,
@@ -174,8 +181,7 @@ function redirectIssues(project: Project): readonly ContentIssue[] {
 }
 
 // Une image ou un document que plus aucune section ne cite reste dans le
-// dépôt : git ne supprime rien, et le retirer à la main casserait un retour
-// arrière. Le signaler suffit — c’est le panel qui sait supprimer proprement.
+// dépôt. Le signaler suffit — c’est le panel qui sait supprimer proprement.
 function orphans(project: Project): readonly ContentIssue[] {
   const pages = project.pages.map((entry) => entry.page)
 
@@ -183,19 +189,18 @@ function orphans(project: Project): readonly ContentIssue[] {
     keys: readonly string[],
     kind: 'image' | 'document',
     say: (key: string) => string,
-  ): readonly ContentIssue[] => {
-    const counted = countMediaUsage(project.registry, pages, kind)
-    const usage =
-      kind === 'image' ? withLineage(counted, project.media) : counted
-
-    return keys
-      .filter((key) => (usage.get(key) ?? 0) === 0)
-      .map((key) => ({
-        severity: 'warning' as const,
-        page: 'médiathèque',
-        message: say(key),
-      }))
-  }
+  ): readonly ContentIssue[] =>
+    unusedMedia({
+      keys,
+      registry: project.registry,
+      pages,
+      manifest: project.media,
+      kind,
+    }).map((key) => ({
+      severity: 'warning' as const,
+      page: 'médiathèque',
+      message: say(key),
+    }))
 
   return [
     ...unused(

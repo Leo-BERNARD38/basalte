@@ -23,6 +23,7 @@ export const META_FIELDS = {
     label: 'Description',
     help: 'Les deux lignes affichées sous le titre dans les résultats.',
     i18n: true,
+    required: true,
     max: 160,
     rows: 2,
   }),

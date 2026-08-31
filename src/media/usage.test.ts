@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest'
 import type { BlockRegistry } from '../blocks/define.js'
 import { f } from '../fields/define.js'
 import type { MediaEntry, MediaManifest } from './manifest.js'
-import { checkRatios, countMediaUsage, withLineage } from './usage.js'
+import {
+  checkRatios,
+  countMediaUsage,
+  unusedMedia,
+  withLineage,
+} from './usage.js'
 
 const REGISTRY: BlockRegistry = {
   hero: {
@@ -150,6 +155,32 @@ describe('withLineage', () => {
     const usage = withLineage(countMediaUsage(REGISTRY, [page([])]), manifest)
 
     expect(usage.get('aaa')).toBeUndefined()
+  })
+})
+
+describe('unusedMedia', () => {
+  it('nomme une image que plus aucune section ne cite', () => {
+    expect(
+      unusedMedia({
+        keys: ['aaa', 'bbb'],
+        registry: REGISTRY,
+        pages: [page([{ type: 'hero', props: { image: 'aaa' } }])],
+        manifest: { aaa: entry(1600, 1200), bbb: entry(1600, 1200) },
+        kind: 'image',
+      }),
+    ).toEqual(['bbb'])
+  })
+
+  it('garde l’originale d’un recadrage employé, dont il faut repartir', () => {
+    expect(
+      unusedMedia({
+        keys: ['aaa', 'bbb'],
+        registry: REGISTRY,
+        pages: [page([{ type: 'hero', props: { image: 'bbb' } }])],
+        manifest: { aaa: entry(1600, 1200), bbb: entry(1600, 900, 'aaa') },
+        kind: 'image',
+      }),
+    ).toEqual([])
   })
 })
 

@@ -35,6 +35,13 @@ export const COMMANDS: readonly Command[] = [
       (await import('./inventory.js')).inventory(argv, cwd),
   },
   {
+    name: 'content',
+    usage: 'content [--json]',
+    summary:
+      'relève ce que ce site contient : pages, sections, langues, médias',
+    run: async (argv, cwd) => (await import('./content.js')).content(argv, cwd),
+  },
+  {
     name: 'lint',
     usage: 'lint',
     summary: 'vérifie les conventions du code : blocs, styles, schémas',

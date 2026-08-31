@@ -72,6 +72,26 @@ export function withLineage(
   return counts
 }
 
+/**
+ * Les clés que plus aucune section n’emploie. Git ne supprime rien : une image
+ * ou un document laissé là reste dans le dépôt, et le retirer à la main
+ * casserait un retour arrière. Ce relevé sert deux lecteurs — `basalte check`
+ * le signale, `basalte content` le compte.
+ */
+export function unusedMedia(input: {
+  readonly keys: readonly string[]
+  readonly registry: BlockRegistry
+  readonly pages: readonly UsageSource[]
+  readonly manifest: MediaManifest
+  readonly kind: 'image' | 'document'
+}): readonly string[] {
+  const counted = countMediaUsage(input.registry, input.pages, input.kind)
+  const usage =
+    input.kind === 'image' ? withLineage(counted, input.manifest) : counted
+
+  return input.keys.filter((key) => (usage.get(key) ?? 0) === 0)
+}
+
 export type RatioSource = UsageSource & { readonly name: string }
 
 /**
