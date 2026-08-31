@@ -35,6 +35,12 @@ export const COMMANDS: readonly Command[] = [
       (await import('./inventory.js')).inventory(argv, cwd),
   },
   {
+    name: 'lint',
+    usage: 'lint',
+    summary: 'vérifie les conventions du code : blocs, styles, schémas',
+    run: async (argv, cwd) => (await import('./lint.js')).lint(argv, cwd),
+  },
+  {
     name: 'update',
     usage: 'update [--dry-run] [--json]',
     summary: 'monte un site de version, ou annule tout',
@@ -60,8 +66,9 @@ export const COMMANDS: readonly Command[] = [
   },
   {
     name: 'admin:login',
-    usage: 'admin:login --user <email> [--create]',
-    summary: 'lien de connexion de secours (SSH), et création du compte',
+    usage: 'admin:login --user <email> [--create|--reset] [--origin <url>]',
+    summary:
+      'lien de connexion de secours (SSH), création du compte et mot de passe reposé',
     run: async (argv, cwd) =>
       (await import('./admin-login.js')).adminLogin(argv, cwd),
   },

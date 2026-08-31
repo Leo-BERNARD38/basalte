@@ -38,6 +38,8 @@ export function basalteDoc(
     '',
     ...commands(),
     '',
+    ...firstLogin(),
+    '',
     '## Ce qui est réutilisable',
     '',
     'Avant d’écrire une fonction ou un bloc, le chercher ici. Écrire une',
@@ -99,6 +101,48 @@ function commands(): readonly string[] {
     'une traduction manquante dans une langue en ligne, une image absente du',
     'disque, et un format de contenu en retard — auquel cas il nomme',
     '`basalte migrate`.',
+    '',
+    '## Ce que le code doit tenir',
+    '',
+    '```bash',
+    'npx basalte lint',
+    '```',
+    '',
+    'Il tourne en pré-commit à côté de `check`, et refuse ce que les règles',
+    'ci-dessus interdisent, à l’endroit fautif :',
+    '',
+    '- une couleur, un espacement, une taille ou une police écrits en dur dans',
+    '  un bloc — chacun est un token de `site.config.ts`, `var(--space-5)` ;',
+    '- un schéma de bloc qui valide à la main, importe Zod ou lève une erreur —',
+    '  toute contrainte passe par `f.*` ;',
+    '- un fourre-tout : `utils`, `helpers`, `common`, `divers` ;',
+    '- une paire de tokens dont le contraste tombe sous 4,5:1.',
+    '',
+    'Un `<script>` dans un bloc n’est pas refusé, seulement signalé : le site',
+    'public n’embarque aucun JavaScript par défaut, et un bloc qui en veut le',
+    'déclare bloc par bloc.',
+    '',
+    'Lance-le après avoir écrit un bloc, avant de dire que c’est fait.',
+  ]
+}
+
+// Le panel demande une session dès le premier accès, y compris en local : sans
+// cette section, un dépôt neuf sert un écran de connexion que rien n’explique,
+// et la commande qui en sort n’est nommée nulle part dans le dépôt.
+function firstLogin(): readonly string[] {
+  return [
+    '## Ouvrir le panel la première fois',
+    '',
+    'Sous `npm run dev`, `/admin` demande une session comme en production, et',
+    'un dépôt neuf n’a pas encore de compte. Il s’en crée un, une fois :',
+    '',
+    '```bash',
+    'npx basalte admin:login --user <email> --create --origin http://localhost:4321',
+    '```',
+    '',
+    'Elle affiche le mot de passe une seule fois — jamais par email — et un',
+    'lien valable dix minutes. Sans `--origin`, le lien porte le domaine du',
+    'site : celui de la production, qui ne répond pas en local.',
   ]
 }
 

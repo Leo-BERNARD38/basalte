@@ -50,6 +50,38 @@ function npm(failing: readonly string[] = []) {
 }
 
 /** Un dépôt jetable, avec son manifeste commité. */
+/**
+ * Le temps d'un appel, git ne voit ni configuration globale ni configuration
+ * système : c'est l'état d'une machine neuve, d'un conteneur ou d'un runner.
+ * Défaire la seule ligne locale ne suffirait pas — la globale prendrait le
+ * relais, et le banc ne passerait que sur la machine du mainteneur.
+ */
+async function withoutIdentity<T>(body: () => Promise<T>): Promise<T> {
+  await mkdir(WORK, { recursive: true })
+
+  const empty = path.join(await mkdtemp(path.join(WORK, 'gitconf-')), 'config')
+
+  await writeFile(empty, '', 'utf8')
+
+  const global = process.env['GIT_CONFIG_GLOBAL']
+  const system = process.env['GIT_CONFIG_NOSYSTEM']
+
+  process.env['GIT_CONFIG_GLOBAL'] = empty
+  process.env['GIT_CONFIG_NOSYSTEM'] = '1'
+
+  try {
+    return await body()
+  } finally {
+    restore('GIT_CONFIG_GLOBAL', global)
+    restore('GIT_CONFIG_NOSYSTEM', system)
+  }
+}
+
+function restore(name: string, value: string | undefined): void {
+  if (value === undefined) delete process.env[name]
+  else process.env[name] = value
+}
+
 async function repository(): Promise<string> {
   await mkdir(WORK, { recursive: true })
 
@@ -82,17 +114,14 @@ async function repository(): Promise<string> {
   )
 
   await tryGit(root, ['init', '--quiet', '--initial-branch=main'])
+
+  // L'identité est posée sur le dépôt et non sur la ligne de commande : la
+  // montée de version commite sous celle que git lui donne, et un banc qui
+  // s'appuierait sur celle de la machine passerait ici et nulle part ailleurs.
+  await tryGit(root, ['config', 'user.name', 'banc'])
+  await tryGit(root, ['config', 'user.email', 'banc@exemple.fr'])
   await tryGit(root, ['add', '--all'])
-  await tryGit(root, [
-    '-c',
-    'user.name=banc',
-    '-c',
-    'user.email=banc@exemple.fr',
-    'commit',
-    '--quiet',
-    '--message',
-    'départ',
-  ])
+  await tryGit(root, ['commit', '--quiet', '--message', 'départ'])
 
   return root
 }
@@ -192,6 +221,27 @@ describe('montée de version', () => {
 
     expect(steps).toHaveLength(1)
     expect(steps[0]?.ok).toBe(false)
+    expect(seen).toEqual([])
+    expect(await pinned(root)).toBe('github:Leo-BERNARD38/basalte#v1.4.0')
+  })
+
+  it('refuse un dépôt dont git ne connaît pas l’auteur', async () => {
+    const root = await repository()
+
+    await tryGit(root, ['config', '--unset', 'user.name'])
+    await tryGit(root, ['config', '--unset', 'user.email'])
+
+    const { run, seen } = await withoutIdentity(async () => {
+      const npmRun = npm()
+      const steps = await applyUpgrade(root, UPGRADE, SOCLE, npmRun.run)
+
+      return { run: steps, seen: npmRun.seen }
+    })
+
+    expect(run).toHaveLength(1)
+    expect(run[0]?.ok).toBe(false)
+    expect(run[0]?.detail).toContain('git ne sait pas qui commite')
+    expect(run[0]?.detail).toContain('git config --global')
     expect(seen).toEqual([])
     expect(await pinned(root)).toBe('github:Leo-BERNARD38/basalte#v1.4.0')
   })

@@ -7,6 +7,35 @@ qui existe déjà, qui marche, et que personne ne remarquera avant six mois.
 
 Tout ce qui suit sert à rendre la réutilisation plus facile que la réécriture.
 
+## Ce qui est vérifié, et ce qui ne l'est pas
+
+`basalte lint` refuse ce que les règles ci-dessous interdisent, à l'endroit
+fautif. Il tourne dans `npm run verify`, et en pré-commit d'un dépôt client à
+côté de `check` — jamais à l'enregistrement d'un client dans le panel, qui
+commite en `--no-verify` (D17) : un défaut de style ne doit pas empêcher
+quelqu'un de corriger un texte.
+
+| Règle | Ce qui est refusé |
+|---|---|
+| aucune valeur de style en dur | une couleur, un espacement, une taille, une police ou un rayon écrits en clair dans le `<style>` d'un bloc |
+| un bloc ne valide rien à la main | un `.refine()`, un `throw`, un import de Zod dans un `schema.ts` de bloc |
+| pas de fourre-tout | un fichier ou un dossier nommé `utils`, `helpers`, `common`, `misc`, `shared`, `divers` |
+| le plancher du design | une paire de tokens dont le contraste tombe sous 4,5:1 |
+
+Un `<script>` dans un bloc est signalé sans être refusé : l'interactivité est
+opt-in bloc par bloc (invariant 5), et aucune machine ne peut décider à la
+place de l'auteur si ce script est mérité.
+
+Ce qui n'est **pas** vérifié reste à la relecture : qu'un bloc soit lisible à
+375 px, que le focus clavier soit visible, que le texte alternatif dise quelque
+chose. Une règle qu'un contrôle ne sait pas juger n'est pas affaiblie par son
+absence ici — elle est simplement encore à la charge de celui qui écrit.
+
+Trois exceptions sont dans le contrôle lui-même, parce qu'aucun token ne les
+porte : une condition de `@media`, qu'aucune variable CSS ne sait lire ; une
+largeur qui n'est pas une largeur de contenu — un chevron dessiné, le piège
+d'un pot de miel ; et zéro, les pourcentages et les proportions.
+
 ## Chercher avant d'écrire
 
 ```bash

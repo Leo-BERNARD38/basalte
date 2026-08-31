@@ -444,4 +444,11 @@ describe('la doc agent', () => {
     expect(doc).toContain('version 1.4.0')
     expect(doc).toContain('Aucun code du socle copié ici')
   })
+
+  it('dit comment ouvrir le panel d’un dépôt neuf', () => {
+    const doc = basalteDoc([], '1.4.0')
+
+    expect(doc).toContain('admin:login')
+    expect(doc).toContain('--origin http://localhost:4321')
+  })
 })

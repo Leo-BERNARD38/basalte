@@ -4,35 +4,18 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases, et les phases 7 à 11, sont faites. Phase 1 — DSL
-de champs, moteur de blocs, intégration Astro, médias, `basalte check` et
-`basalte inventory` ; le site de démonstration se construit depuis son JSON
-(`examples/demo`). Phase 2 — le flux d'authentification entier, jusqu'à
-`basalte admin:login`. Phase 3 — le panel : formulaires produits depuis les
-schémas, enregistrement avec commit, médiathèque, réordonnancement, visibilité
-par langue, aperçu. Phase 4 — la mise en ligne : rebase, build en processus
-enfant, bascule atomique, push, file à une place, et un échec qui laisse le
-site debout. Phase 5 — servir : formulaire de contact sans une ligne de
-JavaScript, anti-spam, messages gardés en base avant tout envoi, purge des
-données personnelles, audience lue dans les logs de Caddy. Phase 6 — livrer :
-`basalte init` et le paquet Claude Code du dépôt client, `deploy`, `doctor`,
-`update`, les migrations de format, `update-all`, et les fichiers de la
-machine. Phase 7 — outiller : la grammaire enrichie de `f.richtext`, les
-documents légaux générés, le PDF téléchargeable, le contexte du site en
-`docs/`, le banc de blocs `/__blocs`, les capacités déclarées et les profils
-d'`init`. Phase 8 — adapter : deux rendus construits depuis le même contenu et
-servis chacun à son support, la variante bureau d'un bloc, et le contrat qui
-garantit que le mobile porte tout. Phase 9 — encadrer : l'en-tête et le pied de
-page autour de chaque page, dans les deux rendus, remplaçables par site, un
-menu qui se déduit des pages tant que personne ne l'a rangé, et le `h1` rendu à
-la première section. Phase 10 — cadrer : le ratio d'un champ réellement obtenu
-par un recadrage qui est une ingestion, la fiche d'entreprise comme seule source
-structurée, `src/seo/` — carte de partage, JSON-LD, sitemap, `robots.txt`,
-favicon, page 404, redirections — et le bloc `faq` qui l'attendait. Phase 11 —
-joindre : une adresse web prévenue à chaque message en plus de l'email, les
-sondes SPF, DKIM et DMARC de `doctor`, la page `/merci` quand le dépôt la porte,
-et les phrases qui suppriment les appels que le panel provoquait. Ce qui a été
-laissé de côté est listé dans `docs/roadmap.md`.
+**État :** les onze phases sont faites — le socle rend, authentifie, édite,
+publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
+cadre ses images et joint son client. Un site se crée, se met en production et
+se monte de version en une commande chacune. Ce que chaque phase a mis en place
+est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait
+est dans `docs/decisions.md`, qui est la mémoire du projet.
+
+**À faire :** trois phases indépendantes, écrites dans `docs/implementation.md`
+— *Constater* (ce que le site est, dit sans le lire), *S'outiller* (ce dépôt-ci
+devient un atelier pour l'agent qui l'écrit), *Partager* (un bloc écrit une fois
+sert à plusieurs sites). Ce qui a été identifié et laissé de côté est dans
+`docs/roadmap.md`, avec ce qui le ferait revenir.
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
@@ -137,8 +120,11 @@ notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      site de démonstration, banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
-.claude/            l'amorçage d'une session sur le web — pas celui d'un
-                    dépôt client, que src/client/ génère (D125)
+.claude/            l'amorçage d'une session sur le web (D125), et les skills
+    skills/         de ce dépôt : « phase » écrit ou clôt un cahier de phase,
+                    « consigner » range ce qui vient d'être fait et retire ce
+                    qui n'apprend plus rien. Rien à voir avec le paquet d'un
+                    dépôt client, que src/client/ génère
 docs/
 ```
 
@@ -162,7 +148,8 @@ Détail dans `docs/conventions.md`. L'essentiel :
   jamais ce que le socle exécute.
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
-  est un token à ajouter, jamais un `padding: 27px` isolé. Le panel a sa propre
+  est un token à ajouter, jamais un `padding: 27px` isolé. `basalte lint` le
+  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le panel a sa propre
   couche de tokens, `src/admin/theme.ts` (D95), et ne dessine aucune bordure
   (D97) : les plans se séparent par la valeur et l'ombre.
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
@@ -208,12 +195,13 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 |---|---|
 | `basalte init <nom> [--profile <nom>]` | génère un dépôt client complet |
 | `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
+| `basalte lint` | vérifie les conventions du code : blocs, styles, schémas |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère `.claude/basalte.md` |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
 | `basalte migrate [--dry-run]` | applique les migrations de format |
-| `basalte admin:login --user <email> [--create]` | lien de connexion de secours (SSH), et création du compte |
+| `basalte admin:login --user <email> [--create] [--origin <url>]` | lien de connexion de secours (SSH), et création du compte |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build

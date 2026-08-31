@@ -1,20 +1,27 @@
 # Implémentation
 
+Les phases à venir, et ce que les précédentes ont laissé derrière elles.
+
 ## Comment lire ce document
 
-Ce document décrit **six phases**, pas une suite de tâches. Chacune dit
-pourquoi elle existe, ce qu'elle doit produire, ce qui est en jeu, et où passe
-la frontière entre ce qui est déjà tranché et ce qui lui appartient.
+Une phase n'est pas une liste de tâches. Chacune dit pourquoi elle existe, ce
+qu'elle doit produire, ce qui est en jeu, et où passe la frontière entre ce qui
+est déjà tranché et ce qui lui appartient.
 
-Le *comment* n'est pas ici, et c'est volontaire. Décider maintenant, à l'aveugle,
-des détails d'une phase qu'on n'a pas commencée produit de la dette : des choix
-qu'on ne peut pas encore évaluer, qu'on suivra par discipline, et qu'on paiera
-plus tard. Une session entière consacrée à une phase, qui en connaît les enjeux,
-décidera mieux.
+Le *comment* n'est pas ici, et c'est volontaire. Décider maintenant, à
+l'aveugle, des détails d'une phase qu'on n'a pas commencée produit de la dette :
+des choix qu'on ne peut pas encore évaluer, qu'on suivra par discipline, et
+qu'on paiera plus tard. Une session entière consacrée à une phase, qui en
+connaît les enjeux, décidera mieux.
+
+**Si ce document nomme un fichier ou une commande, c'est une hypothèse, jamais
+une spécification.** Les noms, les formes d'API, les écrans et l'ordre des
+travaux appartiennent à la phase.
 
 **Une phase, une session.** Elle commence par lire son cahier ci-dessous et les
 documents qu'il désigne. Elle finit par consigner ce qu'elle a décidé — dans le
-document concerné, et dans `decisions.md` si le choix engage le reste.
+document concerné, et dans `decisions.md` si le choix engage le reste. Puis elle
+retire son cahier d'ici : ce document ne porte que ce qui reste à faire.
 
 ## Trois niveaux d'engagement
 
@@ -27,311 +34,228 @@ phase a le droit de changer.
 | **Décidé** | une décision numérotée (`decisions.md`) | seulement en actant la décision inverse, avec sa raison |
 | **Hypothèse** | un point de départ noté pour ne pas repartir de zéro | oui, librement — en consignant ce qu'elle retient |
 
-Les hypothèses sont signalées en italique dans les documents. Les remplacer
-n'est pas un écart : c'est ce pour quoi elles sont là.
+Les hypothèses sont signalées en italique. Les remplacer n'est pas un écart :
+c'est ce pour quoi elles sont là.
 
 ---
 
-## Phase 1 — Rendre  ·  faite
+## Ce qui est fait
 
-**Ce qu'elle a retenu.** Les quatre blocs de rendu pur — `hero`, `richtext`,
-`features`, `gallery` ; `faq` et `contact` attendent leurs phases. Huit types
-`f.*`, dont seuls les trois qui portent de la prose acceptent `i18n`. Une carte
-de langues systématique, même en monolingue (D41). Les dérivées d'images
-produites à l'ingestion, pas au build (D40) — ce qui remplace le passage par
-`import.meta.glob` que `seo-performances.md` prévoyait. Un Markdown restreint
-écrit ici plutôt que tiré d'une dépendance (D42). Les routes par langue
-produites par `getStaticPaths` (D44). Détail : D40 à D46.
+Onze phases, et ce que chacune a mis en place. Le détail de leurs choix est
+dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
+code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
-**Ce qui restait ouvert, et qui est refermé.** Le sitemap, `robots.txt`, le
-JSON-LD et les images Open Graph : `meta` ne portait que le titre et la
-description. `src/seo/` les a apportés en phase 10, et `meta` y a gagné son
-image de partage.
+| # | Nom | Ce qu'elle a mis en place | Décisions |
+|---|---|---|---|
+| 1 | Rendre | le DSL `f.*`, le moteur de blocs, l'intégration Astro, les médias, `check` et `inventory` | D40 à D46 |
+| 2 | Authentifier | mot de passe généré et haché, code email, appareil de confiance, sessions, journal, `admin:login` | D47 à D53 |
+| 3 | Éditer | le panel : formulaires produits des schémas, enregistrement commité, médiathèque, réordonnancement, aperçu | D55 à D65 |
+| 4 | Publier | rebase, build en processus enfant, bascule atomique, push, file à une place | D67 à D75 |
+| 5 | Servir | formulaire de contact sans JavaScript, anti-spam, leads gardés en base, purge, audience | D76 à D85 |
+| 6 | Livrer | `init`, le paquet Claude Code du dépôt client, `deploy`, `doctor`, `update`, les migrations | D87 à D94 |
+| 7 | Outiller | `f.richtext` enrichi, documents légaux, PDF, contexte du site, banc de blocs, capacités, profils | D98 à D102 |
+| 8 | Adapter | deux rendus depuis un seul contenu, la variante bureau d'un bloc, le contrat entre les deux | D103 à D108 |
+| 9 | Encadrer | l'en-tête et le pied de page, remplaçables par site, le menu déduit des pages, le `h1` | D109 à D116 |
+| 10 | Cadrer | le recadrage au ratio déclaré, la fiche d'entreprise, `src/seo/`, le bloc `faq` | D117 à D124 |
+| 11 | Joindre | le second canal de notification, les sondes DNS, la page de remerciement | D126 à D134 |
 
-**Pourquoi.** Tout le reste consomme le DSL et le moteur de blocs. C'est la
-seule phase dont un défaut se paie dans toutes les autres.
-
-**Ce qu'elle produit.** Un site statique construit depuis un JSON, un bloc
-`hero` qui s'affiche, `basalte check` qui valide, `basalte inventory` qui liste.
-Un site de démonstration qui sert de banc d'essai à partir de là.
-
-**Enjeux.** Le DSL doit émettre le schéma Zod *et* la description d'interface
-depuis une déclaration unique — s'ils se dédoublent, ils divergeront. Le point
-dur est l'i18n : l'endroit où les langues s'insèrent dans un champ conditionne
-le panel, la validation et le rendu. Une erreur là se répare par une migration
-de format, donc tôt et pour pas cher — d'où le site de démonstration dès
-maintenant, plutôt qu'à la fin.
-
-**Déjà tranché.** Invariants 1, 5, 7, 9, 10 · D7, D8 · D32 à D38 ·
-`modele-contenu.md`, `environnement.md`. L'outillage, la compilation et le
-script `prepare` sont en place : la phase démarre sur un dépôt qui s'installe,
-se vérifie et se construit.
-
-**À décider dans la phase.** La liste des types `f.*` et leur signature · la
-sortie de `basalte inventory` · la résolution des images venues d'un JSON · la
-forme réelle des tokens.
-
-**Finie quand.** Le site de démonstration se construit depuis son JSON, et
-`check` refuse un contenu invalide comme il accepte un contenu valide.
+Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
+Après la 11, `basalte lint` a rendu vérifiables des conventions qui n'étaient
+que de la prose (D135).
 
 ---
 
-## Phase 2 — Authentifier  ·  faite
+## Phase 12 — Constater
 
-**Ce qu'elle a retenu.** `node:sqlite` plutôt qu'un pilote installé (D47), et
-Argon2id par `@node-rs/argon2` aux paramètres OWASP (D48). Le code à six
-chiffres est haché avec le jeton de la tentative, qui ne vit que dans le
-navigateur (D49) — une base volée seule ne le retrouve pas. La limitation de
-débit est un compteur en fenêtre fixe (D50). Le flux s'expose en fonctions
-`Request` vers `Response`, que le panel montera sans les réécrire (D51), et le
-CSRF est arrêté par deux gardes indépendantes plutôt qu'un jeton synchronisé
-(D52). `admin:login --create` crée le compte plutôt qu'une dixième commande
-(D53). Détail : D47 à D53, application dans `panel.md`.
+**Pourquoi.** Un agent qui ouvre un dépôt client sait quels blocs existent
+— `inventory` les lui donne — et quelles règles tenir — `lint` les lui refuse.
+Rien ne lui dit **ce que le site contient déjà** : il lit tous les JSON, ou il
+devine. Et `check` valide un contenu contre son schéma sans jamais juger ce qui
+fait qu'une page est trouvée et lisible : un titre en double entre deux pages,
+une description absente, une image sans texte alternatif ne l'arrêtent pas.
 
-**Ce qui reste ouvert.** Rien. La purge est branchée depuis la phase 5, et
-`doctor` signale depuis la phase 6 que les deux canaux email partagent une clé.
+Les deux manques ont la même racine. Le socle sait **valider** — cette valeur
+est-elle conforme à ce schéma — et il ne sait pas encore **constater** : de quoi
+ce site est-il fait, et qu'est-ce qui, dedans, ne tiendra pas dehors.
 
-**Pourquoi.** C'est le seul endroit du projet où un bug se traduit par une
-intrusion. C'est aussi le seul morceau réellement isolable : il ne dépend de
-rien de la phase 1, et se teste seul.
+**Ce qu'elle produit.** Une vue compacte du contenu d'un site, produite depuis
+le code, sur laquelle un agent se repose au lieu de tout lire. Et des refus de
+plus dans `check`, sur ce qui fait qu'une page est trouvée.
 
-**Ce qu'elle produit.** Le flux complet — mot de passe, code, appareil de
-confiance, sessions, journal — et `basalte admin:login`.
+**Enjeux.**
 
-**Enjeux.** Trois pièges connus, tous documentés : code lié à la tentative de
-connexion et non au compte, mot de passe jamais transmis par email, canal email
-distinct de celui du formulaire. Le reste est du travail standard, mais il ne se
-rattrape pas après coup : réécrire l'authentification plus tard, c'est réécrire
-le panel avec.
+Le point dur est le **format de la vue**. Trop détaillée, elle vaut la lecture
+des JSON et ne fait économiser rien ; trop maigre, elle oblige à les ouvrir
+quand même. Un critère utile pour trancher : un agent doit pouvoir répondre
+« quelle page porte tel bloc », « quelles langues sont remplies », « quelle page
+n'a pas de description » sans ouvrir un seul fichier.
 
-**Déjà tranché.** Invariant 12 · D9 · `panel.md`, section Authentification.
+Le second est la **frontière entre refuser et avertir**. `check` tourne à
+l'enregistrement d'un client dans le panel : ce qui l'arrête doit être
+corrigeable par lui, depuis le panel, avec ce qu'il y voit. Un titre en double
+l'est. Une image de partage manquante l'est moins. Se tromper de côté rend soit
+le contrôle inutile, soit le panel bloquant — et un panel bloquant sur un défaut
+que le client ne comprend pas est pire que pas de contrôle du tout.
 
-**Finie quand.** Les tests couvrent le flux entier, rejeu d'un code et
-expiration compris.
+Le troisième est de **ne pas redire ce que `lint` dit déjà**. Le contraste des
+tokens est fait. La ligne ne bouge pas (D135) : `check` regarde le contenu,
+`lint` regarde le code.
 
----
+**Déjà tranché.** Invariants 1 et 5 · `check` ne bloque jamais le site public ·
+le panel commite en `--no-verify` (D17), ce qui garde `lint` hors de son chemin ·
+`meta.title` est borné à 60 et `meta.description` à 160 par le schéma
+(`src/content/page.ts`) — les longueurs sont faites, ce sont les absences et les
+doublons qui manquent · une contrainte qui manque s'ajoute à `f.*`, jamais au
+bloc.
 
-## Phase 3 — Éditer  ·  faite
+**À décider dans la phase.** La forme de la vue, et par quelle commande elle
+sort · ce qui devient une erreur et ce qui reste un avertissement · si le texte
+alternatif d'une image devient un champ requis du DSL plutôt qu'un contrôle —
+la règle ci-dessus pousse dans ce sens, la phase dira si elle tient · si un
+contrôle a besoin du HTML construit ou se contente du JSON.
 
-**Ce qu'elle a retenu.** Le même projet Astro produit le site et le panel, en
-deux modes de durées de vie opposées (D55). Le panel reçoit les schémas
-embarqués dans le module généré plutôt que de reparcourir les blocs (D56) —
-`import.meta.url` ne désigne plus le dossier des blocs une fois le serveur
-groupé. Aucune dépendance nouvelle (D57). L'état est le document entier,
-recomposé de bas en haut (D58), et une table unique `kind → composant` porte
-tout le moteur de formulaires (D59). Un enregistrement invalide est refusé
-(D60), écrit ce que la validation a produit (D61), et ne commite que dans le
-dépôt du site (D62). Cinq pages plutôt que six (D63). Le panel sert lui-même
-les images du dépôt (D64) et emploie l'échelle de Mantine, pas les tokens du
-site (D65). Détail : D55 à D65, application dans `panel.md`.
-
-**Ce qui reste ouvert.** La barre du bas porte l'enregistrement et l'aperçu ;
-le bouton « mettre en ligne » est à la phase 4, avec ce qu'il déclenche. Le
-compilateur React ne voit le panel que parce que l'intégration retire
-`node_modules` de l'exclusion de Babel — à revérifier à chaque montée de
-`@vitejs/plugin-react`.
-
-**Pourquoi.** C'est le produit, tel que le client le voit. Tout le reste lui est
-invisible.
-
-**Ce qu'elle produit.** Le panel : formulaires générés depuis les schémas,
-enregistrement, médias, réordonnancement, `hidden`, langues en préparation,
-aperçu.
-
-**Enjeux.** C'est la phase où la complexité s'accumule sans qu'on la voie. Deux
-dettes guettent. La première : un moteur de formulaires qui traite les types de
-champs un par un au lieu d'être piloté par le DSL — chaque nouveau type coûte
-alors une modification du panel, et le levier de la phase 1 est perdu. La
-seconde : une interface qui gagne un écran à chaque besoin. La contrainte de six
-pages existe pour forcer l'arbitrage, pas pour l'interdire.
-
-**Déjà tranché.** Invariant 6 · D3, D10, D25 · `panel.md`.
-
-**Finie quand.** Un client édite sa page de bout en bout sans toi.
+**Finie quand.** Un agent qui ouvre un dépôt client peut dire ce que le site
+contient sans avoir lu un fichier de `content/`, et `check` refuse une page que
+Google afficherait mal.
 
 ---
 
-## Phase 4 — Publier  ·  faite
+## Phase 13 — S'outiller
 
-**Ce qu'elle a retenu.** Le build tourne en processus enfant, plafonné à 1 Go
-et à dix minutes (D67), et sa sortie va directement dans le dossier de la
-version — jamais dans `dist/`, où vit le panel que le processus exécute (D68).
-La racine servie vient de `BASALTE_SITE_ROOT` (D69), et la bascule écrit le lien
-à côté avant de le renommer par-dessus (D70). La file n'a qu'une place, et une
-demande de plus remplace celle qui attend (D71). L'ordre est rebaser,
-construire, basculer, pousser (D72) : le conflit, seul échec vraiment probable,
-ne coûte alors aucune seconde de build, et le site sort même quand GitHub est
-indisponible. Les mises en ligne vivent en base, en états terminaux seulement
-(D73). Le rebase et le push sont gardés par la même règle que les commits (D74),
-et l'alerte au mainteneur emprunte le canal du site (D75). Détail : D67 à D75,
-application dans `publication.md`.
+**Pourquoi.** La quatrième contrainte fondatrice dit que ce projet est fait pour
+être développé avec Claude Code. Le dépôt client en a tout l'appareillage : six
+skills, une doc régénérée à chaque installation, deux commandes. **Ce dépôt-ci
+n'a rien** — `.claude/` n'y contient qu'un hook de démarrage. C'est pourtant ici
+que se fait le travail le plus fréquent et le plus délicat : un correctif du
+panel, un champ ajouté au DSL, une montée de version.
 
-**Ce qui reste ouvert.** Rien. Le premier build d'un déploiement — l'étape 6 de
-`mise-en-prod.md` — a reçu son déclencheur en phase 6 : le processus publie de
-lui-même au démarrage quand la version servie ne vient pas du commit courant
-(D88). Le cache d'images d'Astro, que cette phase redoutait, n'existe plus : D40
-a retiré tout traitement d'image du build.
+Et le geste le plus dangereux du projet est entièrement manuel : **publier une
+version**. Le numéro, les notes, le commit, le tag, le push, dans cet ordre,
+sans en oublier un. Bumper sans taguer est la panne que `mise-a-jour.md` nomme
+lui-même « discrète » : le socle continue de fonctionner, `verify` passe, et
+c'est `init` qui tombe — chez un client.
 
-**Pourquoi.** Elle porte la promesse qui rend le reste tenable : une publication
-ratée ne casse pas un site qui fonctionne.
+**Ce qu'elle produit.** De quoi qu'une session qui ouvre ce dépôt code juste, se
+vérifie seule, et publie sans se tromper d'ordre. La tenue de la documentation
+est déjà faite : restent les gestes qui touchent au code et à sa publication.
 
-**Ce qu'elle produit.** Build, bascule atomique, file d'attente, push, gestion
-d'échec.
+**Enjeux.**
 
-**Enjeux.** Tout se joue sur ce qui arrive quand ça rate — un build interrompu,
-un conflit git, un VPS à court de mémoire. Le chemin nominal est court à écrire ;
-les chemins d'échec sont la phase.
+Une skill qui **récite les conventions** ne sert à rien : elles sont dans
+`CLAUDE.md`, chargé à chaque session, et `lint` les fait respecter. Ce qui
+manque n'est pas du rappel, ce sont les **gestes** — les suites d'étapes qu'on
+rate quand on les fait de mémoire.
 
-**Déjà tranché.** Invariant 11 · D11, D17 · `publication.md`.
+La publication est le cas dur. Elle touche à git, elle est irréversible une fois
+poussée, et son échec est différé : il se manifeste chez quelqu'un d'autre,
+plus tard. Ce qu'on lui demande n'est pas d'aller vite, c'est de **rendre
+impossible l'ordre faux**.
 
-**Finie quand.** Un build volontairement cassé laisse le site en ligne intact,
-et le client lit un message qui ne l'inquiète pas.
+La revue de réutilisation est nommée dans `conventions.md` comme le défaut le
+plus coûteux d'un agent — la duplication discrète, celle qui marche et que
+personne ne remarque avant six mois. Elle demande de lire l'inventaire *et* la
+diff : c'est le seul de ces outils qui ne se ramène pas à une suite d'étapes,
+et le seul dont on ne sache pas d'avance s'il vaut son coût.
 
----
+**Déjà tranché.** La quatrième contrainte (`contexte.md`) · `conventions.md` ·
+`mise-a-jour.md` fixe l'ordre de publication et le format des notes ·
+`init` refuse une version non taguée, et reconnaît un tag privé de son `v` ·
+`lint` et `verify` **sont** les vérifications : une skill ne les remplace pas et
+ne les double pas · deux skills existent déjà, `phase` et `consigner`, qui
+tiennent la documentation — la phase les complète, elle ne les refait pas, et
+elles donnent la forme que les autres suivront.
 
-## Phase 5 — Servir  ·  faite
+**À décider dans la phase.** Ce qui est une skill et ce qui est une commande du
+CLI · si la publication devient `basalte release` ou une skill qui enchaîne des
+gestes — la première se teste, la seconde s'adapte, et l'une des deux est
+probablement en trop · la forme de la revue de réutilisation, et si elle mérite
+d'être un agent ou un contrôle · la convention de commit, de fait dans
+l'historique et jamais écrite.
 
-**Ce qu'elle a retenu.** Le formulaire est un formulaire HTML ordinaire, et la
-réponse arrive en fragment d'URL que `:target` révèle (D76) — le site public
-n'embarque toujours pas une ligne de JavaScript. L'anti-spam est un leurre, un
-plafond par adresse et un plafond pour le site ; le délai minimum de
-remplissage est abandonné, faute d'horloge sans script (D77). Un leurre rempli
-reçoit la réponse d'un envoi réussi (D78), l'adresse de retour est reconstruite
-depuis les pages du dépôt (D79), et le message est écrit en base **avant** tout
-envoi (D80). Le destinataire est `CONTACT_EMAIL` dans `.env` (D81), les libellés
-sont des champs qui retombent sur le français (D82), le panel purge lui-même
-(D83), et l'audience se lit dans le fichier de log courant, par la fin (D84).
-Détail : D76 à D85, application dans `services.md`.
-
-**Ce qui restait ouvert.** Rien de la phase. Le bloc `faq` attendait
-`src/seo/` ; il est arrivé en phase 10.
-
-**Ce qu'elle a trouvé en chemin.** Le panel et le site publiaient leurs fichiers
-dans le même `_astro/`, que le Caddyfile documenté envoie au site statique : le
-panel ne se serait pas chargé en production, sans la moindre erreur côté
-serveur. Les deux dossiers sont désormais distincts (D85).
-
-**Pourquoi.** Un formulaire qui perd un lead coûte plus cher que tout le reste
-du site réuni.
-
-**Ce qu'elle produit.** Formulaire de contact, anti-spam, envoi d'email,
-stockage local, purge, analytics par logs.
-
-**Enjeux.** L'interface `EmailProvider` doit être posée avant la première
-implémentation, sinon le socle est marié à Brevo sans qu'on l'ait décidé.
-L'analytics par logs est, assumé, le morceau le plus approximatif du projet :
-c'est un ordre de grandeur, et il ne mérite pas trois jours.
-
-**Déjà tranché.** D4, D13, D14 · `services.md`.
-
-**Finie quand.** Un lead arrive par email *et* se retrouve dans le panel — même
-quand l'envoi échoue.
+**Finie quand.** Publier une version ne demande plus de se souvenir de l'ordre,
+et une session qui ouvre ce dépôt trouve les gestes du projet là où elle les
+cherche.
 
 ---
 
-## Phase 6 — Livrer  ·  faite
+## Phase 14 — Partager
 
-**Ce qu'elle a retenu.** Les migrations vivent sous `src/migrations/`, en liste
-ordonnée écrite à la main : hors de `src/`, elles n'arriveraient jamais
-compilées chez le client (D87). La mise en ligne se déclenche d'elle-même au
-démarrage quand la version servie ne vient pas du commit courant, et une
-middleware ouvre le panel à la première requête (D88) — c'est ce qui répond au
-premier build laissé ouvert par la phase 4, et au second déclencheur, sans
-dixième commande. La doc agent est écrite par `basalte inventory --agent`,
-appelée par le `postinstall` du dépôt client (D89). Les notes de version vivent
-dans `notes/vX.Y.Z.md`, livrées dans le paquet (D90). La clé de déploiement naît
-sur la machine (D91), qui monte le dépôt du site plutôt que d'en copier une
-image (D92). `doctor` envoie un vrai email (D93), et `update` exige un arbre
-propre — c'est ce qui rend son annulation totale (D94). Détail : D87 à D94.
+**Pourquoi.** `src/blocks/` d'un dépôt client est un cul-de-sac. Un bloc écrit
+pour le client A ne peut servir au client B qu'en étant recopié — ce que
+l'invariant 8 interdit pour le code du socle, et que rien n'encadre entre deux
+sites. Le déclencheur est écrit depuis la phase 7 : **la première fois qu'un
+bloc est recopié d'un dépôt à l'autre.** C'est le coût principal à partir du
+troisième site, pas du premier.
 
-**Ce qui restait ouvert.** Rien de la phase. Le bloc `faq`, le sitemap et le
-JSON-LD attendaient `src/seo/` ; tous trois sont arrivés en phase 10.
+La réponse n'est pas d'ouvrir la liste des blocs de référence du socle. Elle est
+close pour une raison qui tient toujours (D19) : ce sont des démonstrations de
+mécanique, pas un catalogue de sections. Le besoin est réel, et il est ailleurs.
 
-**Ce qu'elle a trouvé en chemin.** Le contexte du panel ne s'ouvrait que sur
-quelques routes : une machine fraîchement démarrée servait `/admin` sans avoir
-lancé ni la purge ni la moindre publication. Et `prepareMedia` prenait tout
-fichier de `public/media/` pour une image à ingérer — un `.gitkeep` suffisait à
-faire échouer `check` sur un dépôt neuf.
+**Ce qu'elle produit.** Un chemin pour qu'un bloc quitte un dépôt client sans
+être recopié, et pour qu'un autre site le reçoive comme il reçoit le socle : par
+une version qu'il épingle.
 
-**Pourquoi.** C'est ce qui sépare un socle d'un site. Sans elle, tu as fait un
-site pour un client.
+**Enjeux.**
 
-**Ce qu'elle produit.** `basalte init` et le paquet Claude Code du dépôt client,
-`deploy`, `doctor`, `update`, les migrations, `update-all`.
+Le premier piège est de **rouvrir la liste close**. Un bloc qui sert à trois
+clients n'est pas devenu une démonstration de mécanique. Le faire entrer dans le
+socle ferait grossir ce que *chaque* site installe, et rendrait le correctif
+d'un bloc solidaire d'une version du socle — donc d'une migration de contenu
+pour des sites qui n'emploient pas ce bloc.
 
-**Enjeux.** Cette phase décide si tu gagnes du temps sur le deuxième et le
-troisième client. Deux morceaux à ne pas bâcler : le générateur de
-`.claude/basalte.md`, qui rend la doc agent vraie en permanence, et `doctor`,
-qui remplace un guide de provisionnement. Tout ce qui est bâclé ici se paie à
-chaque nouveau site.
+Le deuxième est **l'invariant 8**. Ce qui circule doit rester du code installé,
+jamais du code copié. Sinon la promesse de D5 — un correctif atteint tous les
+sites en changeant un numéro — tombe précisément pour les blocs qu'on partage
+le plus.
 
-**Déjà tranché.** Invariant 8 · D5, D16, D23, D26, D27, D29, D30 ·
-`depot-client.md`, `mise-en-prod.md`, `mise-a-jour.md`.
+Le troisième est la **direction artistique**. Un bloc partagé ne tient que par
+les tokens : il doit être neutre, et un bloc qui a besoin d'une valeur en dur
+n'est pas partageable. `lint` le refuse déjà, ce qui donne à cette phase une
+garantie qu'elle n'a pas à construire.
 
-**Finie quand.** Un nouveau client est en ligne en deux commandes, sans que tu
-ouvres un guide.
+**Déjà tranché.** Invariants 7 et 8 · D5, D19 · `lint` garantit qu'un bloc ne
+porte aucune valeur de style en dur · `findBlocks` sait déjà parcourir plusieurs
+racines, et le chrome sait déjà qu'une racine en remplace une autre (D109) : la
+mécanique de découverte existe, c'est sa provenance qui est neuve.
+
+**À décider dans la phase.** Où vivent ces blocs — un second paquet, un dossier
+du socle exclu de son inventaire, autre chose · comment un site en choisit un
+sans les installer tous · ce qu'un bloc partagé promet de plus qu'un bloc de
+site : la migration de son contenu quand son schéma change, et qui la porte.
+
+**Finie quand.** Un bloc écrit pour un client sert à un deuxième sans qu'une
+ligne ait été recopiée.
 
 ---
 
 ## Ordre
 
-L'ordre ci-dessus est celui des dépendances : chaque phase s'appuie sur les
-précédentes.
+Les trois phases sont indépendantes, et c'est ce qui les distingue des onze
+précédentes : aucune n'attend le code d'une autre.
 
-Le choix laissé ouvert en fin de phase 1 — avancer la phase 6 pour mettre un
-site en ligne édité par git, ou suivre la numérotation — est tranché : on suit
-la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
-4, et le premier site sortira complet.
-
-**Les six phases sont faites, et les cinq de `roadmap.md` aussi.** La dernière,
-*Joindre*, a donné au site un canal qui prévient le client hors email, à
-`doctor` la preuve que ses emails sont configurés pour arriver, et au formulaire
-une adresse après l'envoi. Ce qui a été identifié et laissé de côté est listé
-dans `roadmap.md`, avec ce qui le ferait revenir.
+L'ordre proposé suit ce qu'elles font gagner tout de suite. La 12 sert à chaque
+session dans un dépôt client, la 13 à chaque session ici, la 14 ne se paie qu'au
+troisième site. Prendre la 14 avant les deux autres se défend si le troisième
+site arrive avant.
 
 ## Tests
 
-Deux endroits, écrits en même temps que le code qu'ils couvrent :
+Ce qui est couvert, et par quel moyen. Écrits en même temps que le code qu'ils
+couvrent.
 
-- **l'authentification** (phase 2) — le seul endroit où un bug devient une
-  intrusion
-- **le DSL de champs** (phase 1) — tout le reste en dépend
+| Ce qui est éprouvé | Comment |
+|---|---|
+| l'authentification | base en mémoire, horloge avancée à la main, canal email qui retient au lieu d'envoyer (`src/server/auth.fixture.ts`) — c'est ce qui rend éprouvables expirations, rejeux et verrouillages |
+| le DSL de champs | directement : tout le reste en dépend |
+| le formulaire de contact | le banc du panel, un envoi étant une requête de formulaire écrite à la main |
+| le panel | sa partie serveur, sur un dépôt de site jetable (`src/server/panel.fixture.ts`) ; son interface dans un vrai navigateur, seul endroit où se voient les cookies `HttpOnly` et le réordonnancement au clavier |
+| la mise en ligne | build injectable — la file, la bascule et les chemins d'échec sans lancer Astro ; le rebase et le push contre de vrais dépôts git |
+| la livraison | le dépôt qu'`init` produit comparé fichier par fichier sans qu'un seul soit écrit ; `deploy` contre un runner qui retient les commandes ; `doctor` avec ses résolutions DNS et son canal email ; `update` contre un dépôt jetable |
+| les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
+| le reste | `basalte check` sur le site de démonstration, et le diff du HTML produit — sur un correctif, un diff vide prouve l'absence de régression |
 
-Le flux d'authentification se teste de bout en bout sans serveur : une base en
-mémoire, une horloge qu'on avance à la main, un canal email qui retient au lieu
-d'envoyer (`src/server/auth.fixture.ts`). C'est ce qui rend éprouvables les
-expirations, les rejeux et les verrouillages, qui sinon demanderaient d'attendre
-sept jours.
-
-Le **formulaire de contact** s'éprouve par le même banc que le panel : un envoi
-y est une requête de formulaire écrite à la main, ce qui laisse le leurre, les
-plafonds, la redirection et un envoi d'email en échec s'exercer sans navigateur.
-Ce que le bloc et l'endpoint partagent — les trois identifiants de réponse —
-tient par un test qui compare le composant au serveur, faute de pouvoir importer
-l'un dans l'autre.
-
-Le **panel** s'y est ajouté par sa partie serveur, testable de la même façon :
-un dépôt de site jetable, une session ouverte, et des requêtes appelées
-directement (`src/server/panel.fixture.ts`). La **mise en ligne** s'y branche par
-le même banc : son build est injectable, ce qui laisse la file, la bascule et
-tous les chemins d'échec s'éprouver sans lancer Astro — tandis que le rebase et
-le push, eux, s'éprouvent contre de vrais dépôts git. Son interface React, elle, se
-vérifie dans un vrai navigateur — c'est là que se voient les cookies
-`HttpOnly`, le réordonnancement au clavier et l'absence de script sur l'aperçu.
-
-La **livraison** s'éprouve par les mêmes leviers, poussés d'un cran : le dépôt
-qu'`init` produit est comparé fichier par fichier sans qu'un seul soit écrit ;
-la séquence de `deploy` se déroule contre un runner qui retient les commandes au
-lieu de les exécuter, ce qui laisse Docker absent, un clone déjà là et un échec
-en plein milieu s'exercer sans VPS ; les sondes de `doctor` reçoivent leurs
-deux résolutions DNS — adresses et enregistrements TXT — et leur canal email ; `update` monte et s'annule contre un vrai
-dépôt jetable, avec un npm qui n'installe rien. Le seul morceau qui ne se teste
-pas est celui qui ne peut pas l'être : la machine réelle — et c'est `doctor`,
-lancé dessus, qui en répond.
-
-Le reste est couvert par `basalte check` sur le site de démonstration et par le
-diff du HTML produit : sur un correctif, un diff vide prouve l'absence de
-régression.
+Le seul morceau qui ne se teste pas est celui qui ne peut pas l'être : la
+machine réelle. C'est `doctor`, lancé dessus, qui en répond.
 
 `basalte check` **n'est pas un test d'intégration** : il valide des contenus
 contre des schémas. Il ne touche ni à l'authentification, ni au traitement
@@ -343,38 +267,33 @@ Les blocs livrés par le socle ne sont pas un catalogue de sections — chaque
 client aura les siennes, sur mesure. Ce sont des **exemples de référence**,
 choisis pour la mécanique que chacun démontre (D19).
 
-Livrés en phase 1 : `hero` (texte traduisible, image, point focal, bouton) ·
-`richtext` (Markdown restreint) · `features` (liste répétable) · `gallery`
-(plusieurs images, `srcset`). Livré en phase 5 : `contact` (endpoint serveur,
-réponse sans script). Livré en phase 10 : `faq` (données structurées déclarées
-dans le schéma, dépliage natif). La liste est close.
+`hero` (texte traduisible, image, point focal, bouton) · `richtext` (Markdown
+restreint) · `features` (liste répétable) · `gallery` (plusieurs images,
+`srcset`) · `contact` (endpoint serveur, réponse sans script) · `download`
+(document PDF) · `faq` (données structurées déclarées dans le schéma, dépliage
+natif). Plus deux emplacements de chrome, `header` et `footer`.
 
-`faq` devait démontrer le JavaScript opt-in en plus du JSON-LD ; `<details>`
-fait mieux, et l'invariant 5 n'a pas eu à être payé. Aucun bloc de référence ne
-charge donc de script — la mécanique reste ouverte, elle n'a simplement pas
-trouvé de démonstration qui la mérite.
+**La liste est close.** Le critère tient : un bloc de référence gagne sa place
+s'il démontre une mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou
+`stats` sont des `features` habillés autrement — ils relèvent du sur-mesure
+client, et de la phase 14 quand ils serviront à plusieurs.
 
-Le critère, lui, tient : un bloc de référence gagne sa place s'il démontre une
-mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou `stats` sont des
-`features` habillés autrement — ils relèvent du sur-mesure client.
-
-Plus deux éléments configurés hors flux de blocs : `header` et `footer`.
+Aucun bloc de référence ne charge de script : `faq` devait démontrer le
+JavaScript opt-in, `<details>` fait mieux, et l'invariant 5 n'a pas eu à être
+payé. La mécanique reste ouverte, elle n'a simplement pas trouvé de
+démonstration qui la mérite.
 
 ## Hors périmètre
 
 Blog et collections répétées · création de pages par le client · ajout de blocs
 par le client · éditeur visuel WYSIWYG · back-office multi-sites · commerce ·
-comptes multiples avec rôles différenciés (un seul niveau : éditeur).
+comptes multiples avec rôles différenciés (un seul niveau : éditeur) · un
+troisième rendu — une tablette tombe d'un côté ou de l'autre.
 
 Ces exclusions sont des choix de v1, pas des impossibilités : le modèle de
 contenu les accueille sans réécriture.
 
 ## Points ouverts
 
-Aucun qui ne relève d'une phase. Le dernier — qui déclenche la purge des données
-personnelles sur la machine — est tranché : le processus du panel pour ce qui
-est en base, Caddy pour ses propres logs (D83).
-
-La portée de la règle des tokens l'est aussi : elle s'arrête aux blocs. Le
-panel n'emploie pas ceux du site (D65) — il porte sa propre couche, dans
-`src/admin/theme.ts` (D95).
+Aucun qui ne relève d'une phase. Ce qui a été identifié et volontairement laissé
+de côté est dans `roadmap.md`, avec ce qui le ferait revenir.

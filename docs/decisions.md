@@ -1,6 +1,6 @@
 # Décisions
 
-Cent-trente-quatre décisions actées, avec l'alternative écartée et sa raison.
+Cent-trente-cinq décisions actées, avec l'alternative écartée et sa raison.
 Les détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -40,7 +40,7 @@ Les détails d'application sont dans les documents thématiques.
 | D33 | Node 24 épinglé partout : `.nvmrc`, `engines`, `engine-strict`, image Docker | Version flottante : deux machines de développement qui divergent en silence, et un lockfile réécrit au gré de celle qui a lancé `npm install` |
 | D34 | TypeScript 6, pas 7 | TypeScript 7 est `latest`, mais `@astrojs/check` déclare `typescript: ^5.0.0 \|\| ^6.0.0` — le typecheck des `.astro` casserait dès le premier bloc |
 | D35 | Vitest pour les tests | `node:test` : zéro dépendance, mais aucune continuité avec l'écosystème Vite d'Astro le jour où un composant se teste |
-| D36 | Prettier seul pour le formatage, aucun linter généraliste ; la documentation en est exclue | ESLint typé : les règles qui comptent ici — valeur de style en dur, duplication, registre central — ne s'expriment pas en règles de linter. Elles vont dans `basalte check` |
+| D36 | Prettier seul pour le formatage, aucun linter généraliste ; la documentation en est exclue | ESLint typé : les règles qui comptent ici — valeur de style en dur, duplication, registre central — ne s'expriment pas en règles de linter généraliste. Elles vont dans une commande du socle, `basalte lint` (D135) |
 | D37 | Hooks git natifs par `core.hooksPath`, branchés par `npm run setup` | husky : s'installe par `prepare`, or `prepare` est déjà la compilation du package et s'exécute chez le client — le hook s'installerait dans le clone temporaire du consommateur |
 | D38 | CI sur les pull requests uniquement, matrice ubuntu + windows, plus un job qui installe le package depuis git | Sur chaque push : la matrice Windows double la facture de minutes pour une information que la PR donne déjà |
 | D39 | React 19.2 avec le compilateur React activé dès le départ ; `astro` en dépendance de pair à la version exacte | Compilateur branché plus tard : tout le `useMemo` écrit d'ici là devient du bruit à retirer, et le panel a été conçu autour. `astro` en dépendance ordinaire : deux copies possibles, donc deux instances de Vite et une intégration chargée deux fois, en silence |
@@ -139,3 +139,4 @@ Les détails d'application sont dans les documents thématiques.
 | D132 | Un envoi réussi mène à **`/merci` quand le dépôt porte la page** ; absente, la réponse reste le fragment, et un refus ne quitte jamais le formulaire | Complète D76 sans le renverser. Une page de remerciement obligatoire : un site plus ancien y serait envoyé sans l'avoir écrite, et aucune migration ne peut créer un fichier de contenu. Un réglage dans `site.config.ts` : deux choses à tenir accordées, là où la présence du fichier décide seule et se défait en le supprimant. Envoyer aussi un refus : le visiteur perdrait le formulaire où recommencer |
 | D133 | Une **page de service** — `/merci` — est écartée du menu déduit, du sitemap et de l'index par un prédicat unique de `src/content/naming.ts` | Trois conditions écrites à la main : trois endroits où une exception s'oublie, exactement ce que D110 reproche, et l'oubli serait muet — une page de remerciement indexée n'a l'air de rien |
 | D134 | Les phrases qui manquaient au client se posent dans les **écrans existants**, et l'adresse à qui écrire vient d'`EMAIL_ADMIN` | Un écran d'aide : ce serait la sixième page que D63 refuse, et personne ne l'ouvrirait — les questions se posent là où la limite se rencontre. Une variable ou un champ de configuration pour le support : l'adresse du mainteneur est déjà dans le `.env`, et une seconde source divergerait |
+| D135 | Les conventions de code sont vérifiées par une **commande à part**, `basalte lint`, et non par `basalte check` | Les fondre dans `check` : il tourne à l'enregistrement d'un client dans le panel, où un défaut de style qu'il ne voit pas et ne saurait corriger l'empêcherait de rectifier un texte. Les deux n'ont ni le même objet — du contenu contre des schémas, du code contre des règles — ni le même public. D36 tient : le linter généraliste reste écarté, ces règles parlant de blocs, de tokens et de schémas que seul ce dépôt connaît |

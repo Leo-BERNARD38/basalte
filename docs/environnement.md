@@ -168,7 +168,7 @@ et si cela ne tient pas, déclarer les paquets de plateforme en
 dépendances réelles, présentes des deux côtés, et npm ignore à l'installation
 celles dont les contraintes `os` et `cpu` ne correspondent pas.
 
-Corollaire pour la phase 6 : image Docker en base **glibc**
+Corollaire pour la machine : image Docker en base **glibc**
 (`node:24-bookworm-slim`). Alpine ajouterait musl comme troisième famille à
 faire coexister dans le même lockfile.
 
@@ -195,8 +195,12 @@ Prettier aligne les tableaux cellule par cellule, ce qui allonge des lignes déj
 longues sans rien apporter. Ses fins de ligne sont tenues par `.gitattributes`.
 
 Les règles qui comptent vraiment ici — valeur de style en dur dans un bloc,
-duplication, absence de registre central — ne s'expriment pas en règles de
-linter. Elles vont dans `basalte check`, qui est l'endroit prévu pour elles.
+validation écrite à la main, fourre-tout — ne s'expriment pas en règles de
+linter généraliste : elles parlent de blocs, de tokens et de schémas, que seul
+ce dépôt connaît. Elles vont dans `basalte lint`, qui les refuse à l'endroit
+fautif et nomme le token à employer (`conventions.md`). La duplication, elle,
+n'y est toujours pas : c'est le seul de ces défauts qu'aucune règle ne sait
+reconnaître.
 
 ## Hooks git
 
@@ -230,7 +234,8 @@ depuis le dossier de travail, y installe le socle comme le ferait un dépôt
 client, vérifie que chaque cible de `exports` est bien dans le paquet, puis
 lance `basalte --version`. Il prouve d'un coup que `prepare` compile, que
 `files` livre ce qu'il faut, que `bin` est branché et que le shebang a survécu —
-la surprise de phase 6 annoncée par `architecture.md`, désamorcée à chaque PR.
+la surprise que `architecture.md` annonçait pour la livraison, désamorcée à
+chaque PR.
 
 Il travaille sur un clone local : aucune dépendance au réseau, ni à la
 visibilité du dépôt. Et il tourne sur les deux systèmes, ce qui couvre le shim
@@ -262,6 +267,14 @@ poser le `PATH` obtenu dans `CLAUDE_ENV_FILE` pour que la session en hérite,
 puis jouer le rituel de clone. Sans lui, une machine restée en Node 22 se heurte
 à `engine-strict=true` et n'installe rien du tout — rien ne se lance, et la
 cause n'est pas évidente.
+
+Il ouvre `nvm.sh` sous `--no-use`. En s'ouvrant, nvm active la version par
+défaut et rend 3 quand elle n'est pas installée — c'est-à-dire toujours, sur la
+machine qu'il est là pour équiper. Sous `set -e`, ce code de retour tuait le
+script entier avant la moindre installation, sans un mot : la session repartait
+sur le Node du conteneur, `npm ci` refusait de s'exécuter, et rien ne disait
+pourquoi. Un hook qui prépare une machine ne peut pas mourir de la panne qu'il
+corrige.
 
 Il emploie `npm ci`, là où un hook de démarrage prendrait plutôt `npm install`
 pour profiter du cache de conteneur : le lockfile de ce dépôt est un artefact

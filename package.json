@@ -43,6 +43,7 @@
     "demo:check": "node scripts/build.mjs && astro check --root examples/demo",
     "prepare": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
+    "lint": "node dist/cli/index.js lint",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
@@ -50,7 +51,7 @@
     "lockfile:check": "node scripts/check-lockfile.mjs",
     "verify:install": "node scripts/verify-install.mjs",
     "setup": "git config core.hooksPath .githooks",
-    "verify": "npm run build && npm run typecheck && npm run demo:check && npm run demo:panel && npm run test && npm run format:check && npm run lockfile:check"
+    "verify": "npm run build && npm run typecheck && npm run lint && npm run demo:check && npm run demo:panel && npm run test && npm run format:check && npm run lockfile:check"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

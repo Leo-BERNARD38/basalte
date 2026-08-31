@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   compareVersions,
+  isMistagged,
   isPublished,
   lines,
   readSocle,
@@ -12,6 +13,7 @@ import {
   socleRawUrl,
   socleRemote,
   versionsAfter,
+  versionsOf,
   type Socle,
 } from './socle.js'
 
@@ -63,6 +65,33 @@ describe('compareVersions', () => {
     expect(compareVersions('1.9.0', '1.10.0')).toBeLessThan(0)
     expect(compareVersions('2.0.0', '1.99.99')).toBeGreaterThan(0)
     expect(compareVersions('1.4.0', '1.4.0')).toBe(0)
+  })
+})
+
+describe('versionsOf', () => {
+  it('ne retient que le semver strict, et l’ordonne', () => {
+    expect(versionsOf(['v1.5.0', 'main', 'v1.4.0', 'v2.0.0-rc1'])).toEqual([
+      '1.4.0',
+      '1.5.0',
+    ])
+  })
+
+  it('ignore un tag sans son « v »', () => {
+    expect(versionsOf(['0.1.0'])).toEqual([])
+  })
+})
+
+describe('isMistagged', () => {
+  it('reconnaît la version taguée sans son « v »', () => {
+    expect(isMistagged('0.1.0', ['0.1.0'])).toBe(true)
+  })
+
+  it('se tait dès que le bon tag est là', () => {
+    expect(isMistagged('0.1.0', ['0.1.0', 'v0.1.0'])).toBe(false)
+  })
+
+  it('se tait quand rien ne nomme cette version', () => {
+    expect(isMistagged('0.1.0', ['v0.0.9'])).toBe(false)
   })
 })
 

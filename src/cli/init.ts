@@ -26,10 +26,12 @@ import {
   remoteOf,
 } from '../client/repository.js'
 import {
+  isMistagged,
   isPublished,
-  publishedVersions,
   readSocle,
+  remoteTags,
   type Socle,
+  versionsOf,
 } from '../client/socle.js'
 import {
   fails,
@@ -82,16 +84,10 @@ export async function init(
   // après avoir posé une trentaine de fichiers, et le dossier resterait ni
   // installé ni versionné. Le dépôt client ne peut pas épingler ce qui n’est
   // pas publié.
-  if (install && (await unpublished(cwd, socle))) {
-    return fails([
-      `Le socle n’a pas de version « v${socle.version} » publiée sur ${socle.repository}.`,
-      'Rien n’a été écrit : un dépôt client épingle une version, et celle-là n’existe pas.',
-      '',
-      '  Depuis le socle :',
-      `    git tag v${socle.version} && git push origin v${socle.version}`,
-      '',
-      'Ou relance avec « --no-install » pour écrire le dépôt sans l’installer.',
-    ])
+  const publication = install ? await publicationOf(cwd, socle) : 'published'
+
+  if (publication !== 'published') {
+    return fails(missing(socle, publication))
   }
 
   const files = siteFiles(answers, socle)
@@ -143,12 +139,53 @@ export async function init(
 // Le listage est un appel réseau. Quand il échoue — pas de réseau, dépôt
 // injoignable —, on n’en conclut rien : c’est `npm install` qui le dira, comme
 // avant. Cette garde nomme un tag absent, elle ne remplace pas l’installation.
-async function unpublished(cwd: string, socle: Socle): Promise<boolean> {
+/**
+ * Ce que le dépôt du socle dit de cette version. « injoignable » vaut
+ * publiée : le réseau n’est pas une raison de refuser d’engendrer un dépôt,
+ * et l’installation dira elle-même ce qu’elle n’a pas trouvé.
+ */
+type Publication = 'published' | 'missing' | 'mistagged'
+
+async function publicationOf(cwd: string, socle: Socle): Promise<Publication> {
   try {
-    return !isPublished(socle.version, await publishedVersions(cwd, socle))
+    const tags = await remoteTags(cwd, socle)
+
+    if (isPublished(socle.version, versionsOf(tags))) return 'published'
+
+    return isMistagged(socle.version, tags) ? 'mistagged' : 'missing'
   } catch {
-    return false
+    return 'published'
   }
+}
+
+function missing(socle: Socle, publication: Publication): readonly string[] {
+  const written =
+    'Rien n’a été écrit : un dépôt client épingle une version, et celle-là n’existe pas.'
+  const escape =
+    'Ou relance avec « --no-install » pour écrire le dépôt sans l’installer.'
+
+  if (publication === 'mistagged') {
+    return [
+      `Le socle porte un tag « ${socle.version} », sans le « v » — il n’est pas lu.`,
+      `${written} Un dépôt client s’installe par « v${socle.version} ».`,
+      '',
+      '  Depuis le socle :',
+      `    git tag v${socle.version} ${socle.version}`,
+      `    git push origin v${socle.version}`,
+      '',
+      escape,
+    ]
+  }
+
+  return [
+    `Le socle n’a pas de version « v${socle.version} » publiée sur ${socle.repository}.`,
+    written,
+    '',
+    '  Depuis le socle :',
+    `    git tag v${socle.version} && git push origin v${socle.version}`,
+    '',
+    escape,
+  ]
 }
 
 async function remote(

@@ -69,7 +69,7 @@ largeurs produites, dimensions, texte alternatif par langue, point focal.
 
 Tout est posé dans `src/astro/Layout.astro`, et nulle part ailleurs : les deux
 rendus passent par ce fichier, ils ne peuvent donc pas diverger sur ce que
-Google lit — ce que le contrat de la phase 8 exige.
+Google lit — ce que le contrat entre les deux rendus exige.
 
 | Balise | D'où elle vient |
 |---|---|

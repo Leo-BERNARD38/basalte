@@ -41,8 +41,12 @@ if [ "$(major)" != "$wanted" ]; then
   for candidate in "${NVM_DIR:-}" /opt/nvm "$HOME/.nvm"; do
     if [ -n "$candidate" ] && [ -s "$candidate/nvm.sh" ]; then
       export NVM_DIR="$candidate"
+      # `--no-use` n'est pas un confort : en s'ouvrant, nvm active la version
+      # par défaut et rend 3 quand elle n'est pas installée. Sous `set -e`,
+      # c'est le script entier qui meurt là, sans un mot, avant d'avoir rien
+      # installé — la session repart alors sur le Node de la machine.
       # shellcheck disable=SC1091
-      . "$NVM_DIR/nvm.sh"
+      . "$NVM_DIR/nvm.sh" --no-use
       nvm install "$wanted" >/dev/null
       nvm use "$wanted" >/dev/null
       installed="nvm"

@@ -122,7 +122,7 @@ donné ensemble (D128) :
 
 **Le webhook ne dépend d'aucune capacité** : sa présence suffit. Un site en
 `notifyLeads: false` qui déclare une adresse est donc prévenu quand même — c'est
-même le cas que la phase 11 visait.
+même le cas pour lequel ce second canal existe.
 
 ### Libellés et langues
 
