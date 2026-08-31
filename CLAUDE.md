@@ -120,8 +120,11 @@ notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      site de démonstration, banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
-.claude/            l'amorçage d'une session sur le web — pas celui d'un
-                    dépôt client, que src/client/ génère (D125)
+.claude/            l'amorçage d'une session sur le web (D125), et les skills
+    skills/         de ce dépôt : « phase » écrit ou clôt un cahier de phase,
+                    « consigner » range ce qui vient d'être fait et retire ce
+                    qui n'apprend plus rien. Rien à voir avec le paquet d'un
+                    dépôt client, que src/client/ génère
 docs/
 ```
 

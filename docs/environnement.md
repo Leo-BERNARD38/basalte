@@ -195,8 +195,12 @@ Prettier aligne les tableaux cellule par cellule, ce qui allonge des lignes déj
 longues sans rien apporter. Ses fins de ligne sont tenues par `.gitattributes`.
 
 Les règles qui comptent vraiment ici — valeur de style en dur dans un bloc,
-duplication, absence de registre central — ne s'expriment pas en règles de
-linter. Elles vont dans `basalte check`, qui est l'endroit prévu pour elles.
+validation écrite à la main, fourre-tout — ne s'expriment pas en règles de
+linter généraliste : elles parlent de blocs, de tokens et de schémas, que seul
+ce dépôt connaît. Elles vont dans `basalte lint`, qui les refuse à l'endroit
+fautif et nomme le token à employer (`conventions.md`). La duplication, elle,
+n'y est toujours pas : c'est le seul de ces défauts qu'aucune règle ne sait
+reconnaître.
 
 ## Hooks git
 

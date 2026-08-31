@@ -61,7 +61,7 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Après la 11, `basalte lint` a rendu vérifiables des conventions qui n'étaient
-que de la prose.
+que de la prose (D135).
 
 ---
 
@@ -98,8 +98,8 @@ le contrôle inutile, soit le panel bloquant — et un panel bloquant sur un dé
 que le client ne comprend pas est pire que pas de contrôle du tout.
 
 Le troisième est de **ne pas redire ce que `lint` dit déjà**. Le contraste des
-tokens est fait. La ligne ne bouge pas : `check` regarde le contenu, `lint`
-regarde le code.
+tokens est fait. La ligne ne bouge pas (D135) : `check` regarde le contenu,
+`lint` regarde le code.
 
 **Déjà tranché.** Invariants 1 et 5 · `check` ne bloque jamais le site public ·
 le panel commite en `--no-verify` (D17), ce qui garde `lint` hors de son chemin ·
@@ -136,7 +136,8 @@ lui-même « discrète » : le socle continue de fonctionner, `verify` passe, et
 c'est `init` qui tombe — chez un client.
 
 **Ce qu'elle produit.** De quoi qu'une session qui ouvre ce dépôt code juste, se
-vérifie seule, et publie sans se tromper d'ordre.
+vérifie seule, et publie sans se tromper d'ordre. La tenue de la documentation
+est déjà faite : restent les gestes qui touchent au code et à sa publication.
 
 **Enjeux.**
 
@@ -160,7 +161,9 @@ et le seul dont on ne sache pas d'avance s'il vaut son coût.
 `mise-a-jour.md` fixe l'ordre de publication et le format des notes ·
 `init` refuse une version non taguée, et reconnaît un tag privé de son `v` ·
 `lint` et `verify` **sont** les vérifications : une skill ne les remplace pas et
-ne les double pas.
+ne les double pas · deux skills existent déjà, `phase` et `consigner`, qui
+tiennent la documentation — la phase les complète, elle ne les refait pas, et
+elles donnent la forme que les autres suivront.
 
 **À décider dans la phase.** Ce qui est une skill et ce qui est une commande du
 CLI · si la publication devient `basalte release` ou une skill qui enchaîne des
