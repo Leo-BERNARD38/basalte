@@ -71,11 +71,31 @@ règlent bien, puisque c'est là qu'on les voit ; et la troisième n'a pas de qu
 remplir un écran à elle seule.
 
 L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
-ouvrir un message le marque lu, sans que le client coche quoi que ce soit.
+ouvrir un message le marque lu, sans que le client coche quoi que ce soit. Le
+badge orange « non transmis » ne paraît que sur une notification **réellement
+manquée** (D128) : sur un site qui ne prévient personne, l'afficher partout
+serait une alarme qui ne veut rien dire.
 
 Arriver à dix pages signifie que deux d'entre elles auraient dû fusionner. La
 hiérarchie suit la fréquence d'usage : le client édite chaque semaine, il
 consulte ses statistiques une fois par mois.
+
+### Les quatre phrases
+
+Le panel ne s'explique pas dans un écran d'aide — ce serait la sixième page que
+D63 refuse, et personne ne l'ouvrirait. Ce qui n'était pas clair pour le client
+se dit **là où la question se pose** (D134) :
+
+| Où | Ce qui est dit |
+|---|---|
+| sous les deux boutons | enregistrer garde le travail, mettre en ligne le montre aux visiteurs |
+| sous la liste des sections | ce que le client fait — modifier, réordonner, masquer — et que le reste se demande à toi (D3) |
+| au bas de « Compte » | à qui écrire quand quelque chose casse |
+| en tête de « Messages » | combien de temps ses messages sont gardés |
+
+L'adresse vient d'`EMAIL_ADMIN`, déjà dans le `.env` : aucune variable nouvelle,
+et pas de seconde source à faire diverger. Vide, les phrases s'arrêtent avant
+l'adresse plutôt que de nommer un destinataire qui n'existe pas.
 
 **Deux niveaux de navigation au maximum.** Menu, puis page. Jamais un troisième
 étage d'onglets : une page qui réclame des onglets est deux pages.

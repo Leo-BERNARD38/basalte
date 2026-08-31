@@ -10,6 +10,7 @@ Par probabilité décroissante :
 | Robots remplissant le formulaire de contact | Champ leurre, plafond par adresse, plafond pour le site ; un leurre rempli reçoit la réponse d'un envoi réussi et n'écrit rien (`services.md`) |
 | Bourrage d'identifiants (mot de passe réutilisé) | Mot de passe généré, jamais choisi → jamais réutilisé ; code email en second facteur |
 | Hameçonnage du client | Code email en second facteur ; notification à chaque nouvel appareil |
+| Code de connexion classé en spam | `doctor` sonde SPF, DKIM et DMARC du domaine d'expédition, et refuse une signature manquante (D129) |
 | Attaquant ciblé | Isolation par VPS ; plafond de dégâts borné |
 
 Les deux menaces du milieu passent par le client, pas par le code. Une
@@ -33,6 +34,30 @@ n'écrit qu'une ligne de message, ne lit rien, et ne renvoie jamais autre chose
 qu'une redirection vers une page du site — l'adresse de retour est reconstruite
 depuis les pages du dépôt, jamais recopiée de ce que le formulaire a envoyé
 (D79).
+
+Elle déclenche en revanche **une requête sortante** quand le site déclare une
+adresse de notification (`LEAD_WEBHOOK_URL`, D126). L'adresse vient du `.env`,
+donc de toi : c'est le même niveau de confiance qu'une clé de fournisseur, et
+ce n'est pas un levier qu'un visiteur choisit. Trois gardes l'encadrent quand
+même, parce qu'une adresse se recopie mal :
+
+- **`https` obligatoire** — le message porte le nom, l'adresse et le texte du
+  visiteur, et les laisser traverser en clair les donnerait à qui écoute ;
+- **aucune redirection suivie** — elle mènerait ailleurs que là où le client a
+  consenti à envoyer ses messages ;
+- **dix secondes de délai**, comme le fournisseur d'email : la requête du
+  visiteur attend cet appel.
+
+Une adresse mal écrite est refusée au démarrage et dite sur la sortie d'erreur ;
+le site sert, les messages arrivent au panel, et `doctor` la nomme. L'adresse
+elle-même ne s'affiche jamais dans le panel — seul son hôte paraît.
+
+**Ce que le webhook fait sortir de la machine.** Le message d'un visiteur part
+chez un service que le client a choisi, et y reste. C'est la même chose que
+l'email de notification, avec un tiers de plus, et cela se dit dans la mention
+de consentement du formulaire. L'adresse IP et le navigateur du visiteur, eux,
+n'en sortent pas : ils ne quittent déjà pas le panel, et aucun service au bout
+n'en a l'usage.
 
 **Le panel est coupable à tout moment** sans interrompre le site, puisque
 celui-ci est statique. En cas d'incident : couper l'édition, laisser les
@@ -147,3 +172,9 @@ en temps universel — douze mois, c'est la même date l'an prochain.
 
 Le client peut en outre supprimer un message à la main depuis le panel. La
 suppression est définitive : la base n'est pas versionnée.
+
+Une copie échappe à cette purge, et il faut le savoir : **ce qu'un webhook a
+livré appartient au service qui l'a reçu.** Supprimer un message dans le panel
+n'efface pas la notification arrivée dans une conversation, pas plus que l'email
+déjà dans la boîte du client. La durée de conservation porte sur ce que la
+machine détient.

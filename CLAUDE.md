@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases, et les phases 7 à 10, sont faites. Phase 1 — DSL
+**État :** les six phases, et les phases 7 à 11, sont faites. Phase 1 — DSL
 de champs, moteur de blocs, intégration Astro, médias, `basalte check` et
 `basalte inventory` ; le site de démonstration se construit depuis son JSON
 (`examples/demo`). Phase 2 — le flux d'authentification entier, jusqu'à
@@ -28,8 +28,11 @@ menu qui se déduit des pages tant que personne ne l'a rangé, et le `h1` rendu 
 la première section. Phase 10 — cadrer : le ratio d'un champ réellement obtenu
 par un recadrage qui est une ingestion, la fiche d'entreprise comme seule source
 structurée, `src/seo/` — carte de partage, JSON-LD, sitemap, `robots.txt`,
-favicon, page 404, redirections — et le bloc `faq` qui l'attendait. Reste la
-phase 11, *Joindre* (`docs/roadmap.md`).
+favicon, page 404, redirections — et le bloc `faq` qui l'attendait. Phase 11 —
+joindre : une adresse web prévenue à chaque message en plus de l'email, les
+sondes SPF, DKIM et DMARC de `doctor`, la page `/merci` quand le dépôt la porte,
+et les phrases qui suppriment les appels que le panel provoquait. Ce qui a été
+laissé de côté est listé dans `docs/roadmap.md`.
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
@@ -52,7 +55,7 @@ terminal.
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
 | une montée de version | `docs/mise-a-jour.md` |
-| ce qui vient après les six phases | `docs/roadmap.md` |
+| ce qui a été laissé de côté, et ce qui le ferait revenir | `docs/roadmap.md` |
 | ce que contient un dépôt client | `docs/depot-client.md` |
 | les tokens, une maquette à implémenter | `docs/design.md` |
 | le référencement, le cadrage des images | `docs/seo-performances.md` |
@@ -115,8 +118,10 @@ src/
 ├── admin/          panel : island React unique
 │   ├── theme.ts    les tokens du panel → thème Mantine + variables --panel-*
 │   └── fields/     un composant par type de champ, une table d'aiguillage
-├── server/         auth, sessions, journal, email, contenu, médias, git
-│   └── email/      interface EmailProvider, brevo · console · memory
+├── server/         auth, sessions, journal, email, contenu, médias, git ;
+│                   webhook.ts, le second canal qui prévient d'un message
+│   └── email/      interface EmailProvider, brevo · console · memory ;
+│                   dns.ts, ce qu'il faut publier pour qu'un email arrive
 ├── render/         les deux supports : la règle d'aiguillage, le préfixe du
 │                   rendu bureau, et le contrat que les deux rendus tiennent
 ├── publish/        mise en ligne : versions, bascule, build, distant, file
@@ -352,6 +357,17 @@ tests (`docs/implementation.md`).
   contenu. Les contrôles qui parcourent le HTML produit l'écartent sur sa balise
   de rafraîchissement, faute de quoi `checkHeadings` la signale comme une page
   sans `h1`.
+- **Ce n'est pas SPF qui authentifie un email de Brevo, c'est DKIM.** Brevo
+  expédie sous son propre domaine d'enveloppe : le SPF du client n'est jamais
+  aligné, et sa documentation dit de ne pas ajouter d'`include` pour lui. Une
+  sonde qui refuserait un domaine sans SPF bloquerait donc des sites corrects.
+  C'est la signature qui refuse, SPF et DMARC qui avertissent (D129). Le
+  sélecteur DKIM dépend du compte : il se déclare, il ne se devine pas.
+- **Les deux canaux de notification sont indépendants, et la ligne dit leur
+  somme.** `delivery` vaut `sent` dès qu'un canal a confirmé, `failed` quand
+  tous ceux qui ont été tentés ont échoué, `skipped` quand il n'y avait personne
+  à prévenir. Confondre les deux derniers fait afficher « non transmis » sur
+  chaque message d'un site qui a choisi le silence.
 - **Le recadrage repart toujours de l'originale**, jamais d'un recadrage : le
   cadre est exprimé en pourcentage de l'originale, et repartir d'une découpe
   ajouterait une passe d'encodage à chaque correction. Le cadre entre dans

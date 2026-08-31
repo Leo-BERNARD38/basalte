@@ -43,7 +43,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
 | `implementation.md` | Les six phases, leurs enjeux, tests, hors périmètre |
-| `roadmap.md` | Les phases 8 à 11 : double rendu, chrome, images, SEO, leads — la 7 est faite |
+| `roadmap.md` | Les phases 7 à 11 : outillage, double rendu, chrome, images, SEO, leads — toutes faites |
 | `roadmap-outillage-ia.md` | Chantiers d'outillage IA restants |
 
 ## Trois niveaux de lecture
@@ -112,8 +112,14 @@ déclare, la fiche d'entreprise comme source structurée, et `src/seo/` : carte
 de partage, JSON-LD, sitemap, `robots.txt`, favicon, page 404, redirections.
 Plus le bloc `faq`, qui l'attendait. Décisions D117 à D124.
 
-Ce qui reste est découpé dans `roadmap.md` : la phase 11, *Joindre* — ne pas
-perdre un lead, et ne pas être appelé pour rien.
+**Phase 11 — Joindre** — un second canal qui prévient le client hors email, la
+preuve que ses emails sont configurés pour arriver et pas seulement pour partir,
+une page de remerciement qui donne une adresse à la conversion, et les trois
+phrases qui suppriment les appels que le panel provoquait. Décisions D126 à
+D134.
+
+Les onze phases sont faites. Ce qui a été identifié et volontairement laissé de
+côté est listé dans `roadmap.md`, avec ce qui le ferait revenir.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

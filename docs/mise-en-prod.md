@@ -5,7 +5,8 @@
 Manuels, parce qu'aucun outil ne peut les faire à ta place :
 
 1. commander un VPS — 2 Go de RAM, Ubuntu — et noter son IP
-2. faire pointer le domaine du client vers cette IP (enregistrement A)
+2. faire pointer le domaine du client vers cette IP (enregistrement A), et
+   publier les enregistrements qui font arriver ses emails (ci-dessous)
 
 Puis, depuis ta machine :
 
@@ -74,21 +75,51 @@ npm run doctor
   ✓ CONTACT_EMAIL — contact@atelier-duvallon.fr
   ✓ EMAIL_ADMIN — leo@exemple.fr
   ✓ email — envoyé à leo@exemple.fr, accepté par brevo
+  ✓ LEAD_WEBHOOK_URL — appelée, acceptée par hooks.exemple.fr
   ✗ DNS — atelier-duvallon.fr pointe vers 1.2.3.4, la machine est en 5.6.7.8
       → corrige l'enregistrement A chez le registrar, puis relance
+  ✓ SPF (atelier-duvallon.fr) — v=spf1 include:_spf.google.com ~all
+  ✗ DKIM (atelier-duvallon.fr) — aucune clé sur « brevo1 », « brevo2 », « mail »
+      → publie les enregistrements que ton fournisseur affiche
+  ⚠ DMARC (atelier-duvallon.fr) — absent — rien ne dit aux boîtes quoi faire d'un faux
+      → ajoute un TXT sur _dmarc.atelier-duvallon.fr : « v=DMARC1; p=none; rua=… »
   ✓ dépôt git — joignable en écriture
   ✓ ressources — 2.0 Go de RAM, 14.2 Go libres
 ```
 
-`doctor` **prouve** au lieu de vérifier : il envoie un vrai email et résout
-vraiment le DNS (D93). Une clé présente mais fausse passe un contrôle de forme,
-et se découvre le jour où le client ne peut plus se connecter. `--no-email`
-saute le seul envoi, quand le quota du jour compte plus que la preuve.
+`doctor` **prouve** au lieu de vérifier : il envoie un vrai email, appelle
+vraiment l'adresse de notification, et résout vraiment le DNS (D93). Une clé
+présente mais fausse passe un contrôle de forme, et se découvre le jour où le
+client ne peut plus se connecter. `--no-email` saute tous les envois réels,
+quand le quota du jour compte plus que la preuve.
 
 Il tourne **là où on l'appelle** : depuis ta machine il éprouve la configuration
 du dépôt, sur le VPS il éprouve aussi les siennes. `--host <ip>` lui donne
 l'adresse que le domaine doit désigner. Il tourne en fin de `deploy`, et se
 relance seul à tout moment.
+
+### Les enregistrements DNS de l'email
+
+Trois, à créer chez le registrar du client, sur **le domaine de `EMAIL_FROM`**
+et non sur celui du site quand les deux diffèrent. `doctor` les nomme et donne
+le texte à coller ; le détail du pourquoi est dans `services.md`.
+
+| Nom | Type | Valeur | Sans lui |
+|---|---|---|---|
+| `<sélecteur>._domainkey.<domaine>` | ce que le fournisseur affiche | idem | **les emails partent sans signature, et le client se retrouve dehors** — `doctor` refuse |
+| `<domaine>` | TXT | `v=spf1 ~all`, ou l'existant | le domaine est moins bien reçu partout — `doctor` avertit |
+| `_dmarc.<domaine>` | TXT | `v=DMARC1; p=none; rua=mailto:toi@…` | rien ne dit aux boîtes quoi faire d'un faux — `doctor` avertit |
+
+C'est **DKIM qui refuse, pas SPF**, et c'est l'inverse de l'usage : Brevo expédie
+sous son propre domaine d'enveloppe, si bien que le SPF du client n'est jamais
+aligné et que sa signature est la seule authentification qui reste (D129).
+
+Un compte au sélecteur inhabituel le déclare, plutôt que de faire échouer la
+sonde :
+
+```ts
+email: { provider: 'brevo', dkim: ['maison'] }
+```
 
 ## Retours en arrière
 

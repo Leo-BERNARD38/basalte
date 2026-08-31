@@ -19,6 +19,22 @@ fragment que la feuille de style révèle :
 Les trois paragraphes sont dans la page, masqués, et `:target` révèle celui que
 l'URL désigne. C'est le seul canal de réponse dont dispose une page statique.
 
+**Un succès a une adresse à lui quand le dépôt porte `content/merci.json`**
+(D132). L'envoi mène alors à `/merci`, page ordinaire que le client édite : une
+conversion mesurable pour qui paie de la publicité, un lien à partager, et assez
+de place pour dire autre chose qu'une ligne sous un formulaire. `basalte init`
+la pose ; la supprimer ramène le fragment, sans qu'un réglage soit à défaire.
+
+Un refus et une limite atteinte, eux, ne quittent jamais le formulaire : le
+visiteur doit retrouver le champ où recommencer. Le fragment reste donc la
+réponse par défaut, et un site plus ancien que cette page se comporte comme
+avant.
+
+C'est une **page de service** : elle existe pour qui vient d'agir, pas pour qui
+cherche le site. Elle est écartée du menu déduit, du sitemap et de l'index par
+un seul prédicat, `isServiceRoute` dans `src/content/naming.ts` (D133) — trois
+conditions écrites à la main auraient divergé, et l'oubli aurait été muet.
+
 Il en découle une contrainte assumée : **un refus perd ce que le visiteur avait
 écrit.** C'est pourquoi la validation du navigateur porte l'essentiel du travail
 — `required`, `type="email"`, `minlength`, `maxlength` arrêtent une saisie
@@ -61,6 +77,52 @@ vrai.
 
 L'email de notification part avec l'adresse du visiteur en `Reply-To` : le
 client répond depuis sa boîte, sans recopier une adresse.
+
+### Un second canal, qui ne passe pas par l'email
+
+Un artisan n'ouvre pas son panel tous les jours, et une boîte encombrée noie un
+lead. D'où une **adresse web appelée à chaque message**, en plus de l'email
+(D126) :
+
+```
+LEAD_WEBHOOK_URL=https://…
+```
+
+Le socle ne connaît aucun service : il envoie un JSON à l'adresse qu'on lui
+donne, comme il envoie un email au fournisseur qu'on lui nomme (D13). Une
+conversation d'équipe, un service de notification sur téléphone, un automate —
+tout ce qui accepte un `POST` convient.
+
+Le corps porte **le message entier** (D127). `text` et `content` y disent la
+même phrase, à côté des champs structurés : c'est ce qui fait qu'un webhook
+affiche quelque chose sans intermédiaire, Discord lisant `content` là où Slack
+et Mattermost lisent `text`.
+
+```json
+{ "text": "…", "content": "…", "name": "…", "email": "…",
+  "message": "…", "page": "/contact", "language": "fr", "at": 1756…  }
+```
+
+**L'adresse IP et le navigateur du visiteur n'y entrent pas.** Ils ne sortent
+déjà pas du panel, et aucun service au bout n'en a l'usage.
+
+Trois gardes, écrites dans `securite.md` : `https` obligatoire, aucune
+redirection suivie, et dix secondes de délai. L'adresse elle-même est un secret
+— elle ne s'affiche jamais dans le panel, et `doctor` n'en montre que l'hôte.
+
+**Les deux canaux sont indépendants.** L'un tombe sans emporter l'autre, et
+c'est tout l'intérêt d'en avoir deux. La ligne du message retient ce qu'ils ont
+donné ensemble (D128) :
+
+| État | Ce qu'il veut dire | Ce que le panel montre |
+|---|---|---|
+| transmis | au moins un canal a confirmé | rien |
+| manqué | tous ceux qui ont été tentés ont échoué | « non transmis » |
+| sans objet | il n'y avait personne à prévenir | rien |
+
+**Le webhook ne dépend d'aucune capacité** : sa présence suffit. Un site en
+`notifyLeads: false` qui déclare une adresse est donc prévenu quand même — c'est
+même le cas que la phase 11 visait.
 
 ### Libellés et langues
 
@@ -115,7 +177,7 @@ aussi :
 | Variable | Où partent les emails |
 |---|---|
 | `CONTACT_EMAIL` | les messages du formulaire — l'adresse du client (D81) |
-| `EMAIL_ADMIN` | les erreurs de la machine — la tienne |
+| `EMAIL_ADMIN` | les erreurs de la machine — la tienne, et ce que le panel affiche au client sous « Besoin d'aide » |
 
 Sans `CONTACT_EMAIL`, un message reste dans le panel et rien ne part : il n'est
 jamais perdu, il n'est simplement pas notifié. `basalte doctor` prouve qu'un
@@ -139,6 +201,63 @@ conséquences :
 - il faut une voie de secours hors email (`basalte admin:login`, voir `panel.md`)
 - les emails d'authentification empruntent un canal distinct de ceux du
   formulaire
+
+Et **le second facteur reste l'email** (D130). Le webhook des messages n'en est
+pas un : il aboutit dans une conversation que plusieurs personnes lisent, et un
+code partagé n'est plus un second facteur. Ce qui manquait à l'email n'était pas
+un remplaçant, c'était la preuve qu'il arrive.
+
+### Prouver qu'un email arrive, pas seulement qu'il part
+
+`doctor` envoie pour de bon : la clé est bonne, le fournisseur accepte. Cela ne
+dit rien de ce qui décide, chez le destinataire, entre la boîte de réception et
+les indésirables — et c'est là que se joue un code de connexion.
+
+Il sonde donc trois enregistrements, **sur le domaine qui expédie** et non sur
+celui du site : `EMAIL_FROM` porte SPF, DKIM et DMARC, et `AUTH_EMAIL_FROM` est
+sondé à part quand il expédie d'ailleurs.
+
+| Enregistrement | Constat | Niveau |
+|---|---|---|
+| **DKIM** | aucune clé sur les sélecteurs connus | **erreur** |
+| SPF | aucun `v=spf1` sur le domaine | avertissement |
+| DMARC | pas de `v=DMARC1` sur `_dmarc.<domaine>` | avertissement |
+
+**C'est DKIM qui refuse, pas SPF** (D129), et c'est contre-intuitif. Brevo
+expédie sous son propre domaine d'enveloppe : le SPF du client n'est jamais
+aligné, sa documentation dit de ne pas ajouter d'`include` pour lui, et c'est
+la signature DKIM qui authentifie — DMARC s'alignant sur elle. Un SPF absent
+reste un défaut, parce qu'un domaine sans SPF est moins bien reçu partout ; il
+n'est pas ce qui manque quand un email de Brevo tombe en spam.
+
+Chaque sonde qui échoue donne **le texte exact à coller chez le registrar**, et
+`doctor` nomme le domaine dans son étiquette :
+
+```
+✗ DKIM (exemple.fr) — aucune clé sur « brevo1 », « brevo2 », « mail »
+    → publie les enregistrements que ton fournisseur affiche ; si son sélecteur
+      diffère, déclare-le dans site.config.ts, sous « email: { dkim: [...] } ».
+⚠ DMARC (exemple.fr) — absent — rien ne dit aux boîtes quoi faire d'un faux
+    → ajoute un TXT sur _dmarc.exemple.fr : « v=DMARC1; p=none; rua=mailto:… ».
+```
+
+**Le sélecteur DKIM dépend du compte.** Le socle connaît ceux que Brevo
+distribue ; un compte qui en a un autre le déclare plutôt que de faire échouer
+la sonde :
+
+```ts
+email: { provider: 'brevo', dkim: ['maison'] }
+```
+
+`doctor` éprouve aussi l'adresse de notification, et par un appel réel : une
+adresse bien formée mais morte passe tous les contrôles de forme, et ne se
+découvre qu'au premier message perdu. `--no-email` saute tous les envois réels,
+celui-ci compris.
+
+**L'expéditeur n'est pas mutualisé** (D131). Un sous-domaine du mainteneur
+supprimerait toute cette configuration chez le client, au prix d'un message qui
+ne part pas de chez lui — et ôterait leur raison d'être aux sondes qui rendent
+son domaine utilisable.
 
 ## Analytics
 

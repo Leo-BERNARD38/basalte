@@ -24,7 +24,7 @@ mon-client/
 ├── site.config.ts         DA, langues, domaine, redirections — versionné
 ├── .env                   secrets — jamais versionné
 ├── .env.example
-├── content/*.json         index, contact, et les deux documents légaux
+├── content/*.json         index, contact, merci, et les deux documents légaux
 ├── content/media.json · documents.json · chrome.json · business.json
 │                          les manifestes, pas des pages
 ├── public/media/ · public/documents/
@@ -133,12 +133,19 @@ CONTACT_EMAIL=contact@exemple.fr   où arrivent les messages du formulaire
 EMAIL_ADMIN=leo@exemple.fr         où partent les erreurs
 AUTH_EMAIL_API_KEY=…               le canal des codes de connexion
 AUTH_EMAIL_FROM=connexion@exemple.fr
+LEAD_WEBHOOK_URL=https://…         l'adresse prévenue à chaque message
 ```
 
 `CONTACT_EMAIL` est l'adresse du client, `EMAIL_ADMIN` la tienne : les messages
 vont à l'un, les pannes de la machine à l'autre. Sans `CONTACT_EMAIL`, un
 message reste dans le panel et rien ne part — il n'est jamais perdu, il n'est
-simplement pas notifié (`services.md`).
+simplement pas notifié (`services.md`). `EMAIL_ADMIN` est aussi l'adresse que le
+panel affiche au client sous « Besoin d'aide ».
+
+`LEAD_WEBHOOK_URL` est le second canal (D126) : le site y poste le message
+entier, en plus de l'email. Elle vaut par sa seule présence — aucune capacité ne
+la commande — et un site qui a coupé la notification par email est ainsi
+prévenu quand même.
 
 Les deux dernières lignes sont facultatives : sans elles, les codes de
 connexion partent par le canal du formulaire de contact, et `doctor` le
@@ -151,7 +158,9 @@ clé.
 
 `init` écrit ce fichier avec ses lignes vides. Reste **une clé à coller et trois
 adresses** pour un site monocanal, deux clés et quatre adresses pour séparer les
-canaux : c'est toute la configuration email d'un site. `npm run doctor` dit ce
+canaux : c'est toute la configuration email d'un site. Ce qui se règle hors du
+fichier, ce sont les enregistrements DNS qui font arriver ces emails —
+`mise-en-prod.md` les nomme, et `doctor` refuse un domaine sans signature. `npm run doctor` dit ce
 qui manque, et prouve que ce qui est rempli fonctionne vraiment.
 
 Le domaine vit dans `site.config.ts` et non dans `.env` : il n'est pas secret,

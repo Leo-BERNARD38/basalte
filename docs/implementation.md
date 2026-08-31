@@ -283,9 +283,11 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Les six phases sont faites**, et les cinq de `roadmap.md` aussi jusqu'à la
-dixième : `src/seo/` existe, avec le bloc `faq` qui l'attendait. Ce qui reste
-est nommé dans `roadmap.md` — la phase 11, *Joindre*.
+**Les six phases sont faites, et les cinq de `roadmap.md` aussi.** La dernière,
+*Joindre*, a donné au site un canal qui prévient le client hors email, à
+`doctor` la preuve que ses emails sont configurés pour arriver, et au formulaire
+une adresse après l'envoi. Ce qui a été identifié et laissé de côté est listé
+dans `roadmap.md`, avec ce qui le ferait revenir.
 
 ## Tests
 
@@ -321,8 +323,8 @@ La **livraison** s'éprouve par les mêmes leviers, poussés d'un cran : le dép
 qu'`init` produit est comparé fichier par fichier sans qu'un seul soit écrit ;
 la séquence de `deploy` se déroule contre un runner qui retient les commandes au
 lieu de les exécuter, ce qui laisse Docker absent, un clone déjà là et un échec
-en plein milieu s'exercer sans VPS ; les sondes de `doctor` reçoivent leur
-résolution DNS et leur canal email ; `update` monte et s'annule contre un vrai
+en plein milieu s'exercer sans VPS ; les sondes de `doctor` reçoivent leurs
+deux résolutions DNS — adresses et enregistrements TXT — et leur canal email ; `update` monte et s'annule contre un vrai
 dépôt jetable, avec un npm qui n'installe rien. Le seul morceau qui ne se teste
 pas est celui qui ne peut pas l'être : la machine réelle — et c'est `doctor`,
 lancé dessus, qui en répond.

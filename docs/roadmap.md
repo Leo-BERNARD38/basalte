@@ -1,9 +1,10 @@
 # Roadmap
 
-Les six phases d’`implementation.md` sont faites. Ce document décrit les cinq
-suivantes, à la même règle : chacune dit pourquoi elle existe, ce qu’elle doit
-produire, ce qui est en jeu, et où passe la frontière entre ce qui est tranché
-et ce qui lui appartient.
+Les six phases d’`implementation.md` sont faites, et les cinq de ce document
+aussi. Il décrit ces cinq-là, à la même règle : chacune dit pourquoi elle
+existe, ce qu’elle doit produire, ce qui est en jeu, et où passe la frontière
+entre ce qui est tranché et ce qui lui appartient — puis, une fois close, ce
+qu’elle a retenu et ce qu’elle laisse ouvert.
 
 ## Ce que ce document engage
 
@@ -38,9 +39,10 @@ basalte init                   tu as l’atelier : contexte, DA, pages légales,
     le client reçoit son panel il édite, il voit ses messages, il met en ligne
 ```
 
-Aujourd’hui la première flèche produit vingt-huit fichiers dont aucun ne porte
-de contexte, la deuxième se fait sans outil de mise au point, et la troisième
-livre un site sans navigation ni mentions légales.
+Les trois flèches tiennent désormais : `init` produit un dépôt qui dit pour qui
+il est écrit, le banc de blocs et le double rendu outillent la mise au point, et
+le client reçoit un site navigable, référencé, et dont les messages l’atteignent
+là où il regarde.
 
 ## Constats, et où ils sont traités
 
@@ -58,9 +60,9 @@ livre un site sans navigation ni mentions légales.
 | ~~`f.image({ ratio })` existe et n'est appliqué nulle part~~ · réglé | `src/fields/types.ts` | 10 |
 | ~~Aucun `og:`, JSON-LD, sitemap, `robots.txt`, favicon ni page 404~~ · réglé | `src/astro/Layout.astro`, `src/client/docker.ts` | 10 |
 | ~~Le Caddyfile généré n'a aucun `handle_errors` ni aucune redirection~~ · réglé | `src/client/docker.ts` | 10 |
-| SPF, DKIM et DMARC ne sont vérifiés nulle part, alors que l’email porte aussi les codes de connexion | `src/cli/doctor.ts` | 11 |
-| Le formulaire répond par un fragment : aucune adresse distincte après un envoi | `src/blocks/contact/`, D76 | 11 |
-| Un lead est écrit en base, et rien ne garantit que le client le lise | `src/server/leads.ts` | 11 |
+| ~~SPF, DKIM et DMARC ne sont vérifiés nulle part~~ · réglé | `src/cli/doctor.ts` | 11 |
+| ~~Le formulaire répond par un fragment : aucune adresse distincte après un envoi~~ · réglé | `src/blocks/contact/`, D76 | 11 |
+| ~~Un lead est écrit en base, et rien ne garantit que le client le lise~~ · réglé | `src/server/leads.ts` | 11 |
 
 ## Les cinq phases
 
@@ -70,7 +72,7 @@ livre un site sans navigation ni mentions légales.
 | 8 | **Adapter** · faite | deux rendus servis selon le support, une seule source de contenu |
 | 9 | **Encadrer** · faite | le chrome — navigation, pied de page |
 | 10 | **Cadrer** · faite | le cadrage des images, et `src/seo/` |
-| 11 | **Joindre** | ne pas perdre un lead, ne pas être appelé pour rien |
+| 11 | **Joindre** · faite | ne pas perdre un lead, ne pas être appelé pour rien |
 
 L’ordre proposé est celui des dépendances, avec deux points à valider plutôt
 qu’à suivre :
@@ -521,7 +523,56 @@ le lien d’une page partagé sur une messagerie affiche une carte avec son imag
 
 ---
 
-## Phase 11 — Joindre
+## Phase 11 — Joindre · faite
+
+**Ce qu’elle a retenu, et ce qu’elle a remplacé.** Quatre des cinq pistes ont
+tenu — le webhook vers une messagerie déjà consultée, les trois enregistrements
+DNS vérifiés par `doctor`, une page de remerciement à son adresse, et le second
+facteur laissé où il est. Détail en D126 à D134, application dans
+`services.md` :
+
+- **Le push sur le panel est écarté** (D126). Un service worker, une dépendance
+  de chiffrement, des clés à engendrer, une table de plus — et sur iOS une
+  installation sur l’écran d’accueil à expliquer, sans laquelle le client ne
+  reçoit rien. Le webhook n’a aucune de ces contraintes, et `doctor` peut le
+  prouver par un appel réel comme il prouve l’email.
+- **L’expéditeur mutualisé est écarté** (D131) : il ôterait leur raison d’être
+  aux sondes DNS qui rendent le domaine du client utilisable, pour des messages
+  qui ne partiraient plus de chez lui.
+- **Le second facteur reste l’email** (D130), et le webhook n’en est pas un : il
+  aboutit dans une conversation que plusieurs personnes lisent. Ce qui manquait
+  à l’email n’était pas un remplaçant, c’était la preuve qu’il arrive — ce que la
+  phase fournit.
+- **Le fragment ne disparaît pas, il gagne une alternative** (D132). La page de
+  remerciement existe si le dépôt la porte, et c’est le fichier qui décide, pas
+  un réglage : un site plus ancien se comporte exactement comme avant, et
+  supprimer la page défait le choix. Un refus, lui, ne quitte jamais le
+  formulaire.
+
+**Ce qu’elle a trouvé en chemin.** *Ce n’est pas SPF qui refuse.* La phase
+partait, comme l’usage, de l’idée qu’un SPF manquant est ce qui fait tomber un
+email en spam. La documentation de Brevo dit l’inverse : il expédie sous son
+propre domaine d’enveloppe, il demande de **ne pas** ajouter d’`include` pour
+lui, et c’est la signature **DKIM** qui authentifie — DMARC s’alignant sur elle.
+Une sonde qui aurait refusé un domaine sans SPF aurait donc bloqué des sites
+correctement configurés. C’est DKIM qui refuse, SPF et DMARC qui avertissent
+(D129). Et le sélecteur DKIM dépendant du compte, il se déclare dans
+`site.config.ts` plutôt que d’être deviné.
+
+Deuxième trouvaille, plus petite : un site en `notifyLeads: false` affichait
+« non transmis par email » en orange sur **chaque** message, alors que rien
+n’avait échoué. `Delivery` gagne `skipped`, et le panel n’avertit plus que d’une
+notification réellement manquée (D128).
+
+**Ce qui reste ouvert.** Le webhook livre chez un tiers ce que la purge ne peut
+plus reprendre : supprimer un message dans le panel n’efface pas la notification
+arrivée dans une conversation, pas plus que l’email déjà reçu. C’est écrit dans
+`securite.md`, ce n’est pas résolu. Les sondes DNS ne suivent ni les `include:`
+ni les `redirect=` d’un SPF — une seule requête ne le peut pas —, si bien
+qu’elles constatent l’absence d’un fournisseur sans conclure. Et la page de
+remerciement est en français dans son nom comme dans son adresse : un site
+anglophone la sert sous `/merci`, comme les trois fragments de réponse le sont
+depuis la phase 5.
 
 **Pourquoi.** Un lead écrit en base que personne ne va lire ne vaut pas mieux
 qu’un lead perdu, et un artisan n’ouvre pas son panel tous les jours. Quant à
@@ -610,7 +661,7 @@ suppose — c’est même pour cela qu’elles sont listées.
 | 10 | Ce qu'il advient du point focal, dont le cadrage renverse la décision · acté en D117, D118 et D119 |
 | 10 | D'où le JSON-LD local tire ses données, D101 les ayant laissées en prose · acté en D120 et D121 |
 | 10 | Que les redirections et la page 404 ne dépendent pas d'un `Caddyfile` régénéré · acté en D122, D123 et D124 |
-| 11 | Si le second facteur cesse de dépendre de l’email |
+| 11 | Si le second facteur cesse de dépendre de l’email · acté en D130 : il reste l’email, et D126, D129 et D132 disent ce que la phase a mis à la place |
 
 ## Vu, et pas retenu maintenant
 
