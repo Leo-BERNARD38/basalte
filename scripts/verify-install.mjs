@@ -1,6 +1,11 @@
 // Prouve le chemin d’installation réel : un dépôt client installe le socle
 // depuis git, npm clone, exécute `prepare`, et empaquette selon `files`.
 //
+// L’installation se fait **par le tag**, comme `socleDependency` l’écrit dans
+// le `package.json` d’un dépôt client (D5) — pas au HEAD d’une branche. C’est
+// la référence qui casse quand une version est bumpée sans être publiée, et
+// installer autrement ne prouverait pas la forme que le client emploie.
+//
 // Le clone est fabriqué depuis le dossier de travail, pas depuis `HEAD` : ce
 // qui est vérifié est le code tel qu’il est, pas tel qu’il a été commité. Le
 // dépôt distant n’est jamais sollicité.
@@ -27,19 +32,24 @@ try {
     })
   })
 
-  await step('dépôt git jetable', async () => {
+  const version = JSON.parse(
+    await readFile(path.join(root, 'package.json'), 'utf8'),
+  ).version
+
+  await step(`dépôt git jetable, tagué v${version}`, async () => {
     git(origin, ['init', '--quiet', '--initial-branch=main'])
     git(origin, ['add', '--all'])
     git(origin, ['commit', '--quiet', '--message', 'socle'])
+    git(origin, ['tag', `v${version}`])
   })
 
-  await step('npm install depuis git', async () => {
+  await step(`npm install depuis git, au tag v${version}`, async () => {
     await mkdir(consumer, { recursive: true })
     await writeFile(
       path.join(consumer, 'package.json'),
       `${JSON.stringify({ name: 'client-jetable', private: true, type: 'module' }, null, 2)}\n`,
     )
-    npm(consumer, ['install', `git+${pathToFileURL(origin).href}`])
+    npm(consumer, ['install', `git+${pathToFileURL(origin).href}#v${version}`])
   })
 
   const installed = path.join(
@@ -66,17 +76,16 @@ try {
   })
 
   await step('le binaire répond', async () => {
-    const version = npx(consumer, ['basalte', '--version']).trim()
-    const expected = JSON.parse(
-      await readFile(path.join(root, 'package.json'), 'utf8'),
-    ).version
-    if (version !== expected) {
-      throw new Error(`« ${version} » au lieu de « ${expected} »`)
+    const reported = npx(consumer, ['basalte', '--version']).trim()
+    if (reported !== version) {
+      throw new Error(`« ${reported} » au lieu de « ${version} »`)
     }
-    process.stdout.write(`      basalte --version → ${version}\n`)
+    process.stdout.write(`      basalte --version → ${reported}\n`)
   })
 
-  process.stdout.write('\nLe chemin d’installation depuis git fonctionne.\n')
+  process.stdout.write(
+    `\nLe chemin d’installation depuis git, au tag v${version}, fonctionne.\n`,
+  )
 } finally {
   await rm(work, { recursive: true, force: true })
 }
