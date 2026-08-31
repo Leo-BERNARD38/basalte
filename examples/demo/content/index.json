@@ -90,6 +90,114 @@
       }
     },
     {
+      "id": "s1",
+      "type": "stats",
+      "props": {
+        "title": {
+          "fr": "En quelques chiffres",
+          "en": ""
+        },
+        "items": [
+          {
+            "value": {
+              "fr": "18 ans",
+              "en": ""
+            },
+            "label": {
+              "fr": "d’atelier, au même endroit",
+              "en": ""
+            }
+          },
+          {
+            "value": {
+              "fr": "+340",
+              "en": ""
+            },
+            "label": {
+              "fr": "pièces livrées",
+              "en": ""
+            }
+          },
+          {
+            "value": {
+              "fr": "3 sem.",
+              "en": ""
+            },
+            "label": {
+              "fr": "de délai moyen",
+              "en": ""
+            }
+          },
+          {
+            "value": {
+              "fr": "100 %",
+              "en": ""
+            },
+            "label": {
+              "fr": "de bois européen",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "e1",
+      "type": "steps",
+      "props": {
+        "title": {
+          "fr": "Comment ça se passe",
+          "en": ""
+        },
+        "intro": {
+          "fr": "Quatre rendez-vous, du premier croquis à la pose. Aucun n’est facturé avant le devis signé.",
+          "en": ""
+        },
+        "items": [
+          {
+            "title": {
+              "fr": "On se voit",
+              "en": ""
+            },
+            "body": {
+              "fr": "Sur place, pour prendre les mesures et comprendre l’usage de la pièce.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Vous recevez un devis",
+              "en": ""
+            },
+            "body": {
+              "fr": "Un dessin, un prix, un délai. Valable trente jours.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "On fabrique",
+              "en": ""
+            },
+            "body": {
+              "fr": "À l’atelier, avec des photos à chaque étape si vous le souhaitez.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "On pose",
+              "en": ""
+            },
+            "body": {
+              "fr": "En une journée le plus souvent, et l’atelier repart avec ses chutes.",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
       "id": "g1",
       "type": "gallery",
       "props": {
@@ -123,6 +231,54 @@
       }
     },
     {
+      "id": "av1",
+      "type": "testimonials",
+      "props": {
+        "title": {
+          "fr": "Ce qu’en disent nos clients",
+          "en": ""
+        },
+        "items": [
+          {
+            "quote": {
+              "fr": "La bibliothèque épouse un mur qui n’a pas un angle droit. Personne ne le voit, et c’est bien le but.",
+              "en": ""
+            },
+            "author": "Camille Duvallon",
+            "role": {
+              "fr": "Grenoble",
+              "en": ""
+            },
+            "image": "f7521f178c237da9"
+          },
+          {
+            "quote": {
+              "fr": "Devis tenu au jour près, chantier laissé propre. Je n’ai pas eu à repasser derrière.",
+              "en": ""
+            },
+            "author": "Sofiane Meddah",
+            "role": {
+              "fr": "Architecte, Voiron",
+              "en": ""
+            },
+            "image": "cb5ed3b571c1fad2"
+          },
+          {
+            "quote": {
+              "fr": "Je change mes textes moi-même, et le site reste aussi rapide qu’au premier jour.",
+              "en": ""
+            },
+            "author": "Léa Fontaine",
+            "role": {
+              "fr": "Saint-Égrève",
+              "en": ""
+            },
+            "image": ""
+          }
+        ]
+      }
+    },
+    {
       "id": "t1",
       "type": "temoignage",
       "props": {
@@ -131,6 +287,30 @@
           "en": ""
         },
         "author": "Camille Duvallon"
+      }
+    },
+    {
+      "id": "l1",
+      "type": "logos",
+      "props": {
+        "title": {
+          "fr": "Ils nous ont fait confiance",
+          "en": ""
+        },
+        "items": [
+          {
+            "image": "9568a4a237805833",
+            "href": ""
+          },
+          {
+            "image": "ba93dd32cbe07aad",
+            "href": "https://exemple.fr"
+          },
+          {
+            "image": "2e08df87f1ab4bcb",
+            "href": ""
+          }
+        ]
       }
     },
     {
@@ -173,6 +353,27 @@
             }
           }
         ]
+      }
+    },
+    {
+      "id": "c1",
+      "type": "cta",
+      "props": {
+        "title": {
+          "fr": "Un projet en tête ?",
+          "en": ""
+        },
+        "body": {
+          "fr": "Décrivez-le en trois lignes : nous répondons sous deux jours ouvrés, devis compris.",
+          "en": ""
+        },
+        "cta": {
+          "label": {
+            "fr": "Nous écrire",
+            "en": ""
+          },
+          "href": "/contact"
+        }
       }
     }
   ]

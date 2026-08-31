@@ -1,0 +1,153 @@
+---
+// Un témoignage est cité : `blockquote` porte la parole, `figcaption` dit qui
+// la prononce. Le portrait est facultatif — un avis sans photo reste un avis,
+// et la carte ne doit pas se creuser en son absence.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+
+const items = props.items.map((item) => ({
+  quote: pick(item.quote, language),
+  author: item.author,
+  role: pick(item.role, language),
+  portrait: image(item.image, '96px'),
+}))
+---
+
+<section class="testimonials">
+  <div class="testimonials__inner">
+    {title !== '' && <Title class="testimonials__title">{title}</Title>}
+    <ul class="testimonials__list">
+      {
+        items.map((item) => (
+          <li>
+            <figure class="testimonials__item">
+              <blockquote class="testimonials__quote">{item.quote}</blockquote>
+              <figcaption class="testimonials__author">
+                {item.portrait !== undefined && (
+                  <img
+                    class="testimonials__portrait"
+                    src={item.portrait.src}
+                    srcset={item.portrait.srcset}
+                    sizes={item.portrait.sizes}
+                    width={item.portrait.width}
+                    height={item.portrait.height}
+                    alt={item.portrait.alt}
+                    style={`object-position:${item.portrait.objectPosition}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <span>
+                  <span class="testimonials__name">{item.author}</span>
+                  {item.role !== '' && (
+                    <span class="testimonials__role">{item.role}</span>
+                  )}
+                </span>
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .testimonials {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .testimonials__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .testimonials__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .testimonials__list {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .testimonials__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    height: 100%;
+    margin: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .testimonials__quote {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: 1.5;
+  }
+
+  .testimonials__quote::before {
+    content: '« ';
+  }
+
+  .testimonials__quote::after {
+    content: ' »';
+  }
+
+  .testimonials__author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: auto;
+  }
+
+  .testimonials__portrait {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .testimonials__name {
+    display: block;
+    font-size: var(--text-base);
+  }
+
+  .testimonials__role {
+    display: block;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 48rem) {
+    .testimonials__list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-6);
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .testimonials__list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

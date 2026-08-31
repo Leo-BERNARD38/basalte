@@ -1,0 +1,79 @@
+---
+// Le bandeau de relance. Il porte la couleur d’accent sur toute sa largeur :
+// c’est le seul bloc du socle qui inverse les valeurs, et c’est ce qui le
+// détache d’une page par ailleurs claire.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+const body = pick(props.body, language)
+const label = pick(props.cta.label, language)
+const href = props.cta.href
+---
+
+<section class="cta">
+  <div class="cta__inner">
+    <Title class="cta__title">{title}</Title>
+    {body !== '' && <p class="cta__body">{body}</p>}
+    {
+      label !== '' && href !== '' && (
+        <a class="cta__button" href={href}>
+          {label}
+        </a>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding: var(--space-8) var(--space-5);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+  }
+
+  .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .cta__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .cta__body {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .cta__button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-fg);
+    color: var(--color-accent);
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .cta__button:hover {
+    text-decoration: underline;
+  }
+</style>

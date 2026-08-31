@@ -1,0 +1,122 @@
+---
+// Les personnes de l’entreprise. Le nom n’est pas traduisible et la fonction
+// l’est : on ne traduit pas quelqu’un, on traduit son métier.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+
+const items = props.items.map((item) => ({
+  name: item.name,
+  role: pick(item.role, language),
+  body: pick(item.body, language),
+  portrait: image(item.image, '(min-width: 48rem) 16rem, 60vw'),
+}))
+---
+
+<section class="team">
+  <div class="team__inner">
+    {title !== '' && <Title class="team__title">{title}</Title>}
+    {intro !== '' && <p class="team__intro">{intro}</p>}
+    <ul class="team__list">
+      {
+        items.map((item) => (
+          <li class="team__item">
+            {item.portrait !== undefined && (
+              <img
+                class="team__portrait"
+                src={item.portrait.src}
+                srcset={item.portrait.srcset}
+                sizes={item.portrait.sizes}
+                width={item.portrait.width}
+                height={item.portrait.height}
+                alt={item.portrait.alt}
+                style={`object-position:${item.portrait.objectPosition}`}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <ItemTitle class="team__name">{item.name}</ItemTitle>
+            {item.role !== '' && <p class="team__role">{item.role}</p>}
+            {item.body !== '' && <p class="team__body">{item.body}</p>}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .team {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .team__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .team__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .team__intro {
+    max-width: var(--width-content);
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+  }
+
+  .team__list {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .team__portrait {
+    width: 12rem;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-md);
+    object-fit: cover;
+  }
+
+  .team__name {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .team__role {
+    margin: var(--space-1) 0 0;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  .team__body {
+    margin: var(--space-3) 0 0;
+  }
+
+  @media (min-width: 48rem) {
+    .team__list {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      gap: var(--space-7) var(--space-6);
+    }
+  }
+</style>

@@ -5,6 +5,7 @@
 import type { Fields, Values } from '../fields/types.js'
 import type { ResolvedDocument, ResolvedImage } from '../media/resolve.js'
 import type { Heading } from '../render/outline.js'
+import type { BusinessFacts } from '../seo/business.js'
 import type { StructuredContext, StructuredNode } from '../seo/structured.js'
 
 export type BlockDefinition<S extends Fields = Fields> = {
@@ -42,6 +43,12 @@ export type BlockProps<S extends Fields> = {
    * (`src/render/outline.ts`).
    */
   readonly heading: Heading
+  /**
+   * Les faits de l’entreprise, saisis une seule fois dans la fiche. Un bloc
+   * qui affiche une adresse, un téléphone ou des horaires les lit ici plutôt
+   * que de les redemander en champs (D149).
+   */
+  readonly business: BusinessFacts
 }
 
 // Une clé de média devient ce qu’un `img` attend. Le `sizes` appartient au

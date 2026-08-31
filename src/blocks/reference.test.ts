@@ -5,10 +5,15 @@ import { describe, expect, it } from 'vitest'
 
 import { validatePage } from '../content/validate.js'
 import { renderRichtext } from '../fields/richtext.js'
+import { dayLabel } from '../seo/business.js'
 import { resolveLanguages } from '../site/languages.js'
 import contact from './contact/schema.js'
+import details from './contact-details/schema.js'
 import faq from './faq/schema.js'
+import logos from './logos/schema.js'
 import richtext from './richtext/schema.js'
+import stats from './stats/schema.js'
+import steps from './steps/schema.js'
 
 const languages = resolveLanguages({ fr: { default: true } })
 
@@ -118,5 +123,70 @@ describe('bloc faq — les données structurées', () => {
     ) as { mainEntity: { acceptedAnswer: { text: string } }[] }
 
     expect(node.mainEntity[0]?.acceptedAnswer.text).not.toContain('<script>')
+  })
+})
+
+describe('bloc steps — le numéro vient du rang', () => {
+  it('n’offre aucun champ où le saisir', () => {
+    expect(Object.keys(steps.fields.items.of)).toEqual(['title', 'body'])
+  })
+})
+
+describe('bloc stats — la valeur porte son unité', () => {
+  const page = (value: string) =>
+    validatePage({
+      name: 'index',
+      source: {
+        $format: 1,
+        meta: { title: { fr: 'Atelier' }, description: { fr: 'Un mot.' } },
+        blocks: [
+          {
+            id: 'chiffres',
+            type: 'stats',
+            props: {
+              items: [
+                { value: { fr: value }, label: { fr: 'de métier' } },
+                { value: { fr: '+340' }, label: { fr: 'pièces livrées' } },
+              ],
+            },
+          },
+        ],
+      },
+      registry: { stats },
+      languages,
+      media: {},
+      documents: {},
+    })
+
+  it('accepte un signe, une unité et une abréviation', () => {
+    for (const value of ['+150', '12 ans', '100 %', '3 sem.']) {
+      expect(page(value).issues).toEqual([])
+    }
+  })
+
+  it('refuse au-delà de sa borne, là où un nombre n’en dit plus rien', () => {
+    expect(page('douze années pleines').issues).not.toEqual([])
+  })
+})
+
+describe('bloc contact-details — la fiche, pas une seconde saisie', () => {
+  it('ne déclare ni adresse, ni téléphone, ni horaires', () => {
+    expect(Object.keys(details.fields)).toEqual(['title', 'intro'])
+  })
+
+  it('nomme les jours comme la liste déroulante de la fiche', () => {
+    expect(dayLabel('Monday')).toBe('Lundi')
+    expect(dayLabel('Sunday')).toBe('Dimanche')
+    expect(dayLabel('')).toBe('')
+  })
+})
+
+describe('bloc logos — ce qu’il ne redemande pas', () => {
+  it('laisse le nom de la marque au texte alternatif de la médiathèque', () => {
+    expect(Object.keys(logos.fields.items.of)).toEqual(['image', 'href'])
+  })
+
+  it('n’attend aucunes proportions : un logo n’a pas de forme commune', () => {
+    expect(logos.fields.items.of.image.ratio).toBeUndefined()
   })
 })

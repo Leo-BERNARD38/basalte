@@ -1,0 +1,171 @@
+---
+// Les coordonnées telles que la fiche les porte. Chaque partie manquante
+// disparaît : une fiche à moitié remplie donne une section plus courte, jamais
+// une ligne vide.
+//
+// Le téléphone et l’email sont des liens : sur un téléphone, c’est ce qui
+// sépare un appel d’une recopie à la main.
+import { pick } from '../../fields/translate.js'
+import { dayLabel, hasAddress } from '../../seo/business.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading, business } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+
+const address = hasAddress(business) ? business.address : undefined
+const phone = business.phone.trim()
+const email = business.email.trim()
+const area = business.area.trim()
+
+const hours = business.hours.filter(
+  (entry) => entry.day !== '' && entry.opens !== '' && entry.closes !== '',
+)
+---
+
+<section class="details">
+  <div class="details__inner">
+    {title !== '' && <Title class="details__title">{title}</Title>}
+    {intro !== '' && <p class="details__intro">{intro}</p>}
+    <div class="details__columns">
+      {
+        (address !== undefined || phone !== '' || email !== '') && (
+          <div>
+            <ItemTitle class="details__heading">Nous joindre</ItemTitle>
+            <address class="details__address">
+              {address !== undefined && (
+                <span class="details__line">
+                  {address.street}
+                  <br />
+                  {address.postalCode} {address.city}
+                  {address.country !== '' && (
+                    <>
+                      <br />
+                      {address.country}
+                    </>
+                  )}
+                </span>
+              )}
+              {phone !== '' && (
+                <a
+                  class="details__line"
+                  href={`tel:${phone.replace(/\s/g, '')}`}
+                >
+                  {phone}
+                </a>
+              )}
+              {email !== '' && (
+                <a class="details__line" href={`mailto:${email}`}>
+                  {email}
+                </a>
+              )}
+              {area !== '' && <span class="details__area">{area}</span>}
+            </address>
+          </div>
+        )
+      }
+      {
+        hours.length > 0 && (
+          <div>
+            <ItemTitle class="details__heading">Horaires</ItemTitle>
+            <dl class="details__hours">
+              {hours.map((entry) => (
+                <div class="details__slot">
+                  <dt>{dayLabel(entry.day)}</dt>
+                  <dd>
+                    {entry.opens} – {entry.closes}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .details {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .details__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .details__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .details__intro {
+    max-width: var(--width-content);
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+  }
+
+  .details__columns {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .details__heading {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    line-height: 1.25;
+  }
+
+  .details__address {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-style: normal;
+  }
+
+  .details__line {
+    color: var(--color-fg);
+  }
+
+  .details__area {
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  .details__hours {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .details__slot {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+  }
+
+  .details__slot dd {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .details__columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-7);
+    }
+  }
+</style>

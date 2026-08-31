@@ -25,6 +25,7 @@ describe('readView', () => {
 
     expect(contact?.sections.map((section) => section.type)).toEqual([
       'contact',
+      'contact-details',
     ])
   })
 

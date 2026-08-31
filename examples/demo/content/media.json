@@ -3,7 +3,12 @@
     "format": "webp",
     "width": 1600,
     "height": 1200,
-    "widths": [480, 768, 1200, 1600],
+    "widths": [
+      480,
+      768,
+      1200,
+      1600
+    ],
     "alt": {
       "fr": "Un établi de bois clair sous une lumière rasante",
       "en": ""
@@ -17,7 +22,12 @@
     "format": "webp",
     "width": 1600,
     "height": 1200,
-    "widths": [480, 768, 1200, 1600],
+    "widths": [
+      480,
+      768,
+      1200,
+      1600
+    ],
     "alt": {
       "fr": "Des outils rangés en rang sur un mur sombre",
       "en": ""
@@ -31,7 +41,13 @@
     "format": "webp",
     "width": 2400,
     "height": 1350,
-    "widths": [480, 768, 1200, 1800, 2400],
+    "widths": [
+      480,
+      768,
+      1200,
+      1800,
+      2400
+    ],
     "alt": {
       "fr": "Un dégradé chaud, du sable au brun profond",
       "en": ""
@@ -45,7 +61,12 @@
     "format": "webp",
     "width": 1600,
     "height": 1200,
-    "widths": [480, 768, 1200, 1600],
+    "widths": [
+      480,
+      768,
+      1200,
+      1600
+    ],
     "alt": {
       "fr": "Une pièce terminée posée sur un fond crème",
       "en": ""
@@ -53,6 +74,73 @@
     "focal": {
       "x": 50,
       "y": 45
+    }
+  },
+  "f7521f178c237da9": {
+    "format": "webp",
+    "width": 900,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Portrait de Camille Duvallon",
+      "en": ""
+    }
+  },
+  "cb5ed3b571c1fad2": {
+    "format": "webp",
+    "width": 900,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Portrait de Sofiane Meddah",
+      "en": ""
+    }
+  },
+  "9568a4a237805833": {
+    "format": "webp",
+    "width": 640,
+    "height": 200,
+    "widths": [
+      480,
+      640
+    ],
+    "alt": {
+      "fr": "CHÊNE ET CIE",
+      "en": ""
+    }
+  },
+  "ba93dd32cbe07aad": {
+    "format": "webp",
+    "width": 700,
+    "height": 200,
+    "widths": [
+      480,
+      700
+    ],
+    "alt": {
+      "fr": "MAISONS RIVET",
+      "en": ""
+    }
+  },
+  "2e08df87f1ab4bcb": {
+    "format": "webp",
+    "width": 600,
+    "height": 200,
+    "widths": [
+      480,
+      600
+    ],
+    "alt": {
+      "fr": "ATELIER NOÉ",
+      "en": ""
     }
   }
 }

@@ -1,0 +1,102 @@
+---
+// Une rangée de logos. Chacun garde ses proportions dans une boîte de hauteur
+// commune : sans cela, un logo carré écrase la ligne qu’un logo large tient.
+//
+// Le lien est facultatif, et il est externe : une marque citée pointe vers son
+// propre site, jamais vers une page d’ici.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+
+const items = props.items.flatMap((item) => {
+  const resolved = image(item.image, '12rem')
+
+  return resolved === undefined ? [] : [{ href: item.href, resolved }]
+})
+---
+
+<section class="logos">
+  <div class="logos__inner">
+    {title !== '' && <Title class="logos__title">{title}</Title>}
+    <ul class="logos__list">
+      {
+        items.map((item) => (
+          <li class="logos__item">
+            {item.href === '' ? (
+              <img
+                class="logos__image"
+                src={item.resolved.src}
+                srcset={item.resolved.srcset}
+                sizes={item.resolved.sizes}
+                width={item.resolved.width}
+                height={item.resolved.height}
+                alt={item.resolved.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <a href={item.href} rel="noopener">
+                <img
+                  class="logos__image"
+                  src={item.resolved.src}
+                  srcset={item.resolved.srcset}
+                  sizes={item.resolved.sizes}
+                  width={item.resolved.width}
+                  height={item.resolved.height}
+                  alt={item.resolved.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .logos {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .logos__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .logos__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .logos__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .logos__image {
+    display: block;
+    width: auto;
+    max-height: 3rem;
+    object-fit: contain;
+  }
+</style>

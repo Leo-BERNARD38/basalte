@@ -1,0 +1,161 @@
+---
+// Les formules, côte à côte. Aucune n’est mise en avant : le socle n’a pas de
+// champ pour le dire, et une mise en avant décidée par le rendu mentirait dès
+// que le client réordonne ses formules.
+import { renderRichtext } from '../../fields/richtext.js'
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+
+const items = props.items.map((item) => ({
+  name: pick(item.name, language),
+  price: pick(item.price, language),
+  note: pick(item.note, language),
+  body: renderRichtext(pick(item.body, language), schema.fields.items.of.body),
+  label: pick(item.cta.label, language),
+  href: item.cta.href,
+}))
+---
+
+<section class="pricing">
+  <div class="pricing__inner">
+    {title !== '' && <Title class="pricing__title">{title}</Title>}
+    {intro !== '' && <p class="pricing__intro">{intro}</p>}
+    <ul class="pricing__list">
+      {
+        items.map((item) => (
+          <li class="pricing__item">
+            <ItemTitle class="pricing__name">{item.name}</ItemTitle>
+            <p class="pricing__price">
+              {item.price}
+              {item.note !== '' && (
+                <span class="pricing__note">{item.note}</span>
+              )}
+            </p>
+            {item.body !== '' && (
+              <div class="pricing__body" set:html={item.body} />
+            )}
+            {item.label !== '' && item.href !== '' && (
+              <a class="pricing__cta" href={item.href}>
+                {item.label}
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .pricing {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pricing__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .pricing__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .pricing__intro {
+    max-width: var(--width-content);
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+  }
+
+  .pricing__list {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pricing__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .pricing__name {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .pricing__price {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.1;
+  }
+
+  .pricing__note {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+  }
+
+  .pricing__body :global(ul) {
+    margin: 0;
+    padding-left: var(--space-5);
+  }
+
+  .pricing__body :global(p) {
+    margin: 0 0 var(--space-3);
+  }
+
+  .pricing__body :global(li) {
+    margin-bottom: var(--space-2);
+  }
+
+  .pricing__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-top: auto;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .pricing__cta:hover {
+    text-decoration: underline;
+  }
+
+  @media (min-width: 48rem) {
+    .pricing__list {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      gap: var(--space-6);
+    }
+  }
+</style>

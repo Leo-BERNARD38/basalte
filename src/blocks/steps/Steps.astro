@@ -1,0 +1,111 @@
+---
+// Une suite d’étapes, où l’ordre porte le sens — c’est ce qui la sépare de la
+// liste de points. Le numéro est un compteur CSS sur un `ol` : le client
+// n’en saisit aucun, et en insérer une au milieu renumérote tout le reste.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+---
+
+<section class="steps">
+  <div class="steps__inner">
+    {title !== '' && <Title class="steps__title">{title}</Title>}
+    {intro !== '' && <p class="steps__intro">{intro}</p>}
+    <ol class="steps__list">
+      {
+        props.items.map((item) => (
+          <li class="steps__item">
+            <ItemTitle class="steps__item-title">
+              {pick(item.title, language)}
+            </ItemTitle>
+            {pick(item.body, language) !== '' && (
+              <p class="steps__item-body">{pick(item.body, language)}</p>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .steps {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .steps__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .steps__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .steps__intro {
+    max-width: var(--width-content);
+    margin: 0 0 var(--space-6);
+    color: var(--color-muted);
+  }
+
+  .steps__list {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .steps__item {
+    counter-increment: step;
+  }
+
+  .steps__item-title {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .steps__item-title::before {
+    content: counter(step);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 2em;
+    margin-right: var(--space-3);
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-size: var(--text-sm);
+    vertical-align: middle;
+  }
+
+  .steps__item-body {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .steps__list {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      gap: var(--space-6);
+    }
+  }
+</style>

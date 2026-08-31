@@ -81,6 +81,15 @@ export const BUSINESS_FIELDS = {
 
 export type BusinessFacts = Values<typeof BUSINESS_FIELDS>
 
+/**
+ * Le libellé français d’un jour, tel que le client l’a choisi dans la liste.
+ * Un bloc qui affiche les horaires le lit ici : réécrire les sept noms dans
+ * son composant les ferait diverger de la liste déroulante du panel.
+ */
+export function dayLabel(value: string): string {
+  return DAYS.find((day) => day.value === value)?.label ?? value
+}
+
 /** Une fiche vide n’émet aucune donnée structurée : rien à dire, rien à écrire. */
 export function hasBusiness(facts: BusinessFacts): boolean {
   return facts.legalName.trim() !== ''

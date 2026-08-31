@@ -1,0 +1,76 @@
+---
+// Des nombres alignés, sans titre d’item : le chiffre est lu avant son
+// libellé, et l’ordre de lecture doit être celui-là. Le `dl` le dit —
+// la valeur est le terme, le libellé sa définition.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+---
+
+<section class="stats">
+  <div class="stats__inner">
+    {title !== '' && <Title class="stats__title">{title}</Title>}
+    <dl class="stats__list">
+      {
+        props.items.map((item) => (
+          <div class="stats__item">
+            <dt class="stats__value">{pick(item.value, language)}</dt>
+            <dd class="stats__label">{pick(item.label, language)}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .stats {
+    padding: var(--space-7) var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .stats__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .stats__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .stats__list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6) var(--space-5);
+    margin: 0;
+  }
+
+  .stats__value {
+    font-family: var(--font-title);
+    font-size: var(--text-3xl);
+    line-height: 1.1;
+  }
+
+  .stats__label {
+    margin: var(--space-2) 0 0;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 48rem) {
+    .stats__list {
+      grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    }
+  }
+</style>
