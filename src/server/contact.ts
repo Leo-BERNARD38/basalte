@@ -21,6 +21,7 @@
 import { z } from 'zod'
 
 import { matchSlug, urlFor } from '../astro/routes.js'
+import { routeOf, THANKS_PAGE } from '../content/naming.js'
 import { readRoutes } from '../content/read.js'
 import type { Panel } from './context.js'
 import { HOUR, MINUTE } from './durations.js'
@@ -32,7 +33,13 @@ import {
   refuseMethod,
   withinLength,
 } from './http.js'
-import { markDelivered, recordLead, type Lead, type NewLead } from './leads.js'
+import {
+  markDelivered,
+  markSkipped,
+  recordLead,
+  type Lead,
+  type NewLead,
+} from './leads.js'
 import { consume, type Rule } from './throttle.js'
 
 export const CONTACT_PATH = '/api/contact'
@@ -93,8 +100,15 @@ export async function handleContact(
     return json({ ok: false, message: 'Formulaire illisible.' }, 400)
 
   const target = await destination(panel, String(fields['page'] ?? ''))
+
+  // Le succès a son adresse quand le dépôt porte la page ; le refus et la
+  // limite restent là où le visiteur a écrit.
   const answer = (outcome: ContactOutcome): Response =>
-    seeOther(`${target.url}#${MARKERS[outcome]}`)
+    seeOther(
+      outcome === 'sent' && target.thanks !== undefined
+        ? target.thanks
+        : `${target.url}#${MARKERS[outcome]}`,
+    )
 
   // Le leurre est le premier examen, et il se lit sur le corps brut : un robot
   // qui le remplit reçoit la même réponse qu’un envoi réussi, quoi qu’il ait
@@ -135,35 +149,61 @@ export async function handleContact(
 }
 
 /**
- * Prévient le client. Le message est déjà en base : un envoi qui échoue part
- * sur la sortie d’erreur et n’enlève rien au visiteur, qui a bien été reçu.
+ * Prévient le client, par les canaux que le site a. Le message est déjà en base
+ * (D80) : un envoi qui échoue part sur la sortie d’erreur et n’enlève rien au
+ * visiteur, qui a bien été reçu.
+ *
+ * Les deux canaux sont indépendants — l’un tombe sans emporter l’autre, et
+ * c’est tout l’intérêt d’en avoir deux. La ligne retient ce qu’ils ont donné
+ * ensemble : partie dès que l’un a confirmé, manquée quand tous ceux qui ont
+ * été tentés ont échoué, et sans objet quand il n’y avait personne à prévenir.
  */
 async function notify(panel: Panel, lead: Lead): Promise<void> {
-  const { notify: allowed, to, provider } = panel.leads
+  const { notify: allowed, to, provider, notifier } = panel.leads
+  const byEmail = allowed && to !== '' && provider !== undefined
 
-  if (!allowed) {
+  // La sortie d’erreur n’est lue que pour comprendre pourquoi rien n’est
+  // arrivé : elle se tait tant qu’un canal reste.
+  if (!byEmail && notifier === undefined) {
     process.stderr.write(
-      `Message reçu de ${lead.email}, gardé dans le panel : ce site ne notifie pas les messages.\n`,
+      `Message reçu de ${lead.email}, gardé dans le panel : ${allowed ? 'aucun destinataire n’est configuré' : 'ce site ne prévient personne'}.\n`,
     )
+
+    markSkipped(panel.server.database, lead.id)
 
     return
   }
 
-  if (to === '' || provider === undefined) {
-    process.stderr.write(
-      `Message reçu de ${lead.email}, gardé dans le panel : aucun destinataire n’est configuré.\n`,
-    )
+  const reached = [
+    byEmail
+      ? await attempt(lead, 'par email', () =>
+          provider.send({ to, ...leadReceived(panel.server.site.name, lead) }),
+        )
+      : false,
+    notifier === undefined
+      ? false
+      : await attempt(lead, `à ${notifier.host}`, () => notifier.send(lead)),
+  ]
 
-    return
-  }
+  if (reached.includes(true)) markDelivered(panel.server.database, lead.id)
+}
 
+/** Rend `true` si le canal a confirmé ; sinon dit ce qui s’est passé. */
+async function attempt(
+  lead: Lead,
+  channel: string,
+  send: () => Promise<void>,
+): Promise<boolean> {
   try {
-    await provider.send({ to, ...leadReceived(panel.server.site.name, lead) })
-    markDelivered(panel.server.database, lead.id)
+    await send()
+
+    return true
   } catch (cause) {
     process.stderr.write(
-      `Le message de ${lead.email} n’a pas pu être notifié : ${(cause as Error).message}\n`,
+      `Le message de ${lead.email} n’a pas pu être notifié ${channel} : ${(cause as Error).message}\n`,
     )
+
+    return false
   }
 }
 
@@ -181,6 +221,8 @@ export type Destination = {
   readonly url: string
   readonly route: string
   readonly language: string
+  /** L’adresse de la page de remerciement, quand le dépôt en porte une. */
+  readonly thanks?: string
 }
 
 /**
@@ -196,17 +238,21 @@ async function destination(panel: Panel, slug: string): Promise<Destination> {
   const { languages } = (await panel.schemas()).site
   const routes = await readRoutes(panel.root)
   const found = matchSlug(clean(slug), routes, languages)
+  const language = found?.language ?? languages.default.code
+  const prefix = language === languages.default.code ? '' : language
+  const thanks = routes.includes(routeOf(THANKS_PAGE))
+    ? { thanks: directory(urlFor(routeOf(THANKS_PAGE), prefix)) }
+    : {}
 
   if (found === undefined) {
-    return { url: '/', route: '/', language: languages.default.code }
+    return { url: '/', route: '/', language, ...thanks }
   }
-
-  const prefix = found.language === languages.default.code ? '' : found.language
 
   return {
     url: directory(urlFor(found.route, prefix)),
     route: found.route,
-    language: found.language,
+    language,
+    ...thanks,
   }
 }
 

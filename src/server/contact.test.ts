@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
+import { THANKS_PAGE } from '../content/naming.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import {
   ADDRESS_RULE,
@@ -383,6 +384,128 @@ describe('la capacité « notifyLeads »', () => {
     expect(response.headers.get('location')).toBe(`/${SENT}`)
     expect(listLeads(site.panel.server.database, 10)).toHaveLength(1)
     expect(site.mail.sent).toHaveLength(0)
+
+    await site.close()
+  })
+})
+
+// Deux canaux indépendants : l’un tombe sans emporter l’autre, et c’est tout
+// l’intérêt d’en avoir deux. Le message est en base avant les deux (D80).
+describe('l’adresse de notification', () => {
+  it('reçoit le message entier, en plus de l’email', async () => {
+    const site = await bench({ webhook: true })
+
+    await site.submit(VALID)
+
+    expect(site.mail.sent).toHaveLength(1)
+    expect(site.notified).toHaveLength(1)
+    expect(site.notified[0]?.message).toBe(VALID.message)
+    expect(site.notified[0]?.email).toBe(VALID.email)
+    expect(listLeads(site.panel.server.database, 10)[0]?.delivery).toBe('sent')
+
+    await site.close()
+  })
+
+  // Le cas que la phase vise : un site qui a coupé l’email est prévenu quand
+  // même, et sa ligne dit « transmis » parce qu’elle l’a été.
+  it('prévient un site qui ne notifie pas par email', async () => {
+    const site = await bench({
+      webhook: true,
+      capabilities: { notifyLeads: false },
+    })
+
+    await site.submit(VALID)
+
+    expect(site.mail.sent).toHaveLength(0)
+    expect(site.notified).toHaveLength(1)
+    expect(listLeads(site.panel.server.database, 10)[0]?.delivery).toBe('sent')
+
+    await site.close()
+  })
+
+  it('laisse l’email partir quand elle tombe', async () => {
+    const site = await bench({ webhook: true, notifierFails: true })
+
+    await site.submit(VALID)
+
+    expect(site.mail.sent).toHaveLength(1)
+    expect(site.notified).toHaveLength(0)
+    expect(listLeads(site.panel.server.database, 10)[0]?.delivery).toBe('sent')
+
+    await site.close()
+  })
+
+  it('rend la ligne manquée quand les deux canaux tombent', async () => {
+    const site = await bench({ webhook: true, notifierFails: true })
+
+    site.mail.send = async () => {
+      throw new Error('Brevo ne répond pas')
+    }
+
+    await site.submit(VALID)
+
+    expect(listLeads(site.panel.server.database, 10)[0]?.delivery).toBe(
+      'failed',
+    )
+
+    await site.close()
+  })
+
+  // Sans personne à prévenir, rien n’a échoué : le dire « manqué » ferait une
+  // alarme orange sur chaque message d’un site qui a choisi le silence.
+  it('rend la ligne sans objet quand aucun canal n’existe', async () => {
+    const site = await bench({ capabilities: { notifyLeads: false } })
+
+    await site.submit(VALID)
+
+    expect(listLeads(site.panel.server.database, 10)[0]?.delivery).toBe(
+      'skipped',
+    )
+
+    await site.close()
+  })
+})
+
+describe('la page de remerciement', () => {
+  it('reçoit un envoi réussi quand le dépôt la porte', async () => {
+    const site = await bench({ pages: { [THANKS_PAGE]: defaultPage() } })
+    const response = await site.submit(VALID)
+
+    expect(response.status).toBe(303)
+    expect(response.headers.get('location')).toBe(`/${THANKS_PAGE}/`)
+
+    await site.close()
+  })
+
+  // Un refus perd déjà ce que le visiteur avait écrit : l’envoyer ailleurs le
+  // priverait en plus du formulaire où recommencer.
+  it('ne reçoit ni un refus ni une limite atteinte', async () => {
+    const site = await bench({ pages: { [THANKS_PAGE]: defaultPage() } })
+
+    const response = await site.submit({ ...VALID, email: 'pas-une-adresse' })
+
+    expect(response.headers.get('location')).toBe(`/#${MARKERS.refused}`)
+
+    await site.close()
+  })
+
+  it('laisse le fragment répondre quand elle n’existe pas', async () => {
+    const site = await bench()
+
+    expect((await site.submit(VALID)).headers.get('location')).toBe(`/${SENT}`)
+
+    await site.close()
+  })
+
+  // Le leurre continue de mentir exactement comme un succès, page comprise :
+  // un robot n’apprend rien de la différence (D78).
+  it('reçoit aussi un envoi avalé par le leurre', async () => {
+    const site = await bench({ pages: { [THANKS_PAGE]: defaultPage() } })
+
+    const response = await site.submit({ ...VALID, website: 'https://spam' })
+
+    expect(response.headers.get('location')).toBe(`/${THANKS_PAGE}/`)
+    expect(listLeads(site.panel.server.database, 10)).toHaveLength(0)
 
     await site.close()
   })

@@ -5,10 +5,15 @@
 // sections sont masquées dans une langue n’y figure pas non plus — elle
 // s’afficherait vide, et une page vide indexée vaut moins que rien.
 //
+// Une page de service — celle qui remercie après un envoi — n’y figure pas non
+// plus : elle n’a de sens que pour qui vient d’agir, et un moteur qui l’indexe
+// enverrait des visiteurs sur un remerciement qu’ils n’ont pas mérité.
+//
 // Le préfixe du rendu bureau n’apparaît jamais ici : il ne sort pas du disque,
 // les deux rendus partagent une seule adresse publique (D103).
 
 import { urlFor } from '../astro/routes.js'
+import { isServiceRoute } from '../content/naming.js'
 import type { Page } from '../content/page.js'
 import type { Site } from '../site/define.js'
 
@@ -35,6 +40,8 @@ export function sitemapXml(site: Site, pages: readonly SitemapPage[]): string {
   const entries: string[] = []
 
   for (const entry of pages) {
+    if (isServiceRoute(entry.route)) continue
+
     const shown = online.filter((language) =>
       visibleIn(entry.page, language.code),
     )

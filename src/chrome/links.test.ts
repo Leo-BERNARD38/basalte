@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from 'vitest'
 
+import { THANKS_PAGE } from '../content/naming.js'
 import type { PageEntry } from './define.js'
 import { navigationLinks, type LinkValue } from './links.js'
 
@@ -103,5 +104,34 @@ describe('navigationLinks', () => {
     expect(
       navigate(links, { route: '/contact' }).map((e) => e.current),
     ).toEqual([false, true])
+  })
+})
+
+// Une page de service existe pour un visiteur qui vient d’agir : l’envoyer
+// remercier avant d’avoir écrit n’aurait aucun sens.
+describe('les pages de service', () => {
+  it('ne se déduisent jamais dans le menu', () => {
+    const withThanks = [
+      ...PAGES,
+      { name: THANKS_PAGE, route: `/${THANKS_PAGE}` },
+    ]
+
+    expect(
+      navigate([], { pages: withThanks }).map((entry) => entry.href),
+    ).toEqual(['/', '/confidentialite', '/contact'])
+  })
+
+  // Le client range son menu comme il veut : ce qu’il y écrit, il l’a voulu.
+  it('restent possibles quand le client les range lui-même', () => {
+    const withThanks = [
+      ...PAGES,
+      { name: THANKS_PAGE, route: `/${THANKS_PAGE}` },
+    ]
+
+    expect(
+      navigate([link({ fr: 'Merci' }, `/${THANKS_PAGE}`)], {
+        pages: withThanks,
+      }).map((entry) => entry.href),
+    ).toEqual([`/${THANKS_PAGE}`])
   })
 })

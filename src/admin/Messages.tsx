@@ -1,8 +1,10 @@
 // L’écran « Messages » : ce que le formulaire de contact a reçu.
 //
-// C’est le filet du client. Un message est là même quand l’email n’est pas
-// parti, et l’écran le dit plutôt que de le taire — sans quoi le client
-// croirait sa boîte à jour.
+// C’est le filet du client. Un message est là même quand rien n’est parti, et
+// l’écran le dit plutôt que de le taire — sans quoi le client croirait sa boîte
+// à jour. Il ne le signale que d’une notification réellement manquée : sur un
+// site qui ne prévient personne, l’écrire sur chaque message serait une alarme
+// qui ne veut rien dire.
 //
 // Un message ouvert est marqué lu : le client ne coche rien, la pastille
 // descend d’elle-même.
@@ -30,10 +32,12 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
 
 export function Messages({
   retention,
+  notified,
   onChanged,
   onSignedOut,
 }: {
   readonly retention: number
+  readonly notified: boolean
   readonly onChanged: () => void
   readonly onSignedOut: () => void
 }) {
@@ -88,8 +92,9 @@ export function Messages({
 
       {leads !== undefined && leads.length === 0 && (
         <Text size="sm" c="dimmed">
-          Aucun message pour l’instant. Ils arriveront ici en même temps que
-          dans votre boîte email.
+          {notified
+            ? 'Aucun message pour l’instant. Vous serez prévenu dès qu’il en arrive un, et vous le retrouverez ici.'
+            : 'Aucun message pour l’instant. Rien ne vous préviendra : c’est ici qu’ils arrivent.'}
         </Text>
       )}
 
@@ -104,7 +109,7 @@ export function Messages({
                   </Text>
                   <Group gap="xs" wrap="nowrap">
                     {lead.delivery === 'failed' && (
-                      <Badge color="orange">non transmis par email</Badge>
+                      <Badge color="orange">non transmis</Badge>
                     )}
                     <Text size="sm" c="dimmed">
                       {MOMENT.format(lead.at)}

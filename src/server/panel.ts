@@ -139,6 +139,10 @@ export type PanelPayload = {
   readonly unread: number
   /** Durée de conservation des messages, en mois. */
   readonly retention: number
+  /** Vrai dès qu’un canal prévient le client : sinon le panel est le seul endroit. */
+  readonly notified: boolean
+  /** À qui écrire quand quelque chose casse. Vide, l’écran n’en parle pas. */
+  readonly support: string
 }
 
 /** Ce que le panel affiche d’un message. L’adresse IP n’en sort pas. */
@@ -334,9 +338,19 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
     publication: panel.publisher.state(),
     unread: countUnread(panel.server.database),
     retention: panel.leads.months,
+    notified: notifiedSomewhere(panel),
+    support: panel.support,
   }
 
   return json(payload)
+}
+
+// Le client doit savoir s’il peut attendre une alerte ou s’il doit venir voir.
+// Les deux canaux comptent pour un : l’écran dit qu’on le prévient, pas par où.
+function notifiedSomewhere(panel: Panel): boolean {
+  const { notify, to, notifier } = panel.leads
+
+  return (notify && to !== '') || notifier !== undefined
 }
 
 function describeBlock(definition: BlockDefinition): PanelBlockType {

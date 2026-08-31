@@ -23,8 +23,19 @@ export type SiteDeclaration = {
   readonly capabilities?: CapabilityOverrides
   /** Les anciennes adresses du site, et où elles mènent désormais. */
   readonly redirects?: Redirects
-  readonly email?: { readonly provider: string }
+  readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
+}
+
+/**
+ * Le fournisseur d’email, et les sélecteurs DKIM que le domaine publie. Les
+ * seconds ne sont utiles qu’à `basalte doctor` : il connaît ceux que le
+ * fournisseur distribue, et c’est ici qu’un compte au sélecteur inhabituel le
+ * dit plutôt que de faire échouer la sonde.
+ */
+export type EmailDeclaration = {
+  readonly provider: string
+  readonly dkim?: readonly string[]
 }
 
 export type Site = {
@@ -34,7 +45,7 @@ export type Site = {
   readonly tokens: Tokens
   readonly capabilities: Capabilities
   readonly redirects: Redirects
-  readonly email?: { readonly provider: string }
+  readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
 }
 

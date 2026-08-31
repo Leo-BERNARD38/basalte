@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { THANKS_PAGE } from '../content/naming.js'
 import type { Page } from '../content/page.js'
 import { defineSite, type Site } from '../site/define.js'
 import {
@@ -97,5 +98,19 @@ describe('robotsTxt', () => {
     expect(written).toContain(
       'Sitemap: https://atelier-duvallon.fr/sitemap.xml',
     )
+  })
+})
+
+// Un moteur qui indexerait la page de remerciement y enverrait des visiteurs
+// qui n’ont rien envoyé.
+describe('les pages de service', () => {
+  it('ne figurent pas au sitemap', () => {
+    const written = sitemapXml(mono, [
+      ...pages,
+      { route: `/${THANKS_PAGE}`, page: page() },
+    ])
+
+    expect(written).not.toContain(THANKS_PAGE)
+    expect(written).toContain('/contact')
   })
 })

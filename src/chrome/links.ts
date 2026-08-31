@@ -14,7 +14,7 @@
 // (`src/astro/routes.ts`) : l’adresse d’une page n’a qu’une source.
 
 import { urlFor } from '../astro/routes.js'
-import { pageLabel } from '../content/naming.js'
+import { isServiceRoute, pageLabel } from '../content/naming.js'
 import { pick } from '../fields/translate.js'
 import type { Translated } from '../fields/types.js'
 import type { PageEntry } from './define.js'
@@ -73,11 +73,13 @@ export function navigationLinks(
 }
 
 // L’accueil ouvre le menu ; le reste suit l’ordre des fichiers, qui est celui
-// de la liste du panel.
+// de la liste du panel. Les pages de service n’y entrent pas : on n’envoie
+// personne remercier avant d’avoir écrit.
 function derived(
   pages: readonly PageEntry[],
 ): readonly { readonly label: string; readonly href: string }[] {
   return [...pages]
+    .filter((page) => !isServiceRoute(page.route))
     .sort((a, b) => Number(b.route === '/') - Number(a.route === '/'))
     .map((page) => ({ label: pageLabel(page.name), href: page.route }))
 }

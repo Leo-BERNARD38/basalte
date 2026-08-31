@@ -4,8 +4,13 @@
 // Il tourne là où on l’appelle. Depuis la machine du mainteneur, il éprouve la
 // configuration du dépôt ; sur le VPS, les mêmes sondes portent en plus sur ses
 // ressources. `--host` compare l’enregistrement DNS à l’adresse attendue.
+//
+// Deux résolutions, parce que deux questions : où pointe le domaine, et sous
+// quelle autorité ses emails partent. Les deux sont injectées dans les sondes,
+// qui ne connaissent donc pas `node:dns` — c’est ce qui les rend éprouvables
+// sans réseau.
 
-import { resolve4 } from 'node:dns/promises'
+import { resolve4, resolveTxt } from 'node:dns/promises'
 
 import { diagnose, type Probe } from '../deploy/probes.js'
 import { loadEnvironment } from '../server/open.js'
@@ -38,6 +43,10 @@ export async function doctor(
     ...(host === undefined ? {} : { host }),
     send: !hasFlag(argv, '--no-email'),
     resolve: (domain) => resolve4(domain),
+    // Un enregistrement TXT arrive en fragments d’au plus 255 octets : une clé
+    // DKIM en occupe plusieurs, et les joindre est ce qui la rend lisible.
+    resolveText: async (name) =>
+      (await resolveTxt(name)).map((chunks) => chunks.join('')),
   })
 
   const lines = [...heading('doctor', site.name), ...render(probes)]

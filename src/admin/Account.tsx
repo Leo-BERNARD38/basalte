@@ -1,9 +1,15 @@
 // L’écran « Compte » : le mot de passe, les appareils reconnus et le journal
 // des connexions. Ce dernier vaut plus qu’un verrouillage — il montre au
 // client ce qui se passe sur son site.
+//
+// C’est aussi là qu’il apprend à qui écrire. Un client qui ne sait pas qui
+// appeler appelle quand même, et il appelle plus tard qu’il n’aurait dû : la
+// phrase est ici parce que c’est l’écran où l’on vient quand quelque chose ne
+// va pas.
 
 import {
   Alert,
+  Anchor,
   Button,
   Group,
   Paper,
@@ -27,7 +33,13 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
   timeStyle: 'short',
 })
 
-export function Account({ onSignedOut }: { readonly onSignedOut: () => void }) {
+export function Account({
+  support,
+  onSignedOut,
+}: {
+  readonly support: string
+  readonly onSignedOut: () => void
+}) {
   const [session, setSession] = useState<SessionInfo | undefined>(undefined)
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -169,6 +181,18 @@ export function Account({ onSignedOut }: { readonly onSignedOut: () => void }) {
           )}
         </Stack>
       </Paper>
+
+      {support !== '' && (
+        <Paper p="md">
+          <Stack gap="xs">
+            <Title order={4}>Besoin d’aide</Title>
+            <Text size="sm" c="dimmed">
+              Une page cassée, une section à ajouter, une question : écrivez à{' '}
+              <Anchor href={`mailto:${support}`}>{support}</Anchor>.
+            </Text>
+          </Stack>
+        </Paper>
+      )}
     </Stack>
   )
 }

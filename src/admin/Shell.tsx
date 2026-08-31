@@ -5,6 +5,11 @@
 // à enregistrer, quand la dernière modification a-t-elle été enregistrée, et
 // quelque chose est-il cassé. Elles vivent sous le titre, à côté des deux
 // boutons, pour qu’un seul regard suffise.
+//
+// Une quatrième les accompagne, et c’est une phrase : deux boutons côte à côte
+// n’expliquent pas d’eux-mêmes que l’un garde et que l’autre montre. C’est la
+// question que le client pose le plus souvent, et elle se règle ici plutôt que
+// dans un écran d’aide qui n’existera pas (D63).
 
 import { Alert, Badge, Button, Group, Select, Tabs, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
@@ -185,22 +190,28 @@ export function Shell({
           </div>
 
           <div className="basalte-head__actions">
-            <Button
-              variant="default"
-              disabled={screen !== 'edit' || !dirty}
-              loading={busy}
-              onClick={onSave}
-            >
-              Enregistrer
-            </Button>
-            <Button
-              color="ink"
-              disabled={busy}
-              loading={busyOnline}
-              onClick={onPublish}
-            >
-              Mettre en ligne
-            </Button>
+            <div className="basalte-head__buttons">
+              <Button
+                variant="default"
+                disabled={screen !== 'edit' || !dirty}
+                loading={busy}
+                onClick={onSave}
+              >
+                Enregistrer
+              </Button>
+              <Button
+                color="ink"
+                disabled={busy}
+                loading={busyOnline}
+                onClick={onPublish}
+              >
+                Mettre en ligne
+              </Button>
+            </div>
+            <Text size="xs" c="dimmed" ta="right">
+              Enregistrer garde votre travail. Mettre en ligne le montre aux
+              visiteurs.
+            </Text>
           </div>
         </div>
 

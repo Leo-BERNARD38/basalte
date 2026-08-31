@@ -22,6 +22,11 @@ import type { Panel } from '../server/context.js'
 import { adminAddress, contactAddress } from '../server/email/provider.js'
 import { openServer, siteProvider } from '../server/open.js'
 import { DEFAULT_MONTHS, startPurge } from '../server/purge.js'
+import {
+  webhookNotifier,
+  webhookUrl,
+  type Notifier,
+} from '../server/webhook.js'
 
 let opened: Panel | undefined
 
@@ -37,6 +42,7 @@ function open(): Panel {
   const server = openServer(root, site)
   const provider = siteProvider(site, process.env)
   const months = site.leads?.purgeAfterMonths ?? DEFAULT_MONTHS
+  const notifier = openNotifier()
 
   startPurge({ database: server.database, months, now: server.now })
 
@@ -74,8 +80,29 @@ function open(): Panel {
       notify: site.capabilities.notifyLeads,
       to: contactAddress(process.env),
       provider,
+      notifier,
       months,
     },
     accessLog: accessLogPath(process.env),
+    support: adminAddress(process.env),
+  }
+}
+
+// Une adresse mal écrite ne doit pas empêcher le site de servir : elle se dit
+// sur la sortie d’erreur, et les messages continuent d’arriver au panel.
+// `basalte doctor` la reprend et la nomme.
+function openNotifier(): Notifier | undefined {
+  const url = webhookUrl(process.env)
+
+  if (url === '') return undefined
+
+  try {
+    return webhookNotifier(url)
+  } catch (cause) {
+    process.stderr.write(
+      `L’adresse de notification est ignorée : ${(cause as Error).message}\n`,
+    )
+
+    return undefined
   }
 }

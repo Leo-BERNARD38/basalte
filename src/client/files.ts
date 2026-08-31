@@ -6,8 +6,10 @@
 // vérifier avant de toucher au disque et un test les lire sans en écrire un
 // seul.
 
+import { THANKS_PAGE } from '../content/naming.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import { VARIABLES } from '../server/email/provider.js'
+import { WEBHOOK_VARIABLE } from '../server/webhook.js'
 import { socleDependency, type Socle } from './socle.js'
 
 export type SiteAnswers = {
@@ -86,6 +88,7 @@ export function clientFiles(
     { path: '.githooks/pre-commit', contents: preCommit(), executable: true },
     { path: 'content/index.json', contents: home(answers) },
     { path: 'content/contact.json', contents: contact(answers) },
+    { path: `content/${THANKS_PAGE}.json`, contents: thanks(answers) },
     { path: 'content/mentions-legales.json', contents: notice(answers) },
     { path: 'content/confidentialite.json', contents: privacy(answers) },
     ...PROFILES[answers.profile].pages(answers),
@@ -201,8 +204,8 @@ function gitignore(): string {
   ].join('\n')
 }
 
-// Les six variables viennent de la table du socle, jamais d’une liste recopiée
-// ici : en ajouter une met à jour le `.env` de chaque nouveau site.
+// Les noms viennent des tables du socle, jamais d’une liste recopiée ici : en
+// ajouter une met à jour le `.env` de chaque nouveau site.
 function environment(): string {
   const help: ReadonlyArray<readonly [string, string]> = [
     [VARIABLES.key, 'la clé du fournisseur d’email'],
@@ -211,6 +214,10 @@ function environment(): string {
     [VARIABLES.admin, 'où partent les erreurs de la machine'],
     [VARIABLES.authKey, 'facultatif — le canal des codes de connexion'],
     [VARIABLES.authFrom, 'facultatif — l’expéditeur de ces codes'],
+    [
+      WEBHOOK_VARIABLE,
+      'facultatif — l’adresse web prévenue à chaque message, en plus de l’email',
+    ],
   ]
 
   return [
@@ -346,6 +353,34 @@ function contact(answers: SiteAnswers): string {
           consent: translated(
             answers,
             'Vos coordonnées servent uniquement à répondre à ce message. Voir notre [politique de confidentialité](/confidentialite).',
+          ),
+        },
+      },
+    ],
+  })
+}
+
+// La page où mène un envoi réussi. Elle existe parce qu’elle donne une adresse
+// à la conversion — mesurable pour qui paie de la publicité — et parce qu’un
+// remerciement mérite mieux qu’une ligne sous un formulaire. Le socle ne la
+// crée pas ailleurs : c’est sa présence dans `content/` qui décide, si bien que
+// la supprimer ramène la réponse d’avant.
+function thanks(answers: SiteAnswers): string {
+  return json({
+    $format: CONTENT_FORMAT,
+    meta: {
+      title: translated(answers, 'Merci'),
+      description: translated(answers, 'Votre message est bien arrivé.'),
+    },
+    blocks: [
+      {
+        id: 'remerciement',
+        type: 'richtext',
+        props: {
+          title: translated(answers, 'Merci, votre message est bien arrivé'),
+          body: translated(
+            answers,
+            `Nous revenons vers vous rapidement. En attendant, vous pouvez [revenir à l’accueil](/).`,
           ),
         },
       },

@@ -27,6 +27,8 @@ import type { CapabilityOverrides } from '../site/capabilities.js'
 import { defineSite } from '../site/define.js'
 import type { Letter } from './email/messages.js'
 import { memoryProvider, type MemoryProvider } from './email/memory.js'
+import type { Lead } from './leads.js'
+import type { Notifier } from './webhook.js'
 import { harness, HERE, type Harness } from './auth.fixture.js'
 import { handleContact } from './contact.js'
 import type { Panel } from './context.js'
@@ -65,6 +67,10 @@ export type BenchOptions = {
   readonly pages?: Readonly<Record<string, unknown>>
   /** Vide, aucun message n’est notifié : ils restent dans le panel. */
   readonly contactTo?: string
+  /** Monte l’adresse de notification, et retient ce qui y part. */
+  readonly webhook?: boolean
+  /** Ce que le canal de notification fait de chaque appel. */
+  readonly notifierFails?: boolean
   /** Le log d’accès que lit le rapport d’audience. */
   readonly accessLog?: string
   /** Ce que le site déclare faire. Par défaut, les valeurs du socle. */
@@ -82,6 +88,8 @@ export type Bench = {
   readonly alerts: readonly Letter[]
   /** Le canal du site : ce qui part au client, messages du formulaire compris. */
   readonly mail: MemoryProvider
+  /** Ce qui est parti par l’adresse de notification, dans l’ordre. */
+  readonly notified: readonly Lead[]
   /** L’en-tête `Cookie` d’une session ouverte, pour une requête écrite à la main. */
   readonly cookie: string
   call(
@@ -173,6 +181,21 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
   })
 
   const mail = memoryProvider()
+  const notified: Lead[] = []
+
+  // Le canal de notification tel qu’un test le veut : il retient, ou il tombe.
+  const notifier: Notifier | undefined = settings.webhook
+    ? {
+        host: 'exemple.test',
+        async send(lead: Lead): Promise<void> {
+          if (settings.notifierFails === true) {
+            throw new Error('l’adresse ne répond pas')
+          }
+
+          notified.push(lead)
+        },
+      }
+    : undefined
 
   const panel: Panel = {
     server: carrier.server,
@@ -189,9 +212,11 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
       notify: site.capabilities.notifyLeads,
       to: settings.contactTo ?? 'client@exemple.fr',
       provider: mail,
+      notifier,
       months: 12,
     },
     accessLog: settings.accessLog ?? path.join(root, 'access.log'),
+    support: 'leo@exemple.fr',
   }
 
   const session = openSession(
@@ -211,6 +236,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     serving,
     alerts,
     mail,
+    notified,
     cookie,
 
     async call(method, address, body, options = {}) {

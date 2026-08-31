@@ -372,6 +372,7 @@ export default function Panel({ site }: { readonly site: string }) {
           {shown === 'messages' && (
             <Messages
               retention={known.retention}
+              notified={known.notified}
               onChanged={() => void refresh()}
               onSignedOut={() => setPayload(undefined)}
             />
@@ -382,7 +383,10 @@ export default function Panel({ site }: { readonly site: string }) {
           )}
 
           {shown === 'account' && (
-            <Account onSignedOut={() => setPayload(undefined)} />
+            <Account
+              support={known.support}
+              onSignedOut={() => setPayload(undefined)}
+            />
           )}
         </Shell>
 

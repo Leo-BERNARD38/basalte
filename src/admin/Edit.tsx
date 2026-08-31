@@ -12,9 +12,15 @@
 // site à un seul rendu elle ne change donc que la largeur, ce qui est déjà ce
 // qu’elle faisait — et c’est ce qui la laisse inchangée aux yeux du client
 // (D25).
+//
+// La liste porte aussi ce que le client ne peut pas faire (D3), et à qui le
+// demander. Le dire là où la limite se rencontre vaut mieux qu’un écran d’aide
+// qui n’existera pas (D63) : c’est en cherchant « ajouter une section » qu’on a
+// besoin de la réponse.
 
 import {
   ActionIcon,
+  Anchor,
   Button,
   Group,
   Paper,
@@ -207,8 +213,7 @@ export function Edit({
 
           {!fixed && draft.blocks.length === 0 && (
             <div className="basalte-empty">
-              Cette page n’a pas encore de section. Elles s’ajoutent depuis le
-              dépôt, pas depuis le panel.
+              Cette page n’a pas encore de section, et le panel n’en ajoute pas.
             </div>
           )}
 
@@ -216,6 +221,24 @@ export function Edit({
             {aside?.note ??
               'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
           </Text>
+
+          {!fixed && (
+            <Text size="sm" c="dimmed" px={12}>
+              Vous modifiez, réordonnez et masquez les sections. Ajouter une
+              section ou une page{' '}
+              {payload.support === '' ? (
+                'ne se fait pas depuis le panel.'
+              ) : (
+                <>
+                  se demande à{' '}
+                  <Anchor href={`mailto:${payload.support}`}>
+                    {payload.support}
+                  </Anchor>
+                  .
+                </>
+              )}
+            </Text>
+          )}
 
           {!fixed && (
             <Button

@@ -9,6 +9,7 @@ import {
   pages,
   site,
 } from 'virtual:basalte'
+import { isServiceRoute } from '../content/naming.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { headingOf } from '../render/outline.js'
 import { slugIn, supportsOf } from '../render/supports.js'
@@ -46,6 +47,10 @@ const image = (key: string, sizes?: string) =>
 const document = (key: string) => resolveDocument(documents, key)
 
 const around = pages.map((page) => ({ name: page.name, route: page.route }))
+
+// Une page de service est servie, jamais référencée : ni canonique, ni
+// traduction, ni carte de partage — la même enveloppe que la page 404.
+const indexable = !isServiceRoute(entry.route)
 ---
 
 <Layout
@@ -60,6 +65,7 @@ const around = pages.map((page) => ({ name: page.name, route: page.route }))
   pages={around}
   sections={sections}
   business={business}
+  indexable={indexable}
 >
   {
     sections.map((section, index) => {

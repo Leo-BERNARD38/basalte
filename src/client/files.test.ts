@@ -5,11 +5,12 @@ import { socleChrome } from '../chrome/scan.js'
 import { validateBusiness } from '../content/business.js'
 import { validateChrome } from '../content/chrome.js'
 import { unknownLinks } from '../content/links.js'
-import { routeOf } from '../content/naming.js'
+import { routeOf, THANKS_PAGE } from '../content/naming.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import { errorsOf } from '../content/project.js'
 import { validatePage } from '../content/validate.js'
 import { VARIABLES } from '../server/email/provider.js'
+import { WEBHOOK_VARIABLE } from '../server/webhook.js'
 import { resolveLanguages } from '../site/languages.js'
 import { basalteDoc } from './agent.js'
 import { executables, siteFiles } from './create.js'
@@ -116,12 +117,26 @@ describe('le dépôt généré', () => {
     ])
   })
 
-  it('nomme les six variables d’email sans en recopier la liste', () => {
+  it('nomme les variables du socle sans en recopier la liste', () => {
     const environment = read('.env')
 
-    for (const name of Object.values(VARIABLES)) {
+    for (const name of [...Object.values(VARIABLES), WEBHOOK_VARIABLE]) {
       expect(environment).toContain(`${name}=`)
     }
+  })
+
+  // Sa présence dans `content/` est ce qui décide : la supprimer ramène la
+  // réponse d’avant, sans qu’un réglage ait à être défait.
+  it('pose la page de remerciement, hors du menu', () => {
+    expect(read(`content/${THANKS_PAGE}.json`)).toContain('Merci')
+
+    const menu = JSON.parse(read('content/chrome.json')) as {
+      header: { links: readonly { href: string }[] }
+    }
+
+    expect(menu.header.links.map((entry) => entry.href)).not.toContain(
+      routeOf(THANKS_PAGE),
+    )
   })
 
   it('ne versionne ni les secrets ni la base', () => {

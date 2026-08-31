@@ -17,8 +17,14 @@ import type { DatabaseSync } from 'node:sqlite'
 
 import { maybeNumber, number, text, type Row } from './database.js'
 
-/** Ce qu’est devenue la notification par email. */
-export type Delivery = 'sent' | 'failed'
+/**
+ * Ce qu’est devenue la notification, tous canaux confondus : `sent` dès qu’un
+ * canal a confirmé, `failed` quand tous ceux qui ont été tentés ont échoué, et
+ * `skipped` quand il n’y avait personne à prévenir. La distinction compte au
+ * panel — signaler « non transmis » sur un site qui ne notifie rien serait une
+ * alarme qui ne veut rien dire.
+ */
+export type Delivery = 'sent' | 'failed' | 'skipped'
 
 export type Lead = {
   readonly id: number
@@ -57,9 +63,24 @@ export function recordLead(database: DatabaseSync, lead: NewLead): number {
   return Number(result.lastInsertRowid)
 }
 
-/** Note que la notification est bien partie. */
+/** Note que la notification est bien partie, par au moins un canal. */
 export function markDelivered(database: DatabaseSync, id: number): void {
-  database.prepare('update lead set delivery = ? where id = ?').run('sent', id)
+  setDelivery(database, id, 'sent')
+}
+
+/** Note qu’il n’y avait aucun canal à prévenir : rien n’a échoué. */
+export function markSkipped(database: DatabaseSync, id: number): void {
+  setDelivery(database, id, 'skipped')
+}
+
+function setDelivery(
+  database: DatabaseSync,
+  id: number,
+  delivery: Delivery,
+): void {
+  database
+    .prepare('update lead set delivery = ? where id = ?')
+    .run(delivery, id)
 }
 
 export function listLeads(

@@ -10,6 +10,7 @@ import type { DatabaseSync } from 'node:sqlite'
 import type { Schemas } from '../content/project.js'
 import type { Publisher } from '../publish/publish.js'
 import type { EmailProvider } from './email/provider.js'
+import type { Notifier } from './webhook.js'
 
 export type Server = {
   readonly database: DatabaseSync
@@ -35,16 +36,26 @@ export type Panel = {
   readonly leads: Leads
   /** Le log d’accès de Caddy, d’où sort le rapport d’audience. */
   readonly accessLog: string
+  /** À qui le client s’adresse quand quelque chose casse. Vide, rien ne le dit. */
+  readonly support: string
 }
 
-// Le canal du site, pas celui des codes de connexion (D75). Sans destinataire,
-// sans fournisseur, ou sans la capacité qui l’autorise, un message reste dans
-// le panel : il n’est jamais perdu, il n’est simplement pas notifié.
+// Deux canaux indépendants, et le canal du site — pas celui des codes de
+// connexion (D75). Sans destinataire, sans fournisseur, ou sans la capacité qui
+// l’autorise, un message reste dans le panel : il n’est jamais perdu, il n’est
+// simplement pas notifié.
+//
+// L’adresse de notification, elle, ne dépend d’aucune capacité : elle vaut par
+// sa seule présence, comme le destinataire vaut par la sienne. Un site qui a
+// coupé l’email et déclaré une adresse est prévenu — c’est même le cas que la
+// phase 11 vise.
 export type Leads = {
   /** Ce que le site déclare : à `false`, aucun message ne part par email. */
   readonly notify: boolean
   readonly to: string
   readonly provider?: EmailProvider | undefined
+  /** L’adresse web prévenue à chaque message, quand le `.env` en donne une. */
+  readonly notifier?: Notifier | undefined
   /** Durée de conservation, en mois. */
   readonly months: number
 }
