@@ -1,0 +1,193 @@
+---
+import { formatDate, yearOf } from '../../fields/date.js'
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading, posts } = Astro.props
+
+const Title = heading
+
+// L’année ouvre un rang sous le titre de la section : le plan de la page reste
+// juste où que la section tombe (D115).
+const Year = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const empty = pick(props.empty, language)
+const moreLabel = pick(props.more.label, language)
+
+// Sans limite, la section porte tout le journal : les billets restent
+// atteignables sans pagination, et l’année les range à l’œil.
+const limit = props.limit === '' ? posts.length : Number(props.limit)
+const shown = posts.slice(0, limit)
+const grouped = props.limit === ''
+
+const sizes = '(min-width: 62rem) 20rem, (min-width: 40rem) 45vw, 100vw'
+
+const cards = shown.map((post) => ({
+  ...post,
+  year: yearOf(post.date),
+  when: formatDate(post.date, language),
+  cover: image(post.cover, sizes),
+}))
+
+const years = grouped ? [...new Set(cards.map((card) => card.year))] : ['']
+
+const sections = years.map((year) => ({
+  year,
+  cards: grouped ? cards.filter((card) => card.year === year) : cards,
+}))
+---
+
+<section class="journal">
+  <div class="journal__inner">
+    {title !== '' && <Title class="journal__title">{title}</Title>}
+
+    {
+      cards.length === 0 && empty !== '' && (
+        <p class="journal__empty">{empty}</p>
+      )
+    }
+
+    {
+      sections.map((group) => (
+        <div class="journal__group">
+          {group.year !== '' && <Year class="journal__year">{group.year}</Year>}
+          <ul class="journal__list">
+            {group.cards.map((card) => (
+              <li class="journal__item">
+                <a class="journal__link" href={card.route}>
+                  {card.cover !== undefined && (
+                    <img
+                      class="journal__cover"
+                      src={card.cover.src}
+                      srcset={card.cover.srcset}
+                      sizes={card.cover.sizes}
+                      width={card.cover.width}
+                      height={card.cover.height}
+                      alt={card.cover.alt}
+                      style={`object-position:${card.cover.objectPosition}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                  <time class="journal__date" datetime={card.date}>
+                    {card.when}
+                  </time>
+                  <span class="journal__headline">{card.title}</span>
+                  {card.excerpt !== '' && (
+                    <span class="journal__excerpt">{card.excerpt}</span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+
+    {
+      moreLabel !== '' && props.more.href !== '' && (
+        <a class="journal__more" href={props.more.href}>
+          {moreLabel}
+        </a>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .journal {
+    padding: var(--space-7) var(--space-5);
+  }
+
+  .journal__inner {
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .journal__title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .journal__empty {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  .journal__group + .journal__group {
+    margin-top: var(--space-7);
+  }
+
+  .journal__year {
+    margin: 0 0 var(--space-4);
+    color: var(--color-muted);
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+  }
+
+  .journal__list {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .journal__link {
+    display: grid;
+    gap: var(--space-2);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .journal__cover {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2);
+  }
+
+  .journal__date {
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  .journal__headline {
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .journal__link:hover .journal__headline {
+    color: var(--color-accent);
+  }
+
+  .journal__excerpt {
+    color: var(--color-muted);
+  }
+
+  .journal__more {
+    display: inline-block;
+    margin-top: var(--space-6);
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 40rem) {
+    .journal__list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 62rem) {
+    .journal__list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

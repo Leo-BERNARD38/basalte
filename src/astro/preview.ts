@@ -19,6 +19,8 @@ import {
   type Schemas,
 } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
+import { allPages, postEntries, type PostEntry } from '../journal/page.js'
+import { readJournal } from '../journal/read.js'
 import {
   DEFAULT_SUPPORT,
   isSupport,
@@ -43,6 +45,8 @@ export type Preview =
       /** La fiche d’entreprise enregistrée : l’aperçu porte le même JSON-LD. */
       readonly business: BusinessFacts
       readonly pages: readonly PageEntry[]
+      /** Les billets visibles dans la langue rendue, comme le site les donne. */
+      readonly posts: readonly PostEntry[]
     }
   | { readonly kind: 'stop'; readonly response: Response }
 
@@ -63,20 +67,25 @@ export async function resolvePreview(
 
   const schemas = await panel.schemas()
   const { pages, issues } = await readPages(panel.root, schemas)
+  const journal = await readJournal(panel.root, schemas)
+
+  // L’aperçu montre aussi les billets : ce sont des pages dont le socle a écrit
+  // la structure, et le panel doit pouvoir les relire avant qu’ils paraissent.
+  const served = allPages({ site: schemas.site, pages, posts: journal.posts })
 
   const target = matchSlug(
     slug,
-    pages.map((entry) => entry.route),
+    served.map((entry) => entry.route),
     schemas.site.languages,
   )
 
   const entry =
     target === undefined
       ? undefined
-      : pages.find((page) => page.route === target.route)
+      : served.find((page) => page.route === target.route)
 
   if (entry === undefined || target === undefined) {
-    const errors = issues
+    const errors = [...issues, ...journal.issues]
       .filter((issue) => issue.severity === 'error')
       .map((issue) => `  - ${renderIssue(issue)}`)
 
@@ -101,7 +110,7 @@ export async function resolvePreview(
   const chrome = await readChrome(
     panel.root,
     schemas,
-    pages.map((page) => page.route),
+    served.map((page) => page.route),
   )
 
   const business = await readBusiness(panel.root, schemas)
@@ -115,6 +124,10 @@ export async function resolvePreview(
     content: chrome.chrome,
     business: business.business,
     pages: pages.map((page) => ({ name: page.name, route: page.route })),
+    posts:
+      schemas.site.journal === undefined
+        ? []
+        : postEntries(schemas.site.journal, journal.posts, target.language),
   }
 }
 

@@ -19,6 +19,13 @@
       },
       {
         "label": {
+          "fr": "Actualités",
+          "en": ""
+        },
+        "href": "/actualites"
+      },
+      {
+        "label": {
           "fr": "Nous écrire",
           "en": ""
         },

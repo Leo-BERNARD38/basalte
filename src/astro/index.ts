@@ -23,6 +23,8 @@ import type { AstroIntegration } from 'astro'
 import type { BlockRegistry } from '../blocks/define.js'
 import type { BlockSource } from '../blocks/scan.js'
 import type { ChromeContent } from '../chrome/define.js'
+import type { Post } from '../journal/define.js'
+import { feedPaths } from '../journal/feed.js'
 import { notFoundRoute, supportsOf } from '../render/supports.js'
 import { CHROME_FILE } from '../content/chrome.js'
 import { CONTENT_DIR } from '../content/page.js'
@@ -72,9 +74,12 @@ export default function basalte(): AstroIntegration {
           site,
           sources,
           chromeSources,
+          journalSources,
           registry,
           chrome,
           chromeContent,
+          journal,
+          posts,
           business,
           pages,
           media,
@@ -117,6 +122,9 @@ export default function basalte(): AstroIntegration {
           chrome,
           chromeContent,
           chromeSources,
+          journal,
+          journalSources,
+          posts,
           business,
           pages,
           media,
@@ -151,6 +159,19 @@ export default function basalte(): AstroIntegration {
             injectRoute({ pattern, entrypoint: own(file), prerender: true })
           }
 
+          // Un flux par langue en ligne, servi par un seul module : les
+          // adresses sont statiques, et c’est celle qui est demandée qui dit
+          // quelle langue rendre.
+          if (site.journal !== undefined) {
+            for (const pattern of feedPaths(site.journal, site.languages)) {
+              injectRoute({
+                pattern,
+                entrypoint: own('./feed.js'),
+                prerender: true,
+              })
+            }
+          }
+
           // Une page 404 par support : c’est son adresse qui dit laquelle est
           // laquelle, et le proxy sert celle du support qu’il a servi.
           for (const support of supportsOf(site)) {
@@ -181,6 +202,19 @@ export default function basalte(): AstroIntegration {
 
         for (const entry of pages) {
           addWatchFile(path.join(root, CONTENT_DIR, `${entry.name}.json`))
+        }
+
+        if (site.journal !== undefined) {
+          for (const post of posts) {
+            addWatchFile(
+              path.join(
+                root,
+                CONTENT_DIR,
+                site.journal.base,
+                `${post.slug}.json`,
+              ),
+            )
+          }
         }
       },
     },
@@ -277,8 +311,11 @@ async function generate(
     readonly chrome: BlockRegistry
     readonly chromeContent: ChromeContent
     readonly chromeSources: readonly BlockSource[]
+    readonly journal: BlockRegistry
+    readonly journalSources: readonly BlockSource[]
     readonly business: BusinessFacts
     readonly pages: readonly RenderedPage[]
+    readonly posts: readonly Post[]
     readonly media: MediaManifest
     readonly documents: DocumentManifest
     readonly sources: readonly BlockSource[]
@@ -286,102 +323,69 @@ async function generate(
 ): Promise<string> {
   const file = path.join(fileURLToPath(directory), GENERATED)
 
-  const lines = data.sources.map(
-    (source, index) =>
-      `import Block${index} from ${JSON.stringify(specifier(file, source.component))}`,
-  )
-
-  const entries = data.sources.map(
-    (source, index) => `${JSON.stringify(source.name)}: Block${index}`,
-  )
-
   // Les variantes bureau ne sont importées que si le site en sert : sans cette
   // garde, leur CSS entrerait dans le paquet d’un site à un seul rendu, que
   // rien ne le rende ou non — la collecte des styles d’Astro parcourt le graphe
   // des modules, pas les pages.
   const built = supportsOf(data.site).includes('desktop')
 
-  const withVariant = data.sources.flatMap((source, index) =>
-    !built || source.desktop === undefined
-      ? []
-      : [{ name: source.name, from: source.desktop, index }],
-  )
-
-  const variants = withVariant.map(
-    ({ from, index }) =>
-      `import Desktop${index} from ${JSON.stringify(specifier(file, from))}`,
-  )
-
-  const desktops = withVariant.map(
-    ({ name, index }) => `${JSON.stringify(name)}: Desktop${index}`,
-  )
-
-  // Le chrome suit exactement le même chemin que les blocs — imports relatifs
-  // pour que son CSS soit collecté (D45), variantes bureau sous la même garde.
-  const chromeLines = data.chromeSources.map(
-    (source, index) =>
-      `import Chrome${index} from ${JSON.stringify(specifier(file, source.component))}`,
-  )
-
-  const chromeEntries = data.chromeSources.map(
-    (source, index) => `${JSON.stringify(source.name)}: Chrome${index}`,
-  )
-
-  const chromeVariant = data.chromeSources.flatMap((source, index) =>
-    !built || source.desktop === undefined
-      ? []
-      : [{ name: source.name, from: source.desktop, index }],
-  )
-
-  const chromeVariants = chromeVariant.map(
-    ({ from, index }) =>
-      `import ChromeDesktop${index} from ${JSON.stringify(specifier(file, from))}`,
-  )
-
-  const chromeDesktops = chromeVariant.map(
-    ({ name, index }) => `${JSON.stringify(name)}: ChromeDesktop${index}`,
-  )
+  // Les blocs, le chrome et le gabarit du billet suivent exactement le même
+  // chemin : imports relatifs pour que leur CSS soit collecté (D45), variantes
+  // bureau sous la même garde. Une seule fonction les prépare — trois copies
+  // de ces quinze lignes étaient l’endroit où la quatrième aurait divergé.
+  const blocks = bundle(file, data.sources, 'Block', built)
+  const chrome = bundle(file, data.chromeSources, 'Chrome', built)
+  const journal = bundle(file, data.journalSources, 'Journal', built)
 
   // Les fonctions ne survivent pas au JSON du registre : le module généré
   // importe donc les schémas qui en portent une, comme il importe les
   // composants. C’est ce qui garde une seule source de données structurées pour
   // les deux rendus (D121).
-  const withStructured = data.sources.flatMap((source, index) =>
-    data.registry[source.name]?.structured === undefined
-      ? []
-      : [{ name: source.name, from: source.schema, index }],
+  const carrying = [
+    ...data.sources.map((source) => ({
+      source,
+      definition: data.registry[source.name],
+    })),
+    ...data.journalSources.map((source) => ({
+      source,
+      definition: data.journal[source.name],
+    })),
+  ].filter((entry) => entry.definition?.structured !== undefined)
+
+  const schemaLines = carrying.map(
+    ({ source }, index) =>
+      `import Schema${index} from ${JSON.stringify(specifier(file, source.schema))}`,
   )
 
-  const schemaLines = withStructured.map(
-    ({ from, index }) =>
-      `import Schema${index} from ${JSON.stringify(specifier(file, from))}`,
-  )
-
-  const builders = withStructured.map(
-    ({ name, index }) => `${JSON.stringify(name)}: Schema${index}.structured`,
+  const builders = carrying.map(
+    ({ source }, index) =>
+      `${JSON.stringify(source.name)}: Schema${index}.structured`,
   )
 
   const contents = [
     '// Fichier généré par @leobernard/basalte à chaque démarrage. Ne pas modifier.',
-    ...lines,
-    ...variants,
-    ...chromeLines,
-    ...chromeVariants,
+    ...blocks.imports,
+    ...chrome.imports,
+    ...journal.imports,
     ...schemaLines,
     `export const root = ${JSON.stringify(data.root)}`,
     `export const site = ${JSON.stringify(data.site)}`,
     `export const dev = ${JSON.stringify(data.dev)}`,
     `export const registry = ${JSON.stringify(data.registry)}`,
     `export const pages = ${JSON.stringify(data.pages)}`,
+    `export const posts = ${JSON.stringify(data.posts)}`,
     `export const media = ${JSON.stringify(data.media)}`,
     `export const documents = ${JSON.stringify(data.documents)}`,
     `export const chromeRegistry = ${JSON.stringify(data.chrome)}`,
     `export const chromeContent = ${JSON.stringify(data.chromeContent)}`,
     `export const business = ${JSON.stringify(data.business)}`,
-    `export const blocks = { ${entries.join(', ')} }`,
-    `export const desktop = { ${desktops.join(', ')} }`,
-    `export const chrome = { ${chromeEntries.join(', ')} }`,
-    `export const chromeDesktop = { ${chromeDesktops.join(', ')} }`,
+    `export const journalRegistry = ${JSON.stringify(data.journal)}`,
+    `export const blocks = { ${blocks.entries.join(', ')} }`,
+    `export const desktop = { ${blocks.desktops.join(', ')} }`,
+    `export const chrome = { ${chrome.entries.join(', ')} }`,
+    `export const chromeDesktop = { ${chrome.desktops.join(', ')} }`,
+    `export const journalBlocks = { ${journal.entries.join(', ')} }`,
+    `export const journalDesktop = { ${journal.desktops.join(', ')} }`,
     `export const structured = { ${builders.join(', ')} }`,
     '',
   ].join('\n')
@@ -390,6 +394,50 @@ async function generate(
   await writeFile(file, contents, 'utf8')
 
   return file
+}
+
+/**
+ * Les imports et les entrées de registre d’un jeu de composants. Le préfixe
+ * distingue les identifiants d’un jeu à l’autre dans le même fichier généré.
+ */
+function bundle(
+  file: string,
+  sources: readonly BlockSource[],
+  prefix: string,
+  built: boolean,
+): {
+  readonly imports: readonly string[]
+  readonly entries: readonly string[]
+  readonly desktops: readonly string[]
+} {
+  const imports = sources.map(
+    (source, index) =>
+      `import ${prefix}${index} from ${JSON.stringify(specifier(file, source.component))}`,
+  )
+
+  const entries = sources.map(
+    (source, index) => `${JSON.stringify(source.name)}: ${prefix}${index}`,
+  )
+
+  const variants = sources.flatMap((source, index) =>
+    !built || source.desktop === undefined
+      ? []
+      : [{ name: source.name, from: source.desktop, index }],
+  )
+
+  return {
+    imports: [
+      ...imports,
+      ...variants.map(
+        ({ from, index }) =>
+          `import ${prefix}Desktop${index} from ${JSON.stringify(specifier(file, from))}`,
+      ),
+    ],
+    entries,
+    desktops: variants.map(
+      ({ name, index }) => `${JSON.stringify(name)}: ${prefix}Desktop${index}`,
+    ),
+  }
 }
 
 function specifier(from: string, target: string): string {

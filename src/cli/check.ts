@@ -16,6 +16,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { errorsOf, readProject, type Project } from '../content/project.js'
+import { allPages } from '../journal/page.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
 import { checkRatios, unusedMedia } from '../media/usage.js'
@@ -39,6 +40,9 @@ export async function check(
   const build = hasFlag(argv, '--build')
   const prepared = await prepareMedia(cwd)
   const project = await readProject(cwd)
+  // Un billet est une page dont le socle a écrit la structure : les contrôles
+  // le regardent comme les autres, sans savoir ce qu’il est.
+  const served = allPages(project)
   const lines = [...heading('check', project.site.name)]
 
   for (const media of prepared) {
@@ -50,20 +54,20 @@ export async function check(
   const issues = [
     ...project.issues,
     ...checkRatios(
-      project.registry,
-      project.pages.map((entry) => ({ name: entry.name, ...entry.page })),
+      { ...project.registry, ...project.journal },
+      served.map((entry) => ({ name: entry.name, ...entry.page })),
       project.media,
     ),
     ...redirectIssues(project),
     ...orphans(project),
     ...findableIssues({
-      pages: project.pages,
-      registry: project.registry,
+      pages: served,
+      registry: { ...project.registry, ...project.journal },
       languages: project.site.languages,
       business: project.business,
     }),
   ]
-  const sections = project.pages.reduce(
+  const sections = served.reduce(
     (total, entry) => total + entry.page.blocks.length,
     0,
   )
@@ -89,7 +93,7 @@ export async function check(
   lines.push(
     line(
       'ok',
-      `${count(project.pages.length, 'page')}, ${count(sections, 'section')}, ${count(project.sources.length, 'bloc')} disponible(s)`,
+      `${count(project.pages.length, 'page')}${project.site.journal === undefined ? '' : `, ${count(project.posts.length, 'billet')}`}, ${count(sections, 'section')}, ${count(project.sources.length, 'bloc')} disponible(s)`,
     ),
   )
 
@@ -183,7 +187,7 @@ function redirectIssues(project: Project): readonly ContentIssue[] {
 // Une image ou un document que plus aucune section ne cite reste dans le
 // dépôt. Le signaler suffit — c’est le panel qui sait supprimer proprement.
 function orphans(project: Project): readonly ContentIssue[] {
-  const pages = project.pages.map((entry) => entry.page)
+  const pages = allPages(project).map((entry) => entry.page)
 
   const unused = (
     keys: readonly string[],
@@ -192,7 +196,7 @@ function orphans(project: Project): readonly ContentIssue[] {
   ): readonly ContentIssue[] =>
     unusedMedia({
       keys,
-      registry: project.registry,
+      registry: { ...project.registry, ...project.journal },
       pages,
       manifest: project.media,
       kind,

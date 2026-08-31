@@ -9,6 +9,7 @@ import type { ChromeDraft } from '../server/chrome.js'
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import type { DraftPage } from '../server/pages.js'
+import type { DraftPost, PostDraft } from '../server/posts.js'
 import type { LeadSummary, PanelPayload } from '../server/panel.js'
 import type { Draft } from './draft.js'
 
@@ -66,6 +67,28 @@ export function saveBusiness(
   Answer<{ readonly business: BusinessDraft; readonly commit: boolean }>
 > {
   return send('PUT', '/api/business', { blocks: draft.blocks })
+}
+
+/**
+ * Les trois gestes du journal. Créer et supprimer sont ceux qu’une page n’a
+ * pas : le jeu des pages est fixe, celui des billets ne l’est pas (D3).
+ */
+export function createPost(
+  title: string,
+  date: string,
+): Promise<Answer<{ readonly post: DraftPost; readonly commit: boolean }>> {
+  return send('POST', '/api/posts', { title, date })
+}
+
+export function savePost(
+  slug: string,
+  draft: PostDraft,
+): Promise<Answer<{ readonly post: DraftPost; readonly commit: boolean }>> {
+  return send('PUT', `/api/posts/${slug}`, draft)
+}
+
+export function deletePost(slug: string): Promise<Answer<unknown>> {
+  return send('DELETE', `/api/posts/${slug}`)
 }
 
 export type Published = { readonly publication: PublishState }

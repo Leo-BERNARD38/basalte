@@ -15,11 +15,19 @@
 // données structurées. Les deux rendus passent par ce même fichier : ils ne
 // peuvent donc pas diverger sur ce que Google lit, ce que le contrat de la
 // phase 8 exige (D108).
-import { chrome, chromeDesktop, registry, structured } from 'virtual:basalte'
+import {
+  chrome,
+  chromeDesktop,
+  journalRegistry,
+  registry,
+  structured,
+} from 'virtual:basalte'
 
 import type { DocumentResolver, ImageResolver } from '../blocks/define.js'
 import type { ChromeContent, PageEntry } from '../chrome/define.js'
 import type { PageBlock, PageMeta } from '../content/page.js'
+import type { PostEntry } from '../journal/page.js'
+import { feedPath } from '../journal/feed.js'
 import { pick } from '../fields/translate.js'
 import { DEFAULT_SUPPORT, type Support } from '../render/supports.js'
 import type { BusinessFacts } from '../seo/business.js'
@@ -43,6 +51,8 @@ type Props = {
   /** Les sections visibles : elles décident de la carte et du JSON-LD. */
   sections: readonly PageBlock[]
   business: BusinessFacts
+  /** Les billets visibles dans cette langue — le chrome les reçoit comme un bloc. */
+  posts: readonly PostEntry[]
   /**
    * Faux pour la page 404, qui n’a ni adresse canonique, ni traduction, ni
    * carte de partage : elle n’est le résultat d’aucune recherche.
@@ -62,6 +72,7 @@ const {
   pages,
   sections,
   business,
+  posts,
   indexable = true,
 } = Astro.props
 
@@ -82,8 +93,15 @@ function prefix(code: string): string {
   return code === site.languages.default.code ? '' : code
 }
 
-// L’image de partage est absolue : une messagerie ne résout pas un chemin.
-const shared = image(shareImageKey({ meta, registry, sections }), undefined)
+// L’image de partage est absolue : une messagerie ne résout pas un chemin. Le
+// gabarit du billet entre dans le registre consulté : sans lui, un billet sans
+// couverture ne retomberait sur aucune de ses propres images.
+const known = { ...registry, ...journalRegistry }
+
+const shared = image(
+  shareImageKey({ meta, registry: known, sections }),
+  undefined,
+)
 const card: ShareImage | undefined =
   shared === undefined
     ? undefined
@@ -121,7 +139,23 @@ const variants = support === DEFAULT_SUPPORT ? {} : chromeDesktop
 const Header = variants['header'] ?? chrome['header']
 const Footer = variants['footer'] ?? chrome['footer']
 
-const around = { language, image, document, site, route, pages, business }
+const around = {
+  language,
+  image,
+  document,
+  site,
+  route,
+  pages,
+  business,
+  posts,
+}
+
+// Le flux n’est annoncé que sur un site qui en a un, et jamais sur une page
+// que les moteurs n’ont pas à suivre.
+const feed =
+  indexable && site.journal !== undefined
+    ? feedPath(site.journal, language, site.languages)
+    : undefined
 ---
 
 <html lang={language}>
@@ -132,6 +166,16 @@ const around = { language, image, document, site, route, pages, business }
     {description !== '' && <meta name="description" content={description} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {!indexable && <meta name="robots" content="noindex" />}
+    {
+      feed !== undefined && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={site.journal?.label}
+          href={origin + feed}
+        />
+      )
+    }
     {indexable && <link rel="canonical" href={canonical} />}
     {
       alternates.map((alternate) => (

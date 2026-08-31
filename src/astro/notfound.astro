@@ -14,9 +14,11 @@ import {
   documents,
   media,
   pages,
+  posts,
   site,
 } from 'virtual:basalte'
 
+import { postEntries } from '../journal/page.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { supportOfPath } from '../render/supports.js'
 import Layout from './Layout.astro'
@@ -32,6 +34,11 @@ const image = (key: string, sizes?: string) =>
 const document = (key: string) => resolveDocument(documents, key)
 
 const around = pages.map((page) => ({ name: page.name, route: page.route }))
+
+// Le chrome de cette page-là est celui des autres : il reçoit donc les mêmes
+// billets, quand bien même la page n’en montre aucun.
+const journal =
+  site.journal === undefined ? [] : postEntries(site.journal, posts, language)
 ---
 
 <Layout
@@ -50,6 +57,7 @@ const around = pages.map((page) => ({ name: page.name, route: page.route }))
   pages={around}
   sections={[]}
   business={business}
+  posts={journal}
   indexable={false}
 >
   <section class="notfound">

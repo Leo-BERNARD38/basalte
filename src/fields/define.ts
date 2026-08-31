@@ -4,6 +4,8 @@
 
 import { parseRatio } from '../media/ratio.js'
 import type {
+  AnyField,
+  DateField,
   DocumentField,
   Fields,
   FieldKind,
@@ -36,6 +38,7 @@ type RichtextOptions = Translatable & {
 }
 type ImageOptions = Common & { readonly ratio?: string }
 type DocumentOptions = Common
+type DateOptions = Common
 type UrlOptions = Common & { readonly external?: boolean }
 type SelectOptions = Common & { readonly options: readonly SelectOption[] }
 type GroupOptions<S extends Fields> = Common & { readonly fields: S }
@@ -100,6 +103,10 @@ export const f = {
     return { ...options, ...base(options), kind: 'document' }
   },
 
+  date(options: DateOptions = {}): DateField {
+    return { ...options, ...base(options), kind: 'date' }
+  },
+
   url(options: UrlOptions = {}): UrlField {
     return { ...options, ...base(options), kind: 'url' }
   },
@@ -115,6 +122,35 @@ export const f = {
   list<const S extends Fields>(options: ListOptions<S>): ListField<S> {
     return { ...options, ...base(options), kind: 'list' }
   },
+}
+
+/**
+ * Les mêmes champs, sans leurs bornes basses. Un contenu en cours d’écriture
+ * s’y valide sans être complet, là où le contenu qui paraît reste tenu par ses
+ * bornes — c’est la règle déjà appliquée aux langues en préparation (D18),
+ * portée cette fois sur l’axe du brouillon.
+ *
+ * Les bornes hautes, elles, ne bougent pas : un texte trop long casse la
+ * direction artistique qu’il soit publié ou non.
+ */
+export function withoutMinimums(fields: Fields): Fields {
+  const relaxed: Record<string, AnyField> = {}
+
+  for (const [name, field] of Object.entries(fields)) {
+    const { min: _dropped, ...kept } = field as AnyField & {
+      readonly min?: number
+    }
+    const base = { ...kept, required: false } as AnyField
+
+    relaxed[name] =
+      field.kind === 'group'
+        ? { ...base, kind: 'group', fields: withoutMinimums(field.fields) }
+        : field.kind === 'list'
+          ? { ...base, kind: 'list', of: withoutMinimums(field.of) }
+          : base
+  }
+
+  return relaxed
 }
 
 export type FieldTypeDoc = {
@@ -166,6 +202,11 @@ export const FIELD_TYPES: readonly FieldTypeDoc[] = [
   {
     kind: 'document',
     summary: 'Une clé de document — un PDF, servi en téléchargement.',
+    options: [...COMMON],
+  },
+  {
+    kind: 'date',
+    summary: 'Une date civile, écrite « AAAA-MM-JJ ».',
     options: [...COMMON],
   },
   {

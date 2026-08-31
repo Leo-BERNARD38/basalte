@@ -1,5 +1,5 @@
 ---
-import { blocks, desktop } from 'virtual:basalte'
+import { blocks, desktop, journalBlocks, journalDesktop } from 'virtual:basalte'
 
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { headingOf } from '../render/outline.js'
@@ -17,9 +17,14 @@ const view = await resolvePreview(
 
 if (view.kind === 'stop') return view.response
 
-const { entry, language, support, schemas, content, business, pages } = view
+const { entry, language, support, schemas, content, business, pages, posts } =
+  view
 
-const components = support === 'desktop' ? desktop : {}
+// Le gabarit du billet entre dans le registre : sinon l’aperçu d’un billet ne
+// trouverait pas de composant pour sa seule section.
+const components =
+  support === 'desktop' ? { ...desktop, ...journalDesktop } : {}
+const available = { ...blocks, ...journalBlocks }
 
 const sections = entry.page.blocks.filter(
   (section) => section.hidden[language] !== true,
@@ -43,10 +48,11 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
   pages={pages}
   sections={sections}
   business={business}
+  posts={posts}
 >
   {
     sections.map((section, index) => {
-      const Block = components[section.type] ?? blocks[section.type]
+      const Block = components[section.type] ?? available[section.type]
       return (
         <Block
           props={section.props}
@@ -55,6 +61,7 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
           document={document}
           heading={headingOf(index)}
           business={business}
+          posts={posts}
         />
       )
     })

@@ -52,23 +52,35 @@ reparcourus à chaque requête (D56) — une fois le serveur groupé,
 Le panel aura beaucoup de fonctions. Elles ne doivent jamais être visibles en
 même temps.
 
-**Cinq pages, et pas davantage.** L'hypothèse de départ en comptait six ;
-« Réglages » a été supprimée (D63) : langues et informations du site vivent dans
-`site.config.ts`, versionné, que le client n'édite pas.
+**Six pages au plus, et deux d'entre elles n'existent que si le site les
+déclare.** L'hypothèse de départ en comptait six ; « Réglages » a été supprimée
+(D63) : langues et informations du site vivent dans `site.config.ts`, versionné,
+que le client n'édite pas. « Actualités » a pris sa place, et pour la raison
+inverse (D154) : ce n'était pas un écran vide.
 
 | Page | Contenu |
 |---|---|
 | Édition | l'aperçu de la page, ses sections, et le panneau de la section choisie — l'écran par défaut |
+| Actualités | les billets du journal, leur formulaire et leur aperçu — seulement si le site déclare un `journal` |
 | Médias | la médiathèque |
 | Compte | mot de passe, appareils, journal de connexion |
 | Messages | les leads du formulaire de contact |
-| Statistiques | le rapport d'audience |
+| Statistiques | le rapport d'audience — seulement si le site déclare `analytics` |
 
 Ce que le socle a gagné depuis n'en a ajouté aucune : l'en-tête, le pied de page
 et la fiche d'entreprise s'éditent depuis « Édition », comme des entrées de plus
 dans la liste des pages. C'est là que les deux premiers se règlent bien,
 puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi remplir un
 écran à elle seule.
+
+**« Actualités » ne ressemble pas à « Édition », et c'est le fond de la
+chose.** Un billet n'a ni sections à choisir, ni ordre à régler : on ouvre, on
+écrit, on enregistre. La liste tient les billets par date décroissante — le
+client vient y chercher ce qu'il a écrit hier, pas ce qu'il a écrit il y a deux
+ans —, « Nouveau billet » ne demande qu'un titre, et un interrupteur dit si le
+billet paraît. C'est le seul écran d'où le client **crée** et **détruit** du
+contenu ; le sélecteur de « Édition » ne pouvait pas l'accueillir, étant un menu
+déroulant qu'une trentaine d'entrées rend inutilisable.
 
 L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
 ouvrir un message le marque lu, sans que le client coche quoi que ce soit. Le
@@ -90,6 +102,7 @@ se dit **là où la question se pose** (D134) :
 |---|---|
 | sous les deux boutons | enregistrer garde le travail, mettre en ligne le montre aux visiteurs |
 | sous la liste des sections | ce que le client fait — modifier, réordonner, masquer — et que le reste se demande à toi (D3) |
+| sous la liste des billets | qu'un billet masqué reste là et ne part pas en ligne, ce qui permet de l'écrire en plusieurs fois |
 | au bas de « Compte » | à qui écrire quand quelque chose casse |
 | en tête de « Messages » | combien de temps ses messages sont gardés |
 
@@ -112,8 +125,8 @@ Elles suppriment l'essentiel des questions que le client poserait autrement.
 de publication, toujours à la même place à l'écran. Jamais deux boutons
 « Publier » à deux endroits.
 
-**Rien ne fait perdre un brouillon sans le dire.** Ouvrir une autre page sur des
-modifications non enregistrées demande confirmation, fermer l'onglet passe par
+**Rien ne fait perdre un brouillon sans le dire.** Ouvrir une autre page — ou un
+autre billet — sur des modifications non enregistrées demande confirmation, fermer l'onglet passe par
 celle du navigateur, et tout le reste — ajouter une image, en corriger la
 description — recharge la médiathèque sans toucher au texte en cours.
 

@@ -1,0 +1,38 @@
+{
+  "$format": 1,
+  "meta": {
+    "title": {
+      "fr": "Actualités de l’atelier",
+      "en": ""
+    },
+    "description": {
+      "fr": "Ce qui se passe à l’atelier : nouvelles essences, chantiers livrés, portes ouvertes.",
+      "en": ""
+    },
+    "image": ""
+  },
+  "blocks": [
+    {
+      "id": "j1",
+      "type": "journal",
+      "props": {
+        "title": {
+          "fr": "Actualités",
+          "en": ""
+        },
+        "limit": "",
+        "empty": {
+          "fr": "Rien de neuf pour l’instant. Repassez bientôt.",
+          "en": ""
+        },
+        "more": {
+          "label": {
+            "fr": "",
+            "en": ""
+          },
+          "href": ""
+        }
+      }
+    }
+  ]
+}

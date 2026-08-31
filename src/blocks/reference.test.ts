@@ -68,7 +68,11 @@ describe('bloc richtext — la grammaire du corps', () => {
 })
 
 describe('bloc faq — les données structurées', () => {
-  const context = { language: 'fr', url: 'https://exemple.fr/aide' }
+  const context = {
+    language: 'fr',
+    url: 'https://exemple.fr/aide',
+    origin: 'https://exemple.fr',
+  }
 
   const items = [
     {

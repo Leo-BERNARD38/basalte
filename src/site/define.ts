@@ -2,6 +2,11 @@
 // est déclaré — langues, tokens — pour que le reste du socle ne travaille
 // jamais sur la déclaration brute.
 
+import {
+  resolveJournal,
+  type Journal,
+  type JournalDeclaration,
+} from '../journal/define.js'
 import { checkRedirects, type Redirects } from '../seo/redirects.js'
 import {
   resolveCapabilities,
@@ -23,6 +28,13 @@ export type SiteDeclaration = {
   readonly capabilities?: CapabilityOverrides
   /** Les anciennes adresses du site, et où elles mènent désormais. */
   readonly redirects?: Redirects
+  /**
+   * Le journal du site. La clé absente veut dire qu’il n’en a pas : ni onglet
+   * dans le panel, ni adresse de billet, ni flux. Elle n’est pas une capacité
+   * parce qu’elle porte un segment d’adresse, là où `capabilities` est une
+   * liste fermée de booléens.
+   */
+  readonly journal?: JournalDeclaration
   readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -45,6 +57,7 @@ export type Site = {
   readonly tokens: Tokens
   readonly capabilities: Capabilities
   readonly redirects: Redirects
+  readonly journal?: Journal
   readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -67,6 +80,8 @@ export function defineSite(declaration: SiteDeclaration): Site {
 
   checkRedirects(redirects)
 
+  const journal = resolveJournal(declaration.journal)
+
   return {
     name: declaration.name.trim(),
     domain: declaration.domain,
@@ -74,6 +89,7 @@ export function defineSite(declaration: SiteDeclaration): Site {
     tokens: resolveTokens(declaration.tokens),
     capabilities: resolveCapabilities(declaration.capabilities),
     redirects,
+    ...(journal === undefined ? {} : { journal }),
     ...(declaration.email === undefined ? {} : { email: declaration.email }),
     ...(declaration.leads === undefined ? {} : { leads: declaration.leads }),
   }

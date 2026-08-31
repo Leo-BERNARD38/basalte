@@ -92,7 +92,11 @@ function messageFor(
         return 'traduction manquante'
       }
 
-      return field?.kind === 'url' ? 'n’est pas un lien valide' : 'est invalide'
+      if (field?.kind === 'url') return 'n’est pas un lien valide'
+      if (field?.kind === 'date')
+        return 'n’est pas une date : attendu AAAA-MM-JJ'
+
+      return 'est invalide'
 
     default:
       return 'est invalide'

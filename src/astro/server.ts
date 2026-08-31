@@ -10,7 +10,14 @@
 // reparcourt pas les blocs. Seul le manifeste des médias est relu à chaque
 // requête, parce que le panel lui-même l’écrit.
 
-import { chromeRegistry, dev, registry, root, site } from 'virtual:basalte'
+import {
+  chromeRegistry,
+  dev,
+  journalRegistry,
+  registry,
+  root,
+  site,
+} from 'virtual:basalte'
 
 import { accessLogPath } from '../analytics/access.js'
 import type { Schemas } from '../content/project.js'
@@ -72,6 +79,7 @@ function open(): Panel {
       site,
       registry,
       chrome: chromeRegistry,
+      journal: journalRegistry,
       media: await readManifest(root),
       documents: await readDocuments(root),
     }),

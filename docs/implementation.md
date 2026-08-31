@@ -42,7 +42,7 @@ c'est ce pour quoi elles sont là.
 
 ## Ce qui est fait
 
-Treize phases, et ce que chacune a mis en place. Le détail de leurs choix est
+Quinze phases, et ce que chacune a mis en place. Le détail de leurs choix est
 dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
 code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
@@ -62,6 +62,7 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
 | 13 | S'outiller | `basalte release`, la skill « reutiliser », la convention de commit | D142 à D146 |
 | 14 | Partager | huit sections de référence de plus, la fiche d'entreprise affichée, le critère d'un bloc de référence rouvert | D147 à D150 |
+| 15 | Tenir un journal | les billets, `f.date`, le sixième écran du panel, le flux RSS, le bloc de liste | D151 à D159 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
@@ -89,6 +90,7 @@ couvrent.
 | les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
 | la publication du socle | un dépôt jetable avec son distant, et un npm injecté qui porte vraiment le numéro sans rien installer — l'ordre des cinq étapes, chaque refus, et le retour à l'état d'avant, la note gardée |
 | la trouvabilité | `findableIssues` sur des pages écrites à la main, et `basalte content` relu sur le site de démonstration — le seul contenu qui ait toutes les formes à la fois |
+| le journal | `pageOfPost` sur des billets écrits à la main — entrée JSON, sortie `Page`, aucun disque ; le flux comparé chaîne pour chaîne ; les trois gestes du panel sur le dépôt jetable, la création et la suppression comprises |
 | le reste | `basalte check` sur le site de démonstration, et le diff du HTML produit — sur un correctif, un diff vide prouve l'absence de régression |
 
 Le seul morceau qui ne se teste pas est celui qui ne peut pas l'être : la
@@ -100,7 +102,7 @@ d'images, ni à la bascule atomique.
 
 ## Blocs de référence
 
-Le socle livre quinze blocs. C'est la seule base commune que les sites
+Le socle livre seize blocs. C'est la seule base commune que les sites
 partagent : un bloc absent d'ici se réécrit dans chaque dépôt client, et aucun
 correctif n'y redescend jamais (D147).
 
@@ -120,7 +122,12 @@ le rang) · `stats` (chiffres clés, l'unité dans la valeur) · `cta` (bandeau 
 relance) · `contact-details` (la fiche d'entreprise affichée, sans un champ de
 coordonnée) · `team` · `logos` · `pricing`.
 
-Plus deux emplacements de chrome, `header` et `footer`.
+**Un seizième démontre une mécanique de plus** : `journal` (une liste que le
+contenu ne porte pas — les billets arrivent en prop, comme la fiche
+d'entreprise, D149).
+
+Plus deux emplacements de chrome, `header` et `footer`, et un gabarit de billet,
+`post` — remplaçables, jamais ajoutables (D109, D153).
 
 **Le critère d'entrée** : un bloc gagne sa place s'il démontre une mécanique
 qu'aucun autre ne montre, **ou** s'il est une section que la plupart des sites
@@ -132,16 +139,21 @@ JavaScript opt-in, `<details>` fait mieux, et l'invariant 5 n'a pas eu à être
 payé. La mécanique reste ouverte, elle n'a simplement pas trouvé de
 démonstration qui la mérite.
 
-Un seul déclare des données structurées, `faq` : un avis auto-décerné est un
+Deux déclarent des données structurées : `faq`, et le gabarit `post` en
+`BlogPosting`. Les autres n'en portent pas — un avis auto-décerné est un
 balisage que Google sanctionne, `HowTo` n'a plus de résultat enrichi, et
 `Offer` demande un prix chiffré qu'un champ de texte ne porte pas (D150).
 
 ## Hors périmètre
 
-Blog et collections répétées · création de pages par le client · ajout de blocs
-par le client · éditeur visuel WYSIWYG · back-office multi-sites · commerce ·
-comptes multiples avec rôles différenciés (un seul niveau : éditeur) · un
-troisième rendu — une tablette tombe d'un côté ou de l'autre.
+Création de **pages** par le client · ajout de blocs par le client · éditeur
+visuel WYSIWYG · back-office multi-sites · commerce · comptes multiples avec
+rôles différenciés (un seul niveau : éditeur) · un troisième rendu — une
+tablette tombe d'un côté ou de l'autre.
+
+Le blog en sortait jusqu'à la phase 15 : le client tient désormais un journal,
+et il ne crée toujours pas de pages (D151). C'est la différence qui tient tout :
+un billet n'a ni adresse choisie, ni place dans le menu, ni mise en page.
 
 Ces exclusions sont des choix de v1, pas des impossibilités : le modèle de
 contenu les accueille sans réécriture.

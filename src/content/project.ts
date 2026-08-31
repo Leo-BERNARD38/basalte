@@ -12,6 +12,10 @@ import {
 } from '../blocks/scan.js'
 import type { ChromeContent } from '../chrome/define.js'
 import { findChrome } from '../chrome/scan.js'
+import type { Journal, Post } from '../journal/define.js'
+import { postPages } from '../journal/page.js'
+import { readJournal } from '../journal/read.js'
+import { findJournal } from '../journal/scan.js'
 import { readDocuments, type DocumentManifest } from '../media/documents.js'
 import { readManifest, type MediaManifest } from '../media/manifest.js'
 import type { BusinessFacts } from '../seo/business.js'
@@ -43,6 +47,8 @@ export type Schemas = {
   readonly registry: BlockRegistry
   /** Les deux emplacements du chrome, du socle ou remplacés par le dépôt. */
   readonly chrome: BlockRegistry
+  /** Le gabarit du billet, du socle ou remplacé par le dépôt. */
+  readonly journal: BlockRegistry
   readonly media: MediaManifest
   readonly documents: DocumentManifest
 }
@@ -58,17 +64,24 @@ export type Project = Schemas &
     readonly chromeSources: readonly BlockSource[]
     readonly chromeContent: ChromeContent
     readonly business: BusinessFacts
+    /** Le gabarit du billet : présent même sur un site sans journal, il ne coûte rien. */
+    readonly journalSources: readonly BlockSource[]
+    readonly journal: BlockRegistry
+    /** Les billets, du plus récent au plus ancien. Vide sans journal déclaré. */
+    readonly posts: readonly Post[]
   }
 
 async function schemasOf(
   root: string,
   sources: readonly BlockSource[],
   chromeSources: readonly BlockSource[],
+  journalSources: readonly BlockSource[],
 ): Promise<Schemas> {
   return {
     site: await loadSite(root),
     registry: await loadRegistry(sources),
     chrome: await loadRegistry(chromeSources),
+    journal: await loadRegistry(journalSources),
     media: await readManifest(root),
     documents: await readDocuments(root),
   }
@@ -183,24 +196,45 @@ function chromeLinkIssues(
 export async function readProject(root: string): Promise<Project> {
   const sources = await findBlocks(blockRoots(root))
   const chromeSources = await findChrome(root)
-  const schemas = await schemasOf(root, sources, chromeSources)
+  const journalSources = await findJournal(root)
+  const schemas = await schemasOf(root, sources, chromeSources, journalSources)
   const content = await readPages(root, schemas)
-  const chrome = await readChrome(
-    root,
-    schemas,
-    content.pages.map((entry) => entry.route),
-  )
+  const journal = await readJournal(root, schemas)
   const business = await readBusiness(root, schemas)
+
+  // Le menu et les liens internes connaissent les adresses des billets comme
+  // celles des pages : sans elles, un lien vers un billet serait signalé comme
+  // menant nulle part.
+  const chrome = await readChrome(root, schemas, [
+    ...content.pages.map((entry) => entry.route),
+    ...journalRoutes(schemas.site.journal, journal.posts),
+  ])
 
   return {
     ...schemas,
     sources,
     chromeSources,
+    journalSources,
     chromeContent: chrome.chrome,
     business: business.business,
     pages: content.pages,
-    issues: [...content.issues, ...chrome.issues, ...business.issues],
+    posts: journal.posts,
+    issues: [
+      ...content.issues,
+      ...journal.issues,
+      ...chrome.issues,
+      ...business.issues,
+    ],
   }
+}
+
+function journalRoutes(
+  journal: Journal | undefined,
+  posts: readonly Post[],
+): readonly string[] {
+  return journal === undefined
+    ? []
+    : postPages(journal, posts).map((entry) => entry.route)
 }
 
 export function errorsOf(

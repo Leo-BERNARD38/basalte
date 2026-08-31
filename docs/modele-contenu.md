@@ -41,7 +41,8 @@
   L'image, elle, est facultative et déclare le `1200/630` qu'attendent les
   messageries ; vide, la carte reprend la première image de la page (D124).
 - **Le nom du fichier donne la route** : `index.json` sert `/`, `contact.json`
-  sert `/contact`. Le client ne crée pas de pages (D3), le jeu est donc fixe.
+  sert `/contact`. Le client ne crée pas de pages (D3), le jeu est donc fixe —
+  il crée en revanche des **billets**, qui n'en sont pas (D151, plus bas).
 - **Une valeur d'image est une clé de la médiathèque**, pas un chemin : le
   rendu y trouve les largeurs disponibles, le texte alternatif et le point
   focal (`panel.md` pour le manifeste, D40 pour la raison). Une image recadrée
@@ -64,6 +65,84 @@
   un `h2` plus bas. Ses titres `##` (D99) tombent alors au bon niveau.
   `basalte check --build` avertit d'une page sans titre principal — le titre
   d'une section est facultatif, et son absence est invisible à l'œil.
+
+## Un billet n'est pas une page — c'est une page que le socle écrit
+
+Un site peut tenir un **journal** : des billets que le client crée, écrit,
+masque et supprime lui-même. C'est le seul contenu dont il fabrique des
+exemplaires, et cela ne rouvre pas D3 : il ne choisit ni l'adresse, ni la place
+dans le menu, ni la mise en page.
+
+Le journal se déclare dans `site.config.ts`, à côté de `redirects` :
+
+```ts
+journal: { base: 'actualites', label: 'Actualités' }
+```
+
+La clé absente veut dire « pas de journal » : ni onglet dans le panel, ni
+adresse de billet, ni flux. Elle n'est pas une capacité parce qu'elle porte un
+segment d'adresse, là où `capabilities` est une liste fermée de booléens.
+
+Les billets vivent dans un **dossier** de `content/`, à côté des pages :
+
+```
+content/
+├── actualites.json              une page ordinaire, qui porte le bloc de liste
+└── actualites/
+    ├── ouverture-de-latelier.json
+    └── six-essences-de-plus.json
+```
+
+`readContent` écarte déjà les dossiers : aucune de ses règles n'a eu à bouger.
+Le **nom du fichier est le slug**, et le slug est l'adresse — la règle des
+pages, appliquée telle quelle. Il vient du titre à la création, puis ne bouge
+plus : corriger un titre ne casse jamais un lien déjà partagé.
+
+```json
+{
+  "$format": 1,
+  "hidden": { "fr": false },
+  "fields": {
+    "title": { "fr": "L’atelier ouvre ses portes" },
+    "date": "2026-08-28",
+    "excerpt": { "fr": "Après six mois de travaux." },
+    "cover": "a3f2c1d4b5e6f708",
+    "body": { "fr": "Six mois de travaux, et une adresse…" },
+    "gallery": []
+  }
+}
+```
+
+- **Les champs sont fixes**, déclarés une seule fois dans `src/journal/define.ts`
+  et passés par le même `f.*` que le reste. C'est tout l'intérêt : un billet
+  s'écrit en ouvrant un formulaire, jamais en composant une page.
+- **`title` et `excerpt` deviennent `meta.title` et `meta.description`** de la
+  page du billet : le client ne saisit jamais deux fois la même phrase, et D138
+  est satisfaite sans un champ de plus. L'image de partage, elle, reste vide et
+  retombe sur la couverture par le chemin ordinaire (D124, D158).
+- **`hidden` est celui d'une section** : par langue, et rien d'autre. Un billet
+  masqué dans toutes les langues en ligne est un brouillon — il n'a d'adresse
+  nulle part, là où une page masquée garde la sienne (D156).
+- **Un brouillon se valide sans ses bornes basses** (D157). Il s'écrit en
+  plusieurs fois ; le rendre visible lui rend ses bornes, et le refus arrive au
+  moment où le client demande qu'il paraisse.
+
+À la lecture, une fonction pure — `pageOfPost` — en fait une `Page` : `meta`
+dérivée de ses champs, et une seule section, le gabarit du billet. Tout ce qui
+suit fonctionne alors sans avoir été touché : `getStaticPaths`, l'enveloppe de
+rendu, le contrat des deux rendus (D108), le rang du `h1` (D115), l'aperçu du
+panel, le sitemap, le JSON-LD (D152).
+
+Le gabarit vit dans `src/journal/post/` et suit la règle du chrome : un dépôt
+client le **remplace** dossier pour dossier, il n'entre jamais dans la
+bibliothèque du panel (D153). Le bloc de **liste**, `journal`, est un bloc
+ordinaire : vide, il porte tout le journal groupé par année ; limité à trois,
+il tient sur un accueil. Il reçoit les billets **en prop**, jamais en champ —
+une liste de billets n'est pas quelque chose que le client saisit, et une
+fonction ne survivrait pas au JSON du registre (D56, D149).
+
+Un flux RSS sort par langue en ligne, à `/<base>.xml`, et le `<head>` de chaque
+page indexable l'annonce.
 
 ## La fiche d'entreprise n'est pas une page non plus
 
@@ -228,11 +307,18 @@ Les types disponibles et leur signature exacte sortent du code :
 basalte inventory
 ```
 
-Neuf à ce jour — `text`, `textarea`, `richtext`, `image`, `document`, `url`,
-`select`, `group`, `list`. Seule la prose se traduit : `i18n` existe sur
-`text`, `textarea` et `richtext`, jamais sur une clé de média, une URL ou une
-valeur de liste déroulante, et jamais sur un groupe ou une liste — leur
+Dix à ce jour — `text`, `textarea`, `richtext`, `image`, `document`, `date`,
+`url`, `select`, `group`, `list`. Seule la prose se traduit : `i18n` existe sur
+`text`, `textarea` et `richtext`, jamais sur une clé de média, une URL, une date
+ou une valeur de liste déroulante, et jamais sur un groupe ou une liste — leur
 structure est partagée entre les langues (D8).
+
+`f.date` porte une date civile, écrite « AAAA-MM-JJ », sans heure ni fuseau.
+C'est la seule forme qui ne dépende pas de l'endroit d'où on la lit, et elle se
+trie comme du texte. Une date qui n'existe pas au calendrier est refusée à la
+validation : `Date` ramènerait un 31 février au 3 mars sans rien dire. Le panel
+la rend par le champ natif du navigateur, qui produit exactement cette
+écriture (D155).
 
 `f.richtext` accepte du **Markdown restreint** : gras, italique, liens. Le
 socle échappe le texte entier avant d'y réintroduire ces trois formes, et
@@ -352,6 +438,7 @@ Le dépôt du socle, lui, a les siens (`environnement.md`). Il détecte :
 - un format de contenu obsolète
 - un média orphelin
 - une valeur de style en dur dans un bloc (`design.md`)
+- une date qui n'existe pas au calendrier
 
 Dans une langue **en préparation**, une traduction manquante avertit sans
 bloquer : le panel affiche l'avancement, page par page.

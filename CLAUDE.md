@@ -4,10 +4,11 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les quatorze phases sont faites — le socle rend, authentifie, édite,
+**État :** les quinze phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
 cadre ses images, joint son client, constate ce qu'un site contient, se publie
-lui-même, et porte les sections que la plupart des sites demandent. Un site se
+lui-même, porte les sections que la plupart des sites demandent, et tient un
+journal que le client alimente lui-même. Un site se
 crée, se met en production et se monte de version en une commande chacune ; une
 version du socle se publie en une commande aussi. Ce que chaque phase a mis en
 place est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été
@@ -114,6 +115,9 @@ src/
 ├── client/         ce que contient un dépôt client : fichiers générés,
 │                   paquet Claude Code, dépôt distant, montée de version
 ├── deploy/         la machine : runner SSH, provisionnement, sondes de doctor
+├── journal/        les billets : ce qu'ils portent, leur lecture, leur
+│                   compilation en page, leur flux ; post/, le gabarit qu'un
+│                   dépôt client remplace comme il remplace un chrome
 ├── migrations/     transformations de format de contenu, en liste ordonnée
 ├── seo/            carte de partage, JSON-LD, sitemap, robots, redirections ;
 │                   les faits de l'entreprise et leurs champs ; findable.ts,
@@ -376,6 +380,24 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   ajouterait une passe d'encodage à chaque correction. Le cadre entre dans
   l'empreinte, si bien que deux cadres différents sont deux clés et que refaire
   le même rend la même.
+- **Un billet n'est pas une page, et il ne faut surtout pas lui en faire une.**
+  `pageOfPost` le compile en `Page` juste avant le rendu : c'est ce qui lui donne
+  gratuitement le sitemap, les `hreflang`, la carte de partage, le plan de titres,
+  l'aperçu et les deux rendus. Écrire une route ou un gabarit d'enveloppe à part
+  redoublerait neuf mécaniques, qui divergeraient une par une (D152).
+- **Le gabarit du billet ne doit jamais entrer dans `payload.library`.** C'est
+  pourquoi il est parcouru comme le chrome, en mode `replace`, et non comme un
+  bloc : un bloc de la bibliothèque s'ajoute à une page, et « billet » n'a aucun
+  sens au milieu d'un accueil.
+- **`journal` veut dire deux choses dans ce dépôt.** `src/server/journal.ts` est
+  le journal de **connexion** ; les billets sont dans `src/journal/` et leur côté
+  serveur dans `src/server/posts.ts`, à côté de `pages.ts`.
+- **Un billet masqué n'a d'adresse dans aucune langue**, là où une page masquée
+  garde la sienne : `getStaticPaths` filtre les billets par `visibleIn`. Sans ce
+  filtre, un brouillon serait servi publiquement, en page vide.
+- **Un brouillon se valide sans ses bornes basses** (`withoutMinimums`). L'oublier
+  rend impossible la création d'un billet : ses champs requis sont vides à la
+  seconde où il naît.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.

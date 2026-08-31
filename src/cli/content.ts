@@ -24,6 +24,7 @@ import {
   type Progress,
 } from '../fields/progress.js'
 import { pick } from '../fields/translate.js'
+import { postRoute, type Journal } from '../journal/define.js'
 import { unusedMedia } from '../media/usage.js'
 import { hasAddress, hasBusiness } from '../seo/business.js'
 import { shareImageKey } from '../seo/meta.js'
@@ -53,6 +54,15 @@ export type PageView = {
   readonly translations: readonly Progress[]
 }
 
+export type PostView = {
+  readonly slug: string
+  readonly route: string
+  readonly date: string
+  readonly title: string
+  /** Les langues où le billet est masqué. Toutes : c’est un brouillon. */
+  readonly hidden: readonly string[]
+}
+
 export type ContentView = {
   readonly site: {
     readonly name: string
@@ -65,6 +75,12 @@ export type ContentView = {
     }[]
   }
   readonly pages: readonly PageView[]
+  /** Le journal, absent d’un site qui n’en déclare pas. */
+  readonly journal?: {
+    readonly base: string
+    readonly label: string
+    readonly posts: readonly PostView[]
+  }
   readonly chrome: readonly { readonly slot: string; readonly origin: string }[]
   readonly media: {
     readonly total: number
@@ -132,6 +148,23 @@ export async function readView(cwd: string): Promise<ContentView> {
       })),
       translations: progressOf(entry.page, project.registry, languages),
     })),
+    ...(project.site.journal === undefined
+      ? {}
+      : {
+          journal: {
+            base: project.site.journal.base,
+            label: project.site.journal.label,
+            posts: project.posts.map((post) => ({
+              slug: post.slug,
+              route: postRoute(project.site.journal as Journal, post.slug),
+              date: post.fields.date,
+              title: pick(post.fields.title, languages.default.code),
+              hidden: languages.codes.filter(
+                (code) => post.hidden[code] === true,
+              ),
+            })),
+          },
+        }),
     chrome: SLOTS.flatMap((slot) => {
       const source = project.chromeSources.find((entry) => entry.name === slot)
 
@@ -214,6 +247,7 @@ export function render(view: ContentView): readonly string[] {
     '',
     ...languageLines(view),
     ...pageLines(view),
+    ...journalLines(view),
     ...libraryLines(view),
     ...chromeLines(view),
     ...businessLines(view),
@@ -284,6 +318,45 @@ function describeSection(section: SectionView): string {
       ? ''
       : ` (masqué en ${section.hidden.join(', ')})`
   }`
+}
+
+function journalLines(view: ContentView): readonly string[] {
+  const journal = view.journal
+
+  if (journal === undefined) return []
+
+  const lines = ['', `${journal.label} — /${journal.base}`]
+
+  if (journal.posts.length === 0) {
+    lines.push('  aucun billet')
+
+    return lines
+  }
+
+  const width = widthOf(journal.posts.map((post) => post.date))
+
+  // Un brouillon est un billet qu’aucune langue **en ligne** ne montre. Compter
+  // toutes les langues dirait « masqué en fr » d’un billet qu’un site
+  // franco-anglais en préparation ne publie nulle part.
+  const online = view.site.languages
+    .filter((language) => !language.draft)
+    .map((language) => language.code)
+
+  for (const post of journal.posts) {
+    const everywhere = online.every((code) => post.hidden.includes(code))
+
+    lines.push(
+      `  ${post.date.padEnd(width)}  ${post.route}  « ${post.title} »${
+        everywhere
+          ? ' — brouillon'
+          : post.hidden.length === 0
+            ? ''
+            : ` — masqué en ${post.hidden.join(', ')}`
+      }`,
+    )
+  }
+
+  return lines
 }
 
 function libraryLines(view: ContentView): readonly string[] {

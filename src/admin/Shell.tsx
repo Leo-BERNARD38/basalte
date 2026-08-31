@@ -19,27 +19,41 @@ import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
 import { signOut } from './api.js'
 
-export type Screen = 'edit' | 'media' | 'messages' | 'stats' | 'account'
+export type Screen =
+  'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
 
-// Cinq pages, et pas davantage : arriver à dix signifierait que deux d’entre
-// elles auraient dû fusionner (`panel.md`). L’ordre suit la fréquence d’usage.
+// L’ordre suit la fréquence d’usage. Arriver à dix signifierait que deux
+// d’entre eux auraient dû fusionner (`panel.md`) ; « Actualités » vient en
+// second parce qu’un site qui tient un journal y revient chaque jour, quand il
+// n’édite ses pages que de loin en loin.
 export const SCREENS: readonly {
   readonly value: Screen
   readonly label: string
 }[] = [
   { value: 'edit', label: 'Édition' },
+  { value: 'journal', label: 'Actualités' },
   { value: 'media', label: 'Médias' },
   { value: 'messages', label: 'Messages' },
   { value: 'stats', label: 'Statistiques' },
   { value: 'account', label: 'Compte' },
 ]
 
-// Cinq écrans (D63), dont un que le site peut ne pas déclarer : un onglet qui
-// mène à un rapport vide vaut moins que pas d’onglet du tout.
-export function screensFor(capabilities: Capabilities): typeof SCREENS {
-  return SCREENS.filter(
-    (screen) => screen.value !== 'stats' || capabilities.analytics,
-  )
+/**
+ * Les écrans que ce site-là déclare. Deux peuvent manquer : la mesure
+ * d’audience, et le journal. Un onglet qui mène à un écran vide vaut moins que
+ * pas d’onglet du tout — et un client sans journal ignore que la fonction
+ * existe.
+ */
+export function screensFor(
+  capabilities: Capabilities,
+  journal: boolean,
+): typeof SCREENS {
+  return SCREENS.filter((screen) => {
+    if (screen.value === 'stats') return capabilities.analytics
+    if (screen.value === 'journal') return journal
+
+    return true
+  })
 }
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
@@ -99,7 +113,10 @@ export function Shell({
           onChange={(value) => onScreen((value ?? 'edit') as Screen)}
         >
           <Tabs.List>
-            {screensFor(payload.site.capabilities).map((entry) => (
+            {screensFor(
+              payload.site.capabilities,
+              payload.journal !== undefined,
+            ).map((entry) => (
               <Tabs.Tab
                 key={entry.value}
                 value={entry.value}
