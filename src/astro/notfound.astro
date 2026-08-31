@@ -8,7 +8,14 @@
 // Elle est injectée une fois par support, et c’est son adresse qui dit laquelle
 // est laquelle : c’est la seule page du socle rendue hors du parcours des
 // fichiers de `content/`.
-import { business, chromeContent, pages, site } from 'virtual:basalte'
+import {
+  business,
+  chromeContent,
+  documents,
+  media,
+  pages,
+  site,
+} from 'virtual:basalte'
 
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { supportOfPath } from '../render/supports.js'
@@ -17,10 +24,12 @@ import Layout from './Layout.astro'
 const support = supportOfPath(Astro.url.pathname)
 const language = site.languages.default.code
 
+// Les manifestes réels, et non des vides : le chrome entoure cette page comme
+// les autres, et son logo est une image de la médiathèque.
 const image = (key: string, sizes?: string) =>
-  resolveImage({}, key, language, sizes)
+  resolveImage(media, key, language, sizes)
 
-const document = (key: string) => resolveDocument({}, key)
+const document = (key: string) => resolveDocument(documents, key)
 
 const around = pages.map((page) => ({ name: page.name, route: page.route }))
 ---

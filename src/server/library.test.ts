@@ -316,3 +316,101 @@ describe('médias et contenu', () => {
     await site.close()
   })
 })
+
+describe('POST /api/media/crop', () => {
+  it('rend une nouvelle image au format demandé, sans toucher à l’originale', async () => {
+    const site = await bench()
+
+    const added = await (
+      await site.call('POST', '/api/media', upload(png, { fr: 'Un aplat' }))
+    ).json()
+
+    // 640 × 400 recadré sur sa moitié haute : du 640 × 200, soit du 16/5.
+    const cropped = await (
+      await site.call('POST', '/api/media/crop', {
+        key: added.media.key,
+        box: { x: 0, y: 0, width: 100, height: 50 },
+      })
+    ).json()
+
+    expect(cropped.ok).toBe(true)
+    expect(cropped.media.key).not.toBe(added.media.key)
+    expect(cropped.media.width).toBe(640)
+    expect(cropped.media.height).toBe(200)
+    expect(cropped.media.source).toBe(added.media.key)
+    expect(cropped.media.crop).toEqual({ x: 0, y: 0, width: 100, height: 50 })
+
+    const manifest = await site.media()
+
+    expect(manifest[added.media.key]?.height).toBe(400)
+    expect(manifest[cropped.media.key]?.alt).toEqual({ fr: 'Un aplat' })
+
+    await site.close()
+  })
+
+  it('refuse une clé absente de la médiathèque', async () => {
+    const site = await bench()
+
+    const answer = await site.call('POST', '/api/media/crop', {
+      key: '0000000000000000',
+      box: { x: 0, y: 0, width: 50, height: 50 },
+    })
+
+    expect(answer.status).toBe(404)
+
+    await site.close()
+  })
+
+  it('refuse un cadre hors bornes', async () => {
+    const site = await bench()
+
+    const answer = await site.call('POST', '/api/media/crop', {
+      key: IMAGE,
+      box: { x: -10, y: 0, width: 50, height: 50 },
+    })
+
+    expect(answer.status).toBe(400)
+
+    await site.close()
+  })
+})
+
+describe('DELETE /api/media/<clé>', () => {
+  it('refuse de supprimer l’originale d’un recadrage employé', async () => {
+    const site = await bench()
+
+    const added = await (
+      await site.call('POST', '/api/media', upload(png, { fr: 'Un aplat' }))
+    ).json()
+
+    const cropped = await (
+      await site.call('POST', '/api/media/crop', {
+        key: added.media.key,
+        box: { x: 0, y: 0, width: 100, height: 50 },
+      })
+    ).json()
+
+    await site.call('PUT', '/api/pages/index', {
+      meta: { title: { fr: 'Accueil' }, description: { fr: 'Un mot.' } },
+      blocks: [
+        {
+          id: 'h1',
+          type: 'hero',
+          hidden: {},
+          props: { title: { fr: 'Bonjour' }, image: cropped.media.key },
+        },
+      ],
+    })
+
+    const answer = await site.call(
+      'DELETE',
+      `/api/media/${added.media.key}`,
+      undefined,
+    )
+
+    expect(answer.status).toBe(409)
+    expect((await answer.json()).message).toContain('recadrage')
+
+    await site.close()
+  })
+})

@@ -478,3 +478,70 @@ describe('la capacité « analytics »', () => {
     await site.close()
   })
 })
+
+describe('PUT /api/business', () => {
+  const facts = (city: string) => ({
+    id: 'business',
+    type: 'business',
+    hidden: {},
+    props: {
+      legalName: 'Atelier Duvallon SARL',
+      address: { street: '12 rue des Copeaux', postalCode: '38000', city },
+      hours: [{ day: 'Monday', opens: '09:00', closes: '18:00' }],
+    },
+  })
+
+  it('écrit la fiche et rend son nouvel état', async () => {
+    const site = await bench()
+
+    const response = await site.call('PUT', '/api/business', {
+      blocks: [facts('Grenoble')],
+    })
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.business.sections.map((s: any) => s.id)).toEqual(['business'])
+
+    const written = await site.business()
+
+    expect((written as any).facts.address.city).toBe('Grenoble')
+    expect((written as any).facts.legalName).toBe('Atelier Duvallon SARL')
+    expect((written as any).$format).toBe(CONTENT_FORMAT)
+
+    await site.close()
+  })
+
+  it('refuse un contenu que les schémas n’acceptent pas', async () => {
+    const site = await bench()
+
+    const response = await site.call('PUT', '/api/business', {
+      blocks: [
+        {
+          id: 'business',
+          type: 'business',
+          hidden: {},
+          props: { hours: [{ day: 'Lundi', opens: '09:00', closes: '18:00' }] },
+        },
+      ],
+    })
+
+    expect(response.status).toBe(422)
+
+    await site.close()
+  })
+
+  // Le fichier n’existe pas tant que personne ne l’a rempli : le panel doit
+  // quand même l’ouvrir, avec ses champs vides.
+  it('ouvre la fiche avant le premier enregistrement', async () => {
+    const site = await bench()
+    const body = await (await site.call('GET', '/api/panel')).json()
+
+    expect(body.business.type.name).toBe('business')
+    expect(body.business.draft.sections.map((s: any) => s.id)).toEqual([
+      'business',
+    ])
+    expect(body.business.draft.sections[0].props).toEqual({})
+
+    await site.close()
+  })
+})

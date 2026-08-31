@@ -20,6 +20,13 @@ import { preview } from './Media.js'
 const STEP = 2
 const MIN_WIDTH = 5
 
+/**
+ * La hauteur maximale de l’aperçu. Le conteneur s’y borne par sa largeur plutôt
+ * que par sa hauteur : le cadre est posé en pourcentage de ce conteneur, et une
+ * image qui ne le remplirait pas entièrement décalerait tout ce qu’on y trace.
+ */
+const MAX_HEIGHT = '26rem'
+
 export function CropDialog({
   origin,
   start,
@@ -36,10 +43,18 @@ export function CropDialog({
   readonly onError: (message: string) => void
 }) {
   const [box, setBox] = useState<CropBox | undefined>(undefined)
+  const [shown, setShown] = useState('')
   const [busy, setBusy] = useState(false)
   const frame = useRef<HTMLDivElement>(null)
 
   const opened = origin !== undefined
+
+  // Le cadre suit l'image ouverte : sans cette remise à zéro, rouvrir la
+  // fenêtre sur une autre photo garderait le cadre de la précédente.
+  if (shown !== (origin?.key ?? '')) {
+    setShown(origin?.key ?? '')
+    setBox(undefined)
+  }
   const initial =
     origin === undefined
       ? { x: 0, y: 0, width: 100, height: 100 }
@@ -115,9 +130,14 @@ export function CropDialog({
       const dx = ((moved.clientX - startX) / bounds.width) * 100
       const dy = ((moved.clientY - startY) / bounds.height) * 100
 
+      // À la poignée, les deux axes agrandissent : la hauteur découlant de la
+      // largeur, un glissement vertical se traduit en largeur avant d'y entrer,
+      // sans quoi descendre ne ferait rien.
+      const grow = Math.abs(dx) > Math.abs(dy) ? dx : (dy * wanted) / source
+
       place(
         corner
-          ? { ...from, width: from.width + dx, height: from.height + dy }
+          ? { ...from, width: from.width + grow }
           : { ...from, x: from.x + dx, y: from.y + dy },
       )
     }
@@ -126,10 +146,12 @@ export function CropDialog({
       target.releasePointerCapture(event.pointerId)
       target.removeEventListener('pointermove', move)
       target.removeEventListener('pointerup', stop)
+      target.removeEventListener('pointercancel', stop)
     }
 
     target.addEventListener('pointermove', move)
     target.addEventListener('pointerup', stop)
+    target.addEventListener('pointercancel', stop)
   }
 
   const key = (event: React.KeyboardEvent) => {
@@ -182,7 +204,10 @@ export function CropDialog({
         </Text>
 
         {origin !== undefined && (
-          <div className="basalte-crop">
+          <div
+            className="basalte-crop"
+            style={{ maxWidth: `calc(${MAX_HEIGHT} * ${source})` }}
+          >
             <img src={preview(origin)} alt="" draggable={false} />
             <div
               ref={frame}

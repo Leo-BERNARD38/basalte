@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
 import { findChrome } from '../chrome/scan.js'
+import { BUSINESS_PATH } from '../content/business.js'
 import { CHROME_PATH } from '../content/chrome.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
@@ -97,6 +98,8 @@ export type Bench = {
   page(): Promise<Record<string, unknown>>
   /** Le `content/chrome.json` du dépôt jetable, tel qu’il est sur le disque. */
   chrome(): Promise<Record<string, unknown>>
+  /** Le `content/business.json` du dépôt jetable, de la même façon. */
+  business(): Promise<Record<string, unknown>>
   media(): Promise<MediaManifest>
   close(): Promise<void>
 }
@@ -275,6 +278,13 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
 
     async chrome() {
       return (await read(path.join(root, CHROME_PATH))) as Record<
+        string,
+        unknown
+      >
+    },
+
+    async business() {
+      return (await read(path.join(root, BUSINESS_PATH))) as Record<
         string,
         unknown
       >
