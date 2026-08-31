@@ -50,7 +50,7 @@
     "lockfile:check": "node scripts/check-lockfile.mjs",
     "verify:install": "node scripts/verify-install.mjs",
     "setup": "git config core.hooksPath .githooks",
-    "verify": "npm run typecheck && npm run demo:check && npm run test && npm run format:check && npm run lockfile:check"
+    "verify": "npm run build && npm run typecheck && npm run demo:check && npm run demo:panel && npm run test && npm run format:check && npm run lockfile:check"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

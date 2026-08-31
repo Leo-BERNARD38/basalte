@@ -29,6 +29,15 @@ export const DESKTOP_PREFIX = '_desktop'
 /** Le suffixe qui fait d’un composant de bloc sa variante bureau. */
 export const DESKTOP_SUFFIX = '.desktop.astro'
 
+/**
+ * Le paramètre par lequel un rendu se demande à l’aperçu du panel.
+ *
+ * Il vit ici, dans un module pur, et non à côté de la route qui le lit : le
+ * panel s’exécute dans un navigateur, et importer une seule constante depuis un
+ * module de `src/server/` y entraînerait tout le serveur (`src/admin/island.test.ts`).
+ */
+export const SUPPORT_PARAM = 'support'
+
 /** L’indication client qui tranche, et la valeur qui dit « mobile ». */
 export const MOBILE_HINT = 'Sec-CH-UA-Mobile'
 export const MOBILE_HINT_TRUE = '?1'

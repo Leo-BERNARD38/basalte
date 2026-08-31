@@ -25,11 +25,10 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
-import { SUPPORT_PARAM } from '../astro/preview.js'
 import { slugFor } from '../astro/routes.js'
 import { asideOf, asidesOf } from './asides.js'
 import { pageLabel } from '../content/naming.js'
-import { DEFAULT_SUPPORT } from '../render/supports.js'
+import { DEFAULT_SUPPORT, SUPPORT_PARAM } from '../render/supports.js'
 import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
 import { useEditing } from './editing.js'

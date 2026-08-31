@@ -19,9 +19,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm run test
-      - run: npm run format:check
+      - run: npm run verify
       - run: npm run verify:install
 
   lockfile:

@@ -27,11 +27,14 @@ npm run setup
 `npm install` compile au passage : le script `prepare` construit `dist/`.
 `npm run setup` branche les hooks git, qui ne s'activent pas tout seuls.
 
+Une session Claude Code sur le web n'a rien à faire de tout cela : le hook de
+`.claude/` s'en charge (plus bas).
+
 ## Les commandes du dépôt
 
 | Commande | Effet |
 |---|---|
-| `npm run verify` | typecheck, `.astro`, tests, formatage, lockfile |
+| `npm run verify` | compile, typecheck, `.astro`, panel, tests, formatage, lockfile |
 | `npm run verify:install` | prouve le chemin d'installation depuis git |
 | `npm run build` | compile `src/` vers `dist/` |
 | `npm test` | Vitest, une fois |
@@ -220,7 +223,9 @@ d'un `git update-index --chmod=+x` pour être lu sous Ubuntu.
 | `verify` | ubuntu **et** windows | le dépôt se comporte pareil des deux côtés |
 | `lockfile` | ubuntu | le lockfile porte les deux plateformes |
 
-Le job `verify` finit par `verify:install`, qui fabrique un dépôt git jetable
+Le job `verify` lance `npm run verify` — la même commande, dans le même ordre,
+que celle du poste de développement. Il finit par `verify:install`, qui fabrique
+un dépôt git jetable
 depuis le dossier de travail, y installe le socle comme le ferait un dépôt
 client, vérifie que chaque cible de `exports` est bien dans le paquet, puis
 lance `basalte --version`. Il prouve d'un coup que `prepare` compile, que
@@ -232,7 +237,38 @@ visibilité du dépôt. Et il tourne sur les deux systèmes, ce qui couvre le sh
 `.cmd` que npm installe pour un `bin` sous Windows.
 
 Toute la logique est dans les scripts npm, aucune dans le YAML : ce que la CI
-lance se relance à la main, à l'identique.
+lance se relance à la main, à l'identique. La règle avait dérivé — le YAML
+portait sa propre liste, qui omettait `demo:check`, et le panel n'était
+construit nulle part. Il l'est maintenant à chaque `verify`, et c'est ce qui
+compte le plus : le panel est l'artefact que `docker-entrypoint.sh` construit au
+démarrage d'un conteneur, et un échec là empêche le site de démarrer.
+
+## L'ordre de `verify`
+
+Il n'est pas indifférent. `npm run build` vient en premier parce que
+`tsc --noEmit` résout `@leobernard/basalte` vers `dist/` : un `dist/` périmé
+fait échouer le typecheck sur des messages qui ne parlent pas du vrai problème.
+Vient ensuite ce qui est rapide et parle clair — typecheck, `.astro` —, puis les
+deux constructions, puis les tests.
+
+## L'amorçage d'une session sur le web
+
+`.claude/hooks/session-start.sh`, branché par `.claude/settings.json` (D125).
+Il ne s'exécute que là — `CLAUDE_CODE_REMOTE` le garde —, si bien qu'il est
+invisible sur le poste du mainteneur.
+
+Ce qu'il fait : installer la version de `.nvmrc` par le gestionnaire présent,
+poser le `PATH` obtenu dans `CLAUDE_ENV_FILE` pour que la session en hérite,
+puis jouer le rituel de clone. Sans lui, une machine restée en Node 22 se heurte
+à `engine-strict=true` et n'installe rien du tout — rien ne se lance, et la
+cause n'est pas évidente.
+
+Il emploie `npm ci`, là où un hook de démarrage prendrait plutôt `npm install`
+pour profiter du cache de conteneur : le lockfile de ce dépôt est un artefact
+versionné qui porte les binaires de deux plateformes, et `npm install` sous
+Linux en élaguerait ceux de Windows — la panne exacte que `lockfile:check`
+surveille. Le coût est amorti par une empreinte du lockfile : la deuxième
+session ne réinstalle rien.
 
 ## Ce que npm fait vraiment quand un client installe le socle
 

@@ -22,6 +22,7 @@ import { renderIssue } from '../content/report.js'
 import {
   DEFAULT_SUPPORT,
   isSupport,
+  SUPPORT_PARAM,
   supportsOf,
   type Support,
 } from '../render/supports.js'
@@ -29,9 +30,6 @@ import type { BusinessFacts } from '../seo/business.js'
 import type { Panel } from '../server/context.js'
 import { authenticate, PANEL_PATH } from '../server/handlers.js'
 import { matchSlug } from './routes.js'
-
-/** Le paramètre par lequel l’écran d’édition demande un rendu. */
-export const SUPPORT_PARAM = 'support'
 
 export type Preview =
   | {

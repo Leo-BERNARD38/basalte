@@ -31,7 +31,10 @@ structurée, `src/seo/` — carte de partage, JSON-LD, sitemap, `robots.txt`,
 favicon, page 404, redirections — et le bloc `faq` qui l'attendait. Reste la
 phase 11, *Joindre* (`docs/roadmap.md`).
 
-**Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
+**Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
+qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
+formatage et lockfile. Une session sur le web n'a rien à faire : le hook de
+`.claude/` pose Node 24 et installe (D125).
 **Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
 de démonstration s'il manque, et sert le site et son panel sur
 `localhost:4321`. Sans clé d'email, le code à six chiffres s'affiche dans le
@@ -129,6 +132,8 @@ notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      site de démonstration, banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
+.claude/            l'amorçage d'une session sur le web — pas celui d'un
+                    dépôt client, que src/client/ génère (D125)
 docs/
 ```
 
@@ -331,8 +336,11 @@ tests (`docs/implementation.md`).
   reste vide dans l'autre, sans la moindre erreur.
 - **Le panel vit dans un navigateur.** Un module de `src/server/` importé pour
   une valeur — fût-ce une constante — y entraîne `node:path` et `node:fs`, et
-  le build du panel échoue loin de la cause. Ce que les deux côtés partagent
-  vit dans un module pur : `src/chrome/define.ts`, `src/content/naming.ts`.
+  le build du panel échoue loin de la cause : le message nomme un paquet
+  WebAssembly, à quatre sauts du fichier fautif. Ce que les deux côtés partagent
+  vit dans un module pur : `src/chrome/define.ts`, `src/content/naming.ts`,
+  `src/render/supports.ts`. `src/admin/island.test.ts` tient la règle, et nomme
+  la chaîne quand elle casse.
 - **Une fonction ne survit pas au JSON du registre.** Les descripteurs de blocs
   sont sérialisés dans le module généré (D56) : ce qu'un bloc déclare de
   *comportement* — le `structured` du JSON-LD — y arrive par un import du

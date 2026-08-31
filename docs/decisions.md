@@ -1,6 +1,6 @@
 # Décisions
 
-Cent-vingt-quatre décisions actées, avec l’alternative écartée et sa raison.
+Cent-vingt-cinq décisions actées, avec l’alternative écartée et sa raison.
 Les détails d'application sont dans les documents thématiques.
 
 | # | Décision | Alternative écartée et raison |
@@ -129,3 +129,4 @@ Les détails d'application sont dans les documents thématiques.
 | D122 | Les redirections sont déclarées dans `site.config.ts` et rendues en **pages statiques** par le build | Une règle du `Caddyfile` : il est écrit à l'`init` et n'est jamais régénéré (D106), si bien qu'une redirection ajoutée après coup n'atteindrait jamais la machine — l'irréversible que D98 interdit. Une page à rafraîchissement instantané est lue par Google comme une redirection permanente, et elle repart à chaque mise en ligne |
 | D123 | La page 404 est une page du socle, rendue dans les deux rendus et servie par un `handle_errors` du `Caddyfile` | La page nue de Caddy : sans direction artistique, sans navigation et sans un lien pour repartir. Elle est injectée une fois par support, et son adresse dit laquelle est laquelle — Astro écrit `404.html` à plat pour la route racine et `_desktop/404/index.html` pour l'autre. Un dépôt plus ancien est averti par `check --build`, comme il l'est pour l'aiguillage |
 | D124 | L'image de partage est un champ de `meta`, et retombe sur la première image de la page | Une image de site unique : la carte d'une page de contact montrerait le bandeau de l'accueil. Le champ déclare `1200/630`, le format qu'attendent les messageries, et l'outil de recadrage est ce qui permet de l'obtenir — un champ facultatif, donc aucune migration (D43) |
+| D125 | Le socle porte son propre amorçage de session Claude Code : `.claude/hooks/session-start.sh`, gardé par `CLAUDE_CODE_REMOTE` | Laisser la session cloud se débrouiller : Node y est plus ancien que `.nvmrc`, et `engine-strict=true` transforme l'écart en refus d'installer — rien ne se lance, et la cause n'est pas lisible. Un `npm install` plutôt que `npm ci`, comme le veut l'usage d'un hook de démarrage : il élaguerait du lockfile les binaires de l'autre plateforme, la panne même que `lockfile:check` surveille. Le `.claude/` que `src/client/` génère est celui d'un dépôt client, jamais celui-ci |
