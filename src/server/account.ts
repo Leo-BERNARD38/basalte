@@ -118,6 +118,32 @@ export async function changePassword(
     .run(await hashPassword(next), now, account.id)
 }
 
+/**
+ * Repose un mot de passe sans demander l’ancien, et rend celui qu’il faut
+ * dicter. Réservé à la console : c’est la seule voie pour un client qui a
+ * oublié le sien, `changePassword` exigeant un mot de passe que, justement, il
+ * n’a plus. Aucune route ne l’expose — l’ouvrir au réseau ferait de l’accès à
+ * la boîte email un accès au compte, alors que l’email n’est qu’un facteur.
+ */
+export async function resetPassword(
+  database: DatabaseSync,
+  account: Account,
+  now: number,
+  password: string = generatePassword(),
+): Promise<string> {
+  const refusal = checkPassword(password)
+
+  if (refusal !== undefined) throw new Error(refusal)
+
+  database
+    .prepare(
+      'update account set password_hash = ?, password_changed_at = ?, failures = 0, locked_until = 0 where id = ?',
+    )
+    .run(await hashPassword(password), now, account.id)
+
+  return password
+}
+
 /** Renvoie la date jusqu’à laquelle le compte est bloqué, ou `0`. */
 export function registerFailure(
   database: DatabaseSync,

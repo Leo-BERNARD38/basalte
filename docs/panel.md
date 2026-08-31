@@ -231,6 +231,15 @@ connexion (D53). Ce lien porte le domaine du site — ce qu'il faut sur la
 machine, où la commande est faite pour tourner. En local, `--origin
 http://localhost:4321` l'ouvre là où le serveur de développement répond.
 
+`--reset` repose le mot de passe d'un compte qui existe, et c'est la seule voie
+pour un client qui a oublié le sien : l'écran « Compte » n'en change un qu'en
+demandant l'actuel, et le lien de secours ouvre une session sans rien y
+changer. La réinitialisation coupe les sessions ouvertes et oublie les
+appareils reconnus — un accès à rétablir ne se laisse pas ouvert ailleurs — et
+laisse au journal une ligne que le client voit. Aucune route ne l'expose :
+ouvrir au réseau une remise à zéro qui ne demande rien ferait de l'accès à la
+boîte email un accès au compte, alors que l'email n'est qu'un facteur.
+
 ### Ce que la phase 3 a posé
 
 Le panel monte le flux d'authentification sans le réécrire, et lui ajoute ses

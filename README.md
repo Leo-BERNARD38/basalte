@@ -8,8 +8,8 @@ son propre dépôt, qui installe celui-ci comme un package npm.
 
 **Tu découvres le projet ?** Ce fichier est le guide complet, dans l'ordre :
 prendre en main le socle, publier une version, créer un site, le mettre en
-ligne, le maintenir. Les `docs/` répondent au *pourquoi* ; ce README répond au
-*dans quel ordre*.
+ligne, tenir le compte de son client, le maintenir. Les `docs/` répondent au
+*pourquoi* ; ce README répond au *dans quel ordre*.
 
 ---
 
@@ -342,7 +342,87 @@ il édite.
 
 ---
 
-## 5. Corriger le socle, et propager
+## 5. Le compte du client
+
+Tu n'as **jamais de mot de passe à choisir, à hacher ni à ranger quelque part**.
+Le socle s'en charge, et rien de ce qui est lisible n'est conservé.
+
+### Ce qui se passe vraiment
+
+À la création du compte, le socle **tire un mot de passe au hasard** — quatre
+groupes de cinq caractères, dans un alphabet sans les signes qu'on confond en
+les dictant (ni `O` ni `0`, ni `l` ni `1`) — puis le hache en **Argon2id** aux
+paramètres de l'OWASP, et n'écrit que l'empreinte dans `data/basalte.db`.
+
+Le mot de passe en clair n'existe qu'une fois, dans le terminal, le temps que
+tu le lises. Il n'est ni en base, ni dans le `.env`, ni dans un fichier de la
+machine, ni dans un email. **Il ne peut donc pas fuiter d'un serveur volé** —
+il n'y est pas.
+
+Il est tiré et jamais choisi, ce qui le rend non réutilisé : un mot de passe
+récupéré dans une fuite ailleurs ne vaut rien ici. Et le mot de passe seul ne
+suffit pas — la connexion demande ensuite un **code à six chiffres** envoyé par
+email, puis reconnaît l'appareil pour ne plus le redemander.
+
+### Les quatre moments
+
+| Quand | Le geste | Où |
+|---|---|---|
+| première mise en ligne | rien à faire — `deploy` crée le compte et affiche le mot de passe | ta machine |
+| le client veut le changer | il le fait seul, écran « Compte » du panel | son navigateur |
+| il l'a oublié | `npx basalte admin:login --user <email> --reset` | en SSH sur la machine |
+| sa boîte email est en panne | `npx basalte admin:login --user <email>` — un lien qui ouvre une session, dix minutes, à usage unique | en SSH sur la machine |
+
+Un second compte, pour un associé ou pour toi :
+
+```bash
+npx basalte admin:login --user autre@client.fr --create
+```
+
+### Réinitialiser un mot de passe oublié
+
+Le panel ne change un mot de passe qu'en demandant l'actuel — ce dont un client
+qui l'a perdu est justement incapable. La console le repose sans le demander :
+
+```bash
+ssh root@51.75.12.34
+cd /srv/mon-client
+docker compose exec -T app npx basalte admin:login --user contact@client.fr --reset
+```
+
+```
+  ✓ mot de passe reposé pour « contact@client.fr »
+  ✓ 2 session(s) fermée(s), 1 appareil(s) oublié(s)
+
+  Mot de passe : Kf7dm-2mQxr-vRd9p-Lpqt
+
+  Il ne s'affichera plus. Note-le, ou transmets-le de vive voix —
+  jamais par email, qui porte déjà le second facteur.
+```
+
+Une réinitialisation dit que l'accès est à rétablir : elle **coupe les sessions
+ouvertes et oublie les appareils reconnus**, pour que rien ne continue de
+porter l'ancien accès. Le client se reconnecte avec le nouveau mot de passe et
+un code par email, puis le change depuis le panel s'il le souhaite.
+
+Elle laisse une ligne dans le journal du compte, que le client voit sur son
+écran « Compte » : c'est sa preuve que le changement vient de toi et non de
+quelqu'un d'autre.
+
+### Ce que tu ne dois jamais faire
+
+- **Envoyer un mot de passe par email.** L'email porte déjà le second facteur :
+  y mettre le premier réunit les deux dans la même boîte, et un accès à cette
+  boîte devient un accès au site. C'est l'invariant 12.
+- **Le noter dans le dépôt, le `.env`, ou un gestionnaire partagé avec le
+  client.** Il est à usage unique dans les faits : le client le change, ou ne
+  le change pas, mais toi tu n'en as plus besoin — `--reset` en repose un.
+- **Réutiliser le même mot de passe entre deux clients.** La question ne se
+  pose pas : tu ne les choisis pas.
+
+---
+
+## 6. Corriger le socle, et propager
 
 C'est la boucle de tous les jours. Un défaut du panel, un bloc à enrichir, une
 contrainte à ajouter à `f.*` :
@@ -381,7 +461,7 @@ La commande s'arrête au premier site en échec au lieu de continuer.
 
 ---
 
-## 6. Mettre à jour un site client
+## 7. Mettre à jour un site client
 
 Depuis le dépôt du client :
 
@@ -443,7 +523,7 @@ pourquoi.
 | `npm run deploy -- --host <ip>` | provisionne la machine, ou la met à jour |
 | `npm run doctor` | prouve que la configuration fonctionne |
 | `npm run update` | monte le socle de version, ou annule tout |
-| `npx basalte admin:login --user <email> [--create] [--origin <url>]` | connexion de secours, et création du compte |
+| `npx basalte admin:login --user <email> [--create\|--reset] [--origin <url>]` | connexion de secours, création du compte, mot de passe reposé |
 | `npx basalte inventory` | les blocs disponibles et leurs champs |
 
 **Le CLI complet :**
@@ -457,7 +537,7 @@ pourquoi.
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
 | `basalte migrate [--dry-run]` | applique les migrations de format |
-| `basalte admin:login --user <email> [--create] [--origin <url>]` | lien de connexion de secours (SSH) |
+| `basalte admin:login --user <email> [--create\|--reset] [--origin <url>]` | lien de secours, création du compte, mot de passe reposé |
 | `basalte update-all <liste>` | monte de version une liste de sites |
 
 ## Quand ça coince
@@ -468,6 +548,8 @@ pourquoi.
 | `init` refuse : « un tag sans le `v` » | `git tag vX.Y.Z X.Y.Z && git push origin vX.Y.Z` |
 | `npm ci` refuse de s'exécuter | Node n'est pas en 24 — `nvm use 24` |
 | le panel demande une session et tu n'as pas de compte | `npx basalte admin:login --user <email> --create` |
+| le client a oublié son mot de passe | `npx basalte admin:login --user <email> --reset`, en SSH — voir §5 |
+| la boîte email du client est en panne, il ne reçoit plus ses codes | `npx basalte admin:login --user <email>` — le lien ouvre une session sans code |
 | le lien de connexion pointe vers le domaine, pas vers localhost | ajoute `--origin http://localhost:4321` |
 | `update` refuse de commencer | l'arbre de travail n'est pas propre — commite ou remise d'abord |
 | `check` échoue sur un `$format` | le format de contenu est en retard : `npx basalte migrate` |
