@@ -113,3 +113,24 @@ function detailOf(cause: unknown): string {
     .filter((part) => part !== '')
     .join('\n')
 }
+
+/**
+ * Ce qui manque à git pour savoir qui commite, ou rien. Une machine neuve — un
+ * conteneur, un runner — n’a aucune identité configurée, et un commit est
+ * toujours la dernière étape d’un geste : sans cette garde, tout ce qui précède
+ * serait annulé pour une ligne de configuration, sur un message de git qui ne
+ * dit rien du projet.
+ */
+export async function missingIdentity(
+  root: string,
+): Promise<string | undefined> {
+  for (const setting of ['user.name', 'user.email']) {
+    const read = await tryGit(root, ['config', '--get', setting])
+
+    if (read.kind === 'failed' || read.stdout.trim() === '') {
+      return `git ne sait pas qui commite : renseigne « git config --global ${setting} … », puis relance.`
+    }
+  }
+
+  return undefined
+}

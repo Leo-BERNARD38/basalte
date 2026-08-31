@@ -41,7 +41,7 @@ c'est ce pour quoi elles sont là.
 
 ## Ce qui est fait
 
-Douze phases, et ce que chacune a mis en place. Le détail de leurs choix est
+Treize phases, et ce que chacune a mis en place. Le détail de leurs choix est
 dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
 code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
@@ -59,68 +59,11 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 10 | Cadrer | le recadrage au ratio déclaré, la fiche d'entreprise, `src/seo/`, le bloc `faq` | D117 à D124 |
 | 11 | Joindre | le second canal de notification, les sondes DNS, la page de remerciement | D126 à D134 |
 | 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
+| 13 | S'outiller | `basalte release`, la skill « reutiliser », la convention de commit | D142 à D146 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
 n'étaient que de la prose (D135).
-
----
-
-## Phase 13 — S'outiller
-
-**Pourquoi.** La quatrième contrainte fondatrice dit que ce projet est fait pour
-être développé avec Claude Code. Le dépôt client en a tout l'appareillage : six
-skills, une doc régénérée à chaque installation, deux commandes. **Ce dépôt-ci
-n'a rien** — `.claude/` n'y contient qu'un hook de démarrage. C'est pourtant ici
-que se fait le travail le plus fréquent et le plus délicat : un correctif du
-panel, un champ ajouté au DSL, une montée de version.
-
-Et le geste le plus dangereux du projet est entièrement manuel : **publier une
-version**. Le numéro, les notes, le commit, le tag, le push, dans cet ordre,
-sans en oublier un. Bumper sans taguer est la panne que `mise-a-jour.md` nomme
-lui-même « discrète » : le socle continue de fonctionner, `verify` passe, et
-c'est `init` qui tombe — chez un client.
-
-**Ce qu'elle produit.** De quoi qu'une session qui ouvre ce dépôt code juste, se
-vérifie seule, et publie sans se tromper d'ordre. La tenue de la documentation
-est déjà faite : restent les gestes qui touchent au code et à sa publication.
-
-**Enjeux.**
-
-Une skill qui **récite les conventions** ne sert à rien : elles sont dans
-`CLAUDE.md`, chargé à chaque session, et `lint` les fait respecter. Ce qui
-manque n'est pas du rappel, ce sont les **gestes** — les suites d'étapes qu'on
-rate quand on les fait de mémoire.
-
-La publication est le cas dur. Elle touche à git, elle est irréversible une fois
-poussée, et son échec est différé : il se manifeste chez quelqu'un d'autre,
-plus tard. Ce qu'on lui demande n'est pas d'aller vite, c'est de **rendre
-impossible l'ordre faux**.
-
-La revue de réutilisation est nommée dans `conventions.md` comme le défaut le
-plus coûteux d'un agent — la duplication discrète, celle qui marche et que
-personne ne remarque avant six mois. Elle demande de lire l'inventaire *et* la
-diff : c'est le seul de ces outils qui ne se ramène pas à une suite d'étapes,
-et le seul dont on ne sache pas d'avance s'il vaut son coût.
-
-**Déjà tranché.** La quatrième contrainte (`contexte.md`) · `conventions.md` ·
-`mise-a-jour.md` fixe l'ordre de publication et le format des notes ·
-`init` refuse une version non taguée, et reconnaît un tag privé de son `v` ·
-`lint` et `verify` **sont** les vérifications : une skill ne les remplace pas et
-ne les double pas · deux skills existent déjà, `phase` et `consigner`, qui
-tiennent la documentation — la phase les complète, elle ne les refait pas, et
-elles donnent la forme que les autres suivront.
-
-**À décider dans la phase.** Ce qui est une skill et ce qui est une commande du
-CLI · si la publication devient `basalte release` ou une skill qui enchaîne des
-gestes — la première se teste, la seconde s'adapte, et l'une des deux est
-probablement en trop · la forme de la revue de réutilisation, et si elle mérite
-d'être un agent ou un contrôle · la convention de commit, de fait dans
-l'historique et jamais écrite.
-
-**Finie quand.** Publier une version ne demande plus de se souvenir de l'ordre,
-et une session qui ouvre ce dépôt trouve les gestes du projet là où elle les
-cherche.
 
 ---
 
@@ -174,15 +117,6 @@ ligne ait été recopiée.
 
 ---
 
-## Ordre
-
-Les deux phases sont indépendantes, et c'est ce qui les distingue des douze
-précédentes : ni l'une ni l'autre n'attend le code de sa voisine.
-
-L'ordre proposé suit ce qu'elles font gagner tout de suite. La 13 sert à chaque
-session dans ce dépôt-ci, la 14 ne se paie qu'au troisième site. Prendre la 14
-d'abord se défend si le troisième site arrive avant.
-
 ## Tests
 
 Ce qui est couvert, et par quel moyen. Écrits en même temps que le code qu'ils
@@ -197,6 +131,7 @@ couvrent.
 | la mise en ligne | build injectable — la file, la bascule et les chemins d'échec sans lancer Astro ; le rebase et le push contre de vrais dépôts git |
 | la livraison | le dépôt qu'`init` produit comparé fichier par fichier sans qu'un seul soit écrit ; `deploy` contre un runner qui retient les commandes ; `doctor` avec ses résolutions DNS et son canal email ; `update` contre un dépôt jetable |
 | les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
+| la publication du socle | un dépôt jetable avec son distant, et un npm injecté qui porte vraiment le numéro sans rien installer — l'ordre des cinq étapes, chaque refus, et le retour à l'état d'avant, la note gardée |
 | la trouvabilité | `findableIssues` sur des pages écrites à la main, et `basalte content` relu sur le site de démonstration — le seul contenu qui ait toutes les formes à la fois |
 | le reste | `basalte check` sur le site de démonstration, et le diff du HTML produit — sur un correctif, un diff vide prouve l'absence de régression |
 

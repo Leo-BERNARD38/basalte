@@ -61,16 +61,16 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 
-Onze phases sont faites : rendu, authentification, panel, mise en ligne,
+Treize phases sont faites : rendu, authentification, panel, mise en ligne,
 formulaire de contact, livraison, outillage, double rendu, chrome, cadrage des
-images et SEO, notification des messages. Un site se crée, se met en production
-et se monte de version en une commande chacune. `implementation.md` en tient le
-relevé, et `decisions.md` la raison de chaque choix.
+images et SEO, notification des messages, relevé du contenu, publication du
+socle. Un site se crée, se met en production et se monte de version en une
+commande chacune ; une version du socle se publie en une commande aussi.
+`implementation.md` en tient le relevé, et `decisions.md` la raison de chaque
+choix.
 
-Trois phases sont écrites et à faire : **Constater** — ce que le site est, dit
-sans le lire ; **S'outiller** — ce dépôt-ci devient un atelier pour l'agent qui
-l'écrit ; **Partager** — un bloc écrit une fois sert à plusieurs sites. Elles
-sont indépendantes.
+Une phase est écrite et à faire : **Partager** — un bloc écrit une fois sert à
+plusieurs sites.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

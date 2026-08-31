@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { tryGit } from '../server/git.js'
 import { readNote } from './notes.js'
 import { compareVersions, versionsAfter, type Socle } from './socle.js'
-import { applyUpgrade, type Npm, type Upgrade } from './upgrade.js'
+import type { Npm } from './npm.js'
+import { applyUpgrade, type Upgrade } from './upgrade.js'
 
 const WORK = fileURLToPath(new URL('../../.tmp/', import.meta.url))
 

@@ -140,6 +140,29 @@ composant `.astro` d'un bloc. Il s'importe avec le suffixe `.js`, jamais
 `.jsx` : `tsc` compile le JSX et produit un `.js`, et c'est ce nom-là que
 l'import doit porter pour que le paquet installé se résolve.
 
+## Messages de commit
+
+Elle existait dans l'historique et nulle part ailleurs. La voici.
+
+Un préfixe en minuscules, sans portée entre parenthèses, suivi de `: ` :
+`feat`, `fix`, `docs`, `test`, `refactor`, et `release` que `basalte release`
+écrit lui-même — le seul message que personne ne rédige.
+
+Le sujet est en français, autour de soixante-dix caractères, et **dit l'effet,
+pas l'acte** :
+
+- oui — « init refuse une version non publiée, au lieu d'échouer après coup »
+- oui — « basalte lint — les conventions deviennent des refus, pas des rappels »
+- non — « ajoute une garde dans init », « corrige le linter »
+
+La construction « X, au lieu de Y » revient souvent, et c'est voulu : elle
+nomme l'alternative écartée là où on la cherchera en premier, dans `git log`.
+
+Un commit de fond porte un **corps**, en prose française, sans puces : ce qui
+manquait, ce que le changement fait, pourquoi celle-là et pas une autre. C'est
+ce corps qui rend `decisions.md` tenable — il porte le détail dont la décision
+ne garde que la ligne.
+
 ## Apostrophes
 
 Les chaînes et les commentaires français prennent l'apostrophe typographique

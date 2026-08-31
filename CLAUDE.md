@@ -4,17 +4,18 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les douze phases sont faites — le socle rend, authentifie, édite,
+**État :** les treize phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
-cadre ses images, joint son client et constate ce qu'un site contient. Un site
-se crée, se met en production et se monte de version en une commande chacune. Ce que chaque phase a mis en place
-est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait
-est dans `docs/decisions.md`, qui est la mémoire du projet.
+cadre ses images, joint son client, constate ce qu'un site contient et se
+publie lui-même. Un site se crée, se met en production et se monte de version en
+une commande chacune ; une version du socle se publie en une commande aussi. Ce
+que chaque phase a mis en place est relevé dans `docs/implementation.md` ;
+**pourquoi** chaque choix a été fait est dans `docs/decisions.md`, qui est la
+mémoire du projet.
 
-**À faire :** deux phases indépendantes, écrites dans `docs/implementation.md`
-— *S'outiller* (ce dépôt-ci devient un atelier pour l'agent qui l'écrit),
-*Partager* (un bloc écrit une fois sert à plusieurs sites). Ce qui a été identifié et laissé de côté est dans
-`docs/roadmap.md`, avec ce qui le ferait revenir.
+**À faire :** une phase, écrite dans `docs/implementation.md` — *Partager*, où
+un bloc écrit une fois sert à plusieurs sites. Ce qui a été identifié et laissé
+de côté est dans `docs/roadmap.md`, avec ce qui le ferait revenir.
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
@@ -42,6 +43,7 @@ terminal.
 | les tokens, une maquette à implémenter | `docs/design.md` |
 | le référencement, le cadrage des images | `docs/seo-performances.md` |
 | la mise en ligne d'un site | `docs/mise-en-prod.md` |
+| la publication d'une version du socle | `docs/mise-a-jour.md` |
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
@@ -106,7 +108,8 @@ src/
 │                   dns.ts, ce qu'il faut publier pour qu'un email arrive
 ├── render/         les deux supports : la règle d'aiguillage, le préfixe du
 │                   rendu bureau, et le contrat que les deux rendus tiennent
-├── publish/        mise en ligne : versions, bascule, build, distant, file
+├── publish/        mise en ligne d'un site : versions, bascule, build, distant, file
+├── release/        publication du socle lui-même : le tag est la publication
 ├── client/         ce que contient un dépôt client : fichiers générés,
 │                   paquet Claude Code, dépôt distant, montée de version
 ├── deploy/         la machine : runner SSH, provisionnement, sondes de doctor
@@ -123,8 +126,9 @@ scripts/            outillage du dépôt — jamais livré, jamais importé
 .claude/            l'amorçage d'une session sur le web (D125), et les skills
     skills/         de ce dépôt : « phase » écrit ou clôt un cahier de phase,
                     « consigner » range ce qui vient d'être fait et retire ce
-                    qui n'apprend plus rien. Rien à voir avec le paquet d'un
-                    dépôt client, que src/client/ génère
+                    qui n'apprend plus rien, « reutiliser » relit une diff pour
+                    y trouver ce qui existait déjà. Rien à voir avec le paquet
+                    d'un dépôt client, que src/client/ génère
 docs/
 ```
 
@@ -204,6 +208,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte migrate [--dry-run]` | applique les migrations de format |
 | `basalte admin:login --user <email> [--create] [--origin <url>]` | lien de connexion de secours (SSH), et création du compte |
 | `basalte update-all <liste>` | monte de version une liste de sites |
+| `basalte release <rang\|X.Y.Z>` | publie une version du socle, ou n'a rien publié |
 
 `basalte check` s'exécute à l'enregistrement dans le panel, avant chaque build
 et en pré-commit d'un dépôt client ; les hooks de ce dépôt-ci sont ceux de

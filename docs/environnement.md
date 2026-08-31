@@ -199,8 +199,12 @@ validation écrite à la main, fourre-tout — ne s'expriment pas en règles de
 linter généraliste : elles parlent de blocs, de tokens et de schémas, que seul
 ce dépôt connaît. Elles vont dans `basalte lint`, qui les refuse à l'endroit
 fautif et nomme le token à employer (`conventions.md`). La duplication, elle,
-n'y est toujours pas : c'est le seul de ces défauts qu'aucune règle ne sait
-reconnaître.
+n'y est toujours pas, et la mesure dit pourquoi : vingt-et-un noms de fonctions
+exportées apparaissent deux fois sous `src/`, dont la grande majorité est
+l'appariement voulu entre une route du panel et son appel côté navigateur. Une
+règle à ce taux de fausses alertes s'ignore, ce qui est pire que pas de règle
+(D145). C'est la skill « reutiliser » qui porte le geste, à la relecture d'une
+diff.
 
 ## Hooks git
 

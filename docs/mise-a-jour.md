@@ -58,21 +58,64 @@ fichiers qui changeraient. N'écrit rien.
 client s'installe par `github:<compte>/basalte#vX.Y.Z` (D5), et ce que ce tag ne
 désigne pas n'existe pas pour lui.
 
-D'où l'ordre, depuis le dépôt du socle :
-
-```bash
-npm run verify                       # il doit passer avant tout le reste
-# porter le numéro dans package.json, écrire notes/vX.Y.Z.md
-git commit -am "release: vX.Y.Z"
-git tag vX.Y.Z
-git push origin main --follow-tags
-```
-
 **Bumper sans taguer est la panne discrète de cette mécanique.** Le socle
 continue de fonctionner, `npm run verify` passe, et c'est `basalte init` qui
 tombe — chez un client, après avoir écrit son dépôt. Il refuse donc désormais
 avant d'écrire quoi que ce soit, en nommant le tag manquant. `--no-install`
 reste le moyen d'engendrer un dépôt sans l'installer.
+
+C'est pourquoi la publication n'est pas une suite de commandes à retenir, mais
+une commande à elle seule (D142) :
+
+```bash
+basalte release minor
+```
+
+### Deux passes, et c'est voulu
+
+La première fois, la note de version n'existe pas : la commande en écrit le
+gabarit, affiche la table des rangs et les commits que la version emporte, puis
+s'arrête sans rien publier. Tu remplis la note. La seconde fois, elle publie.
+
+Ce qu'aucune commande ne décide à ta place tient en deux choses — le rang, et
+ce que la version change pour un site existant. Tout ce qui les entoure, elle
+le refuse.
+
+### Ce qu'elle refuse, avant d'écrire quoi que ce soit
+
+- un dossier qui n'est pas le dépôt du socle ;
+- un arbre de travail qui porte autre chose que la note en cours — elle seule
+  est attendue non commitée, puisque c'est la commande qui vient de la demander ;
+- une autre branche que `main`, ou un clone en retard sur `origin/main` ;
+- un git qui ne sait pas qui commite ;
+- un numéro qui n'est pas postérieur à la dernière version publiée ;
+- un tag resté dans le clone d'une publication qui n'a pas abouti ;
+- une note dont la ligne « Action requise » ne se lit pas ;
+- une note `manuelle` publiée autrement qu'en majeure.
+
+Un cas mérite d'être nommé : quand `package.json` porte déjà un numéro que
+personne n'a tagué — la panne ci-dessus, constatée après coup — la commande
+refuse le rang demandé et nomme la version qu'il reste à publier.
+
+### Puis, dans cet ordre, et tout ou rien
+
+1. `npm run verify` — il doit passer avant tout le reste
+2. le numéro dans `package.json` et `package-lock.json`, relu après écriture
+3. `git commit` de ces deux fichiers et de la note, en `release: vX.Y.Z`
+4. le tag annoté `vX.Y.Z`
+5. `git push --atomic origin main vX.Y.Z`
+
+Si une étape lâche avant le push, la commande défait tout : le tag, le commit,
+le numéro. **Sauf la note**, écrite à la main — une commande qui l'effacerait
+ferait perdre le seul travail de ce geste qu'elle ne sait pas refaire.
+
+**Le push nomme les deux références, et `--atomic` les fait avancer ensemble ou
+pas du tout.** `git push --follow-tags` ne suffit pas : il n'emporte que les
+tags annotés, si bien qu'un `git tag vX.Y.Z` suivi d'un `--follow-tags` pousse
+la branche et laisse le tag derrière — la panne discrète, produite par la
+procédure censée l'éviter.
+
+### Choisir le rang
 
 Le numéro se choisit sur **ce qu'un site existant a à faire**, pas sur la
 quantité de travail accompli. C'est la même échelle que la première ligne des

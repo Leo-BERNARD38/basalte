@@ -1,5 +1,6 @@
-// L’appel à npm depuis le socle : `init` installe, `update` réinstalle, et les
-// deux annulent proprement quand il échoue.
+// L’appel à npm depuis le socle : `init` installe, `update` réinstalle,
+// `release` vérifie et porte le numéro, et tous annulent proprement quand il
+// échoue.
 //
 // npm est lancé par son fichier JavaScript quand il se désigne lui-même —
 // c’est le cas sous un script npm — et par son nom sinon, à travers le shell
@@ -11,6 +12,12 @@ import { spawn } from 'node:child_process'
 const EXEC_PATH = 'npm_execpath'
 
 export type NpmRun = { readonly ok: boolean; readonly code: number }
+
+/**
+ * L’appel lui-même, injectable. En production c’est celui du système ; un banc
+ * en donne un court, ce qui laisse l’annulation s’éprouver sans installer.
+ */
+export type Npm = (cwd: string, args: readonly string[]) => Promise<NpmRun>
 
 /** Lance npm dans le dossier donné, sa sortie allant droit au terminal. */
 export function runNpm(cwd: string, args: readonly string[]): Promise<NpmRun> {

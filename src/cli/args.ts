@@ -1,9 +1,9 @@
 // La lecture des arguments d’une commande, et les lignes qu’elle rend.
 //
-// Les neuf commandes partagent la même forme de sortie : un titre, des lignes
-// marquées, et un `Result` dont le code dit si l’on peut continuer. Les avoir
-// ici plutôt qu’une fois par commande est ce qui garde l’écran cohérent quand
-// une commande s’ajoute.
+// Toutes les commandes partagent la même forme de sortie : un titre, des
+// lignes marquées, et un `Result` dont le code dit si l’on peut continuer. Les
+// avoir ici plutôt qu’une fois par commande est ce qui garde l’écran cohérent
+// quand une commande s’ajoute.
 
 import type { Result } from './run.js'
 

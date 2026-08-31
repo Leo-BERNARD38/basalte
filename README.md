@@ -99,12 +99,16 @@ si la version courante n'est pas taguée — il le dit avant d'écrire quoi que 
 soit.
 
 ```bash
-npm run verify                        # il doit passer
-# porter le numéro dans package.json, écrire notes/vX.Y.Z.md
-git commit -am "release: vX.Y.Z"
-git tag vX.Y.Z
-git push origin main --follow-tags
+basalte release minor
 ```
+
+Une commande, et pas une suite de gestes à retenir : elle enchaîne `verify`, le
+numéro, le commit, le tag et le push, refuse tout ce qui peut l'être avant
+d'écrire quoi que ce soit, et défait tout si une étape lâche avant le push.
+
+La première fois, la note de version n'existe pas encore : la commande en écrit
+le gabarit, montre les commits que la version emporte, et s'arrête. Tu remplis
+la note, tu relances, elle publie.
 
 Le numéro se choisit sur **ce qu'un site existant a à faire**, pas sur le
 travail accompli :
@@ -121,7 +125,9 @@ ce que `npm run update` affiche au client. Format et règles d'écriture :
 
 > **Le `v` fait partie du tag.** Le socle ne lit que `vX.Y.Z` strict : un tag
 > `0.1.0` est ignoré, et la version se lit alors comme jamais publiée. `init`
-> reconnaît ce cas et donne les deux commandes qui le réparent.
+> reconnaît ce cas et donne les deux commandes qui le réparent. `release`, lui,
+> pose toujours le bon tag et le pousse nommément — `git push --follow-tags`
+> l'aurait laissé derrière, n'emportant que les tags annotés.
 
 ---
 
@@ -455,10 +461,8 @@ git checkout -b une-branche
 # … le code, avec Claude
 npm run verify
 
-# 2. publier
-# porter le numéro dans package.json, écrire notes/vX.Y.Z.md
-git commit -am "release: vX.Y.Z"
-git tag vX.Y.Z && git push origin main --follow-tags
+# 2. publier — une première fois pour ébaucher la note, une seconde pour publier
+basalte release minor
 
 # 3. dans chaque dépôt client
 npm run update
@@ -621,16 +625,15 @@ dangereuses. Ils sont listés dans `CLAUDE.md` et justifiés dans
 
 ## Statut
 
-Les douze phases d'implémentation sont faites : rendu, authentification, panel,
-mise en ligne, formulaire de contact, livraison, outillage, double rendu,
-chrome, cadrage des images et SEO, notification des messages, relevé du contenu.
-Un site se crée, se met en production et se monte de version en une commande
-chacune.
+Les treize phases d'implémentation sont faites : rendu, authentification,
+panel, mise en ligne, formulaire de contact, livraison, outillage, double
+rendu, chrome, cadrage des images et SEO, notification des messages, relevé du
+contenu, publication du socle. Un site se crée, se met en production et se monte
+de version en une commande chacune ; une version du socle se publie en une
+commande aussi.
 
-Deux phases sont écrites et à faire, indépendantes l'une de l'autre :
-*S'outiller* — ce dépôt devient un atelier pour l'agent qui l'écrit ;
-*Partager* — un bloc écrit une fois sert à plusieurs sites. Leurs cahiers sont
-dans `docs/implementation.md`.
+Une phase est écrite et à faire : *Partager* — un bloc écrit une fois sert à
+plusieurs sites. Son cahier est dans `docs/implementation.md`.
 
 Ce qui a été identifié et volontairement laissé de côté est listé dans
 `docs/roadmap.md`, avec ce qui le ferait revenir.

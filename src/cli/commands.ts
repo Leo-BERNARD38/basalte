@@ -80,6 +80,13 @@ export const COMMANDS: readonly Command[] = [
       (await import('./admin-login.js')).adminLogin(argv, cwd),
   },
   {
+    name: 'release',
+    usage: 'release <patch|minor|major|X.Y.Z>',
+    summary:
+      'publie une version du socle : verify, numéro, note, commit, tag, push',
+    run: async (argv, cwd) => (await import('./release.js')).release(argv, cwd),
+  },
+  {
     name: 'update-all',
     usage: 'update-all <liste>',
     summary: 'monte de version une liste de sites',

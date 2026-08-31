@@ -12,10 +12,10 @@ import path from 'node:path'
 
 import { CONTENT_DIR } from '../content/page.js'
 import { writeJsonFile } from '../content/write.js'
-import { isRepositoryRoot, tryGit } from '../server/git.js'
+import { isRepositoryRoot, missingIdentity, tryGit } from '../server/git.js'
 import { AGENT_DOC } from './agent.js'
 import { fetchNote, type ReleaseNote } from './notes.js'
-import { runNpm, type NpmRun } from './npm.js'
+import { runNpm, type Npm } from './npm.js'
 import {
   publishedVersions,
   socleDependency,
@@ -46,12 +46,6 @@ export type UpgradeStep = {
   readonly ok: boolean
   readonly detail?: string
 }
-
-/**
- * L’appel à npm, injectable. En production c’est celui du système ; les tests
- * en donnent un court, ce qui laisse l’annulation s’éprouver sans installer.
- */
-export type Npm = (cwd: string, args: readonly string[]) => Promise<NpmRun>
 
 /** La version visée et ses notes, ou `undefined` quand le site est à jour. */
 export async function planUpgrade(
@@ -225,23 +219,5 @@ async function blocking(cwd: string): Promise<string | undefined> {
     return 'l’arbre de travail porte des modifications : commite-les ou range-les, puis relance.'
   }
 
-  return await unnamed(cwd)
-}
-
-/**
- * La montée de version commite sous l’identité de qui la lance — c’est son
- * travail, pas celui du socle, et l’historique du site doit le dire. Encore
- * faut-il que git la connaisse : sans elle, le commit est la dernière étape,
- * et tout ce qui précède serait annulé pour une ligne de configuration.
- */
-async function unnamed(cwd: string): Promise<string | undefined> {
-  for (const setting of ['user.name', 'user.email']) {
-    const read = await tryGit(cwd, ['config', '--get', setting])
-
-    if (read.kind === 'failed' || read.stdout.trim() === '') {
-      return `git ne sait pas qui commite : renseigne « git config --global ${setting} … », puis relance.`
-    }
-  }
-
-  return undefined
+  return await missingIdentity(cwd)
 }
