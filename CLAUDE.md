@@ -4,18 +4,19 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les treize phases sont faites — le socle rend, authentifie, édite,
+**État :** les quatorze phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
-cadre ses images, joint son client, constate ce qu'un site contient et se
-publie lui-même. Un site se crée, se met en production et se monte de version en
-une commande chacune ; une version du socle se publie en une commande aussi. Ce
-que chaque phase a mis en place est relevé dans `docs/implementation.md` ;
-**pourquoi** chaque choix a été fait est dans `docs/decisions.md`, qui est la
-mémoire du projet.
+cadre ses images, joint son client, constate ce qu'un site contient, se publie
+lui-même, et porte les sections que la plupart des sites demandent. Un site se
+crée, se met en production et se monte de version en une commande chacune ; une
+version du socle se publie en une commande aussi. Ce que chaque phase a mis en
+place est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été
+fait est dans `docs/decisions.md`, qui est la mémoire du projet.
 
-**À faire :** une phase, écrite dans `docs/implementation.md` — *Partager*, où
-un bloc écrit une fois sert à plusieurs sites. Ce qui a été identifié et laissé
-de côté est dans `docs/roadmap.md`, avec ce qui le ferait revenir.
+**À faire :** aucune phase en attente. Ce qui a été identifié et laissé de côté
+est dans `docs/roadmap.md`, avec ce qui le ferait revenir — c'est là que se
+prend la suivante. Un bloc écrit pour un client ne circule pas vers un autre :
+il se recopie, et ce qui sert à plusieurs entre dans le socle (D147, D148).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie

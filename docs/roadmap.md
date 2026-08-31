@@ -23,6 +23,7 @@ qu'on oubliera, jamais un sujet qu'on reprendra au bon moment.
 | **La restauration après sinistre jouée pour de vrai** — la procédure est celle d'une nouvelle installation, donc validée à chaque site créé, mais jamais exécutée depuis une sauvegarde | La première machine qui porte un site dont la perte coûterait quelque chose. Une procédure jamais jouée est une hypothèse |
 | **La sauvegarde du fichier SQLite** — sans propriétaire dans le socle, assumée (`deploiement.md`) | Le premier site dont les messages ont de la valeur au-delà de leur notification |
 | **La CI sur les commits poussés dans `main`** — elle ne tourne que sur les pull requests (D38), et le travail passe souvent par `main` directement : elle n'y voit donc rien | Le premier `main` cassé qui n'est découvert qu'à la publication. `basalte release` lance `verify` avant de publier, ce qui tient tant que rien n'atteint un client sans passer par lui |
+| **Le partage d'un bloc entre deux dépôts clients** — écarté par D147 : un bloc écrit hors socle se recopie, et le socle absorbe ce qui sert à plusieurs (D148) | Le troisième dépôt client qui reçoit le même bloc recopié à la main, **et une correction à reporter dans les trois**. C'est le report qui coûte, pas la copie |
 
 ## Hors périmètre, toujours
 

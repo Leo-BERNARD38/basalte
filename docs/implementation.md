@@ -1,6 +1,7 @@
 # Implémentation
 
-Les phases à venir, et ce que les précédentes ont laissé derrière elles.
+Ce que les phases ont laissé derrière elles, et le format d’un cahier pour
+celle qui viendra.
 
 ## Comment lire ce document
 
@@ -60,60 +61,15 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 11 | Joindre | le second canal de notification, les sondes DNS, la page de remerciement | D126 à D134 |
 | 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
 | 13 | S'outiller | `basalte release`, la skill « reutiliser », la convention de commit | D142 à D146 |
+| 14 | Partager | huit sections de référence de plus, la fiche d'entreprise affichée, le critère d'un bloc de référence rouvert | D147 à D150 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
 n'étaient que de la prose (D135).
 
----
-
-## Phase 14 — Partager
-
-**Pourquoi.** `src/blocks/` d'un dépôt client est un cul-de-sac. Un bloc écrit
-pour le client A ne peut servir au client B qu'en étant recopié — ce que
-l'invariant 8 interdit pour le code du socle, et que rien n'encadre entre deux
-sites. Le déclencheur est écrit depuis la phase 7 : **la première fois qu'un
-bloc est recopié d'un dépôt à l'autre.** C'est le coût principal à partir du
-troisième site, pas du premier.
-
-La réponse n'est pas d'ouvrir la liste des blocs de référence du socle. Elle est
-close pour une raison qui tient toujours (D19) : ce sont des démonstrations de
-mécanique, pas un catalogue de sections. Le besoin est réel, et il est ailleurs.
-
-**Ce qu'elle produit.** Un chemin pour qu'un bloc quitte un dépôt client sans
-être recopié, et pour qu'un autre site le reçoive comme il reçoit le socle : par
-une version qu'il épingle.
-
-**Enjeux.**
-
-Le premier piège est de **rouvrir la liste close**. Un bloc qui sert à trois
-clients n'est pas devenu une démonstration de mécanique. Le faire entrer dans le
-socle ferait grossir ce que *chaque* site installe, et rendrait le correctif
-d'un bloc solidaire d'une version du socle — donc d'une migration de contenu
-pour des sites qui n'emploient pas ce bloc.
-
-Le deuxième est **l'invariant 8**. Ce qui circule doit rester du code installé,
-jamais du code copié. Sinon la promesse de D5 — un correctif atteint tous les
-sites en changeant un numéro — tombe précisément pour les blocs qu'on partage
-le plus.
-
-Le troisième est la **direction artistique**. Un bloc partagé ne tient que par
-les tokens : il doit être neutre, et un bloc qui a besoin d'une valeur en dur
-n'est pas partageable. `lint` le refuse déjà, ce qui donne à cette phase une
-garantie qu'elle n'a pas à construire.
-
-**Déjà tranché.** Invariants 7 et 8 · D5, D19 · `lint` garantit qu'un bloc ne
-porte aucune valeur de style en dur · `findBlocks` sait déjà parcourir plusieurs
-racines, et le chrome sait déjà qu'une racine en remplace une autre (D109) : la
-mécanique de découverte existe, c'est sa provenance qui est neuve.
-
-**À décider dans la phase.** Où vivent ces blocs — un second paquet, un dossier
-du socle exclu de son inventaire, autre chose · comment un site en choisit un
-sans les installer tous · ce qu'un bloc partagé promet de plus qu'un bloc de
-site : la migration de son contenu quand son schéma change, et qui la porte.
-
-**Finie quand.** Un bloc écrit pour un client sert à un deuxième sans qu'une
-ligne ait été recopiée.
+**Aucune phase n'est en attente.** Ce qui a été identifié et volontairement
+laissé de côté est dans `roadmap.md`, avec ce qui le ferait revenir : c'est là
+que se prend la suivante, quand un déclencheur se produit.
 
 ---
 
@@ -144,25 +100,41 @@ d'images, ni à la bascule atomique.
 
 ## Blocs de référence
 
-Les blocs livrés par le socle ne sont pas un catalogue de sections — chaque
-client aura les siennes, sur mesure. Ce sont des **exemples de référence**,
-choisis pour la mécanique que chacun démontre (D19).
+Le socle livre quinze blocs. C'est la seule base commune que les sites
+partagent : un bloc absent d'ici se réécrit dans chaque dépôt client, et aucun
+correctif n'y redescend jamais (D147).
+
+**Sept démontrent une mécanique du socle** — c'est par eux qu'on apprend ce que
+le socle sait faire :
 
 `hero` (texte traduisible, image, point focal, bouton) · `richtext` (Markdown
 restreint) · `features` (liste répétable) · `gallery` (plusieurs images,
 `srcset`) · `contact` (endpoint serveur, réponse sans script) · `download`
 (document PDF) · `faq` (données structurées déclarées dans le schéma, dépliage
-natif). Plus deux emplacements de chrome, `header` et `footer`.
+natif).
 
-**La liste est close.** Le critère tient : un bloc de référence gagne sa place
-s'il démontre une mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou
-`stats` sont des `features` habillés autrement — ils relèvent du sur-mesure
-client, et de la phase 14 quand ils serviront à plusieurs.
+**Huit sont des sections que la plupart des sites demandent** (D148) :
+
+`testimonials` (avis, avec portrait facultatif) · `steps` (étapes numérotées par
+le rang) · `stats` (chiffres clés, l'unité dans la valeur) · `cta` (bandeau de
+relance) · `contact-details` (la fiche d'entreprise affichée, sans un champ de
+coordonnée) · `team` · `logos` · `pricing`.
+
+Plus deux emplacements de chrome, `header` et `footer`.
+
+**Le critère d'entrée** : un bloc gagne sa place s'il démontre une mécanique
+qu'aucun autre ne montre, **ou** s'il est une section que la plupart des sites
+demandent. Ce qui reste dehors est ce qui n'est ni l'un ni l'autre — une
+variante visuelle d'un bloc existant, ou une section propre à un métier.
 
 Aucun bloc de référence ne charge de script : `faq` devait démontrer le
 JavaScript opt-in, `<details>` fait mieux, et l'invariant 5 n'a pas eu à être
 payé. La mécanique reste ouverte, elle n'a simplement pas trouvé de
 démonstration qui la mérite.
+
+Un seul déclare des données structurées, `faq` : un avis auto-décerné est un
+balisage que Google sanctionne, `HowTo` n'a plus de résultat enrichi, et
+`Offer` demande un prix chiffré qu'un champ de texte ne porte pas (D150).
 
 ## Hors périmètre
 

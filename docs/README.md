@@ -42,7 +42,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `services.md` | Formulaire de contact, email, analytics |
 | `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
-| `implementation.md` | Les phases à venir, leurs enjeux · tests · blocs de référence · hors périmètre |
+| `implementation.md` | Ce que les phases ont laissé · le format d’un cahier · tests · blocs de référence · hors périmètre |
 | `roadmap.md` | Ce qui est laissé de côté, et ce qui le ferait revenir |
 
 ## Trois niveaux de lecture

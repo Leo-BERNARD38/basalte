@@ -165,6 +165,14 @@ Ce fichier unique produit **quatre sorties** : le formulaire du panel, la
 validation, le type TypeScript consommé par le composant, et l'entrée dans la
 bibliothèque de blocs.
 
+Le composant reçoit les valeurs validées de ces champs, plus ce qu'une section
+ne peut pas contenir : la langue rendue, le rang de son titre (`heading`, décidé
+par la page — D115), deux résolveurs pour les médias et les documents, et **la
+fiche de l'entreprise**. Cette dernière est ce qui permet à un bloc d'afficher
+une adresse, un téléphone ou des horaires sans les redemander en champs : ils
+sont saisis une seule fois, dans la fiche, et `contact-details` les lit là
+(D149).
+
 Un bloc peut aussi porter ses propres libellés d'interface — le bloc `contact`
 le fait pour ses champs et ses trois réponses au visiteur. Ce sont des champs
 comme les autres, vides par défaut, et le composant retombe alors sur le
