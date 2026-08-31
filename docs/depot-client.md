@@ -194,6 +194,12 @@ qui vient du socle : les règles absolues, les commandes, et l'inventaire des
 blocs disponibles avec leurs champs, produit par `basalte inventory`. Il porte
 un en-tête « fichier généré, ne pas modifier ».
 
+Ce que le site contient, lui, n'y est pas : il change à chaque enregistrement du
+client, et un relevé figé serait faux dès le premier (D137). Il se demande —
+`npx basalte content` dit les pages, leurs sections, l'avancement des
+traductions et les médias inemployés, sans qu'un JSON de `content/` soit
+ouvert.
+
 Le lien entre les deux est un import, en tête du `CLAUDE.md` :
 
 ```md

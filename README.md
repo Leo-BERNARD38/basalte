@@ -261,15 +261,29 @@ documents légaux. Ajoute les onglets du site, puis :
 pour rédiger et traduire. Chaque `id` de section est stable et ne se renomme
 jamais : c'est lui qui porte l'historique d'édition de la section.
 
+```bash
+npx basalte content
+```
+
+dit à tout moment ce que le site porte déjà — les pages, leurs sections,
+l'avancement des traductions, les médias qu'aucune section n'emploie. C'est par
+là qu'on commence plutôt qu'en ouvrant les JSON un par un.
+
 ### 3.7 Valider et pousser
 
 ```bash
 npm run check
 ```
 
-Refuse un champ requis vide, un texte trop long, une traduction manquante dans
-une langue en ligne, une image absente du disque, un format de contenu en
-retard. Il tourne aussi en pré-commit.
+Refuse un champ requis vide — titre **et description** de page compris —, un
+texte trop long, une traduction manquante dans une langue en ligne, une image
+sans texte alternatif ou absente du disque, un format de contenu en retard. Il
+tourne aussi en pré-commit.
+
+Il avertit sans refuser d'un titre repris d'une page à l'autre, d'une page qui
+se partage sans vignette et d'une fiche d'entreprise incomplète : ces trois-là
+demandent de regarder les autres pages, ce que le panel ne fait pas quand il
+enregistre — le client découvrirait le refus à la publication.
 
 ```bash
 git push --set-upstream origin main
@@ -534,6 +548,7 @@ pourquoi.
 | `npm run update` | monte le socle de version, ou annule tout |
 | `npx basalte admin:login --user <email> [--create\|--reset] [--origin <url>]` | connexion de secours, création du compte, mot de passe reposé |
 | `npx basalte inventory` | les blocs disponibles et leurs champs |
+| `npx basalte content` | ce que le site contient : pages, sections, langues, médias |
 
 **Le CLI complet :**
 
@@ -543,6 +558,7 @@ pourquoi.
 | `basalte check [--build]` | valide les contenus, et construit sous `--build` |
 | `basalte lint` | vérifie les conventions du code : blocs, styles, schémas |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère la doc agent |
+| `basalte content [--json]` | relève ce qu'un site contient : pages, sections, langues, médias |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
@@ -605,15 +621,16 @@ dangereuses. Ils sont listés dans `CLAUDE.md` et justifiés dans
 
 ## Statut
 
-Les onze phases d'implémentation sont faites : rendu, authentification, panel,
+Les douze phases d'implémentation sont faites : rendu, authentification, panel,
 mise en ligne, formulaire de contact, livraison, outillage, double rendu,
-chrome, cadrage des images et SEO, notification des messages. Un site se crée,
-se met en production et se monte de version en une commande chacune.
+chrome, cadrage des images et SEO, notification des messages, relevé du contenu.
+Un site se crée, se met en production et se monte de version en une commande
+chacune.
 
-Trois phases sont écrites et à faire, indépendantes les unes des autres :
-*Constater* — ce que le site est, dit sans le lire ; *S'outiller* — ce dépôt
-devient un atelier pour l'agent qui l'écrit ; *Partager* — un bloc écrit une
-fois sert à plusieurs sites. Leurs cahiers sont dans `docs/implementation.md`.
+Deux phases sont écrites et à faire, indépendantes l'une de l'autre :
+*S'outiller* — ce dépôt devient un atelier pour l'agent qui l'écrit ;
+*Partager* — un bloc écrit une fois sert à plusieurs sites. Leurs cahiers sont
+dans `docs/implementation.md`.
 
 Ce qui a été identifié et volontairement laissé de côté est listé dans
 `docs/roadmap.md`, avec ce qui le ferait revenir.

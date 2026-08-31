@@ -4,17 +4,16 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les onze phases sont faites — le socle rend, authentifie, édite,
+**État :** les douze phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
-cadre ses images et joint son client. Un site se crée, se met en production et
-se monte de version en une commande chacune. Ce que chaque phase a mis en place
+cadre ses images, joint son client et constate ce qu'un site contient. Un site
+se crée, se met en production et se monte de version en une commande chacune. Ce que chaque phase a mis en place
 est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait
 est dans `docs/decisions.md`, qui est la mémoire du projet.
 
-**À faire :** trois phases indépendantes, écrites dans `docs/implementation.md`
-— *Constater* (ce que le site est, dit sans le lire), *S'outiller* (ce dépôt-ci
-devient un atelier pour l'agent qui l'écrit), *Partager* (un bloc écrit une fois
-sert à plusieurs sites). Ce qui a été identifié et laissé de côté est dans
+**À faire :** deux phases indépendantes, écrites dans `docs/implementation.md`
+— *S'outiller* (ce dépôt-ci devient un atelier pour l'agent qui l'écrit),
+*Partager* (un bloc écrit une fois sert à plusieurs sites). Ce qui a été identifié et laissé de côté est dans
 `docs/roadmap.md`, avec ce qui le ferait revenir.
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
@@ -113,9 +112,10 @@ src/
 ├── deploy/         la machine : runner SSH, provisionnement, sondes de doctor
 ├── migrations/     transformations de format de contenu, en liste ordonnée
 ├── seo/            carte de partage, JSON-LD, sitemap, robots, redirections ;
-│                   les faits de l'entreprise et leurs champs
-└── cli/            init, check, inventory, update, deploy, doctor,
-                    migrate, admin:login, update-all
+│                   les faits de l'entreprise et leurs champs ; findable.ts,
+│                   ce qui fait qu'une page est trouvée et que rien ne se répète
+└── cli/            init, check, inventory, content, lint, update, deploy,
+                    doctor, migrate, admin:login, update-all
 notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      site de démonstration, banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
@@ -197,6 +197,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 | `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
 | `basalte lint` | vérifie les conventions du code : blocs, styles, schémas |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère `.claude/basalte.md` |
+| `basalte content [--json]` | relève ce qu'un site contient : pages, sections, langues, médias |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
 | `basalte doctor [--host <ip>] [--no-email]` | prouve que la configuration fonctionne |
@@ -208,7 +209,15 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 et en pré-commit d'un dépôt client ; les hooks de ce dépôt-ci sont ceux de
 `docs/environnement.md`. Il valide des contenus contre des schémas — ce n'est
 pas un test d'intégration : l'auth, les images et la bascule ont leurs propres
-tests (`docs/implementation.md`).
+tests (`docs/implementation.md`). Il regarde aussi le site comme un tout, et la
+ligne entre ce qu'il refuse et ce dont il avertit est dans
+`docs/seo-performances.md` : refuse ce que le client peut corriger à l'instant
+où il le crée, avertit de ce qui demande de regarder les autres pages.
+
+`basalte inventory` dit ce qui est **disponible** pour écrire, `basalte content`
+ce qui est **écrit**. Ni l'un ni l'autre ne se lance depuis la racine du socle :
+`dist/blocks` et `src/blocks` y donnent deux fois chaque bloc, et le scan
+refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
 
 ## Pièges connus
 

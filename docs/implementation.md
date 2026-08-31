@@ -41,7 +41,7 @@ c'est ce pour quoi elles sont là.
 
 ## Ce qui est fait
 
-Onze phases, et ce que chacune a mis en place. Le détail de leurs choix est
+Douze phases, et ce que chacune a mis en place. Le détail de leurs choix est
 dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
 code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
@@ -58,65 +58,11 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 9 | Encadrer | l'en-tête et le pied de page, remplaçables par site, le menu déduit des pages, le `h1` | D109 à D116 |
 | 10 | Cadrer | le recadrage au ratio déclaré, la fiche d'entreprise, `src/seo/`, le bloc `faq` | D117 à D124 |
 | 11 | Joindre | le second canal de notification, les sondes DNS, la page de remerciement | D126 à D134 |
+| 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
-Après la 11, `basalte lint` a rendu vérifiables des conventions qui n'étaient
-que de la prose (D135).
-
----
-
-## Phase 12 — Constater
-
-**Pourquoi.** Un agent qui ouvre un dépôt client sait quels blocs existent
-— `inventory` les lui donne — et quelles règles tenir — `lint` les lui refuse.
-Rien ne lui dit **ce que le site contient déjà** : il lit tous les JSON, ou il
-devine. Et `check` valide un contenu contre son schéma sans jamais juger ce qui
-fait qu'une page est trouvée et lisible : un titre en double entre deux pages,
-une description absente, une image sans texte alternatif ne l'arrêtent pas.
-
-Les deux manques ont la même racine. Le socle sait **valider** — cette valeur
-est-elle conforme à ce schéma — et il ne sait pas encore **constater** : de quoi
-ce site est-il fait, et qu'est-ce qui, dedans, ne tiendra pas dehors.
-
-**Ce qu'elle produit.** Une vue compacte du contenu d'un site, produite depuis
-le code, sur laquelle un agent se repose au lieu de tout lire. Et des refus de
-plus dans `check`, sur ce qui fait qu'une page est trouvée.
-
-**Enjeux.**
-
-Le point dur est le **format de la vue**. Trop détaillée, elle vaut la lecture
-des JSON et ne fait économiser rien ; trop maigre, elle oblige à les ouvrir
-quand même. Un critère utile pour trancher : un agent doit pouvoir répondre
-« quelle page porte tel bloc », « quelles langues sont remplies », « quelle page
-n'a pas de description » sans ouvrir un seul fichier.
-
-Le second est la **frontière entre refuser et avertir**. `check` tourne à
-l'enregistrement d'un client dans le panel : ce qui l'arrête doit être
-corrigeable par lui, depuis le panel, avec ce qu'il y voit. Un titre en double
-l'est. Une image de partage manquante l'est moins. Se tromper de côté rend soit
-le contrôle inutile, soit le panel bloquant — et un panel bloquant sur un défaut
-que le client ne comprend pas est pire que pas de contrôle du tout.
-
-Le troisième est de **ne pas redire ce que `lint` dit déjà**. Le contraste des
-tokens est fait. La ligne ne bouge pas (D135) : `check` regarde le contenu,
-`lint` regarde le code.
-
-**Déjà tranché.** Invariants 1 et 5 · `check` ne bloque jamais le site public ·
-le panel commite en `--no-verify` (D17), ce qui garde `lint` hors de son chemin ·
-`meta.title` est borné à 60 et `meta.description` à 160 par le schéma
-(`src/content/page.ts`) — les longueurs sont faites, ce sont les absences et les
-doublons qui manquent · une contrainte qui manque s'ajoute à `f.*`, jamais au
-bloc.
-
-**À décider dans la phase.** La forme de la vue, et par quelle commande elle
-sort · ce qui devient une erreur et ce qui reste un avertissement · si le texte
-alternatif d'une image devient un champ requis du DSL plutôt qu'un contrôle —
-la règle ci-dessus pousse dans ce sens, la phase dira si elle tient · si un
-contrôle a besoin du HTML construit ou se contente du JSON.
-
-**Finie quand.** Un agent qui ouvre un dépôt client peut dire ce que le site
-contient sans avoir lu un fichier de `content/`, et `check` refuse une page que
-Google afficherait mal.
+Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
+n'étaient que de la prose (D135).
 
 ---
 
@@ -230,13 +176,12 @@ ligne ait été recopiée.
 
 ## Ordre
 
-Les trois phases sont indépendantes, et c'est ce qui les distingue des onze
-précédentes : aucune n'attend le code d'une autre.
+Les deux phases sont indépendantes, et c'est ce qui les distingue des douze
+précédentes : ni l'une ni l'autre n'attend le code de sa voisine.
 
-L'ordre proposé suit ce qu'elles font gagner tout de suite. La 12 sert à chaque
-session dans un dépôt client, la 13 à chaque session ici, la 14 ne se paie qu'au
-troisième site. Prendre la 14 avant les deux autres se défend si le troisième
-site arrive avant.
+L'ordre proposé suit ce qu'elles font gagner tout de suite. La 13 sert à chaque
+session dans ce dépôt-ci, la 14 ne se paie qu'au troisième site. Prendre la 14
+d'abord se défend si le troisième site arrive avant.
 
 ## Tests
 
@@ -252,6 +197,7 @@ couvrent.
 | la mise en ligne | build injectable — la file, la bascule et les chemins d'échec sans lancer Astro ; le rebase et le push contre de vrais dépôts git |
 | la livraison | le dépôt qu'`init` produit comparé fichier par fichier sans qu'un seul soit écrit ; `deploy` contre un runner qui retient les commandes ; `doctor` avec ses résolutions DNS et son canal email ; `update` contre un dépôt jetable |
 | les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
+| la trouvabilité | `findableIssues` sur des pages écrites à la main, et `basalte content` relu sur le site de démonstration — le seul contenu qui ait toutes les formes à la fois |
 | le reste | `basalte check` sur le site de démonstration, et le diff du HTML produit — sur un correctif, un diff vide prouve l'absence de régression |
 
 Le seul morceau qui ne se teste pas est celui qui ne peut pas l'être : la

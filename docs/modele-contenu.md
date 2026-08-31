@@ -35,9 +35,11 @@
 - **`$format`** en tête, pour rendre les migrations possibles.
 - **`meta`** porte le titre, la description et l'image de partage de la page.
   Ce sont des contenus comme les autres : ils passent par le même DSL, donc par
-  la même validation et le même formulaire. L'image est facultative, et déclare
-  le `1200/630` qu'attendent les messageries ; vide, la carte reprend la
-  première image de la page (D124).
+  la même validation et le même formulaire. **Titre et description sont requis**
+  dans chaque langue en ligne (D138) : ce sont les deux lignes que les moteurs
+  affichent, et une page sans description en laisse le choix au moteur.
+  L'image, elle, est facultative et déclare le `1200/630` qu'attendent les
+  messageries ; vide, la carte reprend la première image de la page (D124).
 - **Le nom du fichier donne la route** : `index.json` sert `/`, `contact.json`
   sert `/contact`. Le client ne crée pas de pages (D3), le jeu est donc fixe.
 - **Une valeur d'image est une clé de la médiathèque**, pas un chemin : le

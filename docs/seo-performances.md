@@ -134,6 +134,59 @@ une page d'erreur qui répond « tout va bien » se fait indexer. Un dépôt plu
 ancien que cette phase est averti par `basalte check --build` : son `Caddyfile`
 n'a pas de `handle_errors`.
 
+## Ce qui est refusé, et ce qui est seulement dit
+
+`basalte check` valide chaque page contre son schéma. Il regarde aussi le site
+comme un tout, ce qu'aucune validation de page ne peut faire : deux pages y
+portent parfois le même titre, une page se partage parfois sans vignette.
+
+La ligne entre refuser et avertir est **ce que le client peut corriger à
+l'instant où il le crée**, depuis le panel, avec ce qu'il y voit. Le panel
+n'enregistre qu'une page à la fois : tout ce qui se constate sur cette page-là
+peut refuser, tout ce qui demande de regarder les autres ne le peut pas — le
+client découvrirait le refus à la publication, sur un défaut créé la veille.
+
+**Refusé** — le panel n'enregistre pas, `check` sort en erreur :
+
+- un titre de page vide, et depuis cette phase une **description vide** (D138)
+  dans une langue en ligne. Les deux sont ce que les moteurs affichent, et les
+  deux sont sous les yeux du client quand il édite la page ;
+- une traduction manquante dans une langue en ligne ;
+- une image sans **texte alternatif** dans une langue en ligne. Il est saisi
+  une fois par image, à son dépôt dans la médiathèque, et non par emploi
+  (D140) ;
+- une image ou un document absent de la médiathèque.
+
+**Dit sans refuser** — `check` sort en zéro, et le panel les liste :
+
+- un **titre ou une description repris** d'une page à l'autre (D139) : les
+  moteurs n'en afficheraient qu'une, et le message nomme l'autre page ;
+- une page qui se **partage sans vignette** : ni image choisie, ni image dans
+  ses sections, sur lesquelles la carte retombe (D124). Une page de service en
+  est exemptée (D133) ;
+- une **fiche d'entreprise** sans raison sociale — le site n'émet alors aucune
+  donnée structurée — ou dont l'adresse est incomplète, ce qui fait retomber le
+  type déclaré sur `Organization` ;
+- une image au mauvais format pour son emplacement, une redirection recouverte
+  ou sans cible, un média qu'aucune section n'emploie.
+
+Tout cela se lit sur le contenu, jamais sur le HTML construit (D141) : ce qui
+demande le HTML — le plan de titres et le contrat des deux rendus — vit dans la
+moitié post-`--build`, qui avertit toujours et ne refuse jamais.
+
+## Ce que le site contient déjà
+
+`basalte content` relève, depuis le contenu et sans rien construire, les pages
+et leurs adresses, les sections que chacune porte, l'avancement des traductions,
+la vignette de partage effective, les médias qu'aucune section n'emploie et la
+fiche d'entreprise. `--json` en rend la forme brute.
+
+C'est le pendant de `basalte inventory`, qui dit ce qui est *disponible* pour
+écrire : celui-ci dit ce qui est *écrit*. La commande est à part parce que les
+deux n'ont ni la même source ni la même fraîcheur (D136), et elle n'écrit aucun
+fichier — un relevé faux au premier enregistrement coûterait plus que pas de
+relevé du tout (D137).
+
 ## Le cadrage des images
 
 Un `f.image({ ratio })` était une intention que rien ne tenait. Il est
