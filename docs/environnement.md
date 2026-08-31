@@ -168,7 +168,7 @@ et si cela ne tient pas, déclarer les paquets de plateforme en
 dépendances réelles, présentes des deux côtés, et npm ignore à l'installation
 celles dont les contraintes `os` et `cpu` ne correspondent pas.
 
-Corollaire pour la phase 6 : image Docker en base **glibc**
+Corollaire pour la machine : image Docker en base **glibc**
 (`node:24-bookworm-slim`). Alpine ajouterait musl comme troisième famille à
 faire coexister dans le même lockfile.
 
@@ -230,7 +230,8 @@ depuis le dossier de travail, y installe le socle comme le ferait un dépôt
 client, vérifie que chaque cible de `exports` est bien dans le paquet, puis
 lance `basalte --version`. Il prouve d'un coup que `prepare` compile, que
 `files` livre ce qu'il faut, que `bin` est branché et que le shebang a survécu —
-la surprise de phase 6 annoncée par `architecture.md`, désamorcée à chaque PR.
+la surprise que `architecture.md` annonçait pour la livraison, désamorcée à
+chaque PR.
 
 Il travaille sur un clone local : aucune dépendance au réseau, ni à la
 visibilité du dépôt. Et il tourne sur les deux systèmes, ce qui couvre le shim

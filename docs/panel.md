@@ -56,19 +56,19 @@ même temps.
 « Réglages » a été supprimée (D63) : langues et informations du site vivent dans
 `site.config.ts`, versionné, que le client n'édite pas.
 
-| Page | Contenu | Depuis |
-|---|---|---|
-| Édition | l'aperçu de la page, ses sections, et le panneau de la section choisie — l'écran par défaut | phase 3 |
-| Médias | la médiathèque | phase 3 |
-| Compte | mot de passe, appareils, journal de connexion | phase 3 |
-| Messages | les leads du formulaire de contact | phase 5 |
-| Statistiques | le rapport d'audience | phase 5 |
+| Page | Contenu |
+|---|---|
+| Édition | l'aperçu de la page, ses sections, et le panneau de la section choisie — l'écran par défaut |
+| Médias | la médiathèque |
+| Compte | mot de passe, appareils, journal de connexion |
+| Messages | les leads du formulaire de contact |
+| Statistiques | le rapport d'audience |
 
-Les cinq sont là, et ni la phase 9 ni la phase 10 n'en ajoutent : l'en-tête, le
-pied de page et la fiche d'entreprise s'éditent depuis « Édition », comme des
-entrées de plus dans la liste des pages. C'est là que les deux premiers se
-règlent bien, puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi
-remplir un écran à elle seule.
+Ce que le socle a gagné depuis n'en a ajouté aucune : l'en-tête, le pied de page
+et la fiche d'entreprise s'éditent depuis « Édition », comme des entrées de plus
+dans la liste des pages. C'est là que les deux premiers se règlent bien,
+puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi remplir un
+écran à elle seule.
 
 L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
 ouvrir un message le marque lu, sans que le client coche quoi que ce soit. Le
@@ -195,7 +195,7 @@ formulaire de contact, pour qu'un robot spammant le formulaire ne puisse pas
 `AUTH_EMAIL_FROM` dans `.env` ; sans elles le canal retombe sur celui du
 formulaire, et `doctor` le signalera.
 
-### Ce que la phase 2 a posé
+### Les adresses de l'authentification
 
 Le flux vit dans `src/server/`, en fonctions `Request` vers `Response` (D51) que
 le panel monte sans les réécrire. Il ne sait rien d'Astro et se déroule
@@ -240,7 +240,7 @@ laisse au journal une ligne que le client voit. Aucune route ne l'expose :
 ouvrir au réseau une remise à zéro qui ne demande rien ferait de l'accès à la
 boîte email un accès au compte, alors que l'email n'est qu'un facteur.
 
-### Ce que la phase 3 a posé
+### Les adresses du contenu
 
 Le panel monte le flux d'authentification sans le réécrire, et lui ajoute ses
 propres adresses, de la même forme.
@@ -249,7 +249,7 @@ propres adresses, de la même forme.
 |---|---|
 | `GET /api/panel` | tout ce qu'il faut pour démarrer : site, langues, champs, bibliothèque de sections, pages, médias, ce qui est cassé |
 | `PUT /api/pages/<nom>` | valide, écrit la page, commit |
-| `PUT /api/chrome` | valide, écrit `content/chrome.json`, commit (phase 9) |
+| `PUT /api/chrome` | valide, écrit `content/chrome.json`, commit |
 | `POST /api/media` | téléverse une image, avec son texte alternatif |
 | `PATCH /api/media/<clé>` | texte alternatif et point focal |
 | `DELETE /api/media/<clé>` | supprime, sauf si une section l'emploie |
@@ -257,7 +257,7 @@ propres adresses, de la même forme.
 | `GET /admin/preview/<slug>` | l'aperçu du dépôt tel qu'il est |
 | `GET /media/<fichier>` | les images du dépôt, pas celles de la version en ligne (D64) |
 
-### Ce que la phase 4 a ajouté
+### Les adresses de la mise en ligne
 
 | Adresse | Ce qu'elle fait |
 |---|---|
@@ -268,14 +268,14 @@ Le panel revient lire la seconde toutes les secondes et demie tant que la file
 tourne : un build dure des secondes, une requête ne les attend pas
 (`publication.md`).
 
-### Ce que la phase 10 a ajouté
+### Les adresses du cadrage et de la fiche d'entreprise
 
 | Adresse | Ce qu'elle fait |
 |---|---|
 | `POST /api/media/crop` | recadre une image, et rend la nouvelle clé |
 | `PUT /api/business` | valide, écrit `content/business.json`, commit |
 
-### Ce que la phase 5 a ajouté
+### Les adresses des messages et de l'audience
 
 | Adresse | Ce qu'elle fait |
 |---|---|
@@ -413,8 +413,7 @@ qu'une section l'emploie. Ce qui les sépare — le ré-encodage impossible, et 
 conditions qui le compensent — est dans `securite.md`.
 
 **Point focal** réglable, transformé en `object-position`. Il a longtemps tenu
-lieu de recadrage ; la phase 10 lui adjoint un vrai outil, sans le remplacer
-(D118) : le recadrage donne le format, le point focal dit où est le sujet à
+lieu de recadrage ; un vrai outil lui a été adjoint sans le remplacer (D118) : le recadrage donne le format, le point focal dit où est le sujet à
 l'intérieur de ce format — et c'est encore lui qui travaille quand le CSS
 re-cadre d'un support à l'autre.
 

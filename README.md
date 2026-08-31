@@ -600,6 +600,7 @@ dangereuses. Ils sont listés dans `CLAUDE.md` et justifiés dans
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
+| ce qu'il reste à construire | `docs/implementation.md` |
 | ce qui a été laissé de côté | `docs/roadmap.md` |
 
 ## Statut
@@ -609,6 +610,10 @@ mise en ligne, formulaire de contact, livraison, outillage, double rendu,
 chrome, cadrage des images et SEO, notification des messages. Un site se crée,
 se met en production et se monte de version en une commande chacune.
 
+Trois phases sont écrites et à faire, indépendantes les unes des autres :
+*Constater* — ce que le site est, dit sans le lire ; *S'outiller* — ce dépôt
+devient un atelier pour l'agent qui l'écrit ; *Partager* — un bloc écrit une
+fois sert à plusieurs sites. Leurs cahiers sont dans `docs/implementation.md`.
+
 Ce qui a été identifié et volontairement laissé de côté est listé dans
-`docs/roadmap.md`, avec ce qui le ferait revenir. Les chantiers d'outillage IA
-restants sont dans `docs/roadmap-outillage-ia.md`.
+`docs/roadmap.md`, avec ce qui le ferait revenir.
