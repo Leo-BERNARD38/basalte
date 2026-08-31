@@ -7,7 +7,8 @@
   "$format": 1,
   "meta": {
     "title": { "fr": "Atelier Duvallon", "en": "Duvallon Workshop" },
-    "description": { "fr": "Menuiserie sur mesure.", "en": "Bespoke joinery." }
+    "description": { "fr": "Menuiserie sur mesure.", "en": "Bespoke joinery." },
+    "image": "a3f2c1d4b5e6f708"
   },
   "blocks": [
     {
@@ -32,14 +33,22 @@
 - **`hidden` par langue** : masquer sans perdre le contenu, et afficher un bloc
   dans une langue seulement.
 - **`$format`** en tête, pour rendre les migrations possibles.
-- **`meta`** porte le titre et la description de la page. Ce sont des contenus
-  comme les autres : ils passent par le même DSL, donc par la même validation
-  et le même formulaire.
+- **`meta`** porte le titre, la description et l'image de partage de la page.
+  Ce sont des contenus comme les autres : ils passent par le même DSL, donc par
+  la même validation et le même formulaire. L'image est facultative, et déclare
+  le `1200/630` qu'attendent les messageries ; vide, la carte reprend la
+  première image de la page (D124).
 - **Le nom du fichier donne la route** : `index.json` sert `/`, `contact.json`
   sert `/contact`. Le client ne crée pas de pages (D3), le jeu est donc fixe.
 - **Une valeur d'image est une clé de la médiathèque**, pas un chemin : le
   rendu y trouve les largeurs disponibles, le texte alternatif et le point
-  focal (`panel.md` pour le manifeste, D40 pour la raison).
+  focal (`panel.md` pour le manifeste, D40 pour la raison). Une image recadrée
+  est une clé de plus, dérivée de l'originale (D117) : le contenu ne porte
+  toujours qu'une chaîne, et le recadrage n'a demandé aucune migration.
+- **Un champ image peut déclarer un `ratio`**, et il est alors réellement
+  obtenu : le panel ne laisse employer qu'une image à ce format, en la
+  recadrant si besoin, et `basalte check` avertit d'un contenu écrit à la main
+  qui y échapperait (`seo-performances.md`).
 - **La carte de langues est toujours là**, même sur un site à une seule langue
   (D41). Ce que le client voit n'en dépend pas : le panel n'affiche un
   sélecteur que s'il y a plusieurs langues.
@@ -53,6 +62,32 @@
   un `h2` plus bas. Ses titres `##` (D99) tombent alors au bon niveau.
   `basalte check --build` avertit d'une page sans titre principal — le titre
   d'une section est facultatif, et son absence est invisible à l'œil.
+
+## La fiche d'entreprise n'est pas une page non plus
+
+`content/business.json` porte ce que les moteurs de recherche affichent du
+client : raison sociale, type d'activité, adresse, téléphone, horaires, zone
+desservie. C'est la seule source structurée de ces faits (D120), et rien de ce
+qu'elle porte ne s'affiche sur le site.
+
+```json
+{
+  "$format": 1,
+  "facts": {
+    "legalName": "Atelier Duvallon SARL",
+    "kind": "HomeAndConstructionBusiness",
+    "address": { "street": "12 rue des Copeaux", "postalCode": "38000", "city": "Grenoble", "country": "France" },
+    "phone": "+33 4 76 00 00 00",
+    "hours": [{ "day": "Monday", "opens": "09:00", "closes": "18:00" }]
+  }
+}
+```
+
+Elle suit le chrome en tout : un manifeste que `readContent` écarte, un
+`$format` que les migrations traversent, un fichier qui peut manquer — le site
+n'émet alors aucune donnée structurée locale —, et une entrée du sélecteur de
+page plutôt qu'un sixième écran (D63). Ses champs vivent à côté de leur seul
+consommateur, dans `src/seo/business.ts`.
 
 ## Le chrome n'est pas une page
 
@@ -263,13 +298,13 @@ langue, ni dans ses `hreflang`.
 Les migrations vivent **dans le socle**, jamais dans un dépôt client :
 
 ```
-src/migrations/index.ts    { to: 2, label: 'le bouton devient un groupe', page, chrome? }
+src/migrations/index.ts    { to: 2, label: 'le bouton devient un groupe', page, chrome?, business? }
 ```
 
-`page` transforme chaque fichier de page ; `chrome`, facultatif, transforme
-`content/chrome.json`. Sans lui, le chrome est simplement renuméroté — ce qui
-garde les deux formats en phase, et évite un `$format` que `migrate`
-n'atteindrait jamais (D111).
+`page` transforme chaque fichier de page ; `chrome` et `business`, facultatifs,
+transforment `content/chrome.json` et `content/business.json`. Sans eux, les
+deux fichiers sont simplement renumérotés — ce qui garde tous les formats en
+phase, et évite un `$format` que `migrate` n'atteindrait jamais (D111).
 
 La liste est écrite à la main plutôt que découverte sur le disque : l'ordre est
 ce qui donne son sens à une suite de migrations, et un dossier parcouru le

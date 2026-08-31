@@ -99,8 +99,21 @@ légaux générés, le PDF téléchargeable, le contexte du site en `docs/CONTEX
 et `docs/DESIGN.md`, le banc de blocs `/__blocs`, les capacités déclarées et
 les profils d'`init`. Décisions D98 à D102.
 
-Ce qui reste est découpé dans `roadmap.md` : le double rendu mobile/bureau, le
-chrome, le recadrage et `src/seo/`, puis la notification des leads.
+**Phase 8 — Adapter** — deux rendus construits depuis un seul contenu et servis
+chacun à son support, la variante bureau d'un bloc, et le contrat qui garantit
+que le mobile porte tout. Décisions D103 à D108.
+
+**Phase 9 — Encadrer** — l'en-tête et le pied de page autour de chaque page,
+remplaçables par site, un menu qui se déduit des pages tant que personne ne l'a
+rangé, et le `h1` rendu à la première section. Décisions D109 à D116.
+
+**Phase 10 — Cadrer** — le recadrage des images au format que leur emplacement
+déclare, la fiche d'entreprise comme source structurée, et `src/seo/` : carte
+de partage, JSON-LD, sitemap, `robots.txt`, favicon, page 404, redirections.
+Plus le bloc `faq`, qui l'attendait. Décisions D117 à D124.
+
+Ce qui reste est découpé dans `roadmap.md` : la phase 11, *Joindre* — ne pas
+perdre un lead, et ne pas être appelé pour rien.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

@@ -43,9 +43,10 @@ produites à l'ingestion, pas au build (D40) — ce qui remplace le passage par
 écrit ici plutôt que tiré d'une dépendance (D42). Les routes par langue
 produites par `getStaticPaths` (D44). Détail : D40 à D46.
 
-**Ce qui reste ouvert.** Le sitemap, `robots.txt`, le JSON-LD et les images
-Open Graph : `meta` porte le titre et la description, le reste attend un
-`src/seo/`.
+**Ce qui restait ouvert, et qui est refermé.** Le sitemap, `robots.txt`, le
+JSON-LD et les images Open Graph : `meta` ne portait que le titre et la
+description. `src/seo/` les a apportés en phase 10, et `meta` y a gagné son
+image de partage.
 
 **Pourquoi.** Tout le reste consomme le DSL et le moteur de blocs. C'est la
 seule phase dont un défaut se paie dans toutes les autres.
@@ -202,8 +203,8 @@ sont des champs qui retombent sur le français (D82), le panel purge lui-même
 (D83), et l'audience se lit dans le fichier de log courant, par la fin (D84).
 Détail : D76 à D85, application dans `services.md`.
 
-**Ce qui reste ouvert.** Rien de la phase. Le bloc `faq` — JS opt-in, JSON-LD —
-attend toujours `src/seo/`.
+**Ce qui restait ouvert.** Rien de la phase. Le bloc `faq` attendait
+`src/seo/` ; il est arrivé en phase 10.
 
 **Ce qu'elle a trouvé en chemin.** Le panel et le site publiaient leurs fichiers
 dans le même `_astro/`, que le Caddyfile documenté envoie au site statique : le
@@ -243,8 +244,8 @@ sur la machine (D91), qui monte le dépôt du site plutôt que d'en copier une
 image (D92). `doctor` envoie un vrai email (D93), et `update` exige un arbre
 propre — c'est ce qui rend son annulation totale (D94). Détail : D87 à D94.
 
-**Ce qui reste ouvert.** Rien de la phase. Le bloc `faq` — JS opt-in, JSON-LD —
-attend toujours `src/seo/`, comme le sitemap et le JSON-LD.
+**Ce qui restait ouvert.** Rien de la phase. Le bloc `faq`, le sitemap et le
+JSON-LD attendaient `src/seo/` ; tous trois sont arrivés en phase 10.
 
 **Ce qu'elle a trouvé en chemin.** Le contexte du panel ne s'ouvrait que sur
 quelques routes : une machine fraîchement démarrée servait `/admin` sans avoir
@@ -282,9 +283,9 @@ site en ligne édité par git, ou suivre la numérotation — est tranché : on 
 la numérotation (D54). Rien n'est donc utilisable par un client avant la phase
 4, et le premier site sortira complet.
 
-**Les six phases sont faites.** Ce qui reste est nommé phase par phase, et tient
-en une ligne : `src/seo/` — sitemap, `robots.txt`, JSON-LD, images Open Graph —
-et le bloc `faq` qui l'attend.
+**Les six phases sont faites**, et les cinq de `roadmap.md` aussi jusqu'à la
+dixième : `src/seo/` existe, avec le bloc `faq` qui l'attendait. Ce qui reste
+est nommé dans `roadmap.md` — la phase 11, *Joindre*.
 
 ## Tests
 
@@ -343,7 +344,13 @@ choisis pour la mécanique que chacun démontre (D19).
 Livrés en phase 1 : `hero` (texte traduisible, image, point focal, bouton) ·
 `richtext` (Markdown restreint) · `features` (liste répétable) · `gallery`
 (plusieurs images, `srcset`). Livré en phase 5 : `contact` (endpoint serveur,
-réponse sans script). Reste `faq` — JS opt-in et JSON-LD — qui attend `src/seo/`.
+réponse sans script). Livré en phase 10 : `faq` (données structurées déclarées
+dans le schéma, dépliage natif). La liste est close.
+
+`faq` devait démontrer le JavaScript opt-in en plus du JSON-LD ; `<details>`
+fait mieux, et l'invariant 5 n'a pas eu à être payé. Aucun bloc de référence ne
+charge donc de script — la mécanique reste ouverte, elle n'a simplement pas
+trouvé de démonstration qui la mérite.
 
 Le critère, lui, tient : un bloc de référence gagne sa place s'il démontre une
 mécanique qu'aucun autre ne montre. `testimonials`, `logos` ou `stats` sont des

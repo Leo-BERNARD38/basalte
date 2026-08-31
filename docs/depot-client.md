@@ -21,12 +21,14 @@ mon-client/
 │   ├── CONTEXT.md         qui est le client, ce qu'il vend, son ton
 │   └── DESIGN.md          ce que la direction artistique cherche, et pourquoi
 ├── astro.config.mjs       4 lignes
-├── site.config.ts         DA, langues, domaine — versionné
+├── site.config.ts         DA, langues, domaine, redirections — versionné
 ├── .env                   secrets — jamais versionné
 ├── .env.example
 ├── content/*.json         index, contact, et les deux documents légaux
-├── content/media.json · documents.json · chrome.json   les manifestes, pas des pages
+├── content/media.json · documents.json · chrome.json · business.json
+│                          les manifestes, pas des pages
 ├── public/media/ · public/documents/
+├── public/favicon.svg     à remplacer par le logo du client
 ├── src/blocks/            les blocs sur mesure de ce site
 ├── src/chrome/            l'en-tête et le pied de page, s'ils sont redessinés
 ├── compose.yml

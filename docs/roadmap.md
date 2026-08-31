@@ -55,9 +55,9 @@ livre un site sans navigation ni mentions légales.
 | ~~Un bloc est un composant unique, dont le CSS plie au media query~~ · réglé | `src/blocks/*/` | 8 |
 | ~~Ni header, ni footer, ni navigation : le `<body>` ne contient que `<slot />`~~ · réglé | `src/astro/Layout.astro` | 9 |
 | ~~Les pages qu’`init` génère ne sont reliées que par le bouton du bandeau~~ · réglé | `src/client/files.ts` | 9 |
-| `f.image({ ratio })` existe et n’est appliqué nulle part | `src/fields/types.ts` | 10 |
-| Aucun `og:`, JSON-LD, sitemap, `robots.txt`, favicon ni page 404 | `src/astro/Layout.astro`, `src/client/docker.ts` | 10 |
-| Le Caddyfile généré n’a aucun `handle_errors` ni aucune redirection | `src/client/docker.ts` | 10 |
+| ~~`f.image({ ratio })` existe et n'est appliqué nulle part~~ · réglé | `src/fields/types.ts` | 10 |
+| ~~Aucun `og:`, JSON-LD, sitemap, `robots.txt`, favicon ni page 404~~ · réglé | `src/astro/Layout.astro`, `src/client/docker.ts` | 10 |
+| ~~Le Caddyfile généré n'a aucun `handle_errors` ni aucune redirection~~ · réglé | `src/client/docker.ts` | 10 |
 | SPF, DKIM et DMARC ne sont vérifiés nulle part, alors que l’email porte aussi les codes de connexion | `src/cli/doctor.ts` | 11 |
 | Le formulaire répond par un fragment : aucune adresse distincte après un envoi | `src/blocks/contact/`, D76 | 11 |
 | Un lead est écrit en base, et rien ne garantit que le client le lise | `src/server/leads.ts` | 11 |
@@ -69,7 +69,7 @@ livre un site sans navigation ni mentions légales.
 | 7 | **Outiller** · faite | un `init` réglable, le contexte d’un site, les documents légaux |
 | 8 | **Adapter** · faite | deux rendus servis selon le support, une seule source de contenu |
 | 9 | **Encadrer** · faite | le chrome — navigation, pied de page |
-| 10 | **Cadrer** | le cadrage des images, et `src/seo/` |
+| 10 | **Cadrer** · faite | le cadrage des images, et `src/seo/` |
 | 11 | **Joindre** | ne pas perdre un lead, ne pas être appelé pour rien |
 
 L’ordre proposé est celui des dépendances, avec deux points à valider plutôt
@@ -405,7 +405,53 @@ les deux rendus.
 
 ---
 
-## Phase 10 — Cadrer
+## Phase 10 — Cadrer · faite
+
+**Ce qu'elle a retenu, et ce qu'elle a remplacé.** Les pistes de départ ont tenu
+pour l'essentiel — le recadrage traité comme une ingestion, le lien vers
+l'original conservé, la carte de partage produite par la même mécanique — avec
+un écart sur les redirections et trois questions ouvertes refermées, actés en
+D117 à D124 :
+
+- **Les redirections ne sont pas appliquées par Caddy**, contrairement à la
+  piste (D122). Le `Caddyfile` est écrit à l'`init` et n'est jamais régénéré
+  (D106) : une redirection ajoutée le deux-centième jour n'y arriverait jamais.
+  Le build en fait des pages, que Google lit comme des redirections permanentes.
+- **Le point focal n'est pas renversé, il est complété** (D118). `panel.md`
+  posait le point focal « plutôt qu'un outil de recadrage » : les deux
+  coexistent désormais, parce qu'ils ne répondent pas à la même question — l'un
+  donne le format, l'autre dit où est le sujet à l'intérieur de ce format, et
+  c'est encore lui qui travaille quand le CSS re-cadre d'un support à l'autre.
+- **Le ratio ne devient pas une valeur par support** (D119), alors que la phase
+  8 en ouvrait la possibilité : ce serait deux images stockées par champ, et
+  deux recadrages à demander pour une seule photo, pour une différence que le
+  CSS et le point focal portent déjà.
+- **Les faits de l'entreprise gagnent une source structurée** (D120), ce qui
+  renverse D101. Sa prémisse tombe : les faits avaient un lecteur, ils en ont
+  deux depuis que le JSON-LD existe, et celui-là ne sait pas lire de la prose.
+  `content/business.json` s'édite depuis « Édition », comme le chrome — le
+  sixième écran que D63 refuse n'a pas été ouvert.
+- **Une image réemployée à un autre ratio ne pose aucun problème**, et c'était
+  le cas qui devait casser les solutions simples : le recadrage étant une
+  ingestion, deux cadres d'une même originale sont deux clés, et le contenu ne
+  porte toujours qu'une chaîne. Aucun changement de format, aucune migration.
+
+**Ce qu'elle a trouvé en chemin.** Astro n'écrit pas la page 404 au même endroit
+selon la route : `/404` sort en `404.html`, à plat, quand `/_desktop/404` suit
+la règle des dossiers. Le `Caddyfile` doit donc nommer deux chemins de formes
+différentes, et un test de forme en tient la trace. Les pages de redirection,
+elles, n'ont ni titre principal ni contenu : `checkHeadings` les prenait pour
+des pages sans `h1` — les contrôles qui parcourent le HTML produit les écartent
+désormais sur leur balise de rafraîchissement.
+
+**Ce qui reste ouvert.** Le pied de page ne lit pas encore les faits de
+l'entreprise : D114 tient, et l'ouvrir demanderait de décider ce qui s'affiche
+et ce qui ne s'affiche pas. Les mentions légales redisent en prose ce que la
+fiche porte en structuré — deux saisies, que rien ne rapproche. Le bloc `faq`
+démontre le JSON-LD mais pas le JavaScript opt-in qu'`implementation.md` lui
+réservait : `<details>` fait mieux, et l'invariant 5 n'a pas eu à être payé.
+Enfin, l'image de partage retombe sur la première image de la page, quel que
+soit son format : elle sera parfois recadrée par la messagerie.
 
 **Pourquoi.** Le ratio qu’un champ déclare n’est aujourd’hui qu’une annotation
 morte : rien ne l’applique, et une photo en 4/3 se dépose dans un emplacement
@@ -561,7 +607,9 @@ suppose — c’est même pour cela qu’elles sont listées.
 | 9 | Que le chrome est remplaçable emplacement par emplacement, le site l’emportant sur le socle · acté en D109 et D110 |
 | 9 | Que le menu se déduit des pages tant que personne ne l’a rangé · acté en D111 et D112 |
 | 9 | Que le rang d’un titre appartient à la page, pas au bloc · acté en D113, D114, D115 et D116 |
-| 10 | Ce qu’il advient du point focal, dont le cadrage renverse la décision |
+| 10 | Ce qu'il advient du point focal, dont le cadrage renverse la décision · acté en D117, D118 et D119 |
+| 10 | D'où le JSON-LD local tire ses données, D101 les ayant laissées en prose · acté en D120 et D121 |
+| 10 | Que les redirections et la page 404 ne dépendent pas d'un `Caddyfile` régénéré · acté en D122, D123 et D124 |
 | 11 | Si le second facteur cesse de dépendre de l’email |
 
 ## Vu, et pas retenu maintenant

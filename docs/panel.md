@@ -64,9 +64,11 @@ même temps.
 | Messages | les leads du formulaire de contact | phase 5 |
 | Statistiques | le rapport d'audience | phase 5 |
 
-Les cinq sont là, et la phase 9 n'en ajoute pas : l'en-tête et le pied de page
-s'éditent depuis « Édition », comme une entrée de plus dans la liste des pages.
-C'est là qu'ils se règlent bien, puisque c'est là qu'on les voit.
+Les cinq sont là, et ni la phase 9 ni la phase 10 n'en ajoutent : l'en-tête, le
+pied de page et la fiche d'entreprise s'éditent depuis « Édition », comme des
+entrées de plus dans la liste des pages. C'est là que les deux premiers se
+règlent bien, puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi
+remplir un écran à elle seule.
 
 L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
 ouvrir un message le marque lu, sans que le client coche quoi que ce soit.
@@ -133,7 +135,9 @@ pour porter un état.
 
 `panel.css` ne dessine plus que ce que Mantine ne sait pas dessiner : la mise
 en page des écrans, la poignée de déplacement, la vignette, la jauge, le point
-focal.
+focal, et le cadre de recadrage. Ce cadre est le seul trait du panel : ce n'est
+pas une bordure qui sépare deux plans (D97), c'est la commande elle-même — hors
+de lui, tout est assombri, et c'est cet écart qui montre ce qui sera gardé.
 
 ## Authentification
 
@@ -233,6 +237,13 @@ Le panel revient lire la seconde toutes les secondes et demie tant que la file
 tourne : un build dure des secondes, une requête ne les attend pas
 (`publication.md`).
 
+### Ce que la phase 10 a ajouté
+
+| Adresse | Ce qu'elle fait |
+|---|---|
+| `POST /api/media/crop` | recadre une image, et rend la nouvelle clé |
+| `PUT /api/business` | valide, écrit `content/business.json`, commit |
+
 ### Ce que la phase 5 a ajouté
 
 | Adresse | Ce qu'elle fait |
@@ -303,9 +314,17 @@ interrupteur de visibilité : ils sont sur toutes les pages, et `hidden` n'a
 d'axe que la langue (D107). L'aperçu montre alors l'accueil, où ils se voient
 en entier.
 
-Le brouillon garde sa forme — deux sections, pas de métadonnées — si bien que
-le suivi des modifications non enregistrées, la confirmation avant de quitter
-et le refus d'un contenu invalide marchent sans une ligne de plus.
+**« Fiche de l'entreprise »** est la dernière entrée du sélecteur. Elle porte ce
+que les moteurs de recherche affichent du client — raison sociale, type
+d'activité, adresse, téléphone, horaires, zone desservie — et rien de tout cela
+ne s'affiche sur le site : la phrase sous la liste le dit. C'est la source
+structurée que D120 introduit, et la seule.
+
+Le brouillon garde sa forme — des sections, pas de métadonnées — si bien que le
+suivi des modifications non enregistrées, la confirmation avant de quitter et le
+refus d'un contenu invalide marchent sans une ligne de plus. Les entrées qui ne
+sont pas des pages sont nommées au même endroit, `src/admin/asides.ts` : une
+quatrième s'y ajoute sans qu'une condition se répande dans les écrans.
 
 L'enregistrement et la mise en ligne vivent dans l'en-tête, à droite du titre :
 un seul endroit pour agir sur l'état du site, à la même place sur les cinq
@@ -362,8 +381,19 @@ sur les octets réels, nom dérivé de l'empreinte, suppression refusée tant
 qu'une section l'emploie. Ce qui les sépare — le ré-encodage impossible, et les
 conditions qui le compensent — est dans `securite.md`.
 
-**Point focal** réglable (transformé en `object-position`) plutôt qu'un outil de
-recadrage : cela résout les visages coupés pour une fraction du travail.
+**Point focal** réglable, transformé en `object-position`. Il a longtemps tenu
+lieu de recadrage ; la phase 10 lui adjoint un vrai outil, sans le remplacer
+(D118) : le recadrage donne le format, le point focal dit où est le sujet à
+l'intérieur de ce format — et c'est encore lui qui travaille quand le CSS
+re-cadre d'un support à l'autre.
+
+**Recadrage** au format que l'emplacement attend. Il ne s'ouvre pas depuis la
+médiathèque, qui ne connaît aucun format, mais depuis le champ, qui le déclare.
+Le cadre est verrouillé au ratio : le client le déplace et le redimensionne, à
+la souris ou aux flèches du clavier, il ne le déforme pas. Ce qui en sort est
+une **nouvelle** image, dérivée de l'originale, qui reste (D117) — la
+médiathèque affiche « Recadrée », et supprimer une originale dont un recadrage
+est en ligne est refusé.
 
 La suppression d'un média encore référencé est refusée : le panel affiche
 « employée par une section » à la place du bouton. `basalte check` signale

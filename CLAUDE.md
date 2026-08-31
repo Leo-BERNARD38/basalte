@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases, et les phases 7 à 9, sont faites. Phase 1 — DSL
+**État :** les six phases, et les phases 7 à 10, sont faites. Phase 1 — DSL
 de champs, moteur de blocs, intégration Astro, médias, `basalte check` et
 `basalte inventory` ; le site de démonstration se construit depuis son JSON
 (`examples/demo`). Phase 2 — le flux d'authentification entier, jusqu'à
@@ -25,8 +25,11 @@ servis chacun à son support, la variante bureau d'un bloc, et le contrat qui
 garantit que le mobile porte tout. Phase 9 — encadrer : l'en-tête et le pied de
 page autour de chaque page, dans les deux rendus, remplaçables par site, un
 menu qui se déduit des pages tant que personne ne l'a rangé, et le `h1` rendu à
-la première section. Reste `src/seo/` et le bloc `faq` qui l'attend
-(`docs/roadmap.md`).
+la première section. Phase 10 — cadrer : le ratio d'un champ réellement obtenu
+par un recadrage qui est une ingestion, la fiche d'entreprise comme seule source
+structurée, `src/seo/` — carte de partage, JSON-LD, sitemap, `robots.txt`,
+favicon, page 404, redirections — et le bloc `faq` qui l'attendait. Reste la
+phase 11, *Joindre* (`docs/roadmap.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 **Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
@@ -49,6 +52,7 @@ terminal.
 | ce qui vient après les six phases | `docs/roadmap.md` |
 | ce que contient un dépôt client | `docs/depot-client.md` |
 | les tokens, une maquette à implémenter | `docs/design.md` |
+| le référencement, le cadrage des images | `docs/seo-performances.md` |
 | la mise en ligne d'un site | `docs/mise-en-prod.md` |
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
@@ -97,7 +101,7 @@ src/
 │                   capacités déclarées
 ├── fields/         DSL f.* → schéma Zod + description d'interface
 ├── content/        format de page, lecture, validation, messages français
-├── media/          ingestion sharp, manifeste, résolution, emplois ;
+├── media/          ingestion sharp, recadrage, manifeste, résolution, emplois ;
 │                   documents PDF, seule exception à l'invariant 3
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro, plus <Nom>.desktop.astro
@@ -117,7 +121,8 @@ src/
 │                   paquet Claude Code, dépôt distant, montée de version
 ├── deploy/         la machine : runner SSH, provisionnement, sondes de doctor
 ├── migrations/     transformations de format de contenu, en liste ordonnée
-├── seo/            meta, JSON-LD, sitemap, hreflang
+├── seo/            carte de partage, JSON-LD, sitemap, robots, redirections ;
+│                   les faits de l'entreprise et leurs champs
 └── cli/            init, check, inventory, update, deploy, doctor,
                     migrate, admin:login, update-all
 notes/              une note de version par tag, livrée dans le paquet
@@ -126,8 +131,6 @@ scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
 docs/
 ```
-
-`seo/` n'existe pas encore : il arrive avec sa phase.
 
 Un `*.fixture.ts` est un banc d'essai : `tsconfig.build.json` l'écarte du
 paquet au même titre qu'un test.
@@ -330,6 +333,22 @@ tests (`docs/implementation.md`).
   une valeur — fût-ce une constante — y entraîne `node:path` et `node:fs`, et
   le build du panel échoue loin de la cause. Ce que les deux côtés partagent
   vit dans un module pur : `src/chrome/define.ts`, `src/content/naming.ts`.
+- **Une fonction ne survit pas au JSON du registre.** Les descripteurs de blocs
+  sont sérialisés dans le module généré (D56) : ce qu'un bloc déclare de
+  *comportement* — le `structured` du JSON-LD — y arrive par un import du
+  `schema`, à côté de celui du composant, jamais par le registre.
+- **Astro n'écrit pas la page 404 au même endroit selon la route.** `/404` sort
+  en `404.html`, à plat ; `/_desktop/404` suit la règle des dossiers. Le
+  `Caddyfile` nomme donc deux chemins de formes différentes.
+- **Une page de redirection n'est pas une page** : ni titre principal, ni
+  contenu. Les contrôles qui parcourent le HTML produit l'écartent sur sa balise
+  de rafraîchissement, faute de quoi `checkHeadings` la signale comme une page
+  sans `h1`.
+- **Le recadrage repart toujours de l'originale**, jamais d'un recadrage : le
+  cadre est exprimé en pourcentage de l'originale, et repartir d'une découpe
+  ajouterait une passe d'encodage à chaque correction. Le cadre entre dans
+  l'empreinte, si bien que deux cadres différents sont deux clés et que refaire
+  le même rend la même.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.
