@@ -14,8 +14,10 @@ import type { ChromeContent } from '../chrome/define.js'
 import { findChrome } from '../chrome/scan.js'
 import { readDocuments, type DocumentManifest } from '../media/documents.js'
 import { readManifest, type MediaManifest } from '../media/manifest.js'
+import type { BusinessFacts } from '../seo/business.js'
 import type { Site } from '../site/define.js'
 import { loadSite } from '../site/load.js'
+import { readBusinessFile, validateBusiness } from './business.js'
 import { CHROME_NAME, readChromeFile, validateChrome } from './chrome.js'
 import { unknownLinks } from './links.js'
 import type { Page } from './page.js'
@@ -55,6 +57,7 @@ export type Project = Schemas &
     readonly sources: readonly BlockSource[]
     readonly chromeSources: readonly BlockSource[]
     readonly chromeContent: ChromeContent
+    readonly business: BusinessFacts
   }
 
 async function schemasOf(
@@ -105,6 +108,25 @@ export function validateFiles(
   }
 
   return { pages, issues }
+}
+
+/**
+ * La fiche d’entreprise du dépôt, relue à chaque appel comme le chrome et les
+ * pages : c’est le dernier enregistrement qui compte.
+ */
+export async function readBusiness(
+  root: string,
+  schemas: Schemas,
+): Promise<{
+  readonly business: BusinessFacts
+  readonly issues: readonly ContentIssue[]
+}> {
+  return validateBusiness({
+    source: await readBusinessFile(root),
+    languages: schemas.site.languages,
+    media: schemas.media,
+    documents: schemas.documents,
+  })
 }
 
 /**
@@ -168,14 +190,16 @@ export async function readProject(root: string): Promise<Project> {
     schemas,
     content.pages.map((entry) => entry.route),
   )
+  const business = await readBusiness(root, schemas)
 
   return {
     ...schemas,
     sources,
     chromeSources,
     chromeContent: chrome.chrome,
+    business: business.business,
     pages: content.pages,
-    issues: [...content.issues, ...chrome.issues],
+    issues: [...content.issues, ...chrome.issues, ...business.issues],
   }
 }
 

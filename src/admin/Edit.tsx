@@ -27,7 +27,7 @@ import { useState } from 'react'
 
 import { SUPPORT_PARAM } from '../astro/preview.js'
 import { slugFor } from '../astro/routes.js'
-import { CHROME_ENTRY, CHROME_TITLE, SLOTS } from '../chrome/define.js'
+import { asideOf, asidesOf } from './asides.js'
 import { pageLabel } from '../content/naming.js'
 import { DEFAULT_SUPPORT } from '../render/supports.js'
 import type { PanelPayload } from '../server/panel.js'
@@ -65,7 +65,10 @@ export function Edit({
   const [opened, setOpened] = useState<string>(selected)
   const [viewport, setViewport] = useState<string>('desktop')
 
-  const isChrome = selected === CHROME_ENTRY
+  // Le chrome et la fiche d’entreprise s’ouvrent ici comme des pages : ils
+  // portent des sections, sans route ni métadonnées.
+  const aside = asideOf(payload, selected)
+  const fixed = aside !== undefined
 
   // Le panneau de droite suit la page ouverte : sans cette remise à zéro,
   // passer d’une page au chrome laisserait un identifiant de section que la
@@ -73,14 +76,14 @@ export function Edit({
   if (opened !== selected) {
     setOpened(selected)
     setFocus(
-      selected === CHROME_ENTRY
-        ? { kind: 'block', id: SLOTS[0] }
-        : { kind: 'meta' },
+      aside === undefined
+        ? { kind: 'meta' }
+        : { kind: 'block', id: aside.sections[0]?.id ?? '' },
     )
   }
   const page = payload.pages.find((entry) => entry.name === selected)
 
-  if (!isChrome && page === undefined) {
+  if (!fixed && page === undefined) {
     return <Text c="dimmed">Ce site n’a aucune page.</Text>
   }
 
@@ -88,14 +91,14 @@ export function Edit({
   // entier, et le client n’a pas à savoir qu’il est sur toutes les pages.
   const previewed = page?.route ?? '/'
 
-  // La bibliothèque des sections d’une page, ou les deux emplacements du
-  // chrome : dans les deux cas, un descripteur par type.
-  const types = isChrome ? payload.chrome.types : payload.library
+  // La bibliothèque des sections d’une page, ou les emplacements d’une entrée
+  // fixe : dans les deux cas, un descripteur par type.
+  const types = aside?.types ?? payload.library
 
-  // Le chrome n’a pas de métadonnées : son panneau ouvre sur le premier
+  // Une entrée fixe n’a pas de métadonnées : son panneau ouvre sur le premier
   // emplacement plutôt que sur un formulaire qui n’existe pas.
   const active: Focus =
-    isChrome && focus.kind === 'meta'
+    fixed && focus.kind === 'meta'
       ? { kind: 'block', id: draft.blocks[0]?.id ?? '' }
       : focus
 
@@ -116,7 +119,10 @@ export function Edit({
                 value: entry.name,
                 label: pageLabel(entry.name),
               })),
-              { value: CHROME_ENTRY, label: CHROME_TITLE },
+              ...asidesOf(payload).map((entry) => ({
+                value: entry.entry,
+                label: entry.title,
+              })),
             ]}
             value={selected}
             allowDeselect={false}
@@ -125,17 +131,17 @@ export function Edit({
 
           <Group justify="space-between" align="center" px={12}>
             <span className="basalte-eyebrow">
-              {isChrome ? 'Emplacements' : 'Sections'}
+              {fixed ? 'Emplacements' : 'Sections'}
             </span>
             <Text size="sm" fw={700} c="dimmed">
               {draft.blocks.length}
             </Text>
           </Group>
 
-          {isChrome ? (
-            // Ni poignée, ni œil barré : le chrome ne se réordonne pas, et il
-            // ne se masque pas — une section se masque par langue, jamais par
-            // support ni par page (D107).
+          {fixed ? (
+            // Ni poignée, ni œil barré : une entrée fixe ne se réordonne pas,
+            // et elle ne se masque pas — une section se masque par langue,
+            // jamais par support ni par page (D107).
             <Stack gap={2}>
               {draft.blocks.map((section) => (
                 <button
@@ -200,7 +206,7 @@ export function Edit({
             </SortableList>
           )}
 
-          {!isChrome && draft.blocks.length === 0 && (
+          {!fixed && draft.blocks.length === 0 && (
             <div className="basalte-empty">
               Cette page n’a pas encore de section. Elles s’ajoutent depuis le
               dépôt, pas depuis le panel.
@@ -208,12 +214,11 @@ export function Edit({
           )}
 
           <Text size="sm" c="dimmed" px={12}>
-            {isChrome
-              ? 'L’en-tête et le pied de page sont sur toutes les pages du site.'
-              : 'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
+            {aside?.note ??
+              'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
           </Text>
 
-          {!isChrome && (
+          {!fixed && (
             <Button
               variant={focus.kind === 'meta' ? 'light' : 'subtle'}
               color={focus.kind === 'meta' ? 'brand' : 'gray'}
@@ -297,7 +302,7 @@ export function Edit({
             <Section
               section={focused}
               type={types.find((entry) => entry.name === focused.type)}
-              hideable={!isChrome}
+              hideable={!fixed}
               onChange={(next) =>
                 onDraft({
                   ...draft,

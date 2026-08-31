@@ -17,7 +17,7 @@ const view = await resolvePreview(
 
 if (view.kind === 'stop') return view.response
 
-const { entry, language, support, schemas, content, pages } = view
+const { entry, language, support, schemas, content, business, pages } = view
 
 const components = support === 'desktop' ? desktop : {}
 
@@ -41,6 +41,8 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
   document={document}
   chrome={content}
   pages={pages}
+  sections={sections}
+  business={business}
 >
   {
     sections.map((section, index) => {

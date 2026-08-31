@@ -17,6 +17,7 @@ describe('GET /api/panel', () => {
     expect(payload.meta.map((field: any) => field.name)).toEqual([
       'title',
       'description',
+      'image',
     ])
     expect(payload.pages).toHaveLength(1)
     expect(payload.pages[0].title).toBe('Accueil')

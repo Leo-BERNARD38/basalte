@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { defineSite } from '../site/define.js'
 import {
   DESKTOP_PREFIX,
+  notFoundFile,
+  notFoundRoute,
   slugIn,
   supportFor,
+  supportOfPath,
   supportsOf,
   SUPPORTS,
 } from './supports.js'
@@ -101,5 +104,24 @@ describe('supportFor', () => {
 
   it('sert le bureau à un client qui n’envoie rien', () => {
     expect(supportFor(headers({}))).toBe('desktop')
+  })
+})
+
+describe('la page 404', () => {
+  it('a une route par support, et le préfixe dit laquelle', () => {
+    expect(notFoundRoute('mobile')).toBe('/404')
+    expect(notFoundRoute('desktop')).toBe('/_desktop/404')
+  })
+
+  it('sort à plat au mobile, en dossier au bureau — le cas particulier d’Astro', () => {
+    expect(notFoundFile('mobile')).toBe('/404.html')
+    expect(notFoundFile('desktop')).toBe('/_desktop/404/index.html')
+  })
+
+  it('lit le support sur le chemin d’une page construite', () => {
+    expect(supportOfPath('/404')).toBe('mobile')
+    expect(supportOfPath('/_desktop/404')).toBe('desktop')
+    expect(supportOfPath('/_desktop')).toBe('desktop')
+    expect(supportOfPath('/_desktopiste')).toBe('mobile')
   })
 })

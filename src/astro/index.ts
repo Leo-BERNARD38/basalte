@@ -23,13 +23,15 @@ import type { AstroIntegration } from 'astro'
 import type { BlockRegistry } from '../blocks/define.js'
 import type { BlockSource } from '../blocks/scan.js'
 import type { ChromeContent } from '../chrome/define.js'
-import { supportsOf } from '../render/supports.js'
+import { notFoundRoute, supportsOf } from '../render/supports.js'
 import { CHROME_FILE } from '../content/chrome.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { errorsOf, readProject, type RenderedPage } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
 import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
+import type { BusinessFacts } from '../seo/business.js'
+import { ROBOTS_FILE, SITEMAP_FILE } from '../seo/sitemap.js'
 import type { Site } from '../site/define.js'
 import { CONFIG_FILE } from '../site/load.js'
 
@@ -73,6 +75,7 @@ export default function basalte(): AstroIntegration {
           registry,
           chrome,
           chromeContent,
+          business,
           pages,
           media,
           documents,
@@ -114,6 +117,7 @@ export default function basalte(): AstroIntegration {
           chrome,
           chromeContent,
           chromeSources,
+          business,
           pages,
           media,
           documents,
@@ -127,6 +131,10 @@ export default function basalte(): AstroIntegration {
             plugins: [virtualModule(generated)],
             server: { fs: { allow: [fileURLToPath(own('../../'))] } },
           },
+          // Les redirections déclarées deviennent des pages rendues au build,
+          // jamais une règle du proxy : le `Caddyfile` n’est pas régénéré, et
+          // une redirection ajoutée après coup n’y arriverait jamais (D122).
+          redirects: site.redirects,
         })
 
         if (publicSite) {
@@ -135,6 +143,23 @@ export default function basalte(): AstroIntegration {
             entrypoint: own('./page.astro'),
             prerender: true,
           })
+
+          for (const [pattern, file] of [
+            [`/${SITEMAP_FILE}`, './sitemap.js'],
+            [`/${ROBOTS_FILE}`, './robots.js'],
+          ] as const) {
+            injectRoute({ pattern, entrypoint: own(file), prerender: true })
+          }
+
+          // Une page 404 par support : c’est son adresse qui dit laquelle est
+          // laquelle, et le proxy sert celle du support qu’il a servi.
+          for (const support of supportsOf(site)) {
+            injectRoute({
+              pattern: notFoundRoute(support),
+              entrypoint: own('./notfound.astro'),
+              prerender: true,
+            })
+          }
         }
 
         if (panel) {
@@ -252,6 +277,7 @@ async function generate(
     readonly chrome: BlockRegistry
     readonly chromeContent: ChromeContent
     readonly chromeSources: readonly BlockSource[]
+    readonly business: BusinessFacts
     readonly pages: readonly RenderedPage[]
     readonly media: MediaManifest
     readonly documents: DocumentManifest
@@ -316,12 +342,32 @@ async function generate(
     ({ name, index }) => `${JSON.stringify(name)}: ChromeDesktop${index}`,
   )
 
+  // Les fonctions ne survivent pas au JSON du registre : le module généré
+  // importe donc les schémas qui en portent une, comme il importe les
+  // composants. C’est ce qui garde une seule source de données structurées pour
+  // les deux rendus (D121).
+  const withStructured = data.sources.flatMap((source, index) =>
+    data.registry[source.name]?.structured === undefined
+      ? []
+      : [{ name: source.name, from: source.schema, index }],
+  )
+
+  const schemaLines = withStructured.map(
+    ({ from, index }) =>
+      `import Schema${index} from ${JSON.stringify(specifier(file, from))}`,
+  )
+
+  const builders = withStructured.map(
+    ({ name, index }) => `${JSON.stringify(name)}: Schema${index}.structured`,
+  )
+
   const contents = [
     '// Fichier généré par @leobernard/basalte à chaque démarrage. Ne pas modifier.',
     ...lines,
     ...variants,
     ...chromeLines,
     ...chromeVariants,
+    ...schemaLines,
     `export const root = ${JSON.stringify(data.root)}`,
     `export const site = ${JSON.stringify(data.site)}`,
     `export const dev = ${JSON.stringify(data.dev)}`,
@@ -331,10 +377,12 @@ async function generate(
     `export const documents = ${JSON.stringify(data.documents)}`,
     `export const chromeRegistry = ${JSON.stringify(data.chrome)}`,
     `export const chromeContent = ${JSON.stringify(data.chromeContent)}`,
+    `export const business = ${JSON.stringify(data.business)}`,
     `export const blocks = { ${entries.join(', ')} }`,
     `export const desktop = { ${desktops.join(', ')} }`,
     `export const chrome = { ${chromeEntries.join(', ')} }`,
     `export const chromeDesktop = { ${chromeDesktops.join(', ')} }`,
+    `export const structured = { ${builders.join(', ')} }`,
     '',
   ].join('\n')
 

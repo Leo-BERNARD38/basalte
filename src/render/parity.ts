@@ -20,7 +20,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ContentIssue } from '../content/report.js'
-import { DESKTOP_PREFIX } from './supports.js'
+import { DESKTOP_PREFIX, NOT_FOUND } from './supports.js'
 
 /** Le fichier qu’Astro écrit pour une page, sous le dossier de sa route. */
 export const PAGE_FILE = 'index.html'
@@ -98,7 +98,11 @@ export async function checkRenders(
   const root = path.join(outDir, DESKTOP_PREFIX)
   const issues: ContentIssue[] = []
 
-  for (const page of await pagesUnder(root)) {
+  // La page 404 est hors contrat : elle porte `noindex`, aucun robot ne la
+  // lit, et son jumeau mobile ne vit pas au même endroit (`404.html`, à plat).
+  for (const page of (await pagesUnder(root)).filter(
+    (page) => page !== NOT_FOUND,
+  )) {
     const desktop = await readFile(path.join(root, page, PAGE_FILE), 'utf8')
     const mobile = await readFile(
       path.join(outDir, page, PAGE_FILE),
@@ -119,6 +123,15 @@ export async function checkRenders(
   }
 
   return issues
+}
+
+/**
+ * Une page de redirection n’est pas une page : elle n’a ni titre principal, ni
+ * contenu, et le build en écrit une par adresse déclarée dans `site.config.ts`.
+ * Les contrôles qui parcourent le HTML produit l’écartent.
+ */
+export function isRedirect(html: string): boolean {
+  return /<meta[^>]*http-equiv="refresh"/i.test(html)
 }
 
 function address(page: string): string {

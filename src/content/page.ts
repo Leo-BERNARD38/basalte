@@ -26,6 +26,13 @@ export const META_FIELDS = {
     max: 160,
     rows: 2,
   }),
+  // Le format est celui qu’attendent les messageries. Le champ est facultatif :
+  // vide, la carte reprend la première image de la page (D124).
+  image: f.image({
+    label: 'Image de partage',
+    help: 'Ce qui s’affiche quand le lien de cette page est partagé.',
+    ratio: '1200/630',
+  }),
 }
 
 export type PageBlock = {

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import type { BlockRegistry } from '../blocks/define.js'
 import { f } from '../fields/define.js'
-import { countMediaUsage } from './usage.js'
+import type { MediaEntry, MediaManifest } from './manifest.js'
+import { checkRatios, countMediaUsage, withLineage } from './usage.js'
 
 const REGISTRY: BlockRegistry = {
   hero: {
@@ -95,5 +96,111 @@ describe('countMediaUsage', () => {
     const usage = countMediaUsage(REGISTRY, [page([])])
 
     expect(usage.get('aaa')).toBeUndefined()
+  })
+})
+
+const RATIOED: BlockRegistry = {
+  hero: {
+    name: 'hero',
+    label: 'Bandeau',
+    fields: { image: f.image({ label: 'Image', ratio: '16/9' }) },
+  },
+  free: {
+    name: 'free',
+    label: 'Libre',
+    fields: { image: f.image({ label: 'Image' }) },
+  },
+}
+
+function entry(width: number, height: number, source?: string): MediaEntry {
+  return {
+    format: 'webp',
+    width,
+    height,
+    widths: [width],
+    alt: {},
+    ...(source === undefined ? {} : { source }),
+  }
+}
+
+describe('withLineage', () => {
+  it('reporte sur l’originale les emplois de son recadrage', () => {
+    const manifest: MediaManifest = {
+      aaa: entry(1600, 1200),
+      bbb: entry(1600, 900, 'aaa'),
+    }
+
+    const usage = withLineage(
+      countMediaUsage(REGISTRY, [
+        page([{ type: 'hero', props: { image: 'bbb' } }]),
+      ]),
+      manifest,
+    )
+
+    expect(usage.get('bbb')).toBe(1)
+    expect(usage.get('aaa')).toBe(1)
+  })
+
+  it('laisse orpheline une originale dont aucun recadrage n’est employé', () => {
+    const manifest: MediaManifest = {
+      aaa: entry(1600, 1200),
+      bbb: entry(1600, 900, 'aaa'),
+    }
+
+    const usage = withLineage(countMediaUsage(REGISTRY, [page([])]), manifest)
+
+    expect(usage.get('aaa')).toBeUndefined()
+  })
+})
+
+describe('checkRatios', () => {
+  const named = (blocks: readonly { type: string; props: unknown }[]) => ({
+    name: 'accueil',
+    ...page(blocks),
+  })
+
+  it('signale une image qui ne tient pas le format de son emplacement', () => {
+    const issues = checkRatios(
+      RATIOED,
+      [named([{ type: 'hero', props: { image: 'aaa' } }])],
+      { aaa: entry(1600, 1200) },
+    )
+
+    expect(issues).toHaveLength(1)
+    expect(issues[0]?.severity).toBe('warning')
+    expect(issues[0]?.page).toBe('accueil')
+    expect(issues[0]?.section?.label).toBe('Bandeau')
+    expect(issues[0]?.message).toContain('1600×1200')
+    expect(issues[0]?.message).toContain('16/9')
+  })
+
+  it('se tait quand l’image est au format', () => {
+    expect(
+      checkRatios(
+        RATIOED,
+        [named([{ type: 'hero', props: { image: 'aaa' } }])],
+        { aaa: entry(1600, 900) },
+      ),
+    ).toEqual([])
+  })
+
+  it('se tait quand l’emplacement ne déclare aucun format', () => {
+    expect(
+      checkRatios(
+        RATIOED,
+        [named([{ type: 'free', props: { image: 'aaa' } }])],
+        { aaa: entry(1600, 1200) },
+      ),
+    ).toEqual([])
+  })
+
+  it('se tait sur une image absente du manifeste : ce défaut a son propre message', () => {
+    expect(
+      checkRatios(
+        RATIOED,
+        [named([{ type: 'hero', props: { image: 'zzz' } }])],
+        {},
+      ),
+    ).toEqual([])
   })
 })

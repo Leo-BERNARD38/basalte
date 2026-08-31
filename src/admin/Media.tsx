@@ -28,6 +28,18 @@ export function thumbnail(entry: MediaSummary): string {
   return `${MEDIA_URL}/${fileName(entry.key, entry.widths[0] ?? entry.width)}`
 }
 
+/**
+ * Une taille intermédiaire, pour les écrans qui montrent l’image plutôt que sa
+ * vignette : le point focal et le recadrage se règlent mal sur 480 pixels, et
+ * la plus grande largeur pèse pour rien dans une fenêtre.
+ */
+export function preview(entry: MediaSummary): string {
+  const width =
+    [...entry.widths].reverse().find((value) => value <= 1200) ?? entry.width
+
+  return `${MEDIA_URL}/${fileName(entry.key, width)}`
+}
+
 export function MediaGrid({
   media,
   selected,
@@ -70,7 +82,9 @@ export function MediaGrid({
             {translated(entry.alt, editing.language) || 'Sans description'}
           </Text>
           <Text size="xs" c="dimmed">
-            {usageLabel(entry.usage)}
+            {entry.source === undefined
+              ? usageLabel(entry.usage)
+              : `Recadrée — ${usageLabel(entry.usage).toLowerCase()}`}
           </Text>
         </UnstyledButton>
       ))}

@@ -14,6 +14,7 @@ import {
   MOBILE_HINT,
   MOBILE_HINT_FALSE,
   MOBILE_USER_AGENT,
+  notFoundFile,
 } from '../render/supports.js'
 import type { GeneratedFile, SiteAnswers } from './files.js'
 
@@ -168,6 +169,13 @@ function compose(): string {
 // servis en pièce jointe et ne s’affichent jamais dans une page. C’est la
 // condition à laquelle un PDF échappe à l’invariant 3 (`docs/securite.md`),
 // et la CSP interdit déjà de l’incruster.
+//
+// Ce qui ne correspond à rien tombe dans `handle_errors`, qui sert la page 404
+// du site plutôt que le texte nu de Caddy — avec son statut, jamais 200 : une
+// page d’erreur qui répond « tout va bien » se fait indexer. Le rendu bureau y
+// est choisi comme partout ailleurs, sur l’indication client puis sur le
+// User-Agent. Les deux `handle` sont exclusifs l’un de l’autre : ce qui n’est
+// pas un 404 ressort en texte, sans passer par la page du site.
 function caddyfile(domain: string): string {
   return [
     `${domain} {`,
@@ -239,6 +247,41 @@ function caddyfile(domain: string): string {
     '            rewrite @guessed {file_match.relative}',
     '',
     '            file_server',
+    '        }',
+    '    }',
+    '',
+    '    handle_errors {',
+    '        @notfound expression {err.status_code} == 404',
+    '        handle @notfound {',
+    `            root * ${SERVED_ROOT}/current`,
+    '            route {',
+    '                @desktop {',
+    `                    header ${MOBILE_HINT} ${MOBILE_HINT_FALSE}`,
+    '                    file {',
+    `                        try_files ${notFoundFile('desktop')}`,
+    '                    }',
+    '                }',
+    `                rewrite @desktop ${notFoundFile('desktop')}`,
+    '',
+    '                @guessed {',
+    `                    header !${MOBILE_HINT}`,
+    `                    not header_regexp User-Agent (${MOBILE_USER_AGENT.source})`,
+    '                    file {',
+    `                        try_files ${notFoundFile('desktop')}`,
+    '                    }',
+    '                }',
+    `                rewrite @guessed ${notFoundFile('desktop')}`,
+    '',
+    `                @mobile not path ${notFoundFile('desktop')}`,
+    `                rewrite @mobile ${notFoundFile('mobile')}`,
+    '',
+    '                file_server {',
+    '                    status 404',
+    '                }',
+    '            }',
+    '        }',
+    '        handle {',
+    '            respond "{err.status_code} {err.status_text}" {err.status_code}',
     '        }',
     '    }',
     '',

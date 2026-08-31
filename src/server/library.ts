@@ -16,6 +16,7 @@ import { z } from 'zod'
 import type { Schemas } from '../content/project.js'
 import { languageName } from '../content/report.js'
 import type { Translated } from '../fields/types.js'
+import { cropImage } from '../media/crop.js'
 import {
   ingest,
   MAX_IMAGE_BYTES,
@@ -30,7 +31,11 @@ import {
   type MediaManifest,
 } from '../media/manifest.js'
 import { fileName } from '../media/resolve.js'
-import { countMediaUsage, type UsageSource } from '../media/usage.js'
+import {
+  countMediaUsage,
+  withLineage,
+  type UsageSource,
+} from '../media/usage.js'
 import type { Panel } from './context.js'
 import { badRequest, json, withinLength } from './http.js'
 import type { Commit } from './pages.js'
@@ -53,6 +58,16 @@ const Update = z.object({
   focal: z.object({ x: Coordinate, y: Coordinate }).nullable().optional(),
 })
 
+const Crop = z.object({
+  key: z.string().regex(KEY),
+  box: z.object({
+    x: Coordinate,
+    y: Coordinate,
+    width: z.number().min(1).max(100),
+    height: z.number().min(1).max(100),
+  }),
+})
+
 export type MediaSummary = MediaEntry & {
   readonly key: string
   readonly usage: number
@@ -63,7 +78,7 @@ export function describeMedia(
   pages: readonly UsageSource[],
   schemas: Schemas,
 ): readonly MediaSummary[] {
-  const usage = countMediaUsage(schemas.registry, pages)
+  const usage = withLineage(countMediaUsage(schemas.registry, pages), manifest)
 
   return Object.entries(manifest)
     .map(([key, entry]) => ({ ...entry, key, usage: usage.get(key) ?? 0 }))
@@ -175,6 +190,66 @@ export async function updateMedia(
   return json({ ok: true, media: { ...manifest[key], key } })
 }
 
+/**
+ * Recadrer produit une **nouvelle** image, dérivée de l’originale, qui reste.
+ * Le cadre arrive en pourcentage de l’originale : c’est la seule forme qui
+ * survive au fait que le panel travaille sur une vignette.
+ */
+export async function cropMedia(
+  panel: Panel,
+  request: Request,
+  commit: Commit,
+): Promise<Response> {
+  let body
+
+  try {
+    body = Crop.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const manifest = { ...(await readManifest(panel.root)) }
+
+  if (manifest[body.data.key] === undefined) {
+    return json({ ok: false, message: 'Média inconnu.' }, 404)
+  }
+
+  let ingested
+
+  try {
+    ingested = await cropImage(
+      panel.root,
+      manifest,
+      body.data.key,
+      body.data.box,
+    )
+  } catch (cause) {
+    return json({ ok: false, message: (cause as Error).message }, 422)
+  }
+
+  const previous = manifest[ingested.key]
+
+  await storeMedia(panel.root, ingested)
+
+  manifest[ingested.key] = {
+    ...ingested.entry,
+    ...(previous?.focal === undefined ? {} : { focal: previous.focal }),
+  }
+
+  await writeManifest(panel.root, manifest)
+  await commit(
+    [MANIFEST_PATH, ...ingested.files.map((item) => mediaPath(item.name))],
+    `média : ${ingested.key} recadré depuis ${ingested.entry.source}`,
+  )
+
+  return json({
+    ok: true,
+    media: { ...manifest[ingested.key], key: ingested.key, usage: 0 },
+  })
+}
+
 export async function deleteMedia(
   panel: Panel,
   key: string,
@@ -191,13 +266,27 @@ export async function deleteMedia(
     return json({ ok: false, message: 'Média inconnu.' }, 404)
   }
 
-  const usage = countMediaUsage(schemas.registry, pages).get(key) ?? 0
+  const counted = countMediaUsage(schemas.registry, pages)
+  const usage = counted.get(key) ?? 0
 
   if (usage > 0) {
     return json(
       {
         ok: false,
         message: `Cette image est employée par ${usage} section${usage > 1 ? 's' : ''}. Retire-la d’abord.`,
+      },
+      409,
+    )
+  }
+
+  // Supprimer l’originale d’un recadrage en ligne priverait le client de ce
+  // dont il faut repartir pour cadrer autrement.
+  if ((withLineage(counted, manifest).get(key) ?? 0) > 0) {
+    return json(
+      {
+        ok: false,
+        message:
+          'Un recadrage de cette image est employé par une section. Retire-le d’abord.',
       },
       409,
     )

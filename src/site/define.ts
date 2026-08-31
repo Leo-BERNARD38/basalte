@@ -2,6 +2,7 @@
 // est déclaré — langues, tokens — pour que le reste du socle ne travaille
 // jamais sur la déclaration brute.
 
+import { checkRedirects, type Redirects } from '../seo/redirects.js'
 import {
   resolveCapabilities,
   type CapabilityOverrides,
@@ -20,6 +21,8 @@ export type SiteDeclaration = {
   readonly languages: Readonly<Record<string, LanguageDeclaration>>
   readonly tokens?: TokenOverrides
   readonly capabilities?: CapabilityOverrides
+  /** Les anciennes adresses du site, et où elles mènent désormais. */
+  readonly redirects?: Redirects
   readonly email?: { readonly provider: string }
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -30,6 +33,7 @@ export type Site = {
   readonly languages: Languages
   readonly tokens: Tokens
   readonly capabilities: Capabilities
+  readonly redirects: Redirects
   readonly email?: { readonly provider: string }
   readonly leads?: { readonly purgeAfterMonths: number }
 }
@@ -48,12 +52,17 @@ export function defineSite(declaration: SiteDeclaration): Site {
     )
   }
 
+  const redirects = declaration.redirects ?? {}
+
+  checkRedirects(redirects)
+
   return {
     name: declaration.name.trim(),
     domain: declaration.domain,
     languages: resolveLanguages(declaration.languages),
     tokens: resolveTokens(declaration.tokens),
     capabilities: resolveCapabilities(declaration.capabilities),
+    redirects,
     ...(declaration.email === undefined ? {} : { email: declaration.email }),
     ...(declaration.leads === undefined ? {} : { leads: declaration.leads }),
   }

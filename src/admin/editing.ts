@@ -15,7 +15,14 @@ export type Editing = {
   readonly capabilities: Capabilities
   readonly media: readonly MediaSummary[]
   readonly documents: readonly DocumentSummary[]
-  readonly pickImage: (current: string) => Promise<string | undefined>
+  /**
+   * Le ratio vient du champ, jamais de la médiathèque : elle ne connaît aucun
+   * format attendu, et c’est l’emplacement qui le déclare.
+   */
+  readonly pickImage: (
+    current: string,
+    ratio?: string,
+  ) => Promise<string | undefined>
   readonly pickDocument: (current: string) => Promise<string | undefined>
 }
 

@@ -7,6 +7,7 @@ import { validatePage } from '../content/validate.js'
 import { renderRichtext } from '../fields/richtext.js'
 import { resolveLanguages } from '../site/languages.js'
 import contact from './contact/schema.js'
+import faq from './faq/schema.js'
 import richtext from './richtext/schema.js'
 
 const languages = resolveLanguages({ fr: { default: true } })
@@ -58,5 +59,64 @@ describe('bloc richtext — la grammaire du corps', () => {
 
     expect(renderRichtext('## Titre', body)).toBe('<h2>Titre</h2>')
     expect(renderRichtext('- un', body)).toBe('<ul><li>un</li></ul>')
+  })
+})
+
+describe('bloc faq — les données structurées', () => {
+  const context = { language: 'fr', url: 'https://exemple.fr/aide' }
+
+  const items = [
+    {
+      question: { fr: 'Intervenez-vous le samedi ?' },
+      answer: { fr: 'Oui, sur **rendez-vous**.' },
+    },
+  ]
+
+  it('rend un FAQPage depuis les questions renseignées', () => {
+    const node = faq.structured?.({ title: { fr: '' }, items }, context)
+
+    expect(node).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Intervenez-vous le samedi ?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: '<p>Oui, sur <strong>rendez-vous</strong>.</p>',
+          },
+        },
+      ],
+    })
+  })
+
+  it('écarte une question vide plutôt que d’annoncer une entrée sans nom', () => {
+    const node = faq.structured?.(
+      {
+        title: { fr: '' },
+        items: [{ question: { fr: '   ' }, answer: { fr: 'Peu importe.' } }],
+      },
+      context,
+    )
+
+    expect(node).toBeUndefined()
+  })
+
+  it('échappe le contenu comme le rendu : aucune balise ne vient du texte', () => {
+    const node = faq.structured?.(
+      {
+        title: { fr: '' },
+        items: [
+          {
+            question: { fr: 'Et ceci ?' },
+            answer: { fr: '<script>alert(1)</script>' },
+          },
+        ],
+      },
+      context,
+    ) as { mainEntity: { acceptedAnswer: { text: string } }[] }
+
+    expect(node.mainEntity[0]?.acceptedAnswer.text).not.toContain('<script>')
   })
 })

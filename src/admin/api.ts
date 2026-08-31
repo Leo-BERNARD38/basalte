@@ -4,6 +4,7 @@
 
 import type { AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
+import type { BusinessDraft } from '../server/business.js'
 import type { ChromeDraft } from '../server/chrome.js'
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
@@ -56,6 +57,15 @@ export function saveChrome(
   draft: Draft,
 ): Promise<Answer<{ readonly chrome: ChromeDraft; readonly commit: boolean }>> {
   return send('PUT', '/api/chrome', { blocks: draft.blocks })
+}
+
+/** La fiche d’entreprise : une section, et aucune métadonnée. */
+export function saveBusiness(
+  draft: Draft,
+): Promise<
+  Answer<{ readonly business: BusinessDraft; readonly commit: boolean }>
+> {
+  return send('PUT', '/api/business', { blocks: draft.blocks })
 }
 
 export type Published = { readonly publication: PublishState }
@@ -132,6 +142,19 @@ export function updateMedia(
   },
 ): Promise<Answer<{ readonly media: MediaSummary }>> {
   return send('PATCH', `/api/media/${key}`, patch)
+}
+
+/** Recadrer rend une **nouvelle** image : l’originale reste dans la médiathèque. */
+export function cropMedia(
+  key: string,
+  box: {
+    readonly x: number
+    readonly y: number
+    readonly width: number
+    readonly height: number
+  },
+): Promise<Answer<{ readonly media: MediaSummary }>> {
+  return send('POST', '/api/media/crop', { key, box })
 }
 
 export function deleteMedia(key: string): Promise<Answer<unknown>> {

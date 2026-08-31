@@ -8,6 +8,7 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { BUSINESS_NAME, BUSINESS_PATH } from '../content/business.js'
 import { CHROME_NAME, CHROME_PATH } from '../content/chrome.js'
 import { CONTENT_DIR, CONTENT_FORMAT } from '../content/page.js'
 import { readContent } from '../content/read.js'
@@ -37,9 +38,9 @@ export type MigrationPlan = {
   readonly ahead: readonly string[]
 }
 
-// Le chrome est migré à côté des pages : il porte le même `$format`, et un
-// numéro que `migrate` n’atteindrait jamais serait plus trompeur que son
-// absence.
+// Le chrome et la fiche d’entreprise sont migrés à côté des pages : ils portent
+// le même `$format`, et un numéro que `migrate` n’atteindrait jamais serait
+// plus trompeur que son absence.
 export async function planMigrations(
   root: string,
   migrations: readonly Migration[] = MIGRATIONS,
@@ -55,7 +56,18 @@ export async function planMigrations(
       source: file.source,
       of: (migration: Migration) => migration.page,
     })),
-    ...(await chromeFile(root)),
+    ...(await sideFile(
+      root,
+      CHROME_NAME,
+      CHROME_PATH,
+      (migration) => migration.chrome,
+    )),
+    ...(await sideFile(
+      root,
+      BUSINESS_NAME,
+      BUSINESS_PATH,
+      (migration) => migration.business,
+    )),
   ]
 
   for (const file of files) {
@@ -83,7 +95,19 @@ export async function planMigrations(
   return { target, pages, ahead }
 }
 
-async function chromeFile(root: string): Promise<
+/**
+ * Un fichier de `content/` qui porte du contenu sans être une page. Absent, il
+ * ne fait rien : un site plus ancien que la fiche d’entreprise se migre sans
+ * qu’une migration ait à créer un fichier.
+ */
+async function sideFile(
+  root: string,
+  name: string,
+  file: string,
+  transform: (
+    migration: Migration,
+  ) => ((value: RawPage) => RawPage) | undefined,
+): Promise<
   readonly {
     readonly name: string
     readonly path: string
@@ -91,7 +115,7 @@ async function chromeFile(root: string): Promise<
     readonly of: (migration: Migration) => (value: RawPage) => RawPage
   }[]
 > {
-  const raw = await readFile(path.join(root, CHROME_PATH), 'utf8').catch(
+  const raw = await readFile(path.join(root, file), 'utf8').catch(
     () => undefined,
   )
 
@@ -99,10 +123,10 @@ async function chromeFile(root: string): Promise<
 
   return [
     {
-      name: CHROME_NAME,
-      path: CHROME_PATH,
+      name,
+      path: file,
       source: JSON.parse(raw) as unknown,
-      of: (migration: Migration) => migration.chrome ?? ((value) => value),
+      of: (migration: Migration) => transform(migration) ?? ((value) => value),
     },
   ]
 }

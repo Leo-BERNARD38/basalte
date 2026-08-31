@@ -1,0 +1,155 @@
+---
+// Les questions fréquentes, dépliables sans une ligne de JavaScript.
+//
+// `<details>` fait tout ce qu’il faut, et le fait mieux qu’un script : le
+// clavier l’ouvre, les lecteurs d’écran l’annoncent, et une recherche dans la
+// page y trouve le texte replié. C’est le même choix que le menu du mobile
+// (D113), et il laisse l’invariant 5 intact.
+//
+// Ce que ce bloc démontre, et qu’aucun autre ne montre : une section qui
+// apporte ses propres données structurées, déclarées dans son schéma.
+import { pick } from '../../fields/translate.js'
+import { renderRichtext } from '../../fields/richtext.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+const QuestionTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+
+const items = props.items
+  .map((item) => ({
+    question: pick(item.question, language),
+    answer: renderRichtext(
+      pick(item.answer, language),
+      schema.fields.items.of.answer,
+    ),
+  }))
+  .filter((item) => item.question !== '')
+---
+
+<section class="faq">
+  <div class="faq__inner">
+    {title !== '' && <Title class="faq__title">{title}</Title>}
+    <div class="faq__list">
+      {
+        items.map((item) => (
+          <details class="faq__item">
+            <summary class="faq__question">
+              <QuestionTitle class="faq__question-text">
+                {item.question}
+              </QuestionTitle>
+            </summary>
+            <div class="faq__answer" set:html={item.answer} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding: var(--space-7) var(--space-5);
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  .faq__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .faq__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .faq__item {
+    padding: var(--space-3) 0;
+  }
+
+  .faq__item + .faq__item {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .faq__question {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Le chevron est dessiné plutôt qu’importé : une icône serait une dépendance
+     de plus, et une image de plus à charger. */
+  .faq__question::after {
+    flex: none;
+    order: 2;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-inline-start: auto;
+    border-right: 2px solid var(--color-muted);
+    border-bottom: 2px solid var(--color-muted);
+    rotate: 45deg;
+    translate: 0 -0.15rem;
+    content: '';
+  }
+
+  .faq__item[open] .faq__question::after {
+    rotate: -135deg;
+    translate: 0 0.15rem;
+  }
+
+  .faq__question-text {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    line-height: 1.3;
+  }
+
+  .faq__answer {
+    padding-top: var(--space-3);
+    color: var(--color-muted);
+    font-size: var(--text-base);
+  }
+
+  .faq__answer :global(p),
+  .faq__answer :global(ul),
+  .faq__answer :global(ol) {
+    margin: 0 0 var(--space-3);
+  }
+
+  .faq__answer :global(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .faq__answer :global(li) {
+    margin-bottom: var(--space-2);
+  }
+
+  .faq__answer :global(a) {
+    color: var(--color-accent);
+  }
+</style>

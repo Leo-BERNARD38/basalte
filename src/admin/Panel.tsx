@@ -26,19 +26,13 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
-import { CHROME_ENTRY, CHROME_TITLE } from '../chrome/define.js'
+import { asideOf, asidesOf, isAside } from './asides.js'
 import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
 import { Account } from './Account.js'
-import {
-  loadPanel,
-  publishSite,
-  readPublication,
-  saveChrome,
-  savePage,
-} from './api.js'
+import { loadPanel, publishSite, readPublication, savePage } from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
 import { EditingContext, type Editing } from './editing.js'
@@ -60,6 +54,8 @@ const POLL = 1500
 
 type Picker = {
   readonly current: string
+  /** Les proportions que le champ demandeur attend, quand il en déclare. */
+  readonly ratio?: string
   readonly resolve: (key: string | undefined) => void
 }
 
@@ -118,11 +114,17 @@ export default function Panel({ site }: { readonly site: string }) {
     setProblems([])
   }
 
-  // Le chrome s’ouvre comme une page, et le brouillon garde sa forme : ses deux
-  // emplacements sont des sections, il n’a simplement pas de métadonnées.
-  const openChrome = (data: PanelPayload) => {
-    setSelected(CHROME_ENTRY)
-    setDraft({ meta: {}, blocks: data.chrome.draft.sections })
+  // Une entrée qui n’est pas une page s’ouvre comme une page, et le brouillon
+  // garde sa forme : ses emplacements sont des sections, elle n’a simplement
+  // pas de métadonnées.
+  const openAside = (data: PanelPayload, entry: string) => {
+    const aside =
+      asidesOf(data).find((item) => item.entry === entry) ?? asidesOf(data)[0]
+
+    if (aside === undefined) return
+
+    setSelected(aside.entry)
+    setDraft({ meta: {}, blocks: aside.sections })
     setProblems([])
   }
 
@@ -134,8 +136,8 @@ export default function Panel({ site }: { readonly site: string }) {
 
     const wanted = page ?? selected
 
-    if (wanted === CHROME_ENTRY) {
-      openChrome(data)
+    if (isAside(wanted)) {
+      openAside(data, wanted)
       return
     }
 
@@ -143,7 +145,7 @@ export default function Panel({ site }: { readonly site: string }) {
       data.pages.find((entry) => entry.name === wanted) ?? data.pages[0]
 
     if (opened !== undefined) open(opened)
-    else openChrome(data)
+    else openAside(data, wanted)
   }
 
   useEffect(() => {
@@ -179,10 +181,10 @@ export default function Panel({ site }: { readonly site: string }) {
   }, [online])
 
   const page = payload?.pages.find((entry) => entry.name === selected)
-  const chrome = selected === CHROME_ENTRY ? payload?.chrome.draft : undefined
+  const aside = payload === undefined ? undefined : asideOf(payload, selected)
   const saved =
-    chrome !== undefined
-      ? { meta: {}, blocks: chrome.sections }
+    aside !== undefined
+      ? { meta: {}, blocks: aside.sections }
       : page === undefined
         ? undefined
         : { meta: page.meta, blocks: page.blocks }
@@ -232,9 +234,9 @@ export default function Panel({ site }: { readonly site: string }) {
     setBusy(true)
 
     const answer =
-      selected === CHROME_ENTRY
-        ? await saveChrome(draft)
-        : await savePage(selected, draft)
+      aside === undefined
+        ? await savePage(selected, draft)
+        : await aside.save(draft)
 
     setBusy(false)
 
@@ -286,8 +288,8 @@ export default function Panel({ site }: { readonly site: string }) {
   }
 
   function reveal(name: string): void {
-    if (name === CHROME_ENTRY) {
-      openChrome(known)
+    if (isAside(name)) {
+      openAside(known, name)
       return
     }
 
@@ -302,8 +304,14 @@ export default function Panel({ site }: { readonly site: string }) {
     capabilities: known.site.capabilities,
     media: known.media,
     documents: known.documents,
-    pickImage: (current) =>
-      new Promise((resolve) => setPicker({ current, resolve })),
+    pickImage: (current, ratio) =>
+      new Promise((resolve) =>
+        setPicker({
+          current,
+          resolve,
+          ...(ratio === undefined ? {} : { ratio }),
+        }),
+      ),
     pickDocument: (current) =>
       new Promise((resolve) => setDocumentPicker({ current, resolve })),
   }
@@ -326,11 +334,8 @@ export default function Panel({ site }: { readonly site: string }) {
           screen={shown}
           heading={heading(
             shown,
-            selected === CHROME_ENTRY
-              ? CHROME_TITLE
-              : page === undefined
-                ? undefined
-                : pageLabel(page.name),
+            aside?.title ??
+              (page === undefined ? undefined : pageLabel(page.name)),
           )}
           onScreen={goTo}
           language={language}
@@ -385,6 +390,7 @@ export default function Panel({ site }: { readonly site: string }) {
           opened={picker !== undefined}
           media={known.media}
           current={picker?.current ?? ''}
+          ratio={picker?.ratio}
           onChanged={() => void refresh()}
           onClose={() => answerPicker(undefined)}
           onChoose={answerPicker}

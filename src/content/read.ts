@@ -7,6 +7,7 @@ import path from 'node:path'
 
 import { DOCUMENTS_FILE } from '../media/documents.js'
 import { MANIFEST_FILE } from '../media/manifest.js'
+import { BUSINESS_FILE } from './business.js'
 import { CHROME_FILE } from './chrome.js'
 import { routeOf } from './naming.js'
 import { CONTENT_DIR } from './page.js'
@@ -27,6 +28,7 @@ const MANIFESTS: ReadonlySet<string> = new Set([
   MANIFEST_FILE,
   DOCUMENTS_FILE,
   CHROME_FILE,
+  BUSINESS_FILE,
 ])
 
 export async function readContent(

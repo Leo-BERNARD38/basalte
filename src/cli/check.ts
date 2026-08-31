@@ -18,7 +18,8 @@ import path from 'node:path'
 import { errorsOf, readProject, type Project } from '../content/project.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
-import { countMediaUsage } from '../media/usage.js'
+import { checkRatios, countMediaUsage, withLineage } from '../media/usage.js'
+import { danglingRedirects, shadowedRedirects } from '../seo/redirects.js'
 import { astroBinary } from '../publish/build.js'
 import { checkHeadings } from '../render/outline.js'
 import { checkRenders } from '../render/parity.js'
@@ -45,7 +46,16 @@ export async function check(
     )
   }
 
-  const issues = [...project.issues, ...orphans(project)]
+  const issues = [
+    ...project.issues,
+    ...checkRatios(
+      project.registry,
+      project.pages.map((entry) => ({ name: entry.name, ...entry.page })),
+      project.media,
+    ),
+    ...redirectIssues(project),
+    ...orphans(project),
+  ]
   const sections = project.pages.reduce(
     (total, entry) => total + entry.page.blocks.length,
     0,
@@ -111,26 +121,55 @@ async function staleCaddyfile(
   cwd: string,
   site: Site,
 ): Promise<readonly ContentIssue[]> {
-  if (!site.capabilities.desktopRender) return []
-
   const caddyfile = await readFile(path.join(cwd, 'Caddyfile'), 'utf8').catch(
     () => undefined,
   )
 
-  if (
-    caddyfile === undefined ||
-    caddyfile.includes(`/${DESKTOP_PREFIX}{path}`)
-  ) {
-    return []
-  }
+  if (caddyfile === undefined) return []
+
+  const say = (message: string): ContentIssue => ({
+    severity: 'warning',
+    page: 'Caddyfile',
+    message,
+  })
 
   return [
-    {
-      severity: 'warning',
-      page: 'Caddyfile',
-      message:
-        'ce site déclare un rendu bureau, et son « Caddyfile » n’aiguille pas : régénère-le depuis un « basalte init » de cette version, ou reporte son bloc « handle » final',
-    },
+    ...(site.capabilities.desktopRender &&
+    !caddyfile.includes(`/${DESKTOP_PREFIX}{path}`)
+      ? [
+          say(
+            'ce site déclare un rendu bureau, et son « Caddyfile » n’aiguille pas : régénère-le depuis un « basalte init » de cette version, ou reporte son bloc « handle » final',
+          ),
+        ]
+      : []),
+    ...(caddyfile.includes('handle_errors')
+      ? []
+      : [
+          say(
+            'ce « Caddyfile » ne sert pas la page 404 du site : régénère-le depuis un « basalte init » de cette version, ou reporte son bloc « handle_errors »',
+          ),
+        ]),
+  ]
+}
+
+// Une redirection qu’une page recouvre n’est jamais suivie, et une redirection
+// qui mène nulle part renvoie sur une 404 — deux façons de croire une adresse
+// rattrapée alors qu’elle est perdue.
+function redirectIssues(project: Project): readonly ContentIssue[] {
+  const routes = project.pages.map((entry) => entry.route)
+  const redirects = project.site.redirects
+
+  return [
+    ...shadowedRedirects(redirects, routes).map((from) => ({
+      severity: 'warning' as const,
+      page: 'site.config.ts',
+      message: `« ${from} » est redirigée et existe aussi comme page : c’est la page qui répond`,
+    })),
+    ...danglingRedirects(redirects, routes).map((from) => ({
+      severity: 'warning' as const,
+      page: 'site.config.ts',
+      message: `« ${from} » redirige vers « ${redirects[from]} », qui n’est pas une page du site`,
+    })),
   ]
 }
 
@@ -145,7 +184,9 @@ function orphans(project: Project): readonly ContentIssue[] {
     kind: 'image' | 'document',
     say: (key: string) => string,
   ): readonly ContentIssue[] => {
-    const usage = countMediaUsage(project.registry, pages, kind)
+    const counted = countMediaUsage(project.registry, pages, kind)
+    const usage =
+      kind === 'image' ? withLineage(counted, project.media) : counted
 
     return keys
       .filter((key) => (usage.get(key) ?? 0) === 0)

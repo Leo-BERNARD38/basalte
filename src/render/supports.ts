@@ -63,6 +63,37 @@ export function slugIn(
   return slug === undefined ? DESKTOP_PREFIX : `${DESKTOP_PREFIX}/${slug}`
 }
 
+/** Le nom de la page d’erreur, sous chacun des deux préfixes. */
+export const NOT_FOUND = '404'
+
+/** Sa route dans un support donné, telle qu’elle est injectée. */
+export function notFoundRoute(support: Support): string {
+  return `/${slugIn(support, NOT_FOUND) ?? NOT_FOUND}`
+}
+
+/**
+ * Le fichier qu’Astro en écrit, et que le proxy va chercher. Le mobile tombe
+ * sur le cas particulier d’Astro — la route `/404` sort en `404.html`, à plat —
+ * là où celle du bureau, préfixée, suit la règle des dossiers.
+ */
+export function notFoundFile(support: Support): string {
+  return support === DEFAULT_SUPPORT
+    ? `/${NOT_FOUND}.html`
+    : `/${DESKTOP_PREFIX}/${NOT_FOUND}/index.html`
+}
+
+/**
+ * Le support d’une page construite, lu sur son adresse. La page 404 est la
+ * seule que le socle rend hors du parcours des pages : elle est injectée deux
+ * fois, une par support, et c’est son chemin qui dit laquelle est laquelle.
+ */
+export function supportOfPath(pathname: string): Support {
+  return pathname.startsWith(`/${DESKTOP_PREFIX}/`) ||
+    pathname === `/${DESKTOP_PREFIX}`
+    ? 'desktop'
+    : DEFAULT_SUPPORT
+}
+
 /**
  * Le support d’une requête, et la règle de référence du socle.
  *

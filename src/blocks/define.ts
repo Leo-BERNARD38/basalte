@@ -5,6 +5,7 @@
 import type { Fields, Values } from '../fields/types.js'
 import type { ResolvedDocument, ResolvedImage } from '../media/resolve.js'
 import type { Heading } from '../render/outline.js'
+import type { StructuredContext, StructuredNode } from '../seo/structured.js'
 
 export type BlockDefinition<S extends Fields = Fields> = {
   /** Le type écrit dans le JSON de contenu, et le nom du dossier. */
@@ -13,6 +14,17 @@ export type BlockDefinition<S extends Fields = Fields> = {
   readonly label: string
   readonly help?: string
   readonly fields: S
+  /**
+   * Ce que la section apporte aux données structurées de sa page. Déclaré ici
+   * plutôt que rendu par le composant : la variante bureau reçoit les mêmes
+   * valeurs, si bien que les deux rendus ne peuvent pas diverger (D121).
+   *
+   * Une fonction pure, qui se vérifie sans construire un site.
+   */
+  structured?(
+    props: Values<S>,
+    context: StructuredContext,
+  ): StructuredNode | undefined
 }
 
 export type BlockRegistry = Readonly<Record<string, BlockDefinition>>

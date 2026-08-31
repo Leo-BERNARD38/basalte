@@ -18,7 +18,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ContentIssue } from '../content/report.js'
-import { pagesUnder, PAGE_FILE } from './parity.js'
+import { isRedirect, pagesUnder, PAGE_FILE } from './parity.js'
 
 export type Heading = 'h1' | 'h2'
 
@@ -44,7 +44,7 @@ export async function checkHeadings(
       'utf8',
     ).catch(() => undefined)
 
-    if (html === undefined) continue
+    if (html === undefined || isRedirect(html)) continue
 
     const found = countHeadings(html)
 

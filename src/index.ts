@@ -50,3 +50,13 @@ export type { ResolvedImage, ResolvedDocument } from './media/resolve.js'
 export type { MediaEntry, MediaManifest } from './media/manifest.js'
 export type { DocumentEntry, DocumentManifest } from './media/documents.js'
 export type { DocumentResolver, ImageResolver } from './blocks/define.js'
+
+export { BUSINESS_FIELDS, hasAddress, hasBusiness } from './seo/business.js'
+export type { BusinessFacts } from './seo/business.js'
+export type {
+  StructuredBuilder,
+  StructuredBuilders,
+  StructuredContext,
+  StructuredNode,
+} from './seo/structured.js'
+export type { Redirects } from './seo/redirects.js'

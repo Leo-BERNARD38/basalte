@@ -90,7 +90,9 @@ export function clientFiles(
     { path: 'content/confidentialite.json', contents: privacy(answers) },
     ...PROFILES[answers.profile].pages(answers),
     { path: 'content/chrome.json', contents: chrome(answers) },
+    { path: 'content/business.json', contents: business(answers) },
     { path: 'content/media.json', contents: json({}) },
+    { path: 'public/favicon.svg', contents: favicon() },
     { path: 'public/media/.gitkeep', contents: '' },
     { path: 'src/blocks/.gitkeep', contents: '' },
   ]
@@ -157,6 +159,10 @@ function siteConfig(answers: SiteAnswers): string {
           ...declared.map(([name, value]) => `    ${name}: ${value},`),
           '  },',
         ]),
+    '  // Les anciennes adresses du site, et où elles mènent désormais. Elles',
+    '  // deviennent des pages au build : ajoutes-en une le jour où une adresse',
+    '  // indexée disparaît, et republie.',
+    '  redirects: {},',
     '  // La direction artistique du site. Un token non déclaré garde la valeur',
     '  // du socle — voir la skill « design ».',
     '  tokens: {',
@@ -290,6 +296,35 @@ function chrome(answers: SiteAnswers): string {
     },
     footer: { links: legal.map(link) },
   })
+}
+
+// La fiche part vide, sauf le nom : c’est le client qui la remplit depuis son
+// panel, et une adresse inventée vaudrait moins que pas d’adresse du tout.
+function business(answers: SiteAnswers): string {
+  return json({
+    $format: CONTENT_FORMAT,
+    facts: {
+      legalName: answers.name,
+      kind: '',
+      address: { street: '', postalCode: '', city: '', country: 'France' },
+      phone: '',
+      email: '',
+      area: '',
+      hours: [],
+    },
+  })
+}
+
+// Un carré aux couleurs du site, à remplacer par le logo du client. Le SVG est
+// refusé au téléversement (invariant 2), jamais dans le dépôt : celui-ci est
+// écrit ici, pas envoyé par un navigateur.
+function favicon(): string {
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">',
+    '  <rect width="32" height="32" rx="7" fill="#1f57ff" />',
+    '</svg>',
+    '',
+  ].join('\n')
 }
 
 function contact(answers: SiteAnswers): string {

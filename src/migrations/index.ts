@@ -10,10 +10,10 @@
 // Une migration reçoit du JSON brut, pas une `Page` : elle travaille justement
 // sur une forme que le socle installé ne sait plus lire.
 //
-// Le chrome porte le même `$format` que les pages, et dérivera comme elles :
-// une migration peut donc le transformer aussi. Le plus souvent elle n’a rien
-// à y faire — le fichier est alors simplement renuméroté, ce qui garde les
-// deux formats en phase.
+// Le chrome et la fiche d’entreprise portent le même `$format` que les pages,
+// et dériveront comme elles : une migration peut donc les transformer aussi.
+// Le plus souvent elle n’a rien à y faire — le fichier est alors simplement
+// renuméroté, ce qui garde tous les formats en phase.
 
 export type RawPage = Record<string, unknown>
 
@@ -25,6 +25,8 @@ export type Migration = {
   page(page: RawPage): RawPage
   /** Ce qu’elle fait de `content/chrome.json`, quand elle y touche. */
   chrome?(chrome: RawPage): RawPage
+  /** Ce qu’elle fait de `content/business.json`, quand elle y touche. */
+  business?(business: RawPage): RawPage
 }
 
 export const MIGRATIONS: readonly Migration[] = []

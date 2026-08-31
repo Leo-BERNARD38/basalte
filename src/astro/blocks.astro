@@ -18,6 +18,7 @@
 // ailleurs, et aucune version publiée ne la porte.
 import {
   blocks,
+  business,
   chromeContent,
   desktop,
   documents,
@@ -68,6 +69,7 @@ const bench = Object.values(registry)
 const meta = {
   title: { [language]: `Blocs — ${site.name}` },
   description: { [language]: '' },
+  image: '',
 }
 
 const image = (key: string, sizes?: string) =>
@@ -86,6 +88,9 @@ const document = (key: string) => resolveDocument(documents, key)
   document={document}
   chrome={chromeContent}
   pages={pages.map((page) => ({ name: page.name, route: page.route }))}
+  sections={[]}
+  business={business}
+  indexable={false}
 >
   <div class="bench__intro">
     <p>

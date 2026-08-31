@@ -4,6 +4,7 @@
 
 import { Button, Group, Image, Input, Paper, Text } from '@mantine/core'
 
+import { matchesRatio } from '../../media/ratio.js'
 import { translated } from '../draft.js'
 import { useEditing } from '../editing.js'
 import { thumbnail } from '../Media.js'
@@ -16,8 +17,15 @@ export function ImageControl({ description, value, onChange }: ControlProps) {
   const key = typeof value === 'string' ? value : ''
   const entry = editing.media.find((item) => item.key === key)
 
+  // Le format attendu est déclaré par le champ : il n’est connu qu’ici, et
+  // c’est lui qui décide de ce que la médiathèque propose.
+  const fits =
+    description.ratio === undefined ||
+    entry === undefined ||
+    matchesRatio(entry, description.ratio)
+
   const choose = async () => {
-    const chosen = await editing.pickImage(key)
+    const chosen = await editing.pickImage(key, description.ratio)
 
     if (chosen !== undefined) onChange(chosen)
   }
@@ -47,9 +55,17 @@ export function ImageControl({ description, value, onChange }: ControlProps) {
                 src={thumbnail(entry)}
                 alt={translated(entry.alt, editing.language)}
               />
-              <Text size="sm" style={{ flex: 1 }} lineClamp={2}>
-                {translated(entry.alt, editing.language) || 'Sans description'}
-              </Text>
+              <div style={{ flex: 1 }}>
+                <Text size="sm" lineClamp={2}>
+                  {translated(entry.alt, editing.language) ||
+                    'Sans description'}
+                </Text>
+                {!fits && (
+                  <Text size="xs" c="orange">
+                    Pas au format {description.ratio} — à recadrer
+                  </Text>
+                )}
+              </div>
             </>
           )}
           <Group gap="xs" wrap="nowrap">

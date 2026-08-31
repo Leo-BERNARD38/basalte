@@ -408,3 +408,48 @@ body {
     height: var(--panel-control-touch);
   }
 }
+
+/* Le recadrage. Le cadre est le seul trait du panel : ce n’est pas une bordure
+   qui sépare deux plans (D97), c’est la commande elle-même — hors de lui, tout
+   est assombri, et c’est cet écart qui montre ce qui sera gardé. */
+.basalte-crop {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--panel-radius-md);
+  line-height: 0;
+}
+
+.basalte-crop img {
+  display: block;
+  width: 100%;
+  max-height: 26rem;
+  object-fit: contain;
+  user-select: none;
+}
+
+.basalte-crop-frame {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 2px solid #fff;
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 45%);
+  cursor: move;
+  touch-action: none;
+}
+
+.basalte-crop-frame:focus-visible {
+  outline: 3px solid var(--panel-blue-mark);
+}
+
+.basalte-crop-handle {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+  cursor: nwse-resize;
+  touch-action: none;
+}

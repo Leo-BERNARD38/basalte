@@ -17,6 +17,11 @@ import { validateFiles } from '../content/project.js'
 import { readContent } from '../content/read.js'
 import { languageName, renderIssue } from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
+import {
+  BUSINESS_ENTRY,
+  BUSINESS_FIELDS,
+  BUSINESS_TITLE,
+} from '../seo/business.js'
 import type { Capabilities } from '../site/capabilities.js'
 import type { Account } from './account.js'
 import {
@@ -25,6 +30,11 @@ import {
   uploadDocument,
   type DocumentSummary,
 } from './documents.js'
+import {
+  readBusinessDraft,
+  saveBusiness,
+  type BusinessDraft,
+} from './business.js'
 import { readChromeDraft, saveChrome, type ChromeDraft } from './chrome.js'
 import type { Panel } from './context.js'
 import { commitFiles, isRepositoryRoot } from './git.js'
@@ -38,6 +48,7 @@ import {
   refuseMethod,
 } from './http.js'
 import {
+  cropMedia,
   deleteMedia,
   describeMedia,
   updateMedia,
@@ -76,6 +87,7 @@ const Draft = z.object({
 })
 
 const ChromeBody = z.object({ blocks: z.array(Block).default([]) })
+const BusinessBody = ChromeBody
 
 export type PanelLanguage = {
   readonly code: string
@@ -107,6 +119,10 @@ export type PanelPayload = {
    * bibliothèque des sections qu’on ajoute à une page — le chrome, lui, est là
    * toujours et sur toutes.
    */
+  readonly business: {
+    readonly type: PanelBlockType
+    readonly draft: BusinessDraft
+  }
   readonly chrome: {
     readonly types: readonly PanelBlockType[]
     readonly draft: ChromeDraft
@@ -171,6 +187,14 @@ export async function handlePanel(
     return guard ?? writeChrome(panel, request, commit)
   }
 
+  if (route[0] === 'business' && route.length === 1) {
+    if (request.method !== 'PUT') return refuseMethod()
+
+    const guard = guardWrite(request)
+
+    return guard ?? writeBusiness(panel, request, commit)
+  }
+
   if (route[0] === 'media' && route.length === 1) {
     if (request.method !== 'POST') return refuseMethod()
 
@@ -179,6 +203,16 @@ export async function handlePanel(
     if (guard !== undefined) return guard
 
     return uploadMedia(panel, request, await panel.schemas(), commit)
+  }
+
+  // Avant la route par clé : « crop » n’est pas une empreinte, et tomber dans
+  // le cas général répondrait « média inconnu » à une demande de recadrage.
+  if (route[0] === 'media' && route.length === 2 && route[1] === 'crop') {
+    if (request.method !== 'POST') return refuseMethod()
+
+    const guard = guardWrite(request)
+
+    return guard ?? cropMedia(panel, request, commit)
   }
 
   if (route[0] === 'media' && route.length === 2) {
@@ -281,6 +315,15 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
       }),
       draft: await readChromeDraft(panel.root, schemas),
     },
+    business: {
+      type: {
+        name: BUSINESS_ENTRY,
+        label: BUSINESS_TITLE,
+        help: 'Ce que Google affiche du client : son adresse, ses horaires, son téléphone.',
+        fields: describeFields(BUSINESS_FIELDS),
+      },
+      draft: await readBusinessDraft(panel.root, schemas),
+    },
     media: describeMedia(schemas.media, pages, schemas),
     documents: describeDocuments(schemas.documents, pages, schemas),
     problems: issues.map((issue) => ({
@@ -341,6 +384,43 @@ async function writeChrome(
   }
 
   return json({ ok: true, chrome: result.chrome, commit: result.commit })
+}
+
+// L’enregistrement de la fiche suit celui du chrome, pour les mêmes raisons.
+async function writeBusiness(
+  panel: Panel,
+  request: Request,
+  commit: Commit,
+): Promise<Response> {
+  let body
+
+  try {
+    body = BusinessBody.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const result = await saveBusiness(
+    panel.root,
+    await panel.schemas(),
+    body.data.blocks,
+    commit,
+  )
+
+  if (result.kind === 'refused') {
+    return json(
+      {
+        ok: false,
+        message: 'Il reste quelque chose à corriger.',
+        problems: result.problems,
+      },
+      422,
+    )
+  }
+
+  return json({ ok: true, business: result.business, commit: result.commit })
 }
 
 async function save(

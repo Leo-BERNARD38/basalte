@@ -5,11 +5,13 @@
 declare module 'virtual:basalte' {
   import type {
     BlockRegistry,
+    BusinessFacts,
     ChromeContent,
     DocumentManifest,
     MediaManifest,
     RenderedPage,
     Site,
+    StructuredBuilders,
   } from '@leobernard/basalte'
 
   export const root: string
@@ -36,4 +38,8 @@ declare module 'virtual:basalte' {
   >
   export const chromeRegistry: BlockRegistry
   export const chromeContent: ChromeContent
+  /** Les faits de l’entreprise, d’où sortent les données structurées locales. */
+  export const business: BusinessFacts
+  /** Ce que chaque bloc apporte au JSON-LD de sa page, pour ceux qui en portent. */
+  export const structured: StructuredBuilders
 }

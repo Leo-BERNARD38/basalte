@@ -1,0 +1,23 @@
+{
+  "$format": 1,
+  "facts": {
+    "legalName": "Atelier Démonstration SARL",
+    "kind": "HomeAndConstructionBusiness",
+    "address": {
+      "street": "12 rue des Copeaux",
+      "postalCode": "38000",
+      "city": "Grenoble",
+      "country": "France"
+    },
+    "phone": "+33 4 76 00 00 00",
+    "email": "bonjour@exemple.fr",
+    "area": "Grenoble et l’agglomération",
+    "hours": [
+      { "day": "Monday", "opens": "09:00", "closes": "18:00" },
+      { "day": "Tuesday", "opens": "09:00", "closes": "18:00" },
+      { "day": "Wednesday", "opens": "09:00", "closes": "18:00" },
+      { "day": "Thursday", "opens": "09:00", "closes": "18:00" },
+      { "day": "Friday", "opens": "09:00", "closes": "17:00" }
+    ]
+  }
+}

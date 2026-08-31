@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { checkRenders, compareRenders } from './parity.js'
+import { checkRenders, compareRenders, isRedirect } from './parity.js'
 import { DESKTOP_PREFIX } from './supports.js'
 
 const TMP = fileURLToPath(new URL('../../.tmp/', import.meta.url))
@@ -237,5 +237,19 @@ describe('checkRenders', () => {
     expect(issues).toHaveLength(1)
     expect(issues[0]?.page).toBe('/tarifs')
     expect(issues[0]?.message).toContain('jamais indexée')
+  })
+})
+
+describe('isRedirect', () => {
+  it('reconnaît une page de redirection à son rafraîchissement', () => {
+    expect(
+      isRedirect(
+        '<!doctype html><meta http-equiv="refresh" content="0;url=/"><body></body>',
+      ),
+    ).toBe(true)
+  })
+
+  it('ne prend pas une page ordinaire pour une redirection', () => {
+    expect(isRedirect('<html><body><h1>Accueil</h1></body></html>')).toBe(false)
   })
 })

@@ -11,6 +11,9 @@ export default defineSite({
     documents: true,
     desktopRender: true,
   },
+  redirects: {
+    '/accueil': '/',
+  },
   tokens: {
     color: {
       bg: '#ffffff',

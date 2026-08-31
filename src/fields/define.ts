@@ -2,6 +2,7 @@
 // sort. Les deux vivent dans ce fichier et un test interdit qu’ils divergent :
 // un type ajouté sans sa ligne de documentation fait échouer la suite.
 
+import { parseRatio } from '../media/ratio.js'
 import type {
   DocumentField,
   Fields,
@@ -81,6 +82,17 @@ export const f = {
   },
 
   image(options: ImageOptions = {}): ImageField {
+    // Un ratio illisible ne se découvre pas au recadrage : il est refusé ici,
+    // là où l’erreur nomme encore le champ qui la porte.
+    if (
+      options.ratio !== undefined &&
+      parseRatio(options.ratio) === undefined
+    ) {
+      throw new Error(
+        `« ${options.ratio} » n’est pas des proportions : attendu « 16/9 », deux nombres séparés d’une barre.`,
+      )
+    }
+
     return { ...options, ...base(options), kind: 'image' }
   },
 

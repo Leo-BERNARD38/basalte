@@ -12,6 +12,7 @@
 
 import type { ChromeContent, PageEntry } from '../chrome/define.js'
 import {
+  readBusiness,
   readChrome,
   readPages,
   type RenderedPage,
@@ -24,6 +25,7 @@ import {
   supportsOf,
   type Support,
 } from '../render/supports.js'
+import type { BusinessFacts } from '../seo/business.js'
 import type { Panel } from '../server/context.js'
 import { authenticate, PANEL_PATH } from '../server/handlers.js'
 import { matchSlug } from './routes.js'
@@ -40,6 +42,8 @@ export type Preview =
       readonly schemas: Schemas
       /** Le chrome enregistré, relu comme les pages le sont. */
       readonly content: ChromeContent
+      /** La fiche d’entreprise enregistrée : l’aperçu porte le même JSON-LD. */
+      readonly business: BusinessFacts
       readonly pages: readonly PageEntry[]
     }
   | { readonly kind: 'stop'; readonly response: Response }
@@ -102,6 +106,8 @@ export async function resolvePreview(
     pages.map((page) => page.route),
   )
 
+  const business = await readBusiness(panel.root, schemas)
+
   return {
     kind: 'page',
     entry,
@@ -109,6 +115,7 @@ export async function resolvePreview(
     support: supportAsked(schemas, request),
     schemas,
     content: chrome.chrome,
+    business: business.business,
     pages: pages.map((page) => ({ name: page.name, route: page.route })),
   }
 }

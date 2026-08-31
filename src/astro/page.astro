@@ -1,6 +1,7 @@
 ---
 import {
   blocks,
+  business,
   chromeContent,
   desktop,
   documents,
@@ -57,6 +58,8 @@ const around = pages.map((page) => ({ name: page.name, route: page.route }))
   document={document}
   chrome={chromeContent}
   pages={around}
+  sections={sections}
+  business={business}
 >
   {
     sections.map((section, index) => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { findBlocks, loadRegistry, socleBlocks } from '../blocks/scan.js'
 import { socleChrome } from '../chrome/scan.js'
+import { validateBusiness } from '../content/business.js'
 import { validateChrome } from '../content/chrome.js'
 import { unknownLinks } from '../content/links.js'
 import { routeOf } from '../content/naming.js'
@@ -14,6 +15,10 @@ import { basalteDoc } from './agent.js'
 import { executables, siteFiles } from './create.js'
 import type { GeneratedFile, SiteAnswers } from './files.js'
 import type { Socle } from './socle.js'
+
+// Les fichiers de `content/` qui portent du contenu sans être des pages : ils
+// se valident chacun avec sa propre fonction, et ne font aucune route.
+const MANIFESTS = /(media|documents|chrome|business)\.json$/
 
 const SOCLE: Socle = {
   name: '@leobernard/basalte',
@@ -194,13 +199,7 @@ describe('le dépôt généré', () => {
       const files = generated({ ...ANSWERS, profile })
 
       for (const [path, contents] of files) {
-        if (
-          !path.startsWith('content/') ||
-          path.endsWith('media.json') ||
-          path.endsWith('chrome.json')
-        ) {
-          continue
-        }
+        if (!path.startsWith('content/') || MANIFESTS.test(path)) continue
 
         const { issues } = validatePage({
           name: path,
@@ -223,6 +222,17 @@ describe('le dépôt généré', () => {
       })
 
       expect(errorsOf(issues).map((issue) => issue.message)).toEqual([])
+
+      const business = validateBusiness({
+        source: JSON.parse(files.get('content/business.json') ?? '{}'),
+        languages,
+        media: {},
+        documents: {},
+      })
+
+      expect(errorsOf(business.issues).map((issue) => issue.message)).toEqual(
+        [],
+      )
     },
   )
 
@@ -236,12 +246,7 @@ describe('le dépôt généré', () => {
       const languages = resolveLanguages({ fr: { default: true } })
 
       const routes = [...files.keys()]
-        .filter(
-          (path) =>
-            path.startsWith('content/') &&
-            !path.endsWith('media.json') &&
-            !path.endsWith('chrome.json'),
-        )
+        .filter((path) => path.startsWith('content/') && !MANIFESTS.test(path))
         .map((path) => routeOf(path.slice('content/'.length, -'.json'.length)))
 
       const source = JSON.parse(
@@ -335,6 +340,20 @@ describe('le dépôt généré', () => {
     expect(caddy).toContain('not header_regexp User-Agent (Mobi|Android)')
     expect(caddy).toContain('rewrite @hinted {file_match.relative}')
     expect(caddy).toContain('rewrite @guessed {file_match.relative}')
+  })
+
+  it('sert la page 404 du site, avec son statut, dans les deux rendus', () => {
+    const caddy = read('Caddyfile')
+
+    expect(caddy).toContain('handle_errors {')
+    expect(caddy).toContain('@notfound expression {err.status_code} == 404')
+    expect(caddy).toContain('rewrite @desktop /_desktop/404/index.html')
+    expect(caddy).toContain('rewrite @mobile /404.html')
+    expect(caddy).toContain('status 404')
+  })
+
+  it('écrit un favicon que le dépôt porte, là où le téléversement le refuse', () => {
+    expect(read('public/favicon.svg')).toContain('<svg')
   })
 
   it('ne réécrit que si la page bureau existe, quelle que soit la capacité', () => {

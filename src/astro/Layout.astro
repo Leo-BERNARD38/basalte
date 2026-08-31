@@ -10,13 +10,21 @@
 // Son *contenu*, lui, arrive en prop : le module généré n’en porte qu’une
 // photographie du démarrage, et l’aperçu du panel doit montrer le dernier
 // enregistrement (D96).
-import { chrome, chromeDesktop } from 'virtual:basalte'
+//
+// C’est ici, et nulle part ailleurs, que se posent la carte de partage et les
+// données structurées. Les deux rendus passent par ce même fichier : ils ne
+// peuvent donc pas diverger sur ce que Google lit, ce que le contrat de la
+// phase 8 exige (D108).
+import { chrome, chromeDesktop, registry, structured } from 'virtual:basalte'
 
 import type { DocumentResolver, ImageResolver } from '../blocks/define.js'
 import type { ChromeContent, PageEntry } from '../chrome/define.js'
-import type { PageMeta } from '../content/page.js'
+import type { PageBlock, PageMeta } from '../content/page.js'
 import { pick } from '../fields/translate.js'
 import { DEFAULT_SUPPORT, type Support } from '../render/supports.js'
+import type { BusinessFacts } from '../seo/business.js'
+import { shareImageKey, shareTags, type ShareImage } from '../seo/meta.js'
+import { pageNodes, renderStructured } from '../seo/structured.js'
 import type { Site } from '../site/define.js'
 import { tokensToCss } from '../site/tokens.js'
 import { urlFor } from './routes.js'
@@ -32,6 +40,14 @@ type Props = {
   document: DocumentResolver
   chrome: ChromeContent
   pages: readonly PageEntry[]
+  /** Les sections visibles : elles décident de la carte et du JSON-LD. */
+  sections: readonly PageBlock[]
+  business: BusinessFacts
+  /**
+   * Faux pour la page 404, qui n’a ni adresse canonique, ni traduction, ni
+   * carte de partage : elle n’est le résultat d’aucune recherche.
+   */
+  indexable?: boolean
 }
 
 const {
@@ -44,6 +60,9 @@ const {
   document,
   chrome: content,
   pages,
+  sections,
+  business,
+  indexable = true,
 } = Astro.props
 
 const origin = `https://${site.domain}`
@@ -52,7 +71,7 @@ const description = pick(meta.description, language)
 
 const canonical = origin + urlFor(route, prefix(language))
 const alternates =
-  site.languages.online.length > 1
+  indexable && site.languages.online.length > 1
     ? site.languages.online.map((entry) => ({
         hreflang: entry.code,
         href: origin + urlFor(route, prefix(entry.code)),
@@ -62,6 +81,41 @@ const alternates =
 function prefix(code: string): string {
   return code === site.languages.default.code ? '' : code
 }
+
+// L’image de partage est absolue : une messagerie ne résout pas un chemin.
+const shared = image(shareImageKey({ meta, registry, sections }), undefined)
+const card: ShareImage | undefined =
+  shared === undefined
+    ? undefined
+    : {
+        src: origin + shared.src,
+        width: shared.width,
+        height: shared.height,
+        alt: shared.alt,
+      }
+
+const tags = indexable
+  ? shareTags({
+      site,
+      title,
+      description,
+      url: canonical,
+      language,
+      ...(card === undefined ? {} : { image: card }),
+    })
+  : []
+
+const nodes = indexable
+  ? pageNodes({
+      site,
+      business,
+      builders: structured,
+      sections,
+      route,
+      language,
+      url: canonical,
+    })
+  : []
 
 const variants = support === DEFAULT_SUPPORT ? {} : chromeDesktop
 const Header = variants['header'] ?? chrome['header']
@@ -76,7 +130,9 @@ const around = { language, image, document, site, route, pages }
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description !== '' && <meta name="description" content={description} />}
-    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {!indexable && <meta name="robots" content="noindex" />}
+    {indexable && <link rel="canonical" href={canonical} />}
     {
       alternates.map((alternate) => (
         <link
@@ -94,6 +150,24 @@ const around = { language, image, document, site, route, pages }
           href={origin + urlFor(route, '')}
         />
       )
+    }
+    {
+      tags.map((tag) =>
+        tag.property === undefined ? (
+          <meta name={tag.name} content={tag.content} />
+        ) : (
+          <meta property={tag.property} content={tag.content} />
+        ),
+      )
+    }
+    {
+      nodes.map((node) => (
+        <script
+          type="application/ld+json"
+          is:inline
+          set:html={renderStructured(node)}
+        />
+      ))
     }
     <style is:global set:html={tokensToCss(site.tokens)}></style>
   </head>

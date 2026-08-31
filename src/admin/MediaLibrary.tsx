@@ -22,7 +22,7 @@ import type { MediaSummary } from '../server/library.js'
 import { deleteMedia, updateMedia } from './api.js'
 import { DocumentPanel } from './Documents.js'
 import { useEditing } from './editing.js'
-import { MediaGrid, thumbnail, UploadButton } from './Media.js'
+import { MediaGrid, preview, UploadButton } from './Media.js'
 
 const CENTRE = 50
 
@@ -145,7 +145,7 @@ function MediaDetail({
         <Title order={4}>Cette image</Title>
 
         <div className="basalte-focal">
-          <img src={thumbnail(entry)} alt="" onClick={aim} />
+          <img src={preview(entry)} alt="" onClick={aim} />
           <span style={{ left: `${focal.x}%`, top: `${focal.y}%` }} />
         </div>
 

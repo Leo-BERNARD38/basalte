@@ -1,0 +1,96 @@
+---
+// La page 404, dans les deux rendus.
+//
+// Caddy sert sa propre page d’erreur quand rien ne la remplace : un texte nu,
+// sans la direction artistique du site et sans un lien pour repartir. Celle-ci
+// porte le chrome, donc la navigation, donc un chemin de sortie.
+//
+// Elle est injectée une fois par support, et c’est son adresse qui dit laquelle
+// est laquelle : c’est la seule page du socle rendue hors du parcours des
+// fichiers de `content/`.
+import { business, chromeContent, pages, site } from 'virtual:basalte'
+
+import { resolveDocument, resolveImage } from '../media/resolve.js'
+import { supportOfPath } from '../render/supports.js'
+import Layout from './Layout.astro'
+
+const support = supportOfPath(Astro.url.pathname)
+const language = site.languages.default.code
+
+const image = (key: string, sizes?: string) =>
+  resolveImage({}, key, language, sizes)
+
+const document = (key: string) => resolveDocument({}, key)
+
+const around = pages.map((page) => ({ name: page.name, route: page.route }))
+---
+
+<Layout
+  site={site}
+  meta={{
+    title: { [language]: `Page introuvable — ${site.name}` },
+    description: {},
+    image: '',
+  }}
+  language={language}
+  route="/404"
+  support={support}
+  image={image}
+  document={document}
+  chrome={chromeContent}
+  pages={around}
+  sections={[]}
+  business={business}
+  indexable={false}
+>
+  <section class="notfound">
+    <h1>Cette page n’existe pas</h1>
+    <p>
+      L’adresse demandée ne correspond à aucune page du site. Elle a peut-être
+      changé, ou comporte une faute de frappe.
+    </p>
+    <a href="/">Revenir à l’accueil</a>
+  </section>
+</Layout>
+
+<style>
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    padding: var(--space-8) var(--space-5);
+    color: var(--color-fg);
+  }
+
+  .notfound h1 {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .notfound p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-base);
+  }
+
+  .notfound a {
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .notfound a:hover {
+    text-decoration: underline;
+  }
+</style>

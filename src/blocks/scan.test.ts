@@ -68,12 +68,12 @@ describe('findBlocks', () => {
     )
   })
 
-  it('donne au bandeau du socle sa variante, et à lui seul', async () => {
+  it('ne donne une variante qu’aux blocs du socle qui en portent une', async () => {
     const found = await findBlocks(blockRoots(socleBlocks()))
     const withVariant = found
       .filter((source) => source.desktop !== undefined)
       .map((source) => source.name)
 
-    expect(withVariant).toEqual(['hero'])
+    expect(withVariant).toEqual(['faq', 'hero'])
   })
 })
