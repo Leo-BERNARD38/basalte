@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -173,8 +173,11 @@ describe('cropImage', () => {
     await storeMedia(root, cropped)
 
     for (const file of cropped.files) {
+      // Les octets sont lus avant d'être ouverts : sharp qui reçoit un chemin
+      // en garde la main, et sous Windows un fichier tenu ne s'efface pas —
+      // c'est le ménage du banc qui échouerait, loin d'ici.
       const written = await sharp(
-        path.join(root, MEDIA_DIR, file.name),
+        await readFile(path.join(root, MEDIA_DIR, file.name)),
       ).metadata()
 
       expect(written.format).toBe('webp')
