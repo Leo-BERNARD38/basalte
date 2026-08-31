@@ -114,7 +114,6 @@ export const POST_FIELDS = {
       image: f.image({ label: 'Photo', required: true }),
       caption: f.text({ label: 'Légende', i18n: true, max: 120 }),
     },
-    max: 12,
     itemLabel: 'caption',
   }),
 } as const

@@ -5,7 +5,10 @@ import { f } from '../fields/define.js'
 import {
   emptyValue,
   emptyValues,
+  indexAfterRemoval,
+  labelOfItem,
   move,
+  movedIndex,
   remove,
   replace,
   sameDraft,
@@ -131,5 +134,53 @@ describe('translated et withLanguage', () => {
 
   it('part d’une carte vide quand le champ n’en avait pas', () => {
     expect(withLanguage(undefined, 'fr', 'Bonjour')).toEqual({ fr: 'Bonjour' })
+  })
+})
+
+describe('movedIndex', () => {
+  it('suit l’élément qu’on déplace', () => {
+    expect(movedIndex(1, 1, 4)).toBe(4)
+    expect(movedIndex(3, 3, 0)).toBe(0)
+  })
+
+  it('décale ceux que le déplacement enjambe', () => {
+    expect(movedIndex(2, 0, 3)).toBe(1)
+    expect(movedIndex(1, 4, 0)).toBe(2)
+  })
+
+  it('laisse en place ceux qui n’étaient pas sur le chemin', () => {
+    expect(movedIndex(5, 0, 3)).toBe(5)
+    expect(movedIndex(0, 2, 4)).toBe(0)
+    expect(movedIndex(2, 2, 2)).toBe(2)
+  })
+
+  it('n’ouvre rien quand rien n’était ouvert', () => {
+    expect(movedIndex(null, 0, 3)).toBeNull()
+  })
+})
+
+describe('indexAfterRemoval', () => {
+  it('referme l’élément qu’on retire', () => {
+    expect(indexAfterRemoval(2, 2)).toBeNull()
+  })
+
+  it('remonte ceux qui le suivaient', () => {
+    expect(indexAfterRemoval(3, 1)).toBe(2)
+    expect(indexAfterRemoval(1, 3)).toBe(1)
+    expect(indexAfterRemoval(null, 0)).toBeNull()
+  })
+})
+
+describe('labelOfItem', () => {
+  it('lit le champ que le bloc a désigné, traduisible ou non', () => {
+    expect(labelOfItem('name', { name: 'Camille' }, 'fr')).toBe('Camille')
+    expect(
+      labelOfItem('question', { question: { fr: 'Combien ?' } }, 'fr'),
+    ).toBe('Combien ?')
+  })
+
+  it('rend vide quand le bloc n’a désigné aucun champ, ou qu’il est vide', () => {
+    expect(labelOfItem(undefined, { name: 'Camille' }, 'fr')).toBe('')
+    expect(labelOfItem('name', {}, 'fr')).toBe('')
   })
 })

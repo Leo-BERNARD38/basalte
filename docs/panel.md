@@ -340,6 +340,14 @@ Trois colonnes, et l'aperçu au centre (D96) :
 | centre | `GET /admin/preview/<slug>` dans un cadre, en bureau ou en mobile |
 | droite | le panneau de la section choisie, ou les informations de la page |
 
+**Une liste répétable se parcourt repliée** (D163). Chaque élément est une
+ligne qui porte le champ que le bloc a désigné en `itemLabel` — la question
+d'une FAQ, le nom d'une personne — et, à défaut, son rang. Un clic ouvre
+l'élément et referme le précédent : une liste de trente questions se lit comme
+une table des matières, là où trente formulaires dépliés faisaient un ruban.
+L'élément qu'on vient d'ajouter s'ouvre de lui-même, et celui qui est ouvert
+suit son contenu quand la liste se réordonne, jamais son rang.
+
 L'aperçu montre **le dernier enregistrement** : c'est ce que le dépôt contient,
 donc ce qui partira en ligne. Tant que des modifications ne le sont pas,
 l'écran le dit et le cadre se recharge au premier enregistrement réussi.

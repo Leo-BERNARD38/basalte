@@ -18,7 +18,6 @@ export default block({
       itemLabel: 'name',
       required: true,
       min: 1,
-      max: 4,
       of: {
         name: f.text({
           label: 'Nom de la formule',

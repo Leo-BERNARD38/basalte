@@ -16,6 +16,7 @@ import path from 'node:path'
 import { findBlocks, type BlockSource } from '../blocks/scan.js'
 import { CHROME_DIR } from '../chrome/define.js'
 import { loadSite } from '../site/load.js'
+import { listBounds } from './bounds.js'
 import { contrastFindings } from './contrast.js'
 import { ordered, relative, type Finding } from './finding.js'
 import { hardcodedStyle } from './style.js'
@@ -44,11 +45,12 @@ export async function lintProject(root: string): Promise<readonly Finding[]> {
       )
     }
 
+    const schema = relative(root, source.schema)
+    const declared = await readFile(source.schema, 'utf8')
+
     findings.push(
-      ...manualValidation(
-        relative(root, source.schema),
-        await readFile(source.schema, 'utf8'),
-      ),
+      ...manualValidation(schema, declared),
+      ...listBounds(schema, declared),
     )
   }
 

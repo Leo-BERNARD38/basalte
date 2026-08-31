@@ -18,7 +18,6 @@ export default block({
       itemLabel: 'name',
       required: true,
       min: 1,
-      max: 12,
       of: {
         image: f.image({
           label: 'Portrait',

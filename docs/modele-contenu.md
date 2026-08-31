@@ -294,9 +294,21 @@ d'affichage. `f.*` est une couche mince qui émet à la fois un schéma Zod pour
 la validation et une description d'interface pour le panel — une déclaration,
 deux sorties, aucune désynchronisation possible.
 
-Les contraintes (`max: 80`) ne sont pas cosmétiques : elles protègent la DA. Le
-panel empêche le dépassement, et le build le refuserait. **Les renseigner
-systématiquement.**
+Une borne sur un texte (`max: 80`) n'est pas cosmétique : un titre de cent
+quarante signes casse le bandeau qui le porte. Le panel empêche le dépassement,
+et le build le refuserait. **Les renseigner systématiquement.**
+
+Une borne sur une **liste** est l'inverse : elle ne se pose que si la mise en
+page casse sans elle (D160). Une grille `auto-fit` ou une rangée qui se replie
+s'allonge indéfiniment, et lui poser une limite n'est plus qu'une opinion sur ce
+que le client a le droit d'écrire. Une seule dans tout le socle : le menu de
+l'en-tête, qui est une rangée sans repli. `basalte lint` réclame le commentaire
+qui justifie chaque borne haute de liste, et le poids d'une page, que ces bornes
+tenaient sans le dire, se mesure désormais au build (`seo-performances.md`).
+
+La borne **basse** ne suit pas (D161) : elle dit autre chose. Le caractère
+requis s'exprime par elle (D43), et `min: 2` sur les chiffres clés est
+sémantique — un seul chiffre n'est pas une section de chiffres.
 
 Un bloc ne valide jamais rien à la main : si une vérification manque, elle
 s'ajoute à `f.*`. Voir `conventions.md`.

@@ -12,7 +12,6 @@ export default block({
       itemLabel: 'caption',
       required: true,
       min: 1,
-      max: 12,
       of: {
         image: f.image({ label: 'Image', required: true, ratio: '4/3' }),
         caption: f.text({ label: 'Légende', i18n: true, max: 120 }),

@@ -10,7 +10,6 @@ export default block({
       label: 'Liens',
       help: 'Les mentions légales et la politique de confidentialité y vivent. L’adresse et le téléphone, eux, restent dans les mentions légales.',
       itemLabel: 'label',
-      max: 6,
       of: {
         label: f.text({
           label: 'Intitulé',

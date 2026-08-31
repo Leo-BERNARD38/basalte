@@ -351,6 +351,296 @@
               "fr": "Non. Le dépliage est celui de `details`, natif :\n\n- le clavier l’ouvre\n- les lecteurs d’écran l’annoncent\n- la recherche de la page y trouve le texte replié",
               "en": ""
             }
+          },
+          {
+            "question": {
+              "fr": "Combien de questions puis-je mettre ici ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Autant que vous voulez. Cette liste n’a plus de borne haute : la mise en page les empile, et le panel les replie une à une.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Pourquoi certaines listes sont-elles encore bornées ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Une seule l’est : le menu de l’en-tête. C’est une rangée qui ne se replie pas — au-delà de six liens, elle déborde et la page défile en travers.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je ajouter une page ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Non, et c’est volontaire. Les pages, leurs adresses et le plan du site sont fixés à la livraison ; vous en changez le contenu, jamais la structure.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je réordonner les sections ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui, à la poignée, à la souris comme au clavier. Une section se masque aussi sans être supprimée.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Combien de temps met une mise en ligne ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Le temps de reconstruire le site, quelques secondes. L’ancienne version continue d’être servie jusqu’à la dernière.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Que se passe-t-il si je ferme l’onglet en cours d’édition ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Le brouillon est perdu, mais rien n’est cassé : la version en ligne n’a pas bougé.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Mes visiteurs voient-ils mes brouillons ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Jamais. Un billet en brouillon n’a d’adresse dans aucune langue, et une section masquée n’est pas construite.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Comment j’ajoute une photo ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Depuis la médiathèque du panel. L’image est ré-encodée, ses données de prise de vue retirées, et ses différentes largeurs produites à ce moment-là.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Pourquoi mon image est-elle recadrée ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Chaque emplacement attend une forme. Le panel vous montre le cadre retenu et vous laisse le déplacer, sans jamais toucher à l’originale.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je téléverser une image au format SVG ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Non. Un SVG est un document exécutable : il est refusé au téléversement, sans exception.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Quelle taille d’image dois-je préparer ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "La plus grande dont vous disposez. Le socle en tire les tailles plus petites ; l’inverse n’est pas possible.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Une page peut-elle devenir trop lourde ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui, et la construction le dit : au-delà de deux mégaoctets téléchargés à l’ouverture, un avertissement nomme la page. Il n’empêche pas de publier.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je mettre un PDF en téléchargement ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui, si le site le déclare. Le fichier est servi en pièce jointe, jamais affiché dans la page.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Les images ralentissent-elles le site ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Le navigateur ne télécharge que la largeur dont il a besoin. C’est le nombre d’images d’une même page qui compte, pas leur taille de départ.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Le site fonctionne-t-il sans JavaScript ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Entièrement. Le site public n’en embarque aucun par défaut ; un bloc qui en a besoin le déclare, et lui seul le charge.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Le site est-il lisible sur téléphone ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Il est d’abord dessiné pour le téléphone. Le rendu large est une variante, qui ne montre rien que le téléphone ne montre pas.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Est-ce que le site est accessible ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Les contrastes, les cibles tactiles et le focus au clavier ont un plancher que le socle vérifie. Le reste dépend de ce que vous écrivez — un texte alternatif utile, par exemple.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Comment les messages du formulaire me parviennent-ils ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Par email, et ils restent dans le panel. Les deux canaux sont indépendants : si l’email échoue, le message est là quand même.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je changer l’adresse qui reçoit les messages ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui, c’est un réglage du site. Il ne demande pas de nouvelle mise en ligne du contenu.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Que deviennent les coordonnées de mes visiteurs ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Elles restent sur votre machine. Aucun traceur, aucune régie, aucun script tiers n’est chargé.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Comment je sais combien de personnes visitent le site ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Par les journaux d’accès du serveur, lus après coup. Rien n’est déposé dans le navigateur de vos visiteurs.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Le site apparaît-il dans Google ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Chaque page porte son titre, sa description, son adresse canonique et sa carte de partage. Le plan du site est produit à chaque mise en ligne.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Pourquoi la construction me signale-t-elle un titre en double ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Deux pages qui portent le même titre se font concurrence dans les résultats. Ce n’est pas une erreur, c’est un constat — à vous de voir.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je traduire le site ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui. Les langues vivent dans les champs eux-mêmes ; une langue en préparation ne se publie pas tant qu’elle est incomplète.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Une langue incomplète bloque-t-elle la mise en ligne ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Seulement si elle est en ligne. Tant qu’elle est en préparation, ses trous sont tolérés.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je écrire des articles ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Oui, dans le journal. Un billet s’écrit en plusieurs fois : tant qu’il est en brouillon, ses champs peuvent rester vides.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Puis-je programmer la parution d’un article ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Non. Un site construit à l’avance n’a pas d’horloge : un billet daté de demain n’apparaîtrait qu’à la construction suivante.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Qui possède le site ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Vous. Le contenu, les images et l’historique sont dans votre dépôt, et le site tourne sur votre machine.",
+              "en": ""
+            }
+          },
+          {
+            "question": {
+              "fr": "Que se passe-t-il si je change d’hébergeur ?",
+              "en": ""
+            },
+            "answer": {
+              "fr": "Le site est du HTML posé sur un disque. Il se déplace tel quel, sans rien à reconfigurer côté contenu.",
+              "en": ""
+            }
           }
         ]
       }
