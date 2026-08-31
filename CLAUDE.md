@@ -14,10 +14,13 @@ version du socle se publie en une commande aussi. Ce que chaque phase a mis en
 place est relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été
 fait est dans `docs/decisions.md`, qui est la mémoire du projet.
 
-**À faire :** aucune phase en attente. Ce qui a été identifié et laissé de côté
-est dans `docs/roadmap.md`, avec ce qui le ferait revenir — c'est là que se
-prend la suivante. Un bloc écrit pour un client ne circule pas vers un autre :
-il se recopie, et ce qui sert à plusieurs entre dans le socle (D147, D148).
+**À faire :** une phase en attente, la 16 — « Allonger » : les listes d'un bloc
+portent toutes une borne haute, dont une seule tient sur la mise en page, et le
+panel ne sait pas encore rendre une liste longue. Son cahier est dans
+`docs/implementation.md`, à lire avant de commencer. Ce qui a été identifié et
+laissé de côté est dans `docs/roadmap.md`, avec ce qui le ferait revenir. Un bloc
+écrit pour un client ne circule pas vers un autre : il se recopie, et ce qui sert
+à plusieurs entre dans le socle (D147, D148).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
