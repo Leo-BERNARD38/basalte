@@ -51,6 +51,42 @@ npm run update -- --dry-run
 Affiche la version cible, les notes, les migrations qui s'appliqueraient et les
 fichiers qui changeraient. N'écrit rien.
 
+## Publier une version du socle
+
+**Le tag est la publication.** Rien d'autre ne l'est : pas le numéro dans
+`package.json`, pas la note dans `notes/`, pas un commit sur `main`. Un dépôt
+client s'installe par `github:<compte>/basalte#vX.Y.Z` (D5), et ce que ce tag ne
+désigne pas n'existe pas pour lui.
+
+D'où l'ordre, depuis le dépôt du socle :
+
+```bash
+npm run verify                       # il doit passer avant tout le reste
+# porter le numéro dans package.json, écrire notes/vX.Y.Z.md
+git commit -am "release: vX.Y.Z"
+git tag vX.Y.Z
+git push origin main --follow-tags
+```
+
+**Bumper sans taguer est la panne discrète de cette mécanique.** Le socle
+continue de fonctionner, `npm run verify` passe, et c'est `basalte init` qui
+tombe — chez un client, après avoir écrit son dépôt. Il refuse donc désormais
+avant d'écrire quoi que ce soit, en nommant le tag manquant. `--no-install`
+reste le moyen d'engendrer un dépôt sans l'installer.
+
+Le numéro se choisit sur **ce qu'un site existant a à faire**, pas sur la
+quantité de travail accompli. C'est la même échelle que la première ligne des
+notes, à un cran près :
+
+| Rang | Ce qui change pour un site existant | « Action requise » |
+|---|---|---|
+| **patch** | rien — une correction, un texte, une performance | `aucune` |
+| **mineure** | des blocs, des champs ou des capacités s'ajoutent ; une migration de format tourne toute seule | `aucune` ou `automatique` |
+| **majeure** | quelque chose doit être touché à la main dans le dépôt client | `manuelle` |
+
+Un numéro qui n'est pas du semver strict est ignoré par `update` : le socle n'en
+publie pas d'autres, et un tag mal formé passerait inaperçu.
+
 ## Notes de version
 
 Chaque version du socle porte ses notes dans `notes/vX.Y.Z.md`, au format fixe,

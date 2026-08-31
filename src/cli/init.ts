@@ -25,7 +25,12 @@ import {
   initRepository,
   remoteOf,
 } from '../client/repository.js'
-import { readSocle } from '../client/socle.js'
+import {
+  isPublished,
+  publishedVersions,
+  readSocle,
+  type Socle,
+} from '../client/socle.js'
 import {
   fails,
   hasFlag,
@@ -71,6 +76,24 @@ export async function init(
 
   const answers = await ask(argv, slug)
   const socle = readSocle()
+  const install = !hasFlag(argv, '--no-install')
+
+  // Avant d’écrire quoi que ce soit : sans son tag, l’installation échouerait
+  // après avoir posé une trentaine de fichiers, et le dossier resterait ni
+  // installé ni versionné. Le dépôt client ne peut pas épingler ce qui n’est
+  // pas publié.
+  if (install && (await unpublished(cwd, socle))) {
+    return fails([
+      `Le socle n’a pas de version « v${socle.version} » publiée sur ${socle.repository}.`,
+      'Rien n’a été écrit : un dépôt client épingle une version, et celle-là n’existe pas.',
+      '',
+      '  Depuis le socle :',
+      `    git tag v${socle.version} && git push origin v${socle.version}`,
+      '',
+      'Ou relance avec « --no-install » pour écrire le dépôt sans l’installer.',
+    ])
+  }
+
   const files = siteFiles(answers, socle)
   const lines = [...heading('init', answers.name)]
 
@@ -85,7 +108,7 @@ export async function init(
     ),
   )
 
-  if (hasFlag(argv, '--no-install')) {
+  if (!install) {
     await writeAgentDoc(root, await readEntries(root))
     lines.push(line('warning', 'installation sautée — lance « npm install »'))
   } else {
@@ -99,7 +122,7 @@ export async function init(
     if (!installed.ok) {
       return fails([
         `L’installation a échoué dans « ${slug} ».`,
-        `Vérifie que le tag v${socle.version} existe sur ${socle.repository},`,
+        'Les fichiers sont écrits : corrige la cause ci-dessus,',
         'puis relance « npm install » depuis le dossier.',
       ])
     }
@@ -115,6 +138,17 @@ export async function init(
   lines.push('', `  cd ${slug}`, '  npm run dev', '')
 
   return succeeds(lines)
+}
+
+// Le listage est un appel réseau. Quand il échoue — pas de réseau, dépôt
+// injoignable —, on n’en conclut rien : c’est `npm install` qui le dira, comme
+// avant. Cette garde nomme un tag absent, elle ne remplace pas l’installation.
+async function unpublished(cwd: string, socle: Socle): Promise<boolean> {
+  try {
+    return !isPublished(socle.version, await publishedVersions(cwd, socle))
+  } catch {
+    return false
+  }
 }
 
 async function remote(

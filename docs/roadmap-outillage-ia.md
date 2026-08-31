@@ -21,8 +21,10 @@ son travail seul, et ne casse pas les invariants.
 `CLAUDE.md` et `docs/conventions.md` posent le contexte. Reste :
 
 **Contexte**
-- Convention de commit et procédure de release (tag, semver, notes de version)
-- Session-start hook pour Claude Code sur le web (install, build, checks prêts)
+- ~~Procédure de release (tag, semver, notes de version)~~ — écrite dans
+  `mise-a-jour.md`, et `init` refuse désormais une version non publiée
+- ~~Session-start hook pour Claude Code sur le web~~ — livré (D125)
+- Convention de commit : de fait dans l'historique, pas encore écrite
 
 **Skills**
 - créer un bloc (schéma + composant + entrée dans la démo)

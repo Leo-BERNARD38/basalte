@@ -108,6 +108,18 @@ export async function publishedVersions(
     .toSorted(compareVersions)
 }
 
+/**
+ * Vrai quand cette version porte un tag publié. Un dépôt client épingle la
+ * version qui l’a généré (D5) : sans son tag, `npm install` échoue chez le
+ * client, et il échoue après que tout a été écrit.
+ */
+export function isPublished(
+  version: string,
+  published: readonly string[],
+): boolean {
+  return published.includes(version)
+}
+
 /** Les versions strictement postérieures à celle installée. */
 export function versionsAfter(
   installed: string,
