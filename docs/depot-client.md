@@ -35,7 +35,7 @@ mon-client/
 ├── Caddyfile
 ├── Dockerfile
 ├── docker-entrypoint.sh   npm ci, build du panel, puis le serveur
-├── .githooks/pre-commit   npx basalte check
+├── .githooks/pre-commit   npx basalte check, puis npx basalte lint
 ├── .nvmrc · .npmrc · .gitattributes
 ├── data/                  la base SQLite — jamais versionnée
 │                          comptes, sessions, appareils, journal

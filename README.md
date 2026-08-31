@@ -233,6 +233,14 @@ Le panel affiche le formulaire du bloc sans qu'il y ait rien à y brancher. Un
 troisième fichier, `<Nom>.desktop.astro`, porte la mise en page bureau quand le
 site déclare `capabilities: { desktopRender: true }`.
 
+**Puis `npx basalte lint`.** Il refuse ce que les conventions interdisent, à
+l'endroit fautif : une couleur, un espacement, une taille ou une police écrits
+en dur plutôt qu'en token ; un schéma qui valide à la main au lieu de passer
+par `f.*` ; un fourre-tout ; une paire de tokens dont le contraste tombe sous
+4,5:1. Il tourne aussi en pré-commit, à côté de `check`. C'est ce qui fait
+qu'une règle du projet est tenue plutôt que rappelée — et un agent qui écrit un
+bloc sait tout de suite s'il a dérivé.
+
 ### 3.6 Assembler les pages
 
 ```
@@ -520,6 +528,7 @@ pourquoi.
 |---|---|
 | `npm run dev` | le site et le panel en local, sur la même adresse |
 | `npm run check` | valide les contenus contre les schémas |
+| `npx basalte lint` | vérifie les conventions du code que Claude écrit |
 | `npm run deploy -- --host <ip>` | provisionne la machine, ou la met à jour |
 | `npm run doctor` | prouve que la configuration fonctionne |
 | `npm run update` | monte le socle de version, ou annule tout |
@@ -532,6 +541,7 @@ pourquoi.
 |---|---|
 | `basalte init <nom> [--profile <nom>]` | génère un dépôt client complet |
 | `basalte check [--build]` | valide les contenus, et construit sous `--build` |
+| `basalte lint` | vérifie les conventions du code : blocs, styles, schémas |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère la doc agent |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |
@@ -553,6 +563,7 @@ pourquoi.
 | le lien de connexion pointe vers le domaine, pas vers localhost | ajoute `--origin http://localhost:4321` |
 | `update` refuse de commencer | l'arbre de travail n'est pas propre — commite ou remise d'abord |
 | `check` échoue sur un `$format` | le format de contenu est en retard : `npx basalte migrate` |
+| `lint` refuse une valeur de style | c'est un token à employer, ou à ajouter au socle — jamais une valeur en dur |
 | un bloc s'affiche sans son CSS | il est importé depuis un module purement virtuel — voir D45 |
 | `doctor` refuse le domaine | DKIM n'est pas publié : c'est la signature qui authentifie, pas SPF |
 | le client ne reçoit plus ses codes | sépare les canaux : `AUTH_EMAIL_API_KEY` et `AUTH_EMAIL_FROM` |

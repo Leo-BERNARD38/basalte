@@ -162,7 +162,8 @@ Détail dans `docs/conventions.md`. L'essentiel :
   jamais ce que le socle exécute.
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
-  est un token à ajouter, jamais un `padding: 27px` isolé. Le panel a sa propre
+  est un token à ajouter, jamais un `padding: 27px` isolé. `basalte lint` le
+  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le panel a sa propre
   couche de tokens, `src/admin/theme.ts` (D95), et ne dessine aucune bordure
   (D97) : les plans se séparent par la valeur et l'ombre.
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
@@ -208,6 +209,7 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
 |---|---|
 | `basalte init <nom> [--profile <nom>]` | génère un dépôt client complet |
 | `basalte check [--build]` | valide contenus contre schémas, construit sous `--build` |
+| `basalte lint` | vérifie les conventions du code : blocs, styles, schémas |
 | `basalte inventory [--json\|--agent]` | liste blocs et champs, ou régénère `.claude/basalte.md` |
 | `basalte update [--dry-run] [--json]` | monte un site de version, ou annule tout |
 | `basalte deploy --host <ip> [--dry-run]` | provisionne le VPS, ou le met à jour |

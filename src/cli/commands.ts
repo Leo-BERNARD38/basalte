@@ -35,6 +35,12 @@ export const COMMANDS: readonly Command[] = [
       (await import('./inventory.js')).inventory(argv, cwd),
   },
   {
+    name: 'lint',
+    usage: 'lint',
+    summary: 'vérifie les conventions du code : blocs, styles, schémas',
+    run: async (argv, cwd) => (await import('./lint.js')).lint(argv, cwd),
+  },
+  {
     name: 'update',
     usage: 'update [--dry-run] [--json]',
     summary: 'monte un site de version, ou annule tout',

@@ -228,8 +228,19 @@ function environment(): string {
   ].join('\n')
 }
 
+// `check` valide le contenu, `lint` le code qui le rend. Les deux sont ici et
+// non dans le panel : celui-ci commite en « --no-verify » (D17), si bien qu’un
+// enregistrement de client ne peut pas échouer sur un défaut de style qu’il ne
+// voit pas et ne saurait corriger.
 function preCommit(): string {
-  return ['#!/bin/sh', 'set -e', '', 'npx basalte check', ''].join('\n')
+  return [
+    '#!/bin/sh',
+    'set -e',
+    '',
+    'npx basalte check',
+    'npx basalte lint',
+    '',
+  ].join('\n')
 }
 
 function home(answers: SiteAnswers): string {
