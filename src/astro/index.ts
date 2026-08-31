@@ -22,7 +22,9 @@ import type { AstroIntegration } from 'astro'
 
 import type { BlockRegistry } from '../blocks/define.js'
 import type { BlockSource } from '../blocks/scan.js'
+import type { ChromeContent } from '../chrome/define.js'
 import { supportsOf } from '../render/supports.js'
+import { CHROME_FILE } from '../content/chrome.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { errorsOf, readProject, type RenderedPage } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
@@ -64,8 +66,18 @@ export default function basalte(): AstroIntegration {
         const panel = command === 'dev' || process.env[MODE] === PANEL
         const publicSite = command === 'dev' || !panel
 
-        const { site, sources, registry, pages, media, documents, issues } =
-          await readProject(root)
+        const {
+          site,
+          sources,
+          chromeSources,
+          registry,
+          chrome,
+          chromeContent,
+          pages,
+          media,
+          documents,
+          issues,
+        } = await readProject(root)
         const errors = errorsOf(issues)
 
         for (const issue of issues) {
@@ -99,6 +111,9 @@ export default function basalte(): AstroIntegration {
           site,
           dev: command === 'dev',
           registry,
+          chrome,
+          chromeContent,
+          chromeSources,
           pages,
           media,
           documents,
@@ -137,6 +152,7 @@ export default function basalte(): AstroIntegration {
         }
 
         addWatchFile(path.join(root, CONFIG_FILE))
+        addWatchFile(path.join(root, CONTENT_DIR, CHROME_FILE))
 
         for (const entry of pages) {
           addWatchFile(path.join(root, CONTENT_DIR, `${entry.name}.json`))
@@ -233,6 +249,9 @@ async function generate(
     readonly site: Site
     readonly dev: boolean
     readonly registry: BlockRegistry
+    readonly chrome: BlockRegistry
+    readonly chromeContent: ChromeContent
+    readonly chromeSources: readonly BlockSource[]
     readonly pages: readonly RenderedPage[]
     readonly media: MediaManifest
     readonly documents: DocumentManifest
@@ -271,10 +290,38 @@ async function generate(
     ({ name, index }) => `${JSON.stringify(name)}: Desktop${index}`,
   )
 
+  // Le chrome suit exactement le même chemin que les blocs — imports relatifs
+  // pour que son CSS soit collecté (D45), variantes bureau sous la même garde.
+  const chromeLines = data.chromeSources.map(
+    (source, index) =>
+      `import Chrome${index} from ${JSON.stringify(specifier(file, source.component))}`,
+  )
+
+  const chromeEntries = data.chromeSources.map(
+    (source, index) => `${JSON.stringify(source.name)}: Chrome${index}`,
+  )
+
+  const chromeVariant = data.chromeSources.flatMap((source, index) =>
+    !built || source.desktop === undefined
+      ? []
+      : [{ name: source.name, from: source.desktop, index }],
+  )
+
+  const chromeVariants = chromeVariant.map(
+    ({ from, index }) =>
+      `import ChromeDesktop${index} from ${JSON.stringify(specifier(file, from))}`,
+  )
+
+  const chromeDesktops = chromeVariant.map(
+    ({ name, index }) => `${JSON.stringify(name)}: ChromeDesktop${index}`,
+  )
+
   const contents = [
     '// Fichier généré par @leobernard/basalte à chaque démarrage. Ne pas modifier.',
     ...lines,
     ...variants,
+    ...chromeLines,
+    ...chromeVariants,
     `export const root = ${JSON.stringify(data.root)}`,
     `export const site = ${JSON.stringify(data.site)}`,
     `export const dev = ${JSON.stringify(data.dev)}`,
@@ -282,8 +329,12 @@ async function generate(
     `export const pages = ${JSON.stringify(data.pages)}`,
     `export const media = ${JSON.stringify(data.media)}`,
     `export const documents = ${JSON.stringify(data.documents)}`,
+    `export const chromeRegistry = ${JSON.stringify(data.chrome)}`,
+    `export const chromeContent = ${JSON.stringify(data.chromeContent)}`,
     `export const blocks = { ${entries.join(', ')} }`,
     `export const desktop = { ${desktops.join(', ')} }`,
+    `export const chrome = { ${chromeEntries.join(', ')} }`,
+    `export const chromeDesktop = { ${chromeDesktops.join(', ')} }`,
     '',
   ].join('\n')
 

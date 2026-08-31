@@ -5,9 +5,9 @@
 // à la bascule atomique — seulement au contenu, à ses schémas et aux médias
 // qu’il référence.
 //
-// Sous `--build`, deux vérifications de plus n’ont de sens qu’une fois le HTML
-// écrit : le contrat des deux rendus (D108), et le fait que la machine sache
-// les servir. La seconde regarde le `Caddyfile` du dépôt, écrit à l’`init` et
+// Sous `--build`, trois vérifications de plus n’ont de sens qu’une fois le
+// HTML écrit : le contrat des deux rendus (D108), le plan de titres de chaque
+// page, et le fait que la machine sache les servir. La seconde regarde le `Caddyfile` du dépôt, écrit à l’`init` et
 // jamais régénéré : c’est le seul endroit où un site plus ancien que le second
 // rendu se signale avant d’être déployé.
 
@@ -20,6 +20,7 @@ import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
 import { countMediaUsage } from '../media/usage.js'
 import { astroBinary } from '../publish/build.js'
+import { checkHeadings } from '../render/outline.js'
 import { checkRenders } from '../render/parity.js'
 import { DESKTOP_PREFIX } from '../render/supports.js'
 import type { Site } from '../site/define.js'
@@ -88,6 +89,7 @@ export async function check(
 
     const built = [
       ...(await checkRenders(path.join(cwd, CHECK_OUT))),
+      ...(await checkHeadings(path.join(cwd, CHECK_OUT))),
       ...(await staleCaddyfile(cwd, project.site)),
     ].map((issue) => line('warning', renderIssue(issue)))
 

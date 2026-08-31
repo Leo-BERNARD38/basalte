@@ -25,9 +25,10 @@ mon-client/
 ├── .env                   secrets — jamais versionné
 ├── .env.example
 ├── content/*.json         index, contact, et les deux documents légaux
-├── content/media.json · documents.json   les manifestes, pas des pages
+├── content/media.json · documents.json · chrome.json   les manifestes, pas des pages
 ├── public/media/ · public/documents/
 ├── src/blocks/            les blocs sur mesure de ce site
+├── src/chrome/            l'en-tête et le pied de page, s'ils sont redessinés
 ├── compose.yml
 ├── Caddyfile
 ├── Dockerfile

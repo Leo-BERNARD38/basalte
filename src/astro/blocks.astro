@@ -11,18 +11,24 @@
 // c’est le seul endroit où les deux rendus d’une même section se comparent
 // sans changer d’onglet ni de largeur de fenêtre.
 //
+// Le chrome entoure la page comme partout ailleurs : il se règle donc ici, à
+// côté des blocs qu’il encadre, plutôt qu’en rechargeant l’accueil.
+//
 // La route n’existe que sous `astro dev` : elle n’est injectée nulle part
 // ailleurs, et aucune version publiée ne la porte.
 import {
   blocks,
+  chromeContent,
   desktop,
   documents,
   media,
+  pages,
   registry,
   site,
 } from 'virtual:basalte'
 import { sampleValues } from '../fields/sample.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
+import { DEFAULT_SUPPORT } from '../render/supports.js'
 import Layout from './Layout.astro'
 
 export const prerender = false
@@ -70,7 +76,17 @@ const image = (key: string, sizes?: string) =>
 const document = (key: string) => resolveDocument(documents, key)
 ---
 
-<Layout site={site} meta={meta} language={language} route="/__blocs">
+<Layout
+  site={site}
+  meta={meta}
+  language={language}
+  route="/__blocs"
+  support={DEFAULT_SUPPORT}
+  image={image}
+  document={document}
+  chrome={chromeContent}
+  pages={pages.map((page) => ({ name: page.name, route: page.route }))}
+>
   <div class="bench__intro">
     <p>
       {bench.length} bloc{bench.length > 1 ? 's' : ''} disponible{
@@ -95,6 +111,7 @@ const document = (key: string) => resolveDocument(documents, key)
             language={language}
             image={image}
             document={document}
+            heading="h2"
           />
         </section>
       )

@@ -26,14 +26,22 @@ import {
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
+import { CHROME_ENTRY, CHROME_TITLE } from '../chrome/define.js'
+import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
 import { Account } from './Account.js'
-import { loadPanel, publishSite, readPublication, savePage } from './api.js'
+import {
+  loadPanel,
+  publishSite,
+  readPublication,
+  saveChrome,
+  savePage,
+} from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
-import { EditingContext, pageLabel, type Editing } from './editing.js'
+import { EditingContext, type Editing } from './editing.js'
 import { DocumentPicker } from './DocumentPicker.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
@@ -110,17 +118,32 @@ export default function Panel({ site }: { readonly site: string }) {
     setProblems([])
   }
 
+  // Le chrome s’ouvre comme une page, et le brouillon garde sa forme : ses deux
+  // emplacements sont des sections, il n’a simplement pas de métadonnées.
+  const openChrome = (data: PanelPayload) => {
+    setSelected(CHROME_ENTRY)
+    setDraft({ meta: {}, blocks: data.chrome.draft.sections })
+    setProblems([])
+  }
+
   /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
   const load = async (page?: string) => {
     const data = await refresh()
 
     if (data === undefined) return
 
+    const wanted = page ?? selected
+
+    if (wanted === CHROME_ENTRY) {
+      openChrome(data)
+      return
+    }
+
     const opened =
-      data.pages.find((entry) => entry.name === (page ?? selected)) ??
-      data.pages[0]
+      data.pages.find((entry) => entry.name === wanted) ?? data.pages[0]
 
     if (opened !== undefined) open(opened)
+    else openChrome(data)
   }
 
   useEffect(() => {
@@ -156,9 +179,14 @@ export default function Panel({ site }: { readonly site: string }) {
   }, [online])
 
   const page = payload?.pages.find((entry) => entry.name === selected)
-  const dirty =
-    page !== undefined &&
-    !sameDraft(draft, { meta: page.meta, blocks: page.blocks })
+  const chrome = selected === CHROME_ENTRY ? payload?.chrome.draft : undefined
+  const saved =
+    chrome !== undefined
+      ? { meta: {}, blocks: chrome.sections }
+      : page === undefined
+        ? undefined
+        : { meta: page.meta, blocks: page.blocks }
+  const dirty = saved !== undefined && !sameDraft(draft, saved)
 
   // Fermer l’onglet sur des modifications non enregistrées passe par la
   // confirmation du navigateur : le panel n’a pas d’autre prise sur ce
@@ -203,7 +231,10 @@ export default function Panel({ site }: { readonly site: string }) {
   const save = async (): Promise<boolean> => {
     setBusy(true)
 
-    const answer = await savePage(selected, draft)
+    const answer =
+      selected === CHROME_ENTRY
+        ? await saveChrome(draft)
+        : await savePage(selected, draft)
 
     setBusy(false)
 
@@ -243,15 +274,24 @@ export default function Panel({ site }: { readonly site: string }) {
       return
     }
 
-    const opened = known.pages.find((entry) => entry.name === name)
-
-    if (opened !== undefined) open(opened)
+    reveal(name)
   }
 
   const abandon = () => {
-    const opened = known.pages.find((entry) => entry.name === asked)
+    const name = asked
 
     setAsked(undefined)
+
+    if (name !== undefined) reveal(name)
+  }
+
+  function reveal(name: string): void {
+    if (name === CHROME_ENTRY) {
+      openChrome(known)
+      return
+    }
+
+    const opened = known.pages.find((entry) => entry.name === name)
 
     if (opened !== undefined) open(opened)
   }
@@ -286,7 +326,11 @@ export default function Panel({ site }: { readonly site: string }) {
           screen={shown}
           heading={heading(
             shown,
-            page === undefined ? undefined : pageLabel(page.name),
+            selected === CHROME_ENTRY
+              ? CHROME_TITLE
+              : page === undefined
+                ? undefined
+                : pageLabel(page.name),
           )}
           onScreen={goTo}
           language={language}

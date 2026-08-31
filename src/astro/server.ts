@@ -10,7 +10,7 @@
 // reparcourt pas les blocs. Seul le manifeste des médias est relu à chaque
 // requête, parce que le panel lui-même l’écrit.
 
-import { dev, registry, root, site } from 'virtual:basalte'
+import { chromeRegistry, dev, registry, root, site } from 'virtual:basalte'
 
 import { accessLogPath } from '../analytics/access.js'
 import type { Schemas } from '../content/project.js'
@@ -65,6 +65,7 @@ function open(): Panel {
     schemas: async (): Promise<Schemas> => ({
       site,
       registry,
+      chrome: chromeRegistry,
       media: await readManifest(root),
       documents: await readDocuments(root),
     }),

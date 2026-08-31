@@ -29,6 +29,8 @@ export type Profile = {
   readonly capabilities: Readonly<Record<string, boolean>>
   /** Les pages qui s’ajoutent à celles de tout site. */
   readonly pages: (answers: SiteAnswers) => readonly GeneratedFile[]
+  /** Ce que ces pages ajoutent au menu, dans l’ordre où elles s’y rangent. */
+  readonly menu: readonly { readonly label: string; readonly href: string }[]
 }
 
 export const PROFILES = {
@@ -36,6 +38,7 @@ export const PROFILES = {
     label: 'une page d’accueil, un formulaire, les documents légaux',
     capabilities: {},
     pages: () => [],
+    menu: [],
   },
   artisan: {
     label: 'la vitrine, plus une page de services et les devis en PDF',
@@ -43,6 +46,7 @@ export const PROFILES = {
     pages: (answers: SiteAnswers) => [
       { path: 'content/services.json', contents: services(answers) },
     ],
+    menu: [{ label: 'Nos services', href: '/services' }],
   },
 } satisfies Readonly<Record<string, Profile>>
 
@@ -85,6 +89,7 @@ export function clientFiles(
     { path: 'content/mentions-legales.json', contents: notice(answers) },
     { path: 'content/confidentialite.json', contents: privacy(answers) },
     ...PROFILES[answers.profile].pages(answers),
+    { path: 'content/chrome.json', contents: chrome(answers) },
     { path: 'content/media.json', contents: json({}) },
     { path: 'public/media/.gitkeep', contents: '' },
     { path: 'src/blocks/.gitkeep', contents: '' },
@@ -252,6 +257,38 @@ function home(answers: SiteAnswers): string {
         },
       },
     ],
+  })
+}
+
+// L’en-tête et le pied de page. Le menu est écrit plutôt que déduit : le
+// client le renomme et le réordonne depuis son panel, et les pages légales
+// vont au pied, où elles ont leur place — ce qu’une liste déduite des fichiers
+// ne saurait pas décider.
+function chrome(answers: SiteAnswers): string {
+  const menu = [
+    { label: 'Accueil', href: '/' },
+    ...PROFILES[answers.profile].menu,
+    { label: 'Nous écrire', href: '/contact' },
+  ]
+
+  const legal = [
+    { label: 'Mentions légales', href: '/mentions-legales' },
+    { label: 'Politique de confidentialité', href: '/confidentialite' },
+  ]
+
+  const link = (entry: { readonly label: string; readonly href: string }) => ({
+    label: translated(answers, entry.label),
+    href: entry.href,
+  })
+
+  return json({
+    $format: CONTENT_FORMAT,
+    header: {
+      logo: '',
+      links: menu.map(link),
+      menuLabel: translated(answers, 'Menu'),
+    },
+    footer: { links: legal.map(link) },
   })
 }
 

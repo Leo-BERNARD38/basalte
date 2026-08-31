@@ -27,10 +27,12 @@ import { useState } from 'react'
 
 import { SUPPORT_PARAM } from '../astro/preview.js'
 import { slugFor } from '../astro/routes.js'
+import { CHROME_ENTRY, CHROME_TITLE, SLOTS } from '../chrome/define.js'
+import { pageLabel } from '../content/naming.js'
 import { DEFAULT_SUPPORT } from '../render/supports.js'
 import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
-import { pageLabel, useEditing } from './editing.js'
+import { useEditing } from './editing.js'
 import { FieldSet } from './fields/Field.js'
 import { Grip } from './Grip.js'
 import { Section } from './Section.js'
@@ -60,92 +62,145 @@ export function Edit({
 }) {
   const editing = useEditing()
   const [focus, setFocus] = useState<Focus>({ kind: 'meta' })
+  const [opened, setOpened] = useState<string>(selected)
   const [viewport, setViewport] = useState<string>('desktop')
 
+  const isChrome = selected === CHROME_ENTRY
+
+  // Le panneau de droite suit la page ouverte : sans cette remise à zéro,
+  // passer d’une page au chrome laisserait un identifiant de section que la
+  // nouvelle liste ne porte pas, et le panneau dirait qu’elle a disparu.
+  if (opened !== selected) {
+    setOpened(selected)
+    setFocus(
+      selected === CHROME_ENTRY
+        ? { kind: 'block', id: SLOTS[0] }
+        : { kind: 'meta' },
+    )
+  }
   const page = payload.pages.find((entry) => entry.name === selected)
 
-  if (page === undefined) {
+  if (!isChrome && page === undefined) {
     return <Text c="dimmed">Ce site n’a aucune page.</Text>
   }
 
+  // Le chrome se règle en regardant l’accueil : c’est là qu’il se voit en
+  // entier, et le client n’a pas à savoir qu’il est sur toutes les pages.
+  const previewed = page?.route ?? '/'
+
+  // La bibliothèque des sections d’une page, ou les deux emplacements du
+  // chrome : dans les deux cas, un descripteur par type.
+  const types = isChrome ? payload.chrome.types : payload.library
+
+  // Le chrome n’a pas de métadonnées : son panneau ouvre sur le premier
+  // emplacement plutôt que sur un formulaire qui n’existe pas.
+  const active: Focus =
+    isChrome && focus.kind === 'meta'
+      ? { kind: 'block', id: draft.blocks[0]?.id ?? '' }
+      : focus
+
   const focused =
-    focus.kind === 'block'
-      ? draft.blocks.find((entry) => entry.id === focus.id)
+    active.kind === 'block'
+      ? draft.blocks.find((entry) => entry.id === active.id)
       : undefined
 
   return (
     <div className="basalte-edit">
       <Paper className="basalte-rail" p="md">
         <Stack gap="sm">
-          {payload.pages.length > 1 && (
-            <Select
-              size="sm"
-              label="Page"
-              data={payload.pages.map((entry) => ({
+          <Select
+            size="sm"
+            label="Page"
+            data={[
+              ...payload.pages.map((entry) => ({
                 value: entry.name,
                 label: pageLabel(entry.name),
-              }))}
-              value={selected}
-              allowDeselect={false}
-              onChange={(value) => value !== null && onSelect(value)}
-            />
-          )}
+              })),
+              { value: CHROME_ENTRY, label: CHROME_TITLE },
+            ]}
+            value={selected}
+            allowDeselect={false}
+            onChange={(value) => value !== null && onSelect(value)}
+          />
 
           <Group justify="space-between" align="center" px={12}>
-            <span className="basalte-eyebrow">Sections</span>
+            <span className="basalte-eyebrow">
+              {isChrome ? 'Emplacements' : 'Sections'}
+            </span>
             <Text size="sm" fw={700} c="dimmed">
               {draft.blocks.length}
             </Text>
           </Group>
 
-          <SortableList
-            ids={draft.blocks.map((section) => section.id)}
-            onMove={(from, to) =>
-              onDraft({ ...draft, blocks: move(draft.blocks, from, to) })
-            }
-          >
+          {isChrome ? (
+            // Ni poignée, ni œil barré : le chrome ne se réordonne pas, et il
+            // ne se masque pas — une section se masque par langue, jamais par
+            // support ni par page (D107).
             <Stack gap={2}>
-              {draft.blocks.map((section) => {
-                const type = payload.library.find(
-                  (entry) => entry.name === section.type,
-                )
-                const hidden = section.hidden[editing.language] === true
-
-                return (
-                  <SortableItem key={section.id} id={section.id}>
-                    {(handle) => (
-                      <button
-                        type="button"
-                        className="basalte-section-row"
-                        aria-current={
-                          focus.kind === 'block' && focus.id === section.id
-                        }
-                        data-hidden={hidden}
-                        onClick={() =>
-                          setFocus({ kind: 'block', id: section.id })
-                        }
-                      >
-                        <span
-                          className="basalte-handle"
-                          ref={handle.ref}
-                          aria-label="Déplacer cette section"
-                          {...handle.props}
-                        >
-                          <Grip />
-                        </span>
-                        <span className="basalte-section-row__label">
-                          {type?.label ?? section.type}
-                        </span>
-                        {hidden && <HiddenMark />}
-                      </button>
-                    )}
-                  </SortableItem>
-                )
-              })}
+              {draft.blocks.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  className="basalte-section-row"
+                  data-fixed="true"
+                  aria-current={
+                    active.kind === 'block' && active.id === section.id
+                  }
+                  onClick={() => setFocus({ kind: 'block', id: section.id })}
+                >
+                  <span className="basalte-section-row__label">
+                    {labelOf(types, section.type)}
+                  </span>
+                </button>
+              ))}
             </Stack>
-          </SortableList>
+          ) : (
+            <SortableList
+              ids={draft.blocks.map((section) => section.id)}
+              onMove={(from, to) =>
+                onDraft({ ...draft, blocks: move(draft.blocks, from, to) })
+              }
+            >
+              <Stack gap={2}>
+                {draft.blocks.map((section) => {
+                  const hidden = section.hidden[editing.language] === true
 
-          {draft.blocks.length === 0 && (
+                  return (
+                    <SortableItem key={section.id} id={section.id}>
+                      {(handle) => (
+                        <button
+                          type="button"
+                          className="basalte-section-row"
+                          aria-current={
+                            active.kind === 'block' && active.id === section.id
+                          }
+                          data-hidden={hidden}
+                          onClick={() =>
+                            setFocus({ kind: 'block', id: section.id })
+                          }
+                        >
+                          <span
+                            className="basalte-handle"
+                            ref={handle.ref}
+                            aria-label="Déplacer cette section"
+                            {...handle.props}
+                          >
+                            <Grip />
+                          </span>
+                          <span className="basalte-section-row__label">
+                            {labelOf(types, section.type)}
+                          </span>
+                          {hidden && <HiddenMark />}
+                        </button>
+                      )}
+                    </SortableItem>
+                  )
+                })}
+              </Stack>
+            </SortableList>
+          )}
+
+          {!isChrome && draft.blocks.length === 0 && (
             <div className="basalte-empty">
               Cette page n’a pas encore de section. Elles s’ajoutent depuis le
               dépôt, pas depuis le panel.
@@ -153,19 +208,22 @@ export function Edit({
           )}
 
           <Text size="sm" c="dimmed" px={12}>
-            Une section masquée reste dans la liste : c’est le seul endroit d’où
-            la rallumer.
+            {isChrome
+              ? 'L’en-tête et le pied de page sont sur toutes les pages du site.'
+              : 'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
           </Text>
 
-          <Button
-            variant={focus.kind === 'meta' ? 'light' : 'subtle'}
-            color={focus.kind === 'meta' ? 'brand' : 'gray'}
-            size="sm"
-            mt="auto"
-            onClick={() => setFocus({ kind: 'meta' })}
-          >
-            Informations de la page
-          </Button>
+          {!isChrome && (
+            <Button
+              variant={focus.kind === 'meta' ? 'light' : 'subtle'}
+              color={focus.kind === 'meta' ? 'brand' : 'gray'}
+              size="sm"
+              mt="auto"
+              onClick={() => setFocus({ kind: 'meta' })}
+            >
+              Informations de la page
+            </Button>
+          )}
         </Stack>
       </Paper>
 
@@ -187,7 +245,7 @@ export function Edit({
           />
           <ActionIcon
             component="a"
-            href={previewAddress(page.route, editing, viewport)}
+            href={previewAddress(previewed, editing, viewport)}
             target="_blank"
             rel="noopener"
             size="lg"
@@ -209,20 +267,20 @@ export function Edit({
           className="basalte-stage__frame"
           data-viewport={viewport}
           title="Aperçu de la page"
-          src={previewAddress(page.route, editing, viewport)}
+          src={previewAddress(previewed, editing, viewport)}
         />
       </div>
 
       <Paper className="basalte-inspector" p="md">
         <Stack gap="md">
-          {focus.kind === 'meta' ? (
+          {active.kind === 'meta' ? (
             <>
               <div>
                 <Text fz="var(--panel-text-title)" fw={700}>
                   Informations de la page
                 </Text>
                 <Text size="sm" c="dimmed">
-                  {page.route}
+                  {previewed}
                 </Text>
               </div>
               <FieldSet
@@ -238,9 +296,8 @@ export function Edit({
           ) : (
             <Section
               section={focused}
-              type={payload.library.find(
-                (entry) => entry.name === focused.type,
-              )}
+              type={types.find((entry) => entry.name === focused.type)}
+              hideable={!isChrome}
               onChange={(next) =>
                 onDraft({
                   ...draft,
@@ -278,6 +335,13 @@ function previewAddress(
     support === DEFAULT_SUPPORT ? '' : `?${SUPPORT_PARAM}=${support}`
 
   return `${PREVIEW}${slugFor(route, prefix) ?? ''}${asked}`
+}
+
+function labelOf(
+  types: readonly { readonly name: string; readonly label: string }[],
+  type: string,
+): string {
+  return types.find((entry) => entry.name === type)?.label ?? type
 }
 
 function HiddenMark() {

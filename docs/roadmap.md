@@ -53,8 +53,8 @@ livre un site sans navigation ni mentions légales.
 | Aucune page légale, et le client ne peut pas en créer (D3) | `src/client/files.ts` | 7 |
 | La mention de consentement du formulaire est du texte plat : elle ne peut pas porter de lien | `src/blocks/contact/schema.ts` | 7 |
 | ~~Un bloc est un composant unique, dont le CSS plie au media query~~ · réglé | `src/blocks/*/` | 8 |
-| Ni header, ni footer, ni navigation : le `<body>` ne contient que `<slot />` | `src/astro/Layout.astro` | 9 |
-| Les pages qu’`init` génère ne sont reliées que par le bouton du bandeau | `src/client/files.ts` | 9 |
+| ~~Ni header, ni footer, ni navigation : le `<body>` ne contient que `<slot />`~~ · réglé | `src/astro/Layout.astro` | 9 |
+| ~~Les pages qu’`init` génère ne sont reliées que par le bouton du bandeau~~ · réglé | `src/client/files.ts` | 9 |
 | `f.image({ ratio })` existe et n’est appliqué nulle part | `src/fields/types.ts` | 10 |
 | Aucun `og:`, JSON-LD, sitemap, `robots.txt`, favicon ni page 404 | `src/astro/Layout.astro`, `src/client/docker.ts` | 10 |
 | Le Caddyfile généré n’a aucun `handle_errors` ni aucune redirection | `src/client/docker.ts` | 10 |
@@ -68,7 +68,7 @@ livre un site sans navigation ni mentions légales.
 |---|---|---|
 | 7 | **Outiller** · faite | un `init` réglable, le contexte d’un site, les documents légaux |
 | 8 | **Adapter** · faite | deux rendus servis selon le support, une seule source de contenu |
-| 9 | **Encadrer** | le chrome — navigation, pied de page |
+| 9 | **Encadrer** · faite | le chrome — navigation, pied de page |
 | 10 | **Cadrer** | le cadrage des images, et `src/seo/` |
 | 11 | **Joindre** | ne pas perdre un lead, ne pas être appelé pour rien |
 
@@ -127,9 +127,11 @@ skills d’entretien, route de développement rendant tous les blocs, `f.documen
 - **La prose enrichie étend `f.richtext` plutôt que de lui succéder**, par deux
   drapeaux déclarés champ par champ (D99).
 
-**Ce qui reste ouvert.** Une page légale n’a pas de `h1` : le titre de sa
-section rend un `h2`, comme la page de contact avant elle. C’est le chrome de
-la phase 9 qui referme ce point, pour toutes les pages à la fois.
+**Ce qui restait ouvert, et qui est refermé.** Une page légale n’avait pas de
+`h1` : le titre de sa section rendait un `h2`, comme la page de contact avant
+elle. La phase 9 l’a réglé pour toutes les pages à la fois — la première
+section visible porte le `h1` (D115) —, mais pas par le chrome : lui ne porte
+aucun titre, sous peine de donner à chaque page le même.
 
 **Pourquoi.** `init` produit le même site pour tout le monde, et aucun de ses
 fichiers ne dit qui est le client, ce qu’il vend, à qui, ni ce que sa direction
@@ -316,7 +318,37 @@ la même adresse, et le rendu mobile contient tout le texte du rendu bureau.
 
 ---
 
-## Phase 9 — Encadrer
+## Phase 9 — Encadrer · faite
+
+**Ce qu’elle a retenu, et ce qu’elle a remplacé.** Les trois pistes de départ
+ont tenu — un contenu de site distinct des pages, une implémentation par défaut
+au socle surchargée par convention, et le chrome dans les deux rendus — avec
+deux écarts et une réponse, actés en D109 à D116 :
+
+- **Le site l’emporte sur le socle**, là où deux blocs de même nom sont une
+  erreur (D109). Le chrome ne peut pas manquer : refuser le doublon aurait
+  obligé un site qui redessine son en-tête à perdre le repli du socle sur
+  l’autre emplacement.
+- **Les coordonnées ne sont pas lues, elles ne sont pas là** (D114). La piste
+  supposait un pied de page qui lirait les faits de l’entreprise ; D101 avait
+  déjà décidé qu’ils n’ont pas de source structurée. Le pied ne porte donc que
+  ce qui n’est écrit nulle part ailleurs, et la frontière entre lu et édité
+  disparaît avec la question.
+- **`f.boolean`, `f.email` et `f.tel` n’entrent pas** (D116) : rien dans la
+  phase n’en avait besoin, et D99 avait déjà tranché ce cas de figure.
+
+**Ce qu’elle a trouvé en chemin.** Le menu déplié par media query, sur un site
+à un seul rendu, ne s’ouvrait pas partout : les moteurs récents masquent le
+contenu d’un `<details>` replié par `content-visibility` sur `::details-content`,
+que `display` ne défait plus. Il faut les deux règles, et rien dans le dépôt ne
+l’aurait dit — le rendu est correct dans un navigateur et vide dans l’autre.
+
+**Ce qui reste ouvert.** Le libellé d’un menu déduit vient du nom du fichier,
+donc sans accent : « Mentions legales ». C’est un dépannage que le client
+corrige en un clic depuis son panel, et le prix à payer pour qu’un site plus
+ancien que la phase se navigue sans migration. L’année du pied est celle du
+build : un site publié en décembre affiche « © 2026 » en janvier tant qu’il
+n’est pas republié.
 
 **Pourquoi.** Un site livré aujourd’hui n’a pas de menu, pas de logo cliquable
 et pas de pied de page. Les documents légaux de la phase 7 existent ; il leur
@@ -351,7 +383,7 @@ téléphone et les liens légaux viennent des faits de l’entreprise : les rend
 que le client édite est ce qui n’est écrit nulle part ailleurs — reste à savoir
 où passe la frontière.
 
-*Le DSL n’a ni booléen, ni email, ni téléphone.* Huit types, dont aucun ne dit
+*Le DSL n’a ni booléen, ni email, ni téléphone.* Neuf types, dont aucun ne dit
 oui ou non : un pied de page qui affiche ou masque une ligne n’a que `f.select`
 pour rustine, et une adresse email y est un `f.text` que rien ne valide.
 
@@ -425,7 +457,8 @@ son site a des adresses qui existaient : sans elles, le référencement acquis s
 perd sans que rien ne le signale.
 
 *La page 404 dépend des deux phases précédentes* : elle a besoin du chrome pour
-ramener quelque part, et elle existe en deux rendus.
+ramener quelque part — il existe depuis la phase 9 — et elle existe en deux
+rendus.
 
 **Déjà tranché.** Invariants 2, 3, 5 · D12, D40 · `seo-performances.md`.
 
@@ -525,6 +558,9 @@ suppose — c’est même pour cela qu’elles sont listées.
 | 7 | Qu’un site sans mailing garde son canal d’authentification, tant que le second facteur passe par email |
 | 8 | Que deux rendus sont servis selon le support, et qu’un site peut n’en avoir qu’un · acté en D103, D105 et D106 |
 | 8 | Que le rendu mobile porte tout le contenu — contrainte externe, pas préférence · acté en D104, D107 et D108 |
+| 9 | Que le chrome est remplaçable emplacement par emplacement, le site l’emportant sur le socle · acté en D109 et D110 |
+| 9 | Que le menu se déduit des pages tant que personne ne l’a rangé · acté en D111 et D112 |
+| 9 | Que le rang d’un titre appartient à la page, pas au bloc · acté en D113, D114, D115 et D116 |
 | 10 | Ce qu’il advient du point focal, dont le cadrage renverse la décision |
 | 11 | Si le second facteur cesse de dépendre de l’email |
 

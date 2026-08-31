@@ -4,6 +4,7 @@
 
 import type { Fields, Values } from '../fields/types.js'
 import type { ResolvedDocument, ResolvedImage } from '../media/resolve.js'
+import type { Heading } from '../render/outline.js'
 
 export type BlockDefinition<S extends Fields = Fields> = {
   /** Le type écrit dans le JSON de contenu, et le nom du dossier. */
@@ -23,6 +24,12 @@ export type BlockProps<S extends Fields> = {
   readonly language: string
   readonly image: ImageResolver
   readonly document: DocumentResolver
+  /**
+   * Le rang du titre de la section. Il vient de la place qu’elle occupe dans
+   * la page, jamais de son type : la première visible porte le `h1`
+   * (`src/render/outline.ts`).
+   */
+  readonly heading: Heading
 }
 
 // Une clé de média devient ce qu’un `img` attend. Le `sizes` appartient au

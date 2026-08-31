@@ -11,6 +11,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
+import { findChrome } from '../chrome/scan.js'
+import { CHROME_PATH } from '../content/chrome.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
 import { readDocuments } from '../media/documents.js'
@@ -93,6 +95,8 @@ export type Bench = {
     options?: CallOptions,
   ): Promise<Response>
   page(): Promise<Record<string, unknown>>
+  /** Le `content/chrome.json` du dépôt jetable, tel qu’il est sur le disque. */
+  chrome(): Promise<Record<string, unknown>>
   media(): Promise<MediaManifest>
   close(): Promise<void>
 }
@@ -142,6 +146,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
   await write(path.join(root, MANIFEST_PATH), MANIFEST)
 
   const registry = await loadRegistry(await findBlocks(blockRoots(root)))
+  const chrome = await loadRegistry(await findChrome(root))
 
   const site = defineSite({
     name: 'Banc d’essai',
@@ -172,6 +177,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     schemas: async (): Promise<Schemas> => ({
       site,
       registry,
+      chrome,
       media: (await read(path.join(root, MANIFEST_PATH))) as MediaManifest,
       documents: await readDocuments(root),
     }),
@@ -262,6 +268,13 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
 
     async page() {
       return (await read(path.join(root, 'content', 'index.json'))) as Record<
+        string,
+        unknown
+      >
+    },
+
+    async chrome() {
+      return (await read(path.join(root, CHROME_PATH))) as Record<
         string,
         unknown
       >

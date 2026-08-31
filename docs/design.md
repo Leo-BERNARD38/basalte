@@ -58,6 +58,10 @@ Un bloc qui porte une variante bureau y figure deux fois, l'une sous l'autre et
 étiquetées : c'est le seul endroit où les deux rendus d'une même section se
 comparent sans changer d'onglet ni de largeur de fenêtre.
 
+L'en-tête et le pied de page l'entourent, comme sur une vraie page : la barre
+du haut est le premier élément que voit un visiteur, et elle se règle donc là
+où tout le reste se règle.
+
 C'est aussi là que le plancher ci-dessous se vérifie à l'œil, sur tous les
 blocs à la fois. La route n'existe que pendant qu'on développe : aucune version
 publiée ne la porte.
@@ -103,6 +107,28 @@ Une variante n'a besoin d'aucune media query : elle n'est servie qu'au bureau.
 montre pas. Un texte, un lien ou une métadonnée présent au seul bureau ne sera
 jamais indexé, Google indexant au robot smartphone. `basalte check --build` le
 compare et le nomme.
+
+## Le chrome
+
+L'en-tête et le pied de page suivent toutes ces règles — tokens, plancher,
+variante bureau, contrat des deux rendus — et deux qui leur sont propres.
+
+**Le nom du site reste écrit en toutes lettres, même sous un logo.** Le texte
+alternatif d'une image n'est pas du contenu indexé : un rendu qui n'afficherait
+que l'image perdrait ces mots-là, et le contrat des deux rendus ne le dirait
+pas — il ne signale que ce que le bureau porte *en trop*.
+
+**Le menu s'ouvre sans script.** C'est un `<details>` natif, et l'invariant 5
+tient donc sans même passer par l'opt-in. Sur un site à un rendu, la media
+query qui le déplie au large porte **deux** règles : les moteurs anciens
+masquent le contenu replié par `display`, les récents par `content-visibility`
+sur `::details-content`. N'écrire que la première donne un menu qui s'ouvre
+dans un navigateur et reste vide dans l'autre.
+
+**Le chrome ne porte aucun titre.** Le nom du site n'est ni `h1` ni `h2` : il
+est sur toutes les pages, et en faire un titre donnerait à chacune le même, qui
+n'en décrirait aucune. Le `h1` est le titre de la première section visible
+(D115), et `basalte check --build` avertit d'une page qui n'en a pas.
 
 ## Pratiques de landing
 

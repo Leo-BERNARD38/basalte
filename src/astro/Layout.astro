@@ -1,6 +1,22 @@
 ---
+// L’enveloppe d’une page : ses métadonnées, ses tokens, et le chrome qui
+// entoure ses sections.
+//
+// Les composants du chrome viennent du module généré, comme ceux des blocs :
+// c’est ce qui permet à un dépôt client de les remplacer sans qu’une ligne de
+// ce fichier change (D45, invariant 8). La variante bureau y retombe sur le
+// composant quand elle n’existe pas, exactement comme pour une section.
+//
+// Son *contenu*, lui, arrive en prop : le module généré n’en porte qu’une
+// photographie du démarrage, et l’aperçu du panel doit montrer le dernier
+// enregistrement (D96).
+import { chrome, chromeDesktop } from 'virtual:basalte'
+
+import type { DocumentResolver, ImageResolver } from '../blocks/define.js'
+import type { ChromeContent, PageEntry } from '../chrome/define.js'
 import type { PageMeta } from '../content/page.js'
 import { pick } from '../fields/translate.js'
+import { DEFAULT_SUPPORT, type Support } from '../render/supports.js'
 import type { Site } from '../site/define.js'
 import { tokensToCss } from '../site/tokens.js'
 import { urlFor } from './routes.js'
@@ -11,9 +27,24 @@ type Props = {
   meta: PageMeta
   language: string
   route: string
+  support: Support
+  image: ImageResolver
+  document: DocumentResolver
+  chrome: ChromeContent
+  pages: readonly PageEntry[]
 }
 
-const { site, meta, language, route } = Astro.props
+const {
+  site,
+  meta,
+  language,
+  route,
+  support,
+  image,
+  document,
+  chrome: content,
+  pages,
+} = Astro.props
 
 const origin = `https://${site.domain}`
 const title = pick(meta.title, language)
@@ -31,6 +62,12 @@ const alternates =
 function prefix(code: string): string {
   return code === site.languages.default.code ? '' : code
 }
+
+const variants = support === DEFAULT_SUPPORT ? {} : chromeDesktop
+const Header = variants['header'] ?? chrome['header']
+const Footer = variants['footer'] ?? chrome['footer']
+
+const around = { language, image, document, site, route, pages }
 ---
 
 <html lang={language}>
@@ -61,6 +98,10 @@ function prefix(code: string): string {
     <style is:global set:html={tokensToCss(site.tokens)}></style>
   </head>
   <body>
-    <slot />
+    <Header props={content.header} {...around} />
+    <main>
+      <slot />
+    </main>
+    <Footer props={content.footer} {...around} />
   </body>
 </html>

@@ -5,6 +5,7 @@
 declare module 'virtual:basalte' {
   import type {
     BlockRegistry,
+    ChromeContent,
     DocumentManifest,
     MediaManifest,
     RenderedPage,
@@ -26,4 +27,13 @@ declare module 'virtual:basalte' {
   export const desktop: Readonly<
     Record<string, (props: Record<string, unknown>) => unknown>
   >
+  /** L’en-tête et le pied de page, du socle ou remplacés par le dépôt. */
+  export const chrome: Readonly<
+    Record<string, (props: Record<string, unknown>) => unknown>
+  >
+  export const chromeDesktop: Readonly<
+    Record<string, (props: Record<string, unknown>) => unknown>
+  >
+  export const chromeRegistry: BlockRegistry
+  export const chromeContent: ChromeContent
 }

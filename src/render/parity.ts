@@ -22,7 +22,8 @@ import path from 'node:path'
 import type { ContentIssue } from '../content/report.js'
 import { DESKTOP_PREFIX } from './supports.js'
 
-const PAGE = 'index.html'
+/** Le fichier qu’Astro écrit pour une page, sous le dossier de sa route. */
+export const PAGE_FILE = 'index.html'
 
 /** Ce que l’en-tête doit porter à l’identique dans les deux rendus. */
 type Head = {
@@ -98,10 +99,11 @@ export async function checkRenders(
   const issues: ContentIssue[] = []
 
   for (const page of await pagesUnder(root)) {
-    const desktop = await readFile(path.join(root, page, PAGE), 'utf8')
-    const mobile = await readFile(path.join(outDir, page, PAGE), 'utf8').catch(
-      () => undefined,
-    )
+    const desktop = await readFile(path.join(root, page, PAGE_FILE), 'utf8')
+    const mobile = await readFile(
+      path.join(outDir, page, PAGE_FILE),
+      'utf8',
+    ).catch(() => undefined)
 
     if (mobile === undefined) {
       issues.push({
@@ -124,7 +126,7 @@ function address(page: string): string {
 }
 
 /** Les dossiers de pages sous une racine, en chemins relatifs à barres. */
-async function pagesUnder(
+export async function pagesUnder(
   root: string,
   prefix = '',
 ): Promise<readonly string[]> {
@@ -132,7 +134,9 @@ async function pagesUnder(
     withFileTypes: true,
   }).catch(() => [])
 
-  const found = entries.some((entry) => entry.isFile() && entry.name === PAGE)
+  const found = entries.some(
+    (entry) => entry.isFile() && entry.name === PAGE_FILE,
+  )
     ? [prefix]
     : []
 

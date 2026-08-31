@@ -29,6 +29,18 @@ export type {
   BlockRegistry,
 } from './blocks/define.js'
 
+export { SLOTS } from './chrome/define.js'
+export type {
+  ChromeContent,
+  ChromeProps,
+  ChromeSlot,
+  PageEntry,
+} from './chrome/define.js'
+export { navigationLinks } from './chrome/links.js'
+export type { LinkValue, NavigationLink } from './chrome/links.js'
+
+export type { Heading } from './render/outline.js'
+
 export { CONTENT_FORMAT } from './content/page.js'
 export type { Page, PageBlock, PageMeta } from './content/page.js'
 export type { Project, RenderedPage } from './content/project.js'

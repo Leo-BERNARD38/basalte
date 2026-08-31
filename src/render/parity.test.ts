@@ -145,6 +145,49 @@ describe('compareRenders', () => {
   })
 })
 
+// Le chrome est la première chose que les deux rendus ont en commun, et le
+// menu mobile est le seul endroit du site où un mot n’existe que d’un côté.
+describe('le chrome dans les deux rendus', () => {
+  const links = [
+    '<a href="/">Accueil</a>',
+    '<a href="/contact">Nous écrire</a>',
+  ].join('')
+
+  const mobile = page({
+    body: `<header><details><summary>Menu</summary><nav>${links}</nav></details></header><h1>Notre atelier</h1>`,
+  })
+
+  it('ne signale pas le bouton du menu, présent au seul mobile', () => {
+    const desktop = page({
+      body: `<header><nav>${links}</nav></header><h1>Notre atelier</h1>`,
+    })
+
+    expect(messages({ mobile, desktop })).toEqual([])
+  })
+
+  it('signale un lien que le seul bureau porte', () => {
+    const desktop = page({
+      body: `<header><nav>${links}<a href="/tarifs">Tarifs</a></nav></header><h1>Notre atelier</h1>`,
+    })
+
+    expect(messages({ mobile, desktop })).toEqual([
+      expect.stringContaining('« tarifs »'),
+      expect.stringContaining('« /tarifs »'),
+    ])
+  })
+
+  // Un nom de site rendu en image au bureau et en texte au mobile ne fait
+  // perdre aucun mot au mobile — mais l’inverse en ferait perdre au bureau,
+  // et rien ne le dirait. D’où la règle : le nom reste écrit des deux côtés.
+  it('ne dit rien d’un logo qui double le nom écrit', () => {
+    const desktop = page({
+      body: `<header><a href="/"><img src="/logo.webp" alt=""><span>Atelier</span></a><nav>${links}</nav></header><h1>Notre atelier</h1>`,
+    })
+
+    expect(messages({ mobile, desktop })).toEqual([])
+  })
+})
+
 describe('checkRenders', () => {
   async function build(
     pages: Readonly<Record<string, string>>,

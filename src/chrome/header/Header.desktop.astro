@@ -1,0 +1,130 @@
+---
+// La variante bureau de l’en-tête : la même barre, le menu déplié d’emblée et
+// sans bouton, sur la largeur large du site.
+//
+// Elle ne montre rien que le rendu mobile ne montre pas — mêmes liens, même
+// nom de site en toutes lettres — sinon les mots ou les adresses qui n’y
+// seraient qu’ici ne seraient jamais indexés (`src/render/parity.ts`, D108).
+import { urlFor } from '../../astro/routes.js'
+import type { ChromeProps } from '../define.js'
+import { navigationLinks } from '../links.js'
+import schema from './schema.js'
+
+type Props = ChromeProps<(typeof schema)['fields']>
+
+const { props, language, image, site, pages, route } = Astro.props
+
+const prefix = language === site.languages.default.code ? '' : language
+
+const links = navigationLinks({
+  links: props.links,
+  pages,
+  language,
+  prefix,
+  route,
+  whenEmpty: 'pages',
+})
+
+const logo = image(props.logo, '12rem')
+---
+
+<header class="chrome-header">
+  <div class="chrome-header__inner">
+    <a
+      class="chrome-header__home"
+      href={urlFor('/', prefix)}
+      aria-current={route === '/' ? 'page' : undefined}
+    >
+      {
+        logo !== undefined && (
+          <img
+            class="chrome-header__logo"
+            src={logo.src}
+            srcset={logo.srcset}
+            sizes={logo.sizes}
+            width={logo.width}
+            height={logo.height}
+            alt=""
+            decoding="async"
+          />
+        )
+      }
+      <span class="chrome-header__name">{site.name}</span>
+    </a>
+    {
+      links.length > 0 && (
+        <nav class="chrome-header__nav" aria-label="Navigation principale">
+          <ul class="chrome-header__list">
+            {links.map((link) => (
+              <li>
+                <a
+                  class="chrome-header__link"
+                  href={link.href}
+                  aria-current={link.current ? 'page' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+  </div>
+</header>
+
+<style>
+  .chrome-header {
+    padding: var(--space-5);
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  .chrome-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .chrome-header__home {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 44px;
+    color: inherit;
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    text-decoration: none;
+  }
+
+  .chrome-header__logo {
+    height: var(--space-6);
+    width: auto;
+  }
+
+  .chrome-header__list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chrome-header__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .chrome-header__link:hover,
+  .chrome-header__link[aria-current='page'] {
+    text-decoration: underline;
+  }
+</style>

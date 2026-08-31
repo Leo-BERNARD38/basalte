@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { findBlocks, loadRegistry, socleBlocks } from '../blocks/scan.js'
+import { socleChrome } from '../chrome/scan.js'
+import { validateChrome } from '../content/chrome.js'
+import { unknownLinks } from '../content/links.js'
+import { routeOf } from '../content/naming.js'
 import { CONTENT_FORMAT } from '../content/page.js'
 import { errorsOf } from '../content/project.js'
 import { validatePage } from '../content/validate.js'
@@ -184,9 +188,19 @@ describe('le dépôt généré', () => {
         en: { draft: true },
       })
 
-      for (const [path, contents] of generated({ ...ANSWERS, profile })) {
-        if (!path.startsWith('content/') || path.endsWith('media.json'))
+      const chrome = await loadRegistry(
+        await findBlocks([{ dir: socleChrome(), origin: 'socle' }]),
+      )
+      const files = generated({ ...ANSWERS, profile })
+
+      for (const [path, contents] of files) {
+        if (
+          !path.startsWith('content/') ||
+          path.endsWith('media.json') ||
+          path.endsWith('chrome.json')
+        ) {
           continue
+        }
 
         const { issues } = validatePage({
           name: path,
@@ -199,6 +213,53 @@ describe('le dépôt généré', () => {
 
         expect(errorsOf(issues).map((issue) => issue.message)).toEqual([])
       }
+
+      const { issues } = validateChrome({
+        source: JSON.parse(files.get('content/chrome.json') ?? '{}'),
+        registry: chrome,
+        languages,
+        media: {},
+        documents: {},
+      })
+
+      expect(errorsOf(issues).map((issue) => issue.message)).toEqual([])
+    },
+  )
+
+  it.each(['vitrine', 'artisan'] as const)(
+    'ne met au menu du profil %s que des pages qu’il génère',
+    async (profile) => {
+      const chrome = await loadRegistry(
+        await findBlocks([{ dir: socleChrome(), origin: 'socle' }]),
+      )
+      const files = generated({ ...ANSWERS, profile })
+      const languages = resolveLanguages({ fr: { default: true } })
+
+      const routes = [...files.keys()]
+        .filter(
+          (path) =>
+            path.startsWith('content/') &&
+            !path.endsWith('media.json') &&
+            !path.endsWith('chrome.json'),
+        )
+        .map((path) => routeOf(path.slice('content/'.length, -'.json'.length)))
+
+      const source = JSON.parse(
+        files.get('content/chrome.json') ?? '{}',
+      ) as Record<string, unknown>
+
+      const orphans = Object.entries(chrome).flatMap(([slot, definition]) =>
+        unknownLinks({
+          name: 'chrome',
+          fields: definition.fields,
+          values: source[slot],
+          routes,
+          languages,
+        }),
+      )
+
+      expect(orphans.map((issue) => issue.message)).toEqual([])
+      expect(routes).toContain(profile === 'artisan' ? '/services' : '/contact')
     },
   )
 

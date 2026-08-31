@@ -1,0 +1,188 @@
+---
+// L’en-tête, rendu mobile — celui qui existe toujours (D104).
+//
+// Le menu s’ouvre sans une ligne de JavaScript : `<details>` est le seul
+// mécanisme natif du HTML qui déplie au clic et se pilote au clavier, si bien
+// que l’invariant 5 tient sans même passer par l’opt-in bloc par bloc.
+//
+// La media query déplie le menu sur les écrans larges, pour les sites qui ne
+// servent qu’un rendu — la majorité, `desktopRender` valant `false` par
+// défaut. Elle porte deux règles parce que les moteurs ont changé de
+// mécanisme : les anciens masquent le contenu replié par `display`, que
+// `block` défait, les récents par `content-visibility` sur `::details-content`,
+// qu’il faut rendre visible pour lui-même.
+//
+// Le nom du site reste écrit en toutes lettres même quand un logo le double :
+// le texte alternatif d’une image n’est pas du contenu indexé, et un rendu qui
+// n’afficherait que l’image perdrait ces mots-là.
+import { urlFor } from '../../astro/routes.js'
+import { pick } from '../../fields/translate.js'
+import type { ChromeProps } from '../define.js'
+import { navigationLinks } from '../links.js'
+import schema from './schema.js'
+
+type Props = ChromeProps<(typeof schema)['fields']>
+
+const { props, language, image, site, pages, route } = Astro.props
+
+const prefix = language === site.languages.default.code ? '' : language
+
+const links = navigationLinks({
+  links: props.links,
+  pages,
+  language,
+  prefix,
+  route,
+  whenEmpty: 'pages',
+})
+
+const logo = image(props.logo, '10rem')
+const menu = pick(props.menuLabel, language) || 'Menu'
+---
+
+<header class="chrome-header">
+  <a
+    class="chrome-header__home"
+    href={urlFor('/', prefix)}
+    aria-current={route === '/' ? 'page' : undefined}
+  >
+    {
+      logo !== undefined && (
+        <img
+          class="chrome-header__logo"
+          src={logo.src}
+          srcset={logo.srcset}
+          sizes={logo.sizes}
+          width={logo.width}
+          height={logo.height}
+          alt=""
+          decoding="async"
+        />
+      )
+    }
+    <span class="chrome-header__name">{site.name}</span>
+  </a>
+  {
+    links.length > 0 && (
+      <details class="chrome-header__menu">
+        <summary class="chrome-header__toggle">{menu}</summary>
+        <nav class="chrome-header__nav" aria-label="Navigation principale">
+          <ul class="chrome-header__list">
+            {links.map((link) => (
+              <li>
+                <a
+                  class="chrome-header__link"
+                  href={link.href}
+                  aria-current={link.current ? 'page' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </details>
+    )
+  }
+</header>
+
+<style>
+  .chrome-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  .chrome-header__home {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    color: inherit;
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    text-decoration: none;
+  }
+
+  .chrome-header__logo {
+    height: var(--space-6);
+    width: auto;
+  }
+
+  .chrome-header__toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .chrome-header__toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Déplié, le menu tombe sous la barre et la couvre sur toute sa largeur :
+     le bouton ne bouge pas, et rien ne pousse le contenu de la page. */
+  .chrome-header__menu[open] .chrome-header__nav {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    z-index: 1;
+    padding: var(--space-2) var(--space-5) var(--space-4);
+    background: var(--color-bg);
+  }
+
+  .chrome-header__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chrome-header__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    font-size: var(--text-base);
+    text-decoration: none;
+  }
+
+  .chrome-header__link:hover,
+  .chrome-header__link[aria-current='page'] {
+    text-decoration: underline;
+  }
+
+  @media (min-width: 48rem) {
+    .chrome-header__toggle {
+      display: none;
+    }
+
+    .chrome-header__menu::details-content {
+      content-visibility: visible;
+      display: contents;
+    }
+
+    .chrome-header__menu .chrome-header__nav,
+    .chrome-header__menu[open] .chrome-header__nav {
+      position: static;
+      display: block;
+      padding: 0;
+    }
+
+    .chrome-header__list {
+      flex-direction: row;
+      gap: var(--space-5);
+    }
+  }
+</style>

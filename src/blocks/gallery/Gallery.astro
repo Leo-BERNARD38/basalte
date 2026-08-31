@@ -5,7 +5,9 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language, image } = Astro.props
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
 
 const title = pick(props.title, language)
 const sizes = '(min-width: 62rem) 22rem, (min-width: 40rem) 45vw, 100vw'
@@ -21,7 +23,7 @@ const items = props.images.flatMap((item) => {
 
 <section class="gallery">
   <div class="gallery__inner">
-    {title !== '' && <h2 class="gallery__title">{title}</h2>}
+    {title !== '' && <Title class="gallery__title">{title}</Title>}
     <ul class="gallery__list">
       {
         items.map((item) => (

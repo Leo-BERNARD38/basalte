@@ -10,7 +10,9 @@
 // toujours sur le mobile, quoi qu’on lui demande — l’aperçu ne peut pas montrer
 // un rendu que la mise en ligne ne produirait pas.
 
+import type { ChromeContent, PageEntry } from '../chrome/define.js'
 import {
+  readChrome,
   readPages,
   type RenderedPage,
   type Schemas,
@@ -36,6 +38,9 @@ export type Preview =
       readonly language: string
       readonly support: Support
       readonly schemas: Schemas
+      /** Le chrome enregistré, relu comme les pages le sont. */
+      readonly content: ChromeContent
+      readonly pages: readonly PageEntry[]
     }
   | { readonly kind: 'stop'; readonly response: Response }
 
@@ -91,12 +96,20 @@ export async function resolvePreview(
     }
   }
 
+  const chrome = await readChrome(
+    panel.root,
+    schemas,
+    pages.map((page) => page.route),
+  )
+
   return {
     kind: 'page',
     entry,
     language: target.language,
     support: supportAsked(schemas, request),
     schemas,
+    content: chrome.chrome,
+    pages: pages.map((page) => ({ name: page.name, route: page.route })),
   }
 }
 

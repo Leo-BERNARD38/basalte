@@ -298,6 +298,100 @@ describe('PUT /api/pages/:nom', () => {
   })
 })
 
+describe('PUT /api/chrome', () => {
+  const header = (label: string) => ({
+    id: 'header',
+    type: 'header',
+    hidden: {},
+    props: { links: [{ label: { fr: label, en: '' }, href: '/' }] },
+  })
+
+  const footer = {
+    id: 'footer',
+    type: 'footer',
+    hidden: {},
+    props: { links: [] },
+  }
+
+  it('écrit le chrome et rend son nouvel état', async () => {
+    const site = await bench()
+
+    const response = await site.call('PUT', '/api/chrome', {
+      blocks: [header('Accueil'), footer],
+    })
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.chrome.sections.map((s: any) => s.id)).toEqual([
+      'header',
+      'footer',
+    ])
+
+    const written = await site.chrome()
+
+    expect((written as any).header.links[0].label.fr).toBe('Accueil')
+    expect((written as any).$format).toBe(CONTENT_FORMAT)
+
+    await site.close()
+  })
+
+  // Le fichier n’existe pas tant que personne n’a rien rangé : le panel doit
+  // quand même l’ouvrir, avec ses deux emplacements vides.
+  it('ouvre les deux emplacements avant le premier enregistrement', async () => {
+    const site = await bench()
+    const body = await (await site.call('GET', '/api/panel')).json()
+
+    expect(body.chrome.draft.sections.map((s: any) => s.id)).toEqual([
+      'header',
+      'footer',
+    ])
+    expect(body.chrome.types.map((t: any) => t.name)).toEqual([
+      'header',
+      'footer',
+    ])
+    expect(body.chrome.draft.sections[0].props).toEqual({})
+
+    await site.close()
+  })
+
+  it('refuse un contenu invalide, et n’écrit rien', async () => {
+    const site = await bench()
+
+    const response = await site.call('PUT', '/api/chrome', {
+      blocks: [header(''), footer],
+    })
+
+    expect(response.status).toBe(422)
+    expect((await response.json()).problems.length).toBeGreaterThan(0)
+    expect(await site.chrome()).toEqual({})
+
+    await site.close()
+  })
+
+  it('refuse une méthode que l’adresse ne porte pas', async () => {
+    const site = await bench()
+
+    expect((await site.call('POST', '/api/chrome', {})).status).toBe(405)
+
+    await site.close()
+  })
+
+  it('refuse une origine étrangère', async () => {
+    const site = await bench()
+
+    const response = await site.call(
+      'PUT',
+      '/api/chrome',
+      { blocks: [] },
+      { origin: 'https://ailleurs.test' },
+    )
+
+    expect(response.status).toBe(403)
+
+    await site.close()
+  })
+})
+
 describe('gardes', () => {
   it('refuse un corps qui ne s’annonce pas en JSON', async () => {
     const site = await bench()

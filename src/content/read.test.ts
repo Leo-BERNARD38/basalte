@@ -4,7 +4,8 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { readContent, routeOf } from './read.js'
+import { routeOf } from './naming.js'
+import { readContent } from './read.js'
 
 async function project(
   files: Readonly<Record<string, string>>,

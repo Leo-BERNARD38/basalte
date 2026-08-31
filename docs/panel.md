@@ -64,9 +64,12 @@ même temps.
 | Messages | les leads du formulaire de contact | phase 5 |
 | Statistiques | le rapport d'audience | phase 5 |
 
-Les cinq sont là. L'onglet « Messages » porte une pastille tant qu'un message
-n'est pas lu ; ouvrir un message le marque lu, sans que le client coche quoi que
-ce soit.
+Les cinq sont là, et la phase 9 n'en ajoute pas : l'en-tête et le pied de page
+s'éditent depuis « Édition », comme une entrée de plus dans la liste des pages.
+C'est là qu'ils se règlent bien, puisque c'est là qu'on les voit.
+
+L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
+ouvrir un message le marque lu, sans que le client coche quoi que ce soit.
 
 Arriver à dix pages signifie que deux d'entre elles auraient dû fusionner. La
 hiérarchie suit la fréquence d'usage : le client édite chaque semaine, il
@@ -211,6 +214,7 @@ propres adresses, de la même forme.
 |---|---|
 | `GET /api/panel` | tout ce qu'il faut pour démarrer : site, langues, champs, bibliothèque de sections, pages, médias, ce qui est cassé |
 | `PUT /api/pages/<nom>` | valide, écrit la page, commit |
+| `PUT /api/chrome` | valide, écrit `content/chrome.json`, commit (phase 9) |
 | `POST /api/media` | téléverse une image, avec son texte alternatif |
 | `PATCH /api/media/<clé>` | texte alternatif et point focal |
 | `DELETE /api/media/<clé>` | supprime, sauf si une section l'emploie |
@@ -291,6 +295,17 @@ La bascule « Bureau / Mobile » redimensionne le cadre, et **demande aussi le
 rendu du support** sur un site qui en a deux : elle passe `?support=` à
 l'aperçu. Sur un site à un seul rendu elle ne change que la largeur, ce qu'elle
 faisait déjà — le client ne voit donc rien de nouveau (D25).
+
+**« En-tête et pied de page »** est la dernière entrée du sélecteur de page.
+Elle ouvre les deux emplacements du chrome comme deux sections, dans le même
+panneau et avec les mêmes champs — mais sans poignée, sans suppression et sans
+interrupteur de visibilité : ils sont sur toutes les pages, et `hidden` n'a
+d'axe que la langue (D107). L'aperçu montre alors l'accueil, où ils se voient
+en entier.
+
+Le brouillon garde sa forme — deux sections, pas de métadonnées — si bien que
+le suivi des modifications non enregistrées, la confirmation avant de quitter
+et le refus d'un contenu invalide marchent sans une ligne de plus.
 
 L'enregistrement et la mise en ligne vivent dans l'en-tête, à droite du titre :
 un seul endroit pour agir sur l'état du site, à la même place sur les cinq

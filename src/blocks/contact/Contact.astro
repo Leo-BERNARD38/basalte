@@ -13,7 +13,9 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language } = Astro.props
+const { props, language, heading } = Astro.props
+
+const Title = heading
 
 // Un libellé laissé vide reprend le français : le formulaire est complet dès
 // qu’il est posé, et se traduit quand le client le décide.
@@ -28,7 +30,7 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
 <section class="contact">
   <div class="contact__inner">
-    {title !== '' && <h2 class="contact__title">{title}</h2>}
+    {title !== '' && <Title class="contact__title">{title}</Title>}
     {intro !== '' && <p class="contact__intro">{intro}</p>}
 
     <p

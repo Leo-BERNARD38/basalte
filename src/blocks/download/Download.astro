@@ -12,7 +12,9 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language, document } = Astro.props
+const { props, language, document, heading } = Astro.props
+
+const Title = heading
 
 const title = pick(props.title, language)
 const description = pick(props.description, language)
@@ -24,7 +26,7 @@ const file = document(props.file)
   file !== undefined && (
     <section class="download">
       <div class="download__inner">
-        {title !== '' && <h2 class="download__title">{title}</h2>}
+        {title !== '' && <Title class="download__title">{title}</Title>}
         {description !== '' && (
           <p class="download__description">{description}</p>
         )}

@@ -9,6 +9,8 @@
 import { z } from 'zod'
 
 import { audienceReport, type AudienceReport } from '../analytics/report.js'
+import type { BlockDefinition } from '../blocks/define.js'
+import { SLOTS } from '../chrome/define.js'
 import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
 import { validateFiles } from '../content/project.js'
@@ -23,6 +25,7 @@ import {
   uploadDocument,
   type DocumentSummary,
 } from './documents.js'
+import { readChromeDraft, saveChrome, type ChromeDraft } from './chrome.js'
 import type { Panel } from './context.js'
 import { commitFiles, isRepositoryRoot } from './git.js'
 import { authenticate } from './handlers.js'
@@ -72,6 +75,8 @@ const Draft = z.object({
   blocks: z.array(Block).default([]),
 })
 
+const ChromeBody = z.object({ blocks: z.array(Block).default([]) })
+
 export type PanelLanguage = {
   readonly code: string
   readonly label: string
@@ -97,6 +102,15 @@ export type PanelPayload = {
   readonly meta: readonly FieldDescription[]
   readonly library: readonly PanelBlockType[]
   readonly pages: readonly DraftPage[]
+  /**
+   * L’en-tête et le pied de page : ils ne sont pas dans `library`, qui est la
+   * bibliothèque des sections qu’on ajoute à une page — le chrome, lui, est là
+   * toujours et sur toutes.
+   */
+  readonly chrome: {
+    readonly types: readonly PanelBlockType[]
+    readonly draft: ChromeDraft
+  }
   readonly media: readonly MediaSummary[]
   readonly documents: readonly DocumentSummary[]
   readonly problems: readonly {
@@ -147,6 +161,14 @@ export async function handlePanel(
     const guard = guardWrite(request)
 
     return guard ?? save(panel, route[1] ?? '', request, commit)
+  }
+
+  if (route[0] === 'chrome' && route.length === 1) {
+    if (request.method !== 'PUT') return refuseMethod()
+
+    const guard = guardWrite(request)
+
+    return guard ?? writeChrome(panel, request, commit)
   }
 
   if (route[0] === 'media' && route.length === 1) {
@@ -247,13 +269,18 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
       capabilities: schemas.site.capabilities,
     },
     meta: describeFields(META_FIELDS),
-    library: Object.values(schemas.registry).map((definition) => ({
-      name: definition.name,
-      label: definition.label,
-      ...(definition.help === undefined ? {} : { help: definition.help }),
-      fields: describeFields(definition.fields),
-    })),
+    library: Object.values(schemas.registry).map(describeBlock),
     pages,
+    chrome: {
+      // L’ordre est celui de l’affichage — en-tête puis pied — et non celui du
+      // disque, qui trie les dossiers par leur nom.
+      types: SLOTS.flatMap((slot) => {
+        const definition = schemas.chrome[slot]
+
+        return definition === undefined ? [] : [describeBlock(definition)]
+      }),
+      draft: await readChromeDraft(panel.root, schemas),
+    },
     media: describeMedia(schemas.media, pages, schemas),
     documents: describeDocuments(schemas.documents, pages, schemas),
     problems: issues.map((issue) => ({
@@ -267,6 +294,53 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
   }
 
   return json(payload)
+}
+
+function describeBlock(definition: BlockDefinition): PanelBlockType {
+  return {
+    name: definition.name,
+    label: definition.label,
+    ...(definition.help === undefined ? {} : { help: definition.help }),
+    fields: describeFields(definition.fields),
+  }
+}
+
+// L’enregistrement du chrome suit celui d’une page : refus d’un contenu
+// invalide (D60), et un commit par écriture (D17).
+async function writeChrome(
+  panel: Panel,
+  request: Request,
+  commit: Commit,
+): Promise<Response> {
+  let body
+
+  try {
+    body = ChromeBody.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const result = await saveChrome(
+    panel.root,
+    await panel.schemas(),
+    body.data.blocks,
+    commit,
+  )
+
+  if (result.kind === 'refused') {
+    return json(
+      {
+        ok: false,
+        message: 'Il reste quelque chose à corriger.',
+        problems: result.problems,
+      },
+      422,
+    )
+  }
+
+  return json({ ok: true, chrome: result.chrome, commit: result.commit })
 }
 
 async function save(

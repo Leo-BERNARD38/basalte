@@ -6,7 +6,9 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language } = Astro.props
+const { props, language, heading } = Astro.props
+
+const Title = heading
 
 const title = pick(props.title, language)
 const body = renderRichtext(pick(props.body, language), schema.fields.body)
@@ -14,7 +16,7 @@ const body = renderRichtext(pick(props.body, language), schema.fields.body)
 
 <section class="richtext">
   <div class="richtext__inner">
-    {title !== '' && <h2 class="richtext__title">{title}</h2>}
+    {title !== '' && <Title class="richtext__title">{title}</Title>}
     <div class="richtext__body" set:html={body} />
   </div>
 </section>

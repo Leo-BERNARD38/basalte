@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { CHROME_FILE } from '../content/chrome.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { pendingFrom, type Migration } from './index.js'
 import { planMigrations, writeMigrations } from './run.js'
@@ -111,6 +112,61 @@ describe('application', () => {
 
     expect(plan.ahead).toEqual(['index'])
     expect(plan.pages).toEqual([])
+  })
+
+  // Le chrome porte le même `$format` que les pages : un numéro que `migrate`
+  // n’atteindrait jamais serait plus trompeur que son absence.
+  it('renumérote le chrome même quand aucune migration ne le touche', async () => {
+    const root = await site(1)
+
+    await writeFile(
+      path.join(root, CONTENT_DIR, CHROME_FILE),
+      JSON.stringify({ $format: 1, header: { links: [] }, footer: {} }),
+      'utf8',
+    )
+
+    const plan = await planMigrations(root, [CTA_GROUP], 2)
+
+    expect(plan.pages.map((entry) => entry.name)).toEqual(['index', 'chrome'])
+
+    await writeMigrations(root, plan)
+
+    const written = JSON.parse(
+      await readFile(path.join(root, CONTENT_DIR, CHROME_FILE), 'utf8'),
+    ) as Record<string, unknown>
+
+    expect(written['$format']).toBe(2)
+    expect(written['header']).toEqual({ links: [] })
+  })
+
+  it('applique au chrome la migration qui le nomme', async () => {
+    const root = await site(1)
+
+    await writeFile(
+      path.join(root, CONTENT_DIR, CHROME_FILE),
+      JSON.stringify({ $format: 1, header: {}, footer: {} }),
+      'utf8',
+    )
+
+    const step: Migration = {
+      ...CTA_GROUP,
+      chrome: (chrome) => ({ ...chrome, header: { menuLabel: 'Menu' } }),
+    }
+
+    await writeMigrations(root, await planMigrations(root, [step], 2))
+
+    const written = JSON.parse(
+      await readFile(path.join(root, CONTENT_DIR, CHROME_FILE), 'utf8'),
+    ) as Record<string, unknown>
+
+    expect(written['header']).toEqual({ menuLabel: 'Menu' })
+  })
+
+  it('laisse tranquille un dépôt sans chrome', async () => {
+    const root = await site(1)
+    const plan = await planMigrations(root, [CTA_GROUP], 2)
+
+    expect(plan.pages.map((entry) => entry.name)).toEqual(['index'])
   })
 
   it('refuse une page sans numéro de format', async () => {

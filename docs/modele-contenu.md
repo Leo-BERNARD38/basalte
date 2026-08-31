@@ -47,6 +47,58 @@
   à porter chaque clé, et le rendu n'a jamais à tester une absence. Le panel,
   lui, réécrit toutes les clés déclarées (D61) : le diff d'un enregistrement ne
   dépend pas de ce qui avait été chargé.
+- **La première section visible porte le `h1`** de la page, les suivantes
+  ouvrent en `h2` (D115). Le rang vient de la place, jamais du type de
+  section : la même section `richtext` rend un `h1` en tête de page légale et
+  un `h2` plus bas. Ses titres `##` (D99) tombent alors au bon niveau.
+  `basalte check --build` avertit d'une page sans titre principal — le titre
+  d'une section est facultatif, et son absence est invisible à l'œil.
+
+## Le chrome n'est pas une page
+
+L'en-tête et le pied de page sont sur **toutes** les pages. Les traiter comme
+un fichier de `content/` ordinaire aurait demandé une exception dans
+`getStaticPaths`, une dans la liste du panel et une dans le sitemap — trois
+endroits où une exception s'oublie. Ils vivent donc dans un manifeste, à côté
+de `media.json` et `documents.json` (D110) :
+
+```json
+{
+  "$format": 1,
+  "header": {
+    "logo": "",
+    "links": [{ "label": { "fr": "Accueil" }, "href": "/" }],
+    "menuLabel": { "fr": "Menu" }
+  },
+  "footer": {
+    "links": [{ "label": { "fr": "Mentions légales" }, "href": "/mentions-legales" }]
+  }
+}
+```
+
+- **Le fichier peut manquer.** Les emplacements valent alors leurs valeurs par
+  défaut, et le menu reprend les pages du site, nommées par leur fichier
+  (D112). C'est ce qui fait qu'un site plus ancien que la phase 9 se navigue
+  dès sa montée de version, sans qu'aucune migration ait à créer un fichier.
+- **Le pied de page, lui, ne devine rien** : des liens légaux ne se déduisent
+  pas d'une liste de fichiers.
+- **Un lien interne s'écrit sans préfixe de langue** — `/contact` — et le gagne
+  au rendu, par la même fonction que `getStaticPaths`. `basalte check` avertit
+  d'un chemin qui ne mène à aucune page, sans jamais refuser : un lien vers une
+  page à venir n'est pas une panne.
+- **`$format` y est, et les migrations le traversent** (D111). Le chrome porte
+  du contenu validé contre des schémas : il dérivera comme une page, et une
+  migration peut le transformer par un `chrome` optionnel à côté de son `page`.
+- **Deux emplacements, pas trois.** Le client n'en ajoute pas, ne les
+  réordonne pas et ne les masque pas : `hidden` n'a d'axe que la langue (D107).
+
+Le socle en fournit un. Un dépôt client le redessine en écrivant
+`src/chrome/header/` ou `src/chrome/footer/` chez lui — mêmes deux fichiers
+qu'un bloc, plus la variante `.desktop.astro`. Le dossier du site **remplace**
+celui du socle, emplacement par emplacement (D109) : redessiner l'en-tête
+laisse le pied de page du socle en place. C'est la règle inverse de celle des
+blocs, où deux dossiers de même nom sont une erreur — le chrome ne peut pas
+manquer.
 
 ## Un bloc est un dossier, deux fichiers
 
@@ -169,7 +221,8 @@ une adresse absolue vers un autre site sous les dehors d'un chemin interne.
 
 Le socle scanne ses propres blocs puis `src/blocks/*/schema.ts` du dépôt
 client, et relève au passage les variantes bureau. Rien à déclarer, aucun
-registre central à éditer.
+registre central à éditer. Le chrome passe par le même scanner, sur
+`src/chrome/`, à la règle de doublon près.
 
 C'est le levier Claude Code du projet : créer un bloc, c'est écrire deux
 fichiers, sans toucher à une configuration centrale et sans risque d'oublier un
@@ -210,8 +263,13 @@ langue, ni dans ses `hreflang`.
 Les migrations vivent **dans le socle**, jamais dans un dépôt client :
 
 ```
-src/migrations/index.ts    { to: 2, label: 'le bouton devient un groupe', page }
+src/migrations/index.ts    { to: 2, label: 'le bouton devient un groupe', page, chrome? }
 ```
+
+`page` transforme chaque fichier de page ; `chrome`, facultatif, transforme
+`content/chrome.json`. Sans lui, le chrome est simplement renuméroté — ce qui
+garde les deux formats en phase, et évite un `$format` que `migrate`
+n'atteindrait jamais (D111).
 
 La liste est écrite à la main plutôt que découverte sur le disque : l'ordre est
 ce qui donne son sens à une suite de migrations, et un dossier parcouru le

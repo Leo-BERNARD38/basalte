@@ -153,7 +153,9 @@ body {
 }
 
 /* Une ligne de la liste des sections. La sélection est noire : c’est la même
-   section que l’aperçu encadre et que le panneau ouvre. */
+   section que l’aperçu encadre et que le panneau ouvre. Une ligne fixe —
+   l’en-tête, le pied de page — n’a pas de poignée : elle récupère la gouttière
+   que la poignée occupait, pour que les libellés restent alignés. */
 .basalte-section-row {
   display: flex;
   align-items: center;
@@ -168,6 +170,10 @@ body {
   font: 500 var(--panel-text-body) / 1.3 inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.basalte-section-row[data-fixed='true'] {
+  padding-left: 34px;
 }
 
 .basalte-section-row:hover {

@@ -139,7 +139,78 @@ export function validatePage(input: ValidateInput): PageValidation {
     })
   }
 
+  issues.push(...draftProgress(name, progress, languages))
+
+  const failed = issues.some((issue) => issue.severity === 'error')
+
+  return failed
+    ? { issues }
+    : {
+        page: { $format: page.$format, meta: meta as PageMeta, blocks },
+        issues,
+      }
+}
+
+export type ValuesInput = {
+  /** Le fichier que les messages citent — une page, ou le chrome. */
+  readonly name: string
+  readonly fields: Fields
+  readonly values: unknown
+  readonly languages: Languages
+  readonly media: MediaManifest
+  readonly documents: DocumentManifest
+  readonly section?: ContentIssue['section']
+}
+
+export type ValuesValidation = {
+  readonly values: Readonly<Record<string, unknown>>
+  readonly issues: readonly ContentIssue[]
+  readonly progress: readonly Progress[]
+}
+
+/**
+ * Un jeu de valeurs contre son jeu de champs : le schéma Zod, les messages mis
+ * en français, l’avancement des traductions et les médias référencés. Les
+ * `props` d’une section et les valeurs d’un emplacement du chrome passent par
+ * ici — c’est ce qui fait que `check` et le panel disent la même chose (D60).
+ */
+export function validateValues(input: ValuesInput): ValuesValidation {
+  const issues: ContentIssue[] = []
+  const parsed = toZod(input.fields, input.languages).safeParse(input.values)
+
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      issues.push({
+        severity: 'error',
+        page: input.name,
+        ...(input.section === undefined ? {} : { section: input.section }),
+        ...describeIssue(issue, input.fields),
+      })
+    }
+  }
+
+  references(issues, input)
+
+  return {
+    values: parsed.success
+      ? (parsed.data as Readonly<Record<string, unknown>>)
+      : (input.values as Readonly<Record<string, unknown>>),
+    issues,
+    progress: translationProgress(input.fields, input.values, input.languages),
+  }
+}
+
+/**
+ * L’avertissement d’une langue en préparation dont les traductions manquent.
+ * Elle n’empêche aucune publication (D18) : elle se compte, elle ne refuse pas.
+ */
+export function draftProgress(
+  name: string,
+  progress: readonly Progress[],
+  languages: Languages,
+): readonly ContentIssue[] {
   const totals = totalProgress(progress)
+  const issues: ContentIssue[] = []
 
   for (const language of languages.draft) {
     const entry = totals.find((item) => item.language === language.code)
@@ -154,51 +225,20 @@ export function validatePage(input: ValidateInput): PageValidation {
     }
   }
 
-  const failed = issues.some((issue) => issue.severity === 'error')
-
-  return failed
-    ? { issues }
-    : {
-        page: { $format: page.$format, meta: meta as PageMeta, blocks },
-        issues,
-      }
+  return issues
 }
 
 function collect(
   issues: ContentIssue[],
   progress: Progress[],
-  input: {
-    readonly name: string
-    readonly fields: Fields
-    readonly values: unknown
-    readonly languages: Languages
-    readonly media: MediaManifest
-    readonly documents: DocumentManifest
-    readonly section?: ContentIssue['section']
-  },
+  input: ValuesInput,
 ): Readonly<Record<string, unknown>> {
-  const parsed = toZod(input.fields, input.languages).safeParse(input.values)
+  const result = validateValues(input)
 
-  if (!parsed.success) {
-    for (const issue of parsed.error.issues) {
-      issues.push({
-        severity: 'error',
-        page: input.name,
-        ...(input.section === undefined ? {} : { section: input.section }),
-        ...describeIssue(issue, input.fields),
-      })
-    }
-  }
+  issues.push(...result.issues)
+  progress.push(...result.progress)
 
-  progress.push(
-    ...translationProgress(input.fields, input.values, input.languages),
-  )
-
-  references(issues, input)
-
-  return parsed.success
-    ? (parsed.data as Readonly<Record<string, unknown>>)
-    : (input.values as Readonly<Record<string, unknown>>)
+  return result.values
 }
 
 // Une image ou un document référencé doit exister dans la médiathèque. Une

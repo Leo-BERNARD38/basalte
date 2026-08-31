@@ -54,8 +54,18 @@ export function componentName(block: string): string {
     .join('')
 }
 
+/**
+ * Ce qu’un même nom rencontré deux fois veut dire. Pour un bloc, c’est une
+ * erreur : le contenu désigne son type par ce nom, et rien ne dirait lequel
+ * des deux il a obtenu. Pour le chrome, c’est un remplacement — la racine la
+ * plus tardive prend la place de la précédente, seul moyen pour un dépôt
+ * client d’en changer l’allure sans recopier une ligne du socle (invariant 8).
+ */
+export type Duplicates = 'refuse' | 'replace'
+
 export async function findBlocks(
   roots: readonly BlockRoot[],
+  duplicates: Duplicates = 'refuse',
 ): Promise<readonly BlockSource[]> {
   const found = new Map<string, BlockSource>()
 
@@ -65,7 +75,7 @@ export async function findBlocks(
 
       const previous = found.get(name)
 
-      if (previous !== undefined) {
+      if (previous !== undefined && duplicates === 'refuse') {
         throw new Error(
           `Deux blocs portent le nom « ${name} » : ${previous.schema} et ${path.join(root.dir, name)}. Renomme celui du site.`,
         )

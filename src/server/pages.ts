@@ -18,7 +18,8 @@ import {
   type PageBlock,
 } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
-import { readContent, type ContentFile, routeOf } from '../content/read.js'
+import { routeOf } from '../content/naming.js'
+import { readContent, type ContentFile } from '../content/read.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { validatePage } from '../content/validate.js'
 import { writeJsonFile } from '../content/write.js'

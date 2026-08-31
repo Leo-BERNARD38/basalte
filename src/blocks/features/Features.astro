@@ -5,19 +5,24 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language } = Astro.props
+const { props, language, heading } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
 
 const title = pick(props.title, language)
 ---
 
 <section class="features">
   <div class="features__inner">
-    {title !== '' && <h2 class="features__title">{title}</h2>}
+    {title !== '' && <Title class="features__title">{title}</Title>}
     <ul class="features__list">
       {
         props.items.map((item) => (
           <li class="features__item">
-            <h3 class="features__item-title">{pick(item.title, language)}</h3>
+            <ItemTitle class="features__item-title">
+              {pick(item.title, language)}
+            </ItemTitle>
             {pick(item.body, language) !== '' && (
               <p class="features__item-body">{pick(item.body, language)}</p>
             )}

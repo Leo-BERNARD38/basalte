@@ -11,6 +11,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
+import { CHROME_DIR } from '../chrome/define.js'
 import { AGENT_DOC, basalteDoc } from '../client/agent.js'
 import { readSocle } from '../client/socle.js'
 import { FIELD_TYPES } from '../fields/define.js'
@@ -115,7 +116,29 @@ export function render(blocks: readonly Entry[]): readonly string[] {
     }
   }
 
+  lines.push(...chrome())
+
   return lines
+}
+
+// Le chrome n’est pas dans cette liste : on ne l’ajoute pas à une page, il est
+// sur toutes. Mais un agent qui ouvre le dépôt doit savoir qu’il existe, et
+// comment on le redessine.
+function chrome(): readonly string[] {
+  return [
+    '',
+    'En-tête et pied de page',
+    '',
+    `  Les deux emplacements du chrome vivent dans le socle et entourent chaque`,
+    '  page. Ils ne s’ajoutent pas à une page et ne se réordonnent pas ; leur',
+    '  contenu s’édite au panel, sous « En-tête et pied de page ».',
+    '',
+    `  Pour en redessiner un : écris \`src/${CHROME_DIR}/header/\` ou`,
+    `  \`src/${CHROME_DIR}/footer/\` dans ce dépôt, avec un \`schema.ts\` et le`,
+    '  composant du même nom — le dossier du site remplace celui du socle.',
+    '  Mêmes règles qu’un bloc : tokens seulement, et le rendu bureau ne montre',
+    '  rien que le mobile ne montre pas.',
+  ]
 }
 
 function fields(

@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les six phases, la phase 7 et la phase 8 sont faites. Phase 1 — DSL
+**État :** les six phases, et les phases 7 à 9, sont faites. Phase 1 — DSL
 de champs, moteur de blocs, intégration Astro, médias, `basalte check` et
 `basalte inventory` ; le site de démonstration se construit depuis son JSON
 (`examples/demo`). Phase 2 — le flux d'authentification entier, jusqu'à
@@ -22,8 +22,11 @@ documents légaux générés, le PDF téléchargeable, le contexte du site en
 `docs/`, le banc de blocs `/__blocs`, les capacités déclarées et les profils
 d'`init`. Phase 8 — adapter : deux rendus construits depuis le même contenu et
 servis chacun à son support, la variante bureau d'un bloc, et le contrat qui
-garantit que le mobile porte tout. Reste `src/seo/` et le bloc `faq` qui
-l'attend (`docs/roadmap.md`).
+garantit que le mobile porte tout. Phase 9 — encadrer : l'en-tête et le pied de
+page autour de chaque page, dans les deux rendus, remplaçables par site, un
+menu qui se déduit des pages tant que personne ne l'a rangé, et le `h1` rendu à
+la première section. Reste `src/seo/` et le bloc `faq` qui l'attend
+(`docs/roadmap.md`).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify`.
 **Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
@@ -99,6 +102,8 @@ src/
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro, plus <Nom>.desktop.astro
 │                   quand le bloc porte une variante bureau
+├── chrome/         en-tête et pied de page : deux emplacements bâtis comme
+│   └── <nom>/      des blocs, qu'un dépôt client remplace dossier pour dossier
 ├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
 │   ├── theme.ts    les tokens du panel → thème Mantine + variables --panel-*
@@ -175,7 +180,8 @@ dangereuses. Raisons détaillées dans `docs/securite.md`.
    opt-in, bloc par bloc.
 6. **Le panel est une island React unique**, montée en `client:only="react"`.
 7. **Un bloc = un dossier, deux fichiers** — plus, au choix, sa variante
-   bureau. Aucun registre central à éditer.
+   bureau. Aucun registre central à éditer. Le chrome suit la même forme, à la
+   règle de doublon près (D109).
 8. **Aucun code du socle copié dans un dépôt client.**
 9. **Les langues sont imbriquées dans les champs**, jamais un fichier par langue.
 10. **`id` de bloc stable**, jamais l'index de position.
@@ -308,6 +314,22 @@ tests (`docs/implementation.md`).
 - **Une middleware Astro ne reçoit pas les en-têtes d'une route pré-rendue.**
   Aiguiller les deux rendus sous `astro dev` par là aurait servi le bureau à
   tout le monde, en silence. En développement, `/_desktop/` s'atteint en direct.
+- **Le chrome se remplace, un bloc jamais.** Deux blocs de même nom sont une
+  erreur ; deux chromes de même nom sont un remplacement, le site l'emportant
+  sur le socle (D109). C'est le seul endroit du dépôt où `findBlocks` s'emploie
+  en mode `replace`.
+- **`content/chrome.json` est un manifeste, pas une page** (D110). L'oublier
+  dans `MANIFESTS` de `src/content/read.ts` en ferait une route, et l'erreur
+  qui suit parle d'un « type de section inconnu » — jamais du fichier fautif.
+- **Un `<details>` déplié par media query demande deux règles.** Les moteurs
+  anciens masquent le contenu replié par `display`, les récents par
+  `content-visibility` sur `::details-content`, que `display` ne défait plus.
+  N'écrire que la première donne un menu qui s'ouvre dans un navigateur et
+  reste vide dans l'autre, sans la moindre erreur.
+- **Le panel vit dans un navigateur.** Un module de `src/server/` importé pour
+  une valeur — fût-ce une constante — y entraîne `node:path` et `node:fs`, et
+  le build du panel échoue loin de la cause. Ce que les deux côtés partagent
+  vit dans un module pur : `src/chrome/define.ts`, `src/content/naming.ts`.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.

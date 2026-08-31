@@ -2,6 +2,7 @@
 import { blocks, desktop } from 'virtual:basalte'
 
 import { resolveDocument, resolveImage } from '../media/resolve.js'
+import { headingOf } from '../render/outline.js'
 import Layout from './Layout.astro'
 import { resolvePreview } from './preview.js'
 import { panelContext } from './server.js'
@@ -16,7 +17,7 @@ const view = await resolvePreview(
 
 if (view.kind === 'stop') return view.response
 
-const { entry, language, support, schemas } = view
+const { entry, language, support, schemas, content, pages } = view
 
 const components = support === 'desktop' ? desktop : {}
 
@@ -35,9 +36,14 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
   meta={entry.page.meta}
   language={language}
   route={entry.route}
+  support={support}
+  image={image}
+  document={document}
+  chrome={content}
+  pages={pages}
 >
   {
-    sections.map((section) => {
+    sections.map((section, index) => {
       const Block = components[section.type] ?? blocks[section.type]
       return (
         <Block
@@ -45,6 +51,7 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
           language={language}
           image={image}
           document={document}
+          heading={headingOf(index)}
         />
       )
     })

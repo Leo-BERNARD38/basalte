@@ -200,7 +200,9 @@ function newPage(): readonly string[] {
     '## Toujours finir par',
     '',
     '`npm run check`, puis relie la page depuis une autre : une page qu’aucun',
-    'lien n’atteint n’existe pour personne.',
+    'lien n’atteint n’existe pour personne. Le menu du site s’édite au panel,',
+    'sous « En-tête et pied de page » — `check` avertit d’un lien qui ne mène',
+    'à aucune page.',
   ]
 }
 
@@ -219,7 +221,16 @@ function design(): readonly string[] {
     'Sous `npm run dev`, l’adresse `/__blocs` rend chaque bloc disponible avec',
     'du contenu d’exemple, dans les tokens réels du site. C’est là qu’un',
     'réglage se juge : la page d’accueil n’en montre que deux ou trois. Un bloc',
-    'qui porte une variante bureau y figure deux fois, étiqueté.',
+    'qui porte une variante bureau y figure deux fois, étiqueté. L’en-tête et',
+    'le pied de page l’entourent, comme sur une vraie page.',
+    '',
+    '## Redessiner l’en-tête ou le pied de page',
+    '',
+    'Le socle en fournit un. Pour le remplacer, écris `src/chrome/header/` ou',
+    '`src/chrome/footer/` dans ce dépôt — un `schema.ts` et le composant du',
+    'même nom, plus sa variante `.desktop.astro` si le site sert deux rendus.',
+    'Le dossier du site remplace celui du socle, emplacement par emplacement :',
+    'redessiner l’en-tête laisse le pied de page du socle en place.',
     '',
     '## Face à une maquette',
     '',

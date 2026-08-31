@@ -1,0 +1,19 @@
+{
+  "$format": 1,
+  "header": {
+    "logo": "",
+    "links": [
+      { "label": { "fr": "Accueil", "en": "" }, "href": "/" },
+      { "label": { "fr": "Nous écrire", "en": "" }, "href": "/contact" }
+    ],
+    "menuLabel": { "fr": "Menu", "en": "" }
+  },
+  "footer": {
+    "links": [
+      {
+        "label": { "fr": "Mentions légales", "en": "" },
+        "href": "/mentions-legales"
+      }
+    ]
+  }
+}

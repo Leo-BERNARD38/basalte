@@ -17,10 +17,13 @@ import { FieldSet } from './fields/Field.js'
 export function Section({
   section,
   type,
+  hideable = true,
   onChange,
 }: {
   readonly section: PageBlock
   readonly type: PanelBlockType | undefined
+  /** L’en-tête et le pied de page sont sur toutes les pages : ils ne se masquent pas. */
+  readonly hideable?: boolean
   readonly onChange: (section: PageBlock) => void
 }) {
   const editing = useEditing()
@@ -46,32 +49,34 @@ export function Section({
         )}
       </div>
 
-      <Group
-        justify="space-between"
-        wrap="nowrap"
-        p="sm"
-        bg="var(--panel-sunken)"
-        style={{ borderRadius: 'var(--panel-radius-md)' }}
-      >
-        <Text size="md" fw={600}>
-          {several
-            ? `Visible en ${languageLabel(editing.languages, editing.language)}`
-            : 'Visible'}
-        </Text>
-        <Switch
-          checked={!hidden}
-          aria-label="Visibilité de cette section"
-          onChange={(event) =>
-            onChange({
-              ...section,
-              hidden: {
-                ...section.hidden,
-                [editing.language]: !event.currentTarget.checked,
-              },
-            })
-          }
-        />
-      </Group>
+      {hideable && (
+        <Group
+          justify="space-between"
+          wrap="nowrap"
+          p="sm"
+          bg="var(--panel-sunken)"
+          style={{ borderRadius: 'var(--panel-radius-md)' }}
+        >
+          <Text size="md" fw={600}>
+            {several
+              ? `Visible en ${languageLabel(editing.languages, editing.language)}`
+              : 'Visible'}
+          </Text>
+          <Switch
+            checked={!hidden}
+            aria-label="Visibilité de cette section"
+            onChange={(event) =>
+              onChange({
+                ...section,
+                hidden: {
+                  ...section.hidden,
+                  [editing.language]: !event.currentTarget.checked,
+                },
+              })
+            }
+          />
+        </Group>
+      )}
 
       {type === undefined ? (
         <Text size="sm" c="dimmed">

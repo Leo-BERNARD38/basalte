@@ -5,7 +5,9 @@ import schema from './schema.js'
 
 type Props = BlockProps<(typeof schema)['fields']>
 
-const { props, language, image } = Astro.props
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
 
 const title = pick(props.title, language)
 const subtitle = pick(props.subtitle, language)
@@ -16,7 +18,7 @@ const illustration = image(props.image, '(min-width: 72rem) 72rem, 100vw')
 
 <section class="hero">
   <div class="hero__inner">
-    <h1 class="hero__title">{title}</h1>
+    <Title class="hero__title">{title}</Title>
     {subtitle !== '' && <p class="hero__subtitle">{subtitle}</p>}
     {
       label !== '' && href !== '' && (

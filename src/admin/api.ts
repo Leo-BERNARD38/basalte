@@ -4,6 +4,7 @@
 
 import type { AudienceReport } from '../analytics/report.js'
 import type { PublishState } from '../publish/publish.js'
+import type { ChromeDraft } from '../server/chrome.js'
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import type { DraftPage } from '../server/pages.js'
@@ -48,6 +49,13 @@ export function savePage(
   draft: Draft,
 ): Promise<Answer<{ readonly page: DraftPage; readonly commit: boolean }>> {
   return send('PUT', `/api/pages/${name}`, draft)
+}
+
+/** L’en-tête et le pied de page : deux sections, et aucune métadonnée. */
+export function saveChrome(
+  draft: Draft,
+): Promise<Answer<{ readonly chrome: ChromeDraft; readonly commit: boolean }>> {
+  return send('PUT', '/api/chrome', { blocks: draft.blocks })
 }
 
 export type Published = { readonly publication: PublishState }

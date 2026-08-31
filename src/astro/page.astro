@@ -1,6 +1,15 @@
 ---
-import { blocks, desktop, documents, media, pages, site } from 'virtual:basalte'
+import {
+  blocks,
+  chromeContent,
+  desktop,
+  documents,
+  media,
+  pages,
+  site,
+} from 'virtual:basalte'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
+import { headingOf } from '../render/outline.js'
 import { slugIn, supportsOf } from '../render/supports.js'
 import Layout from './Layout.astro'
 import { slugFor } from './routes.js'
@@ -34,6 +43,8 @@ const image = (key: string, sizes?: string) =>
   resolveImage(media, key, language, sizes)
 
 const document = (key: string) => resolveDocument(documents, key)
+
+const around = pages.map((page) => ({ name: page.name, route: page.route }))
 ---
 
 <Layout
@@ -41,9 +52,14 @@ const document = (key: string) => resolveDocument(documents, key)
   meta={entry.page.meta}
   language={language}
   route={entry.route}
+  support={support}
+  image={image}
+  document={document}
+  chrome={chromeContent}
+  pages={around}
 >
   {
-    sections.map((section) => {
+    sections.map((section, index) => {
       const Block = components[section.type] ?? blocks[section.type]
       return (
         <Block
@@ -51,6 +67,7 @@ const document = (key: string) => resolveDocument(documents, key)
           language={language}
           image={image}
           document={document}
+          heading={headingOf(index)}
         />
       )
     })

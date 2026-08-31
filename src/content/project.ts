@@ -10,10 +10,14 @@ import {
   loadRegistry,
   type BlockSource,
 } from '../blocks/scan.js'
+import type { ChromeContent } from '../chrome/define.js'
+import { findChrome } from '../chrome/scan.js'
 import { readDocuments, type DocumentManifest } from '../media/documents.js'
 import { readManifest, type MediaManifest } from '../media/manifest.js'
 import type { Site } from '../site/define.js'
 import { loadSite } from '../site/load.js'
+import { CHROME_NAME, readChromeFile, validateChrome } from './chrome.js'
+import { unknownLinks } from './links.js'
 import type { Page } from './page.js'
 import { readContent, type ContentFile } from './read.js'
 import type { ContentIssue } from './report.js'
@@ -35,6 +39,8 @@ export type RenderedPage = {
 export type Schemas = {
   readonly site: Site
   readonly registry: BlockRegistry
+  /** Les deux emplacements du chrome, du socle ou remplacés par le dépôt. */
+  readonly chrome: BlockRegistry
   readonly media: MediaManifest
   readonly documents: DocumentManifest
 }
@@ -47,15 +53,19 @@ export type Content = {
 export type Project = Schemas &
   Content & {
     readonly sources: readonly BlockSource[]
+    readonly chromeSources: readonly BlockSource[]
+    readonly chromeContent: ChromeContent
   }
 
 async function schemasOf(
   root: string,
   sources: readonly BlockSource[],
+  chromeSources: readonly BlockSource[],
 ): Promise<Schemas> {
   return {
     site: await loadSite(root),
     registry: await loadRegistry(sources),
+    chrome: await loadRegistry(chromeSources),
     media: await readManifest(root),
     documents: await readDocuments(root),
   }
@@ -97,11 +107,76 @@ export function validateFiles(
   return { pages, issues }
 }
 
+/**
+ * Le chrome du dépôt, validé contre ses schémas. Le fichier est relu à chaque
+ * appel comme les pages le sont : l’aperçu du panel doit montrer le dernier
+ * enregistrement, pas ce qui a été lu au démarrage.
+ */
+export async function readChrome(
+  root: string,
+  schemas: Schemas,
+  routes: readonly string[],
+): Promise<{
+  readonly chrome: ChromeContent
+  readonly issues: readonly ContentIssue[]
+}> {
+  const result = validateChrome({
+    source: await readChromeFile(root),
+    registry: schemas.chrome,
+    languages: schemas.site.languages,
+    media: schemas.media,
+    documents: schemas.documents,
+  })
+
+  return {
+    chrome: result.chrome,
+    issues: [
+      ...result.issues,
+      ...chromeLinkIssues(result.chrome, schemas, routes),
+    ],
+  }
+}
+
+function chromeLinkIssues(
+  chrome: ChromeContent,
+  schemas: Schemas,
+  routes: readonly string[],
+): readonly ContentIssue[] {
+  return Object.entries(chrome).flatMap(([slot, values]) => {
+    const definition = schemas.chrome[slot]
+
+    return definition === undefined
+      ? []
+      : unknownLinks({
+          name: CHROME_NAME,
+          fields: definition.fields,
+          values,
+          routes,
+          languages: schemas.site.languages,
+          section: { index: 0, id: slot, label: definition.label },
+        })
+  })
+}
+
 export async function readProject(root: string): Promise<Project> {
   const sources = await findBlocks(blockRoots(root))
-  const schemas = await schemasOf(root, sources)
+  const chromeSources = await findChrome(root)
+  const schemas = await schemasOf(root, sources, chromeSources)
+  const content = await readPages(root, schemas)
+  const chrome = await readChrome(
+    root,
+    schemas,
+    content.pages.map((entry) => entry.route),
+  )
 
-  return { ...schemas, sources, ...(await readPages(root, schemas)) }
+  return {
+    ...schemas,
+    sources,
+    chromeSources,
+    chromeContent: chrome.chrome,
+    pages: content.pages,
+    issues: [...content.issues, ...chrome.issues],
+  }
 }
 
 export function errorsOf(
