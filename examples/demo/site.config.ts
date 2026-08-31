@@ -14,6 +14,10 @@ export default defineSite({
   redirects: {
     '/accueil': '/',
   },
+  journal: {
+    base: 'actualites',
+    label: 'Actualités',
+  },
   tokens: {
     color: {
       bg: '#ffffff',

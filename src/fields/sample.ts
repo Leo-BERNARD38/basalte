@@ -9,6 +9,7 @@
 // inventer de prose, et ce qui montre du même coup si un libellé est trop long
 // pour la place qu’il occupe.
 
+import { today } from './date.js'
 import { minimumOf } from './schema.js'
 import type { AnyField, Fields } from './types.js'
 
@@ -71,6 +72,9 @@ function leaf(name: string, field: AnyField, context: SampleContext): string {
 
     case 'document':
       return context.document ?? ''
+
+    case 'date':
+      return today()
 
     case 'url':
       return '#'

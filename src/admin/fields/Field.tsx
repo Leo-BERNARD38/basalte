@@ -7,7 +7,7 @@ import type { ComponentType } from 'react'
 import type { FieldDescription } from '../../fields/describe.js'
 import type { FieldKind } from '../../fields/types.js'
 import type { Values } from '../draft.js'
-import { Choice, Link } from './Choice.js'
+import { Choice, Link, Moment } from './Choice.js'
 import { DocumentControl } from './DocumentControl.js'
 import { GroupControl } from './GroupControl.js'
 import { ImageControl } from './ImageControl.js'
@@ -26,6 +26,7 @@ const CONTROLS: Readonly<Record<FieldKind, ComponentType<ControlProps>>> = {
   richtext: Prose,
   image: ImageControl,
   document: DocumentControl,
+  date: Moment,
   url: Link,
   select: Choice,
   group: GroupControl,

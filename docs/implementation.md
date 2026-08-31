@@ -42,7 +42,7 @@ c'est ce pour quoi elles sont là.
 
 ## Ce qui est fait
 
-Treize phases, et ce que chacune a mis en place. Le détail de leurs choix est
+Quinze phases, et ce que chacune a mis en place. Le détail de leurs choix est
 dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
 code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
@@ -62,14 +62,84 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
 | 13 | S'outiller | `basalte release`, la skill « reutiliser », la convention de commit | D142 à D146 |
 | 14 | Partager | huit sections de référence de plus, la fiche d'entreprise affichée, le critère d'un bloc de référence rouvert | D147 à D150 |
+| 15 | Tenir un journal | les billets, `f.date`, le sixième écran du panel, le flux RSS, le bloc de liste | D151 à D159 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
 n'étaient que de la prose (D135).
 
-**Aucune phase n'est en attente.** Ce qui a été identifié et volontairement
-laissé de côté est dans `roadmap.md`, avec ce qui le ferait revenir : c'est là
-que se prend la suivante, quand un déclencheur se produit.
+Ce qui a été identifié et volontairement laissé de côté est dans `roadmap.md`,
+avec ce qui le ferait revenir : c'est là que se prend une phase, quand un
+déclencheur se produit.
+
+---
+
+## Ce qui reste à faire
+
+### Phase 16 — Allonger
+
+**Pourquoi.** Les onze `f.list` du socle portent une borne haute, et dix des onze
+mises en page ne cassent pas quand on la dépasse — elles sont en `flex-wrap` ou
+en grille `auto-fit`. Ces dix bornes sont donc éditoriales, mais
+`modele-contenu.md` les présente comme la protection de la DA et demande de « les
+renseigner systématiquement » : le prochain bloc écrit héritera de la confusion.
+La onzième — le menu de l'en-tête, une ligne de `flex` sans `flex-wrap` dans
+`src/chrome/header/Header.desktop.astro` — casse pour de bon, et montre à quoi
+ressemble une borne qui se justifie. Ce qui borne réellement les dix autres, c'est
+le panel : `src/admin/fields/ListControl.tsx` rend chaque élément déplié, si bien
+qu'une liste de trente questions remplirait l'inspecteur d'un ruban illisible. Une
+FAQ qui s'allonge est pourtant le cas le plus banal qu'un client rencontre.
+
+**Ce qu'elle produit.** Une liste de bloc cesse d'être bornée par défaut : celles
+dont la mise en page ne casse pas s'allongent autant que le client veut, le panel
+reste utilisable quand elles s'allongent, et une phrase écrite dit à qui écrit un
+bloc quand une borne se justifie encore.
+
+**Enjeux.**
+
+- **Ce qui remplace la borne.** Elle était la seule chose qui tenait le poids
+  d'une page : une galerie de soixante images, c'est plusieurs mégaoctets. La
+  roadmap attend déjà un budget de poids par page, et cette phase en est le
+  déclencheur — mais un budget au build, un avertissement de `check` au-delà d'un
+  seuil, et ne rien mettre du tout ne coûtent pas la même chose. Trancher mal,
+  c'est laisser sortir en production ce que personne n'a mesuré.
+- **Comment le panel tient la longueur.** Replier les éléments, en ouvrir un à la
+  fois comme le rail des sections le fait déjà, paginer, ou chercher : chacune de
+  ces réponses change ce que le client peut faire d'une main. Trancher mal, c'est
+  un client qui ne retrouve plus sa douzième question, ou qui la perd en repliant.
+- **Ce qu'une borne haute veut encore dire.** Une seule tient sur la mise en page.
+  Pour les autres, `max` reste-t-il une borne éditoriale assumée, devient-il un
+  avertissement plutôt qu'un refus, ou sort-il du DSL ? Une option que personne ne
+  sait plus quand employer coûte à chaque bloc écrit.
+- **La borne basse ne suit pas forcément.** `min: 2` sur `stats` dit autre chose
+  que `max: 4` : un seul chiffre n'est pas une section de chiffres. La phase doit
+  dire si les deux subissent le même sort, ou si seule la haute est en cause.
+
+**Déjà tranché.** L'invariant 5 — le site public n'embarque aucun JavaScript par
+défaut — et l'invariant 7. D3 et D151 : le client remplit des listes, il n'ajoute
+ni section ni page. D59 : un `kind` du DSL mène à un composant par une table
+unique, et l'écran d'édition ne se réécrit pas par type de bloc. D97 : le panel ne
+dessine aucune bordure, les plans se séparent par la valeur et l'ombre. D148 : le
+critère d'entrée d'un bloc de référence. Le plancher d'accessibilité de
+`design.md`, dont les 44 px d'une cible tactile.
+
+**À décider dans la phase.**
+
+- Quelles listes gardent une borne, et sur quel critère — écrit une fois,
+  vérifiable, pas relu bloc par bloc.
+- Ce qui remplace la borne pour tenir le poids d'une page.
+- La forme du repli dans le panel, et ce qu'il advient de l'élément ouvert quand
+  la liste se réordonne.
+- Si un bloc `carousel` entre dans les blocs de référence, et à quel titre
+  (D148) : *ce serait la démonstration la plus directe d'une liste non bornée dont
+  la mise en page ne casse jamais — une piste de `scroll-snap`, sans une ligne de
+  script, ne rouvre pas l'invariant 5.*
+- Si `min` suit le sort de `max`.
+
+**Finie quand.** Le site de démonstration porte une section dont la liste dépasse
+largement l'ancienne borne — une FAQ d'une trentaine de questions —, son écran
+d'édition s'ouvre et se parcourt sans devenir illisible, aucune liste du socle ne
+porte de borne haute que la règle écrite ne justifie, et `npm run verify` passe.
 
 ---
 
@@ -89,6 +159,7 @@ couvrent.
 | les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
 | la publication du socle | un dépôt jetable avec son distant, et un npm injecté qui porte vraiment le numéro sans rien installer — l'ordre des cinq étapes, chaque refus, et le retour à l'état d'avant, la note gardée |
 | la trouvabilité | `findableIssues` sur des pages écrites à la main, et `basalte content` relu sur le site de démonstration — le seul contenu qui ait toutes les formes à la fois |
+| le journal | `pageOfPost` sur des billets écrits à la main — entrée JSON, sortie `Page`, aucun disque ; le flux comparé chaîne pour chaîne ; les trois gestes du panel sur le dépôt jetable, la création et la suppression comprises |
 | le reste | `basalte check` sur le site de démonstration, et le diff du HTML produit — sur un correctif, un diff vide prouve l'absence de régression |
 
 Le seul morceau qui ne se teste pas est celui qui ne peut pas l'être : la
@@ -100,7 +171,7 @@ d'images, ni à la bascule atomique.
 
 ## Blocs de référence
 
-Le socle livre quinze blocs. C'est la seule base commune que les sites
+Le socle livre seize blocs. C'est la seule base commune que les sites
 partagent : un bloc absent d'ici se réécrit dans chaque dépôt client, et aucun
 correctif n'y redescend jamais (D147).
 
@@ -120,7 +191,12 @@ le rang) · `stats` (chiffres clés, l'unité dans la valeur) · `cta` (bandeau 
 relance) · `contact-details` (la fiche d'entreprise affichée, sans un champ de
 coordonnée) · `team` · `logos` · `pricing`.
 
-Plus deux emplacements de chrome, `header` et `footer`.
+**Un seizième démontre une mécanique de plus** : `journal` (une liste que le
+contenu ne porte pas — les billets arrivent en prop, comme la fiche
+d'entreprise, D149).
+
+Plus deux emplacements de chrome, `header` et `footer`, et un gabarit de billet,
+`post` — remplaçables, jamais ajoutables (D109, D153).
 
 **Le critère d'entrée** : un bloc gagne sa place s'il démontre une mécanique
 qu'aucun autre ne montre, **ou** s'il est une section que la plupart des sites
@@ -132,16 +208,21 @@ JavaScript opt-in, `<details>` fait mieux, et l'invariant 5 n'a pas eu à être
 payé. La mécanique reste ouverte, elle n'a simplement pas trouvé de
 démonstration qui la mérite.
 
-Un seul déclare des données structurées, `faq` : un avis auto-décerné est un
+Deux déclarent des données structurées : `faq`, et le gabarit `post` en
+`BlogPosting`. Les autres n'en portent pas — un avis auto-décerné est un
 balisage que Google sanctionne, `HowTo` n'a plus de résultat enrichi, et
 `Offer` demande un prix chiffré qu'un champ de texte ne porte pas (D150).
 
 ## Hors périmètre
 
-Blog et collections répétées · création de pages par le client · ajout de blocs
-par le client · éditeur visuel WYSIWYG · back-office multi-sites · commerce ·
-comptes multiples avec rôles différenciés (un seul niveau : éditeur) · un
-troisième rendu — une tablette tombe d'un côté ou de l'autre.
+Création de **pages** par le client · ajout de blocs par le client · éditeur
+visuel WYSIWYG · back-office multi-sites · commerce · comptes multiples avec
+rôles différenciés (un seul niveau : éditeur) · un troisième rendu — une
+tablette tombe d'un côté ou de l'autre.
+
+Le blog en sortait jusqu'à la phase 15 : le client tient désormais un journal,
+et il ne crée toujours pas de pages (D151). C'est la différence qui tient tout :
+un billet n'a ni adresse choisie, ni place dans le menu, ni mise en page.
 
 Ces exclusions sont des choix de v1, pas des impossibilités : le modèle de
 contenu les accueille sans réécriture.

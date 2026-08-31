@@ -375,6 +375,28 @@
           "href": "/contact"
         }
       }
+    },
+    {
+      "id": "j0",
+      "type": "journal",
+      "props": {
+        "title": {
+          "fr": "Dernières actualités",
+          "en": ""
+        },
+        "limit": "3",
+        "empty": {
+          "fr": "",
+          "en": ""
+        },
+        "more": {
+          "label": {
+            "fr": "Toutes les actualités",
+            "en": ""
+          },
+          "href": "/actualites"
+        }
+      }
     }
   ]
 }

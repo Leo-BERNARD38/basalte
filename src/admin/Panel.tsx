@@ -31,11 +31,22 @@ import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
+import { today } from '../fields/date.js'
+import type { DraftPost } from '../server/posts.js'
 import { Account } from './Account.js'
-import { loadPanel, publishSite, readPublication, savePage } from './api.js'
+import {
+  createPost,
+  deletePost,
+  loadPanel,
+  publishSite,
+  readPublication,
+  savePage,
+  savePost,
+} from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
 import { EditingContext, type Editing } from './editing.js'
+import { Journal, type PostValues } from './Journal.js'
 import { DocumentPicker } from './DocumentPicker.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
@@ -46,11 +57,17 @@ import { Stats } from './Stats.js'
 import { cssVariables, theme } from './theme.js'
 
 const EMPTY: Draft = { meta: {}, blocks: [] }
+const NO_POST: PostValues = { hidden: {}, fields: {} }
 const IDLE: PublishState = { running: false, queued: false }
 
 // Un build dure des secondes, pas des millisecondes : le panel revient lire
 // l’état plutôt que de tenir une requête ouverte pendant ce temps.
 const POLL = 1500
+
+/** Ce que le client s’apprête à ouvrir, quand un brouillon l’en empêche. */
+type Asked =
+  | { readonly kind: 'page'; readonly name: string }
+  | { readonly kind: 'post'; readonly slug: string }
 
 type Picker = {
   readonly current: string
@@ -73,7 +90,9 @@ export default function Panel({ site }: { readonly site: string }) {
   const [documentPicker, setDocumentPicker] = useState<Picker | undefined>(
     undefined,
   )
-  const [asked, setAsked] = useState<string | undefined>(undefined)
+  const [openedPost, setOpenedPost] = useState('')
+  const [postDraft, setPostDraft] = useState<PostValues>(NO_POST)
+  const [asked, setAsked] = useState<Asked | undefined>(undefined)
   const [publication, setPublication] = useState<PublishState>(IDLE)
 
   // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
@@ -108,6 +127,12 @@ export default function Panel({ site }: { readonly site: string }) {
     return data
   }
 
+  const openPost = (post: DraftPost) => {
+    setOpenedPost(post.slug)
+    setPostDraft({ hidden: post.hidden, fields: post.fields })
+    setProblems([])
+  }
+
   const open = (page: DraftPage) => {
     setSelected(page.name)
     setDraft({ meta: page.meta, blocks: page.blocks })
@@ -129,10 +154,24 @@ export default function Panel({ site }: { readonly site: string }) {
   }
 
   /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
-  const load = async (page?: string) => {
+  const load = async (page?: string, slug?: string) => {
     const data = await refresh()
 
     if (data === undefined) return
+
+    // Le billet ouvert se reprend du serveur au même titre que la page : c’est
+    // ce qui fait que « enregistrer » repart de ce que le dépôt contient.
+    const posts = data.journal?.posts ?? []
+    const wantedPost = slug ?? openedPost
+    const post =
+      posts.find((entry) => entry.slug === wantedPost) ??
+      (wantedPost === '' ? posts[0] : undefined)
+
+    if (post !== undefined) openPost(post)
+    else {
+      setOpenedPost('')
+      setPostDraft(NO_POST)
+    }
 
     const wanted = page ?? selected
 
@@ -188,7 +227,22 @@ export default function Panel({ site }: { readonly site: string }) {
       : page === undefined
         ? undefined
         : { meta: page.meta, blocks: page.blocks }
-  const dirty = saved !== undefined && !sameDraft(draft, saved)
+
+  const post = payload?.journal?.posts.find(
+    (entry) => entry.slug === openedPost,
+  )
+
+  // Le journal tient son brouillon à part : ouvrir un billet ne doit pas
+  // effacer une page en cours, et l’inverse non plus.
+  const postDirty =
+    post !== undefined &&
+    JSON.stringify(postDraft) !==
+      JSON.stringify({ hidden: post.hidden, fields: post.fields })
+
+  const editingJournal = screen === 'journal'
+  const dirty = editingJournal
+    ? postDirty
+    : saved !== undefined && !sameDraft(draft, saved)
 
   // Fermer l’onglet sur des modifications non enregistrées passe par la
   // confirmation du navigateur : le panel n’a pas d’autre prise sur ce
@@ -225,7 +279,10 @@ export default function Panel({ site }: { readonly site: string }) {
 
   // Une adresse ancienne peut nommer un écran que le site ne déclare plus :
   // elle ramène à l’édition plutôt qu’à un écran vide.
-  const available = screensFor(known.site.capabilities)
+  const available = screensFor(
+    known.site.capabilities,
+    known.journal !== undefined,
+  )
   const shown = available.some((entry) => entry.value === screen)
     ? screen
     : 'edit'
@@ -233,8 +290,9 @@ export default function Panel({ site }: { readonly site: string }) {
   const save = async (): Promise<boolean> => {
     setBusy(true)
 
-    const answer =
-      aside === undefined
+    const answer = editingJournal
+      ? await savePost(openedPost, postDraft)
+      : aside === undefined
         ? await savePage(selected, draft)
         : await aside.save(draft)
 
@@ -252,9 +310,53 @@ export default function Panel({ site }: { readonly site: string }) {
 
     setProblems([])
     setSavedAt(Date.now())
-    await load(selected)
+    await load(selected, editingJournal ? openedPost : undefined)
 
     return true
+  }
+
+  // Écrire un billet, puis l’ouvrir : le client enchaîne sur son texte sans un
+  // clic de plus, ce qui est tout ce qu’on lui demande de faire chaque jour.
+  const compose = async (title: string) => {
+    setBusy(true)
+
+    const answer = await createPost(title, today())
+
+    setBusy(false)
+
+    if (!answer.ok) {
+      setProblems(
+        answer.problems.length > 0 ? answer.problems : [answer.message],
+      )
+
+      if (answer.signedOut) setPayload(undefined)
+
+      return
+    }
+
+    setSavedAt(Date.now())
+    await load(selected, answer.data.post.slug)
+  }
+
+  const remove = async (slug: string) => {
+    setBusy(true)
+
+    const answer = await deletePost(slug)
+
+    setBusy(false)
+
+    if (!answer.ok) {
+      setProblems([answer.message])
+
+      if (answer.signedOut) setPayload(undefined)
+
+      return
+    }
+
+    setOpenedPost('')
+    setPostDraft(NO_POST)
+    setSavedAt(Date.now())
+    await load(selected, '')
   }
 
   // Ce qui part en ligne est ce qui est enregistré : un chantier laissé dans le
@@ -271,29 +373,47 @@ export default function Panel({ site }: { readonly site: string }) {
   const select = (name: string) => {
     if (name === selected) return
 
-    if (dirty) {
-      setAsked(name)
-      return
-    }
+    ask({ kind: 'page', name })
+  }
 
-    reveal(name)
+  const selectPost = (slug: string) => {
+    if (slug === openedPost) return
+
+    ask({ kind: 'post', slug })
+  }
+
+  // Le même garde-fou pour une page et pour un billet : rien ne fait perdre un
+  // brouillon sans le dire.
+  function ask(next: Asked): void {
+    if (dirty) setAsked(next)
+    else reveal(next)
   }
 
   const abandon = () => {
-    const name = asked
+    const next = asked
 
     setAsked(undefined)
 
-    if (name !== undefined) reveal(name)
+    if (next !== undefined) reveal(next)
   }
 
-  function reveal(name: string): void {
-    if (isAside(name)) {
-      openAside(known, name)
+  function reveal(next: Asked): void {
+    if (next.kind === 'post') {
+      const post = known.journal?.posts.find(
+        (entry) => entry.slug === next.slug,
+      )
+
+      if (post !== undefined) openPost(post)
+
       return
     }
 
-    const opened = known.pages.find((entry) => entry.name === name)
+    if (isAside(next.name)) {
+      openAside(known, next.name)
+      return
+    }
+
+    const opened = known.pages.find((entry) => entry.name === next.name)
 
     if (opened !== undefined) open(opened)
   }
@@ -334,8 +454,10 @@ export default function Panel({ site }: { readonly site: string }) {
           screen={shown}
           heading={heading(
             shown,
-            aside?.title ??
-              (page === undefined ? undefined : pageLabel(page.name)),
+            shown === 'journal'
+              ? post?.title
+              : (aside?.title ??
+                  (page === undefined ? undefined : pageLabel(page.name))),
           )}
           onScreen={goTo}
           language={language}
@@ -358,6 +480,21 @@ export default function Panel({ site }: { readonly site: string }) {
               dirty={dirty}
               onSelect={select}
               onDraft={setDraft}
+            />
+          )}
+
+          {shown === 'journal' && (
+            <Journal
+              payload={known}
+              selected={openedPost}
+              draft={postDraft}
+              savedAt={savedAt}
+              dirty={dirty}
+              busy={busy}
+              onSelect={selectPost}
+              onDraft={setPostDraft}
+              onCreate={(title) => void compose(title)}
+              onDelete={(slug) => void remove(slug)}
             />
           )}
 
@@ -417,8 +554,9 @@ export default function Panel({ site }: { readonly site: string }) {
         >
           <Stack gap="md">
             <Text size="sm">
-              Cette page porte des modifications qui ne sont pas enregistrées.
-              Ouvrir une autre page maintenant les perd.
+              {asked?.kind === 'post'
+                ? 'Ce billet porte des modifications qui ne sont pas enregistrées. En ouvrir un autre maintenant les perd.'
+                : 'Cette page porte des modifications qui ne sont pas enregistrées. Ouvrir une autre page maintenant les perd.'}
             </Text>
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setAsked(undefined)}>
@@ -435,11 +573,15 @@ export default function Panel({ site }: { readonly site: string }) {
   )
 }
 
-/** Le titre de l’en-tête : la page ouverte en édition, le nom de l’écran ailleurs. */
-function heading(screen: Screen, page: string | undefined): string {
-  if (screen === 'edit') return page ?? 'Édition'
+/**
+ * Le titre de l’en-tête : ce qui est ouvert quand un écran ouvre quelque chose,
+ * le nom de l’écran ailleurs.
+ */
+function heading(screen: Screen, opened: string | undefined): string {
+  const label =
+    SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
 
-  return SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
+  return screen === 'edit' || screen === 'journal' ? (opened ?? label) : label
 }
 
 function readScreen(): Screen {

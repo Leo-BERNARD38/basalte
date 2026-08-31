@@ -215,3 +215,31 @@ correction avant tout enregistrement bloquerait un site qui fonctionne.
 dit où est le sujet à l'intérieur de ce format, et c'est encore lui qui
 travaille quand le CSS re-cadre d'un support à l'autre. Le ratio, lui, reste une
 valeur et non une valeur par support (D119).
+
+## Le journal
+
+Un billet est une page aux yeux du référencement, et il le devient vraiment :
+compilé en `Page`, il traverse le sitemap, les `hreflang`, la carte de partage
+et le plan de titres par le même chemin que les autres (D152).
+
+- **Le sitemap** les porte comme les pages, et par la même règle : un billet
+  masqué dans une langue n'y figure pas pour cette langue, et un billet masqué
+  partout n'y figure pas du tout.
+- **Le `h1`** est le titre du billet : sa section est la première, donc elle
+  porte le rang un (D115).
+- **Le JSON-LD** du gabarit rend un `BlogPosting` — le seul balisage que Google
+  lit encore pour le journal d'une entreprise. Son `author` **désigne** le nœud
+  de l'entreprise (`#entreprise`) plutôt que de le recopier : il est déjà posé
+  sur cette page, et deux descriptions de la même société se contrediraient.
+- **La carte de partage** retombe sur la couverture du billet. Elle n'est pas
+  recopiée dans `meta.image` : le champ y déclare `1200/630`, une couverture
+  d'article est en `16/9`, et chaque billet aurait porté un avertissement que
+  rien ne permettait de corriger (D158).
+- **Le flux RSS** sort par langue en ligne, à `/<base>.xml` pour la langue par
+  défaut et `/<base>.<code>.xml` pour les autres. Il porte les vingt derniers
+  billets — un lecteur ne remonte pas plus loin, et un flux de trois cents
+  billets pèserait plus que le site. Chaque page indexable l'annonce dans son
+  `<head>`.
+- **L'index n'est pas paginé** (D159) : il porte tout le journal, groupé par
+  année. Aucun billet ne devient inatteignable, et il n'y a ni canonique ni
+  `prev`/`next` à tenir. `roadmap.md` dit ce qui ferait revenir la pagination.

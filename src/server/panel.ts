@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { audienceReport, type AudienceReport } from '../analytics/report.js'
 import type { BlockDefinition } from '../blocks/define.js'
 import { SLOTS } from '../chrome/define.js'
+import { POST_FIELDS, type Journal } from '../journal/define.js'
 import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
 import { validateFiles } from '../content/project.js'
@@ -69,6 +70,13 @@ import {
   type Commit,
   type DraftPage,
 } from './pages.js'
+import {
+  createPost,
+  deletePost,
+  readPostDrafts,
+  savePost,
+  type DraftPost,
+} from './posts.js'
 
 export const PANEL_API = '/api/'
 
@@ -88,6 +96,16 @@ const Draft = z.object({
 
 const ChromeBody = z.object({ blocks: z.array(Block).default([]) })
 const BusinessBody = ChromeBody
+
+const PostBody = z.object({
+  hidden: z.record(z.string(), z.boolean()).default({}),
+  fields: z.record(z.string(), z.unknown()).default({}),
+})
+
+const NewPostBody = z.object({
+  title: z.string().min(1).max(200),
+  date: z.string().min(1).max(20),
+})
 
 export type PanelLanguage = {
   readonly code: string
@@ -126,6 +144,16 @@ export type PanelPayload = {
   readonly chrome: {
     readonly types: readonly PanelBlockType[]
     readonly draft: ChromeDraft
+  }
+  /**
+   * Le journal, absent d’un site qui n’en déclare pas : l’onglet n’existe alors
+   * pas, et le client ignore que la fonction existe.
+   */
+  readonly journal?: {
+    readonly label: string
+    readonly route: string
+    readonly fields: readonly FieldDescription[]
+    readonly posts: readonly DraftPost[]
   }
   readonly media: readonly MediaSummary[]
   readonly documents: readonly DocumentSummary[]
@@ -246,6 +274,27 @@ export async function handlePanel(
     return deleteDocument(panel, route[1] ?? '', pages, schemas, commit)
   }
 
+  if (route[0] === 'posts' && route.length === 1) {
+    if (request.method !== 'POST') return refuseMethod()
+
+    const guard = guardWrite(request)
+
+    return guard ?? addPost(panel, request, commit)
+  }
+
+  if (route[0] === 'posts' && route.length === 2) {
+    if (request.method !== 'PUT' && request.method !== 'DELETE') {
+      return refuseMethod()
+    }
+
+    // Une suppression n’a pas de corps : la garder sous `guardWrite` la ferait
+    // refuser pour un en-tête de type absent, là où c’est l’origine qui compte.
+    const guard =
+      request.method === 'DELETE' ? guardOrigin(request) : guardWrite(request)
+
+    return guard ?? post(panel, request, route[1] ?? '', commit)
+  }
+
   if (route[0] === 'publish' && route.length === 1) {
     return publish(panel, request, account)
   }
@@ -278,6 +327,116 @@ export async function handlePanel(
   }
 
   return json({ ok: false, message: 'Adresse inconnue.' }, 404)
+}
+
+/** Le journal du site, ou la réponse qui dit qu’il n’en a pas. */
+async function journalOf(panel: Panel): Promise<Journal | Response> {
+  const { site } = await panel.schemas()
+
+  return (
+    site.journal ??
+    json(
+      {
+        ok: false,
+        message:
+          'Ce site n’a pas de journal. Déclare « journal » dans site.config.ts.',
+      },
+      409,
+    )
+  )
+}
+
+async function addPost(
+  panel: Panel,
+  request: Request,
+  commit: Commit,
+): Promise<Response> {
+  const journal = await journalOf(panel)
+
+  if (journal instanceof Response) return journal
+
+  let body
+
+  try {
+    body = NewPostBody.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const result = await createPost(
+    panel.root,
+    await panel.schemas(),
+    journal,
+    body.data,
+    commit,
+  )
+
+  return result.kind === 'refused'
+    ? refusal(result.problems)
+    : json({ ok: true, post: result.post, commit: result.commit })
+}
+
+// L’enregistrement et la suppression d’un billet. La seconde est le geste que
+// les pages n’ont pas : un billet raté doit pouvoir disparaître.
+async function post(
+  panel: Panel,
+  request: Request,
+  slug: string,
+  commit: Commit,
+): Promise<Response> {
+  const journal = await journalOf(panel)
+
+  if (journal instanceof Response) return journal
+
+  const schemas = await panel.schemas()
+  const known = await readPostDrafts(panel.root, schemas, journal)
+
+  if (!NAME.test(slug) || !known.some((entry) => entry.slug === slug)) {
+    return json({ ok: false, message: 'Billet inconnu.' }, 404)
+  }
+
+  if (request.method === 'DELETE') {
+    const removed = await deletePost(panel.root, journal, slug, commit)
+
+    return json({ ok: true, slug, commit: removed.commit })
+  }
+
+  let body
+
+  try {
+    body = PostBody.safeParse(await request.json())
+  } catch {
+    return badRequest()
+  }
+
+  if (!body.success) return badRequest()
+
+  const result = await savePost(
+    panel.root,
+    schemas,
+    journal,
+    slug,
+    body.data,
+    commit,
+  )
+
+  return result.kind === 'refused'
+    ? refusal(result.problems)
+    : json({ ok: true, post: result.post, commit: result.commit })
+}
+
+/** La réponse d’un enregistrement refusé, dans la forme que le panel attend. */
+function refusal(problems: readonly string[]): Response {
+  return json(
+    {
+      ok: false,
+      message: 'Il reste quelque chose à corriger.',
+      problems,
+    },
+    422,
+  )
 }
 
 function commitAs(panel: Panel, email: string): Commit {
@@ -334,6 +493,20 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
       severity: issue.severity,
       message: renderIssue(issue),
     })),
+    ...(schemas.site.journal === undefined
+      ? {}
+      : {
+          journal: {
+            label: schemas.site.journal.label,
+            route: `/${schemas.site.journal.base}`,
+            fields: describeFields(POST_FIELDS),
+            posts: await readPostDrafts(
+              panel.root,
+              schemas,
+              schemas.site.journal,
+            ),
+          },
+        }),
     tracked: await isRepositoryRoot(panel.root),
     publication: panel.publisher.state(),
     unread: countUnread(panel.server.database),
@@ -386,16 +559,7 @@ async function writeChrome(
     commit,
   )
 
-  if (result.kind === 'refused') {
-    return json(
-      {
-        ok: false,
-        message: 'Il reste quelque chose à corriger.',
-        problems: result.problems,
-      },
-      422,
-    )
-  }
+  if (result.kind === 'refused') return refusal(result.problems)
 
   return json({ ok: true, chrome: result.chrome, commit: result.commit })
 }
@@ -423,16 +587,7 @@ async function writeBusiness(
     commit,
   )
 
-  if (result.kind === 'refused') {
-    return json(
-      {
-        ok: false,
-        message: 'Il reste quelque chose à corriger.',
-        problems: result.problems,
-      },
-      422,
-    )
-  }
+  if (result.kind === 'refused') return refusal(result.problems)
 
   return json({ ok: true, business: result.business, commit: result.commit })
 }
@@ -466,16 +621,7 @@ async function save(
 
   const result = await savePage(panel.root, schemas, name, body.data, commit)
 
-  if (result.kind === 'refused') {
-    return json(
-      {
-        ok: false,
-        message: 'Il reste quelque chose à corriger.',
-        problems: result.problems,
-      },
-      422,
-    )
-  }
+  if (result.kind === 'refused') return refusal(result.problems)
 
   return json({ ok: true, page: result.page, commit: result.commit })
 }

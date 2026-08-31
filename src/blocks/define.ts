@@ -3,6 +3,7 @@
 // et le dépôt client sont parcourus (invariant 7).
 
 import type { Fields, Values } from '../fields/types.js'
+import type { PostEntry } from '../journal/page.js'
 import type { ResolvedDocument, ResolvedImage } from '../media/resolve.js'
 import type { Heading } from '../render/outline.js'
 import type { BusinessFacts } from '../seo/business.js'
@@ -49,6 +50,13 @@ export type BlockProps<S extends Fields> = {
    * que de les redemander en champs (D149).
    */
   readonly business: BusinessFacts
+  /**
+   * Les billets du journal visibles dans la langue rendue, du plus récent au
+   * plus ancien. Ils arrivent par ici et jamais par un champ : une liste de
+   * billets n’est pas quelque chose que le client saisit, et une fonction ne
+   * survivrait pas au JSON du registre (D56).
+   */
+  readonly posts: readonly PostEntry[]
 }
 
 // Une clé de média devient ce qu’un `img` attend. Le `sizes` appartient au

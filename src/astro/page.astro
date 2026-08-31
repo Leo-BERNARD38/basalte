@@ -5,20 +5,42 @@ import {
   chromeContent,
   desktop,
   documents,
+  journalBlocks,
+  journalDesktop,
   media,
   pages,
+  posts,
   site,
 } from 'virtual:basalte'
 import { isServiceRoute } from '../content/naming.js'
+import { postEntries, postPages } from '../journal/page.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { headingOf } from '../render/outline.js'
 import { slugIn, supportsOf } from '../render/supports.js'
+import { visibleIn } from '../seo/sitemap.js'
 import Layout from './Layout.astro'
 import { slugFor } from './routes.js'
 
 export function getStaticPaths() {
-  return pages.flatMap((entry) =>
-    site.languages.online.flatMap((language) => {
+  const journal = site.journal
+
+  // Un billet masqué dans une langue n’y a pas d’adresse du tout. Une page,
+  // elle, garde la sienne : le client la connaît et peut l’avoir donnée, là
+  // où un billet n’existe qu’à partir du jour où il paraît.
+  const entries = [
+    ...pages.map((entry) => ({ entry, languages: site.languages.online })),
+    ...(journal === undefined ? [] : postPages(journal, posts)).map(
+      (entry) => ({
+        entry,
+        languages: site.languages.online.filter((language) =>
+          visibleIn(entry.page, language.code),
+        ),
+      }),
+    ),
+  ]
+
+  return entries.flatMap(({ entry, languages }) =>
+    languages.flatMap((language) => {
       const slug = slugFor(
         entry.route,
         language.code === site.languages.default.code ? '' : language.code,
@@ -35,7 +57,9 @@ export function getStaticPaths() {
 const { entry, language, support } = Astro.props
 
 // Le mobile est le rendu de référence : un bloc sans variante bureau y retombe.
-const components = support === 'desktop' ? desktop : {}
+const components =
+  support === 'desktop' ? { ...desktop, ...journalDesktop } : {}
+const available = { ...blocks, ...journalBlocks }
 
 const sections = entry.page.blocks.filter(
   (section) => section.hidden[language] !== true,
@@ -47,6 +71,11 @@ const image = (key: string, sizes?: string) =>
 const document = (key: string) => resolveDocument(documents, key)
 
 const around = pages.map((page) => ({ name: page.name, route: page.route }))
+
+// Les billets que la langue rendue montre. Le bloc de liste les reçoit tout
+// prêts : il ne sait ni les lire, ni les trier, ni les masquer.
+const journal =
+  site.journal === undefined ? [] : postEntries(site.journal, posts, language)
 
 // Une page de service est servie, jamais référencée : ni canonique, ni
 // traduction, ni carte de partage — la même enveloppe que la page 404.
@@ -65,11 +94,12 @@ const indexable = !isServiceRoute(entry.route)
   pages={around}
   sections={sections}
   business={business}
+  posts={journal}
   indexable={indexable}
 >
   {
     sections.map((section, index) => {
-      const Block = components[section.type] ?? blocks[section.type]
+      const Block = components[section.type] ?? available[section.type]
       return (
         <Block
           props={section.props}
@@ -78,6 +108,7 @@ const indexable = !isServiceRoute(entry.route)
           document={document}
           heading={headingOf(index)}
           business={business}
+          posts={journal}
         />
       )
     })

@@ -19,6 +19,7 @@
 import { z } from 'zod'
 
 import type { Languages } from '../site/languages.js'
+import { isDate } from './date.js'
 import { allowedHref } from './href.js'
 import type { AnyField, Fields } from './types.js'
 
@@ -26,7 +27,14 @@ type LeafField = Extract<
   AnyField,
   {
     kind:
-      'text' | 'textarea' | 'richtext' | 'image' | 'document' | 'url' | 'select'
+      | 'text'
+      | 'textarea'
+      | 'richtext'
+      | 'image'
+      | 'document'
+      | 'date'
+      | 'url'
+      | 'select'
   }
 >
 
@@ -134,6 +142,14 @@ function leafOf(field: LeafField): z.ZodType {
           (value) =>
             value === '' || allowedHref(value, field.external === true),
         )
+        .prefault('')
+
+    case 'date':
+      // Une date mal formée est refusée ici plutôt qu’au rendu : `Date` ramène
+      // un 31 février au 3 mars sans rien dire, et le billet paraîtrait au
+      // mauvais jour.
+      return bounded(field.required ? 1 : 0)
+        .refine((value) => value === '' || isDate(value))
         .prefault('')
 
     case 'image':

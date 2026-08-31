@@ -66,6 +66,7 @@ function detail(field: AnyField): Partial<FieldDescription> {
       return field.ratio === undefined ? {} : { ratio: field.ratio }
 
     case 'document':
+    case 'date':
       return {}
 
     case 'url':

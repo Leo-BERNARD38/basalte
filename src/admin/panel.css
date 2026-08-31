@@ -460,3 +460,12 @@ body {
   cursor: nwse-resize;
   touch-action: none;
 }
+
+/* La date d’un billet, sous son titre dans la liste du journal : deux
+   informations sur une ligne, et c’est la date qui cède la place. */
+.basalte-post-date {
+  display: block;
+  margin-top: 2px;
+  color: var(--panel-fg-muted);
+  font-size: var(--panel-text-small);
+}

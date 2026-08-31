@@ -53,6 +53,14 @@ export type DocumentField = Base & {
   readonly kind: 'document'
 }
 
+// Une date civile, sans heure ni fuseau : ce que le client choisit dans un
+// calendrier, et ce qu’une page affiche. Elle ne se traduit pas — c’est le
+// rendu qui la met dans la langue de sa page, jamais le contenu qui la stocke
+// deux fois.
+export type DateField = Base & {
+  readonly kind: 'date'
+}
+
 export type UrlField = Base & {
   readonly kind: 'url'
   readonly external?: boolean
@@ -87,6 +95,7 @@ export type AnyField =
   | RichtextField
   | ImageField
   | DocumentField
+  | DateField
   | UrlField
   | SelectField
   | GroupField

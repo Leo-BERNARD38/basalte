@@ -41,6 +41,16 @@ export type { LinkValue, NavigationLink } from './chrome/links.js'
 
 export type { Heading } from './render/outline.js'
 
+export { POST_FIELDS, POST_SLOT } from './journal/define.js'
+export type {
+  Journal,
+  JournalDeclaration,
+  Post,
+  PostFields,
+} from './journal/define.js'
+export { allPages, pageOfPost, postEntries, postPages } from './journal/page.js'
+export type { PostEntry } from './journal/page.js'
+
 export { CONTENT_FORMAT } from './content/page.js'
 export type { Page, PageBlock, PageMeta } from './content/page.js'
 export type { Project, RenderedPage } from './content/project.js'

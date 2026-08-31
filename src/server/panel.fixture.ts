@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 
 import { blockRoots, findBlocks, loadRegistry } from '../blocks/scan.js'
 import { findChrome } from '../chrome/scan.js'
+import { findJournal } from '../journal/scan.js'
 import { BUSINESS_PATH } from '../content/business.js'
 import { CHROME_PATH } from '../content/chrome.js'
 import { CONTENT_FORMAT } from '../content/page.js'
@@ -23,6 +24,7 @@ import {
   type Build,
   type Publisher,
 } from '../publish/publish.js'
+import type { JournalDeclaration } from '../journal/define.js'
 import type { CapabilityOverrides } from '../site/capabilities.js'
 import { defineSite } from '../site/define.js'
 import type { Letter } from './email/messages.js'
@@ -75,6 +77,10 @@ export type BenchOptions = {
   readonly accessLog?: string
   /** Ce que le site déclare faire. Par défaut, les valeurs du socle. */
   readonly capabilities?: CapabilityOverrides
+  /** Le journal du site. Absent, le banc monte un site qui n’en a pas. */
+  readonly journal?: JournalDeclaration
+  /** Des billets écrits d’avance, par slug. */
+  readonly posts?: Readonly<Record<string, unknown>>
 }
 
 export type Bench = {
@@ -108,6 +114,8 @@ export type Bench = {
   chrome(): Promise<Record<string, unknown>>
   /** Le `content/business.json` du dépôt jetable, de la même façon. */
   business(): Promise<Record<string, unknown>>
+  /** Un billet du dépôt jetable, ou `undefined` s’il n’existe plus. */
+  post(slug: string): Promise<Record<string, unknown> | undefined>
   media(): Promise<MediaManifest>
   close(): Promise<void>
 }
@@ -156,8 +164,16 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
 
   await write(path.join(root, MANIFEST_PATH), MANIFEST)
 
+  for (const [slug, post] of Object.entries(settings.posts ?? {})) {
+    const base = settings.journal?.base ?? 'actualites'
+
+    await mkdir(path.join(root, 'content', base), { recursive: true })
+    await write(path.join(root, 'content', base, `${slug}.json`), post)
+  }
+
   const registry = await loadRegistry(await findBlocks(blockRoots(root)))
   const chrome = await loadRegistry(await findChrome(root))
+  const journal = await loadRegistry(await findJournal(root))
 
   const site = defineSite({
     name: 'Banc d’essai',
@@ -166,6 +182,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
     ...(settings.capabilities === undefined
       ? {}
       : { capabilities: settings.capabilities }),
+    ...(settings.journal === undefined ? {} : { journal: settings.journal }),
   })
 
   const publisher = createPublisher({
@@ -204,6 +221,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
       site,
       registry,
       chrome,
+      journal,
       media: (await read(path.join(root, MANIFEST_PATH))) as MediaManifest,
       documents: await readDocuments(root),
     }),
@@ -314,6 +332,15 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
         string,
         unknown
       >
+    },
+
+    async post(slug) {
+      const base = settings.journal?.base ?? 'actualites'
+      const file = path.join(root, 'content', base, `${slug}.json`)
+
+      return readFile(file, 'utf8')
+        .then((raw) => JSON.parse(raw) as Record<string, unknown>)
+        .catch(() => undefined)
     },
 
     async media() {

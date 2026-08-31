@@ -1,0 +1,180 @@
+---
+import type { BlockProps } from '../../blocks/define.js'
+import { formatDate } from '../../fields/date.js'
+import { renderRichtext } from '../../fields/richtext.js'
+import { pick } from '../../fields/translate.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+const body = renderRichtext(pick(props.body, language), schema.fields.body)
+const cover = image(props.cover, '(min-width: 62rem) 42rem, 100vw')
+
+const photos = props.gallery.flatMap((item) => {
+  const resolved = image(item.image, '(min-width: 62rem) 20rem, 50vw')
+
+  return resolved === undefined
+    ? []
+    : [{ caption: pick(item.caption, language), resolved }]
+})
+---
+
+<article class="post">
+  <div class="post__inner">
+    <Title class="post__title">{title}</Title>
+    <time class="post__date" datetime={props.date}>
+      {formatDate(props.date, language)}
+    </time>
+
+    {
+      cover !== undefined && (
+        <img
+          class="post__cover"
+          src={cover.src}
+          srcset={cover.srcset}
+          sizes={cover.sizes}
+          width={cover.width}
+          height={cover.height}
+          alt={cover.alt}
+          style={`object-position:${cover.objectPosition}`}
+          decoding="async"
+        />
+      )
+    }
+
+    <div class="post__body" set:html={body} />
+
+    {
+      photos.length > 0 && (
+        <ul class="post__photos">
+          {photos.map((photo) => (
+            <li>
+              <figure class="post__photo">
+                <img
+                  src={photo.resolved.src}
+                  srcset={photo.resolved.srcset}
+                  sizes={photo.resolved.sizes}
+                  width={photo.resolved.width}
+                  height={photo.resolved.height}
+                  alt={photo.resolved.alt}
+                  style={`object-position:${photo.resolved.objectPosition}`}
+                  loading="lazy"
+                  decoding="async"
+                />
+                {photo.caption !== '' && (
+                  <figcaption class="post__caption">{photo.caption}</figcaption>
+                )}
+              </figure>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .post {
+    padding: var(--space-7) var(--space-5);
+  }
+
+  .post__inner {
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .post__title {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-title);
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+  }
+
+  .post__date {
+    display: block;
+    margin-bottom: var(--space-5);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  .post__cover {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+
+  .post__body :global(p),
+  .post__body :global(ul),
+  .post__body :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .post__body :global(h2),
+  .post__body :global(h3) {
+    margin: var(--space-6) 0 var(--space-3);
+    font-family: var(--font-title);
+    line-height: 1.3;
+  }
+
+  .post__body :global(h2) {
+    font-size: var(--text-xl);
+  }
+
+  .post__body :global(h3) {
+    font-size: var(--text-lg);
+  }
+
+  .post__body :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .post__body :global(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .post__body :global(li) {
+    margin-bottom: var(--space-2);
+  }
+
+  .post__body :global(a) {
+    color: var(--color-accent);
+  }
+
+  .post__photos {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .post__photo {
+    margin: 0;
+  }
+
+  .post__photo img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .post__caption {
+    margin-top: var(--space-2);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .post__photos {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

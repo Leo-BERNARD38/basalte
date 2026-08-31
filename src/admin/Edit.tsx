@@ -31,19 +31,16 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
-import { slugFor } from '../astro/routes.js'
 import { asideOf, asidesOf } from './asides.js'
 import { pageLabel } from '../content/naming.js'
-import { DEFAULT_SUPPORT, SUPPORT_PARAM } from '../render/supports.js'
 import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
-import { useEditing } from './editing.js'
+import { previewAddress, useEditing } from './editing.js'
 import { FieldSet } from './fields/Field.js'
 import { Grip } from './Grip.js'
+import { HiddenMark } from './HiddenMark.js'
 import { Section } from './Section.js'
 import { SortableItem, SortableList } from './Sortable.js'
-
-const PREVIEW = '/admin/preview/'
 
 type Focus =
   { readonly kind: 'meta' } | { readonly kind: 'block'; readonly id: string }
@@ -341,53 +338,9 @@ export function Edit({
   )
 }
 
-/**
- * L’adresse de l’aperçu : la route de la page, préfixée si la langue n’est pas
- * celle par défaut, et le support demandé.
- */
-function previewAddress(
-  route: string,
-  editing: {
-    readonly language: string
-    readonly languages: readonly {
-      readonly code: string
-      readonly default?: boolean
-    }[]
-  },
-  support: string,
-): string {
-  const fallback = editing.languages.find((entry) => entry.default)?.code ?? ''
-  const prefix = editing.language === fallback ? '' : editing.language
-  const asked =
-    support === DEFAULT_SUPPORT ? '' : `?${SUPPORT_PARAM}=${support}`
-
-  return `${PREVIEW}${slugFor(route, prefix) ?? ''}${asked}`
-}
-
 function labelOf(
   types: readonly { readonly name: string; readonly label: string }[],
   type: string,
 ): string {
   return types.find((entry) => entry.name === type)?.label ?? type
-}
-
-function HiddenMark() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-label="Masquée"
-      role="img"
-    >
-      <path d="M4.2 6.3C2.7 7.6 1.8 10 1.8 10s3.1 5.5 8.2 5.5c1.3 0 2.4-.3 3.4-.8" />
-      <path d="M8.1 5c.6-.3 1.2-.5 1.9-.5 5.1 0 8.2 5.5 8.2 5.5s-.8 1.4-2.1 2.8" />
-      <path d="m3 3 14 14" />
-    </svg>
-  )
 }

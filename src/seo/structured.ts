@@ -27,6 +27,12 @@ export type StructuredContext = {
   readonly language: string
   /** L’adresse absolue de la page où la section se trouve. */
   readonly url: string
+  /**
+   * La racine du site. Elle permet à une section de désigner un nœud posé
+   * ailleurs — l’entreprise porte l’identifiant `#entreprise` sur toutes les
+   * pages, et un billet s’en déclare l’auteur sans redire qui elle est.
+   */
+  readonly origin: string
 }
 
 export type StructuredBuilder = (
@@ -131,6 +137,7 @@ export function pageNodes(input: {
   const context: StructuredContext = {
     language: input.language,
     url: input.url,
+    origin: originOf(input.site),
   }
 
   for (const section of input.sections) {

@@ -78,6 +78,30 @@ describe('toZod — champs plats', () => {
   })
 })
 
+describe('toZod — date', () => {
+  it('accepte une date au calendrier, et le vide quand elle est facultative', () => {
+    const parse = check({ date: f.date() })
+
+    expect(parse({ date: '2026-08-31' }).success).toBe(true)
+    expect(parse({ date: '' }).success).toBe(true)
+    expect(parse({}).data).toEqual({ date: '' })
+  })
+
+  it('refuse une date qui n’existe pas plutôt que de la ramener au mois suivant', () => {
+    const parse = check({ date: f.date() })
+
+    expect(parse({ date: '2026-02-31' }).success).toBe(false)
+    expect(parse({ date: '31/08/2026' }).success).toBe(false)
+  })
+
+  it('refuse le vide quand elle est requise', () => {
+    const parse = check({ date: f.date({ required: true }) })
+
+    expect(parse({ date: '' }).success).toBe(false)
+    expect(parse({ date: '2026-08-31' }).success).toBe(true)
+  })
+})
+
 describe('toZod — langues', () => {
   it('attend une valeur par langue en ligne', () => {
     const parse = check({ title: f.text({ i18n: true }) }, bothOnline)

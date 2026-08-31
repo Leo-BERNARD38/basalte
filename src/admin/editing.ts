@@ -7,6 +7,8 @@ import { createContext, useContext } from 'react'
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
 import type { PanelLanguage } from '../server/panel.js'
+import { slugFor } from '../astro/routes.js'
+import { DEFAULT_SUPPORT, SUPPORT_PARAM } from '../render/supports.js'
 import { resolveCapabilities, type Capabilities } from '../site/capabilities.js'
 
 export type Editing = {
@@ -36,6 +38,8 @@ const EMPTY: Editing = {
   pickDocument: async () => undefined,
 }
 
+const PREVIEW = '/admin/preview/'
+
 export const EditingContext = createContext<Editing>(EMPTY)
 
 export function useEditing(): Editing {
@@ -48,4 +52,27 @@ export function languageLabel(
   code: string,
 ): string {
   return languages.find((language) => language.code === code)?.label ?? code
+}
+
+/**
+ * L’adresse de l’aperçu : la route de la page, préfixée si la langue n’est pas
+ * celle par défaut, et le support demandé.
+ */
+export function previewAddress(
+  route: string,
+  editing: {
+    readonly language: string
+    readonly languages: readonly {
+      readonly code: string
+      readonly default?: boolean
+    }[]
+  },
+  support: string,
+): string {
+  const fallback = editing.languages.find((entry) => entry.default)?.code ?? ''
+  const prefix = editing.language === fallback ? '' : editing.language
+  const asked =
+    support === DEFAULT_SUPPORT ? '' : `?${SUPPORT_PARAM}=${support}`
+
+  return `${PREVIEW}${slugFor(route, prefix) ?? ''}${asked}`
 }
