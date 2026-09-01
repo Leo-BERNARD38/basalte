@@ -171,8 +171,26 @@ client découvrirait le refus à la publication, sur un défaut créé la veille
   ou sans cible, un média qu'aucune section n'emploie.
 
 Tout cela se lit sur le contenu, jamais sur le HTML construit (D141) : ce qui
-demande le HTML — le plan de titres et le contrat des deux rendus — vit dans la
-moitié post-`--build`, qui avertit toujours et ne refuse jamais.
+demande le HTML — le plan de titres, le contrat des deux rendus et le poids
+d'une page — vit dans la moitié post-`--build`, qui avertit toujours et ne
+refuse jamais.
+
+### Le poids d'une page
+
+Une liste de bloc n'a pas de borne haute (D160), et c'est bien ce qu'on veut :
+une FAQ s'allonge autant que le client en a. Mais la borne tenait une chose
+qu'elle ne disait pas — une galerie de soixante photos se compte en mégaoctets,
+et personne ne l'aurait vu avant la mise en ligne.
+
+`check --build` mesure donc, page par page, ce qu'un navigateur télécharge en
+l'ouvrant : son HTML, ses feuilles de style, et pour chaque image la plus large
+de ses dérivées, celle qu'un grand écran choisit dans le `srcset`. Les documents
+n'y sont pas : un PDF part au clic, jamais à l'ouverture. Au-delà de deux
+mégaoctets, la page est nommée avec son poids.
+
+Il avertit, il ne refuse pas (D162) : il n'y a pas de poids au-delà duquel une
+page cesse de fonctionner, il y a un poids au-delà duquel elle se fait
+attendre.
 
 ## Ce que le site contient déjà
 

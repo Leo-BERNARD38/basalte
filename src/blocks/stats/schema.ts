@@ -12,7 +12,6 @@ export default block({
       itemLabel: 'label',
       required: true,
       min: 2,
-      max: 4,
       of: {
         value: f.text({
           label: 'Le chiffre',

@@ -17,7 +17,6 @@ export default block({
       label: 'Logos',
       required: true,
       min: 1,
-      max: 12,
       of: {
         image: f.image({
           label: 'Logo',

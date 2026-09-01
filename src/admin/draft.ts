@@ -72,6 +72,54 @@ export function remove<T>(items: readonly T[], index: number): readonly T[] {
   return items.filter((_, position) => position !== index)
 }
 
+/**
+ * Où passe l’élément ouvert quand la liste se réordonne. Un panneau déplié est
+ * désigné par un rang, et un rang change de propriétaire à chaque
+ * déplacement : sans ce report, on refermerait la question qu’on lisait pour
+ * en ouvrir une autre.
+ */
+export function movedIndex(
+  index: number | null,
+  from: number,
+  to: number,
+): number | null {
+  if (index === null || from === to) return index
+  if (index === from) return to
+  if (index > from && index <= to) return index - 1
+  if (index < from && index >= to) return index + 1
+
+  return index
+}
+
+/** Le même rang, une fois qu’un élément a été retiré. */
+export function indexAfterRemoval(
+  index: number | null,
+  removed: number,
+): number | null {
+  if (index === null || index === removed) return null
+
+  return index > removed ? index - 1 : index
+}
+
+/**
+ * Le nom d’un élément de liste, tel qu’il se lit replié : le champ que le bloc
+ * a désigné en `itemLabel`. À défaut, rien — c’est l’appelant qui retombe sur
+ * le rang, seul à le connaître.
+ */
+export function labelOfItem(
+  name: string | undefined,
+  item: Values,
+  language: string,
+): string {
+  if (name === undefined) return ''
+
+  const value = item[name]
+
+  if (typeof value === 'string') return value
+
+  return translated(value, language)
+}
+
 /** Deux brouillons sont identiques quand leur JSON l’est, clé pour clé. */
 export function sameDraft(left: Draft, right: Draft): boolean {
   return JSON.stringify(left) === JSON.stringify(right)

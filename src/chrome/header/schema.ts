@@ -14,6 +14,9 @@ export default block({
       label: 'Liens du menu',
       help: 'Laissée vide, la liste reprend les pages du site.',
       itemLabel: 'label',
+      // La seule borne haute du socle. Le menu est une rangée qui ne se replie
+      // pas : au-delà, elle déborde de la largeur de contenu et toute la page
+      // défile en travers.
       max: 6,
       of: {
         label: f.text({

@@ -22,9 +22,14 @@ quelqu'un de corriger un texte.
 | pas de fourre-tout | un fichier ou un dossier nommé `utils`, `helpers`, `common`, `misc`, `shared`, `divers` |
 | le plancher du design | une paire de tokens dont le contraste tombe sous 4,5:1 |
 
-Un `<script>` dans un bloc est signalé sans être refusé : l'interactivité est
-opt-in bloc par bloc (invariant 5), et aucune machine ne peut décider à la
-place de l'auteur si ce script est mérité.
+Deux choses sont **signalées sans être refusées**, pour la même raison :
+aucune machine ne peut décider à la place de l'auteur si elles sont méritées.
+
+- Un `<script>` dans un bloc : l'interactivité est opt-in bloc par bloc
+  (invariant 5).
+- Une **borne haute sur un `f.list`** qu'aucun commentaire ne justifie : elle ne
+  se pose que si la mise en page casse sans elle (D160), et la phrase qui le dit
+  s'écrit au-dessus de la borne. Une borne sur un texte n'est pas concernée.
 
 Ce qui n'est **pas** vérifié reste à la relecture : qu'un bloc soit lisible à
 375 px, que le focus clavier soit visible, que le texte alternatif dise quelque

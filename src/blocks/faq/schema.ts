@@ -18,7 +18,6 @@ export default block({
       itemLabel: 'question',
       required: true,
       min: 1,
-      max: 12,
       of: {
         question: f.text({
           label: 'Question',

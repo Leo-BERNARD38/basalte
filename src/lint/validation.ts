@@ -7,6 +7,7 @@
 // du dépôt : ailleurs, Zod et les gardes écrites à la main sont à leur place.
 
 import { finding, type Finding } from './finding.js'
+import { isComment } from './source.js'
 
 const FORBIDDEN: readonly {
   readonly pattern: RegExp
@@ -54,8 +55,4 @@ export function manualValidation(
   }
 
   return findings
-}
-
-function isComment(text: string): boolean {
-  return /^\s*(?:\/\/|\*|\/\*)/.test(text)
 }

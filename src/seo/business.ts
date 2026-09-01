@@ -75,7 +75,6 @@ export const BUSINESS_FIELDS = {
       closes: f.text({ label: 'Fermeture', help: 'Par exemple 18:00', max: 5 }),
     },
     itemLabel: 'day',
-    max: 14,
   }),
 }
 

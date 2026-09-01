@@ -12,7 +12,6 @@ export default block({
       itemLabel: 'author',
       required: true,
       min: 1,
-      max: 8,
       of: {
         quote: f.textarea({
           label: 'Ce que dit la personne',

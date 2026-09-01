@@ -18,7 +18,6 @@ export default block({
       itemLabel: 'title',
       required: true,
       min: 2,
-      max: 6,
       of: {
         title: f.text({ label: 'Titre', i18n: true, required: true, max: 60 }),
         body: f.textarea({ label: 'Texte', i18n: true, max: 220, rows: 3 }),
