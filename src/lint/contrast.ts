@@ -26,6 +26,17 @@ const PAIRS: readonly {
     what: 'le texte d’un bouton sur son fond',
   },
   { front: 'danger', back: 'bg', what: 'un message d’erreur sur le fond' },
+  { front: 'fg', back: 'surface', what: 'le texte courant sur le retrait' },
+  {
+    front: 'muted',
+    back: 'surface',
+    what: 'le texte secondaire sur le retrait',
+  },
+  {
+    front: 'contrastFg',
+    back: 'contrast',
+    what: 'le texte d’une section inversée sur son fond',
+  },
 ]
 
 export function contrastFindings(

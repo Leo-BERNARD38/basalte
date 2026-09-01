@@ -15,12 +15,13 @@ import path from 'node:path'
 
 import { findBlocks, type BlockSource } from '../blocks/scan.js'
 import { CHROME_DIR } from '../chrome/define.js'
+import { JOURNAL_DIR } from '../journal/scan.js'
 import { loadSite } from '../site/load.js'
 import { listBounds } from './bounds.js'
 import { contrastFindings } from './contrast.js'
 import { ordered, relative, type Finding } from './finding.js'
 import { panelContrast } from './panel.js'
-import { hardcodedStyle, PANEL } from './style.js'
+import { hardcodedStyle, PANEL, SITE } from './style.js'
 import { manualValidation } from './validation.js'
 import { catchAll, inlineScripts } from './structure.js'
 
@@ -28,11 +29,13 @@ export async function lintProject(root: string): Promise<readonly Finding[]> {
   const sources = [
     ...(await own(root, 'blocks')),
     ...(await own(root, CHROME_DIR)),
+    ...(await own(root, JOURNAL_DIR)),
   ]
 
   const findings: Finding[] = [
     ...(await catchAll(root)),
     ...(await tokens(root)),
+    ...(await base(root)),
     ...(await panel(root)),
   ]
 
@@ -78,6 +81,23 @@ function components(source: BlockSource): readonly string[] {
   return source.desktop === undefined
     ? [source.component]
     : [source.component, source.desktop]
+}
+
+/**
+ * La feuille commune aux pages, quand ce dépôt la porte. Elle définit les
+ * primitives que les blocs emploient — le bouton, en premier — et elle porte
+ * donc les mêmes valeurs qu’eux : la tenir hors du contrôle ouvrirait la seule
+ * porte par laquelle une couleur en dur peut entrer dans une page.
+ */
+async function base(root: string): Promise<readonly Finding[]> {
+  const sheet = path.join(root, 'src', 'astro', 'base.css')
+
+  if (!(await exists(sheet))) return []
+
+  return hardcodedStyle(relative(root, sheet), await readFile(sheet, 'utf8'), {
+    ...SITE,
+    whole: true,
+  })
 }
 
 /**
