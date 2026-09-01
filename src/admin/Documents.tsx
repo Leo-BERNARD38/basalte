@@ -14,6 +14,7 @@ import {
   Paper,
   Stack,
   Text,
+  Title,
   UnstyledButton,
 } from '@mantine/core'
 import { useState } from 'react'
@@ -138,7 +139,7 @@ export function DocumentPanel({
   return (
     <Stack gap="sm">
       <Group justify="space-between" align="center">
-        <Text fw={600}>Documents</Text>
+        <Title order={3}>Documents</Title>
         <DocumentUploadButton
           onDone={(added) => {
             setProblem('')

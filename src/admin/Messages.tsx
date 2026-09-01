@@ -84,7 +84,7 @@ export function Messages({
   }
 
   return (
-    <Stack gap="md" maw={860}>
+    <Stack gap="md" maw="var(--panel-measure-page)">
       <Text size="sm" c="dimmed">
         Conservés {retention} mois, puis effacés.
       </Text>

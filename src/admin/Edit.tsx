@@ -28,6 +28,7 @@ import {
   Select,
   Stack,
   Text,
+  Title,
 } from '@mantine/core'
 import { useState } from 'react'
 
@@ -37,6 +38,7 @@ import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
 import { previewAddress, useEditing } from './editing.js'
 import { FieldSet } from './fields/Field.js'
+import { External } from './External.js'
 import { Grip } from './Grip.js'
 import { HiddenMark } from './HiddenMark.js'
 import { Section } from './Section.js'
@@ -269,9 +271,7 @@ export function Edit({
 
       <div className="basalte-stage">
         <div className="basalte-stage__head">
-          <Text fz="var(--panel-text-title)" fw={700}>
-            Aperçu
-          </Text>
+          <Title order={2}>Aperçu</Title>
           <SegmentedControl
             size="xs"
             radius="xl"
@@ -291,7 +291,7 @@ export function Edit({
             size="lg"
             aria-label="Ouvrir l’aperçu dans un onglet"
           >
-            ↗
+            <External />
           </ActionIcon>
         </div>
 
@@ -316,9 +316,7 @@ export function Edit({
           {active.kind === 'meta' ? (
             <>
               <div>
-                <Text fz="var(--panel-text-title)" fw={700}>
-                  Informations de la page
-                </Text>
+                <Title order={2}>Informations de la page</Title>
                 <Text size="sm" c="dimmed">
                   {previewed}
                 </Text>

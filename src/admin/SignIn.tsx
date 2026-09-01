@@ -167,7 +167,7 @@ export function SignIn({
               <Text size="sm" c="dimmed">
                 {site}
               </Text>
-              <Title order={1} fz="var(--panel-text-title)">
+              <Title order={2} component="h1">
                 Administration
               </Title>
             </div>

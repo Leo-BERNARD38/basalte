@@ -180,7 +180,7 @@ function MediaDetail({
   return (
     <Paper p="md">
       <Stack gap="md">
-        <Title order={4}>Cette image</Title>
+        <Title order={3}>Cette image</Title>
 
         <button
           type="button"

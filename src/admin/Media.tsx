@@ -183,8 +183,8 @@ export function UploadButton({
           )}
 
           <Text size="sm" c="dimmed">
-            Décris ce que montre l’image : c’est ce que lisent les personnes qui
-            ne la voient pas, et ce que comprend Google.
+            Décrivez ce que montre l’image : c’est ce que lisent les personnes
+            qui ne la voient pas, et ce que comprend Google.
           </Text>
 
           {online.map((language) => (

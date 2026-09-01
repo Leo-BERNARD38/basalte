@@ -161,16 +161,22 @@ export const theme = createTheme({
     xl: tokens.text.title,
   },
   lineHeights: { xs: '1.4', sm: '1.5', md: '1.45', lg: '1.5', xl: '1.25' },
+  // Les six rangs tombent sur les six pas de l’échelle, et sur rien d’autre :
+  // Mantine en proposait trois — 28, 17 et 15 — qu’aucun token ne porte, et
+  // c’est par eux que les titres du panel s’écrivaient chacun à leur façon.
+  //
+  // Le panel s’en sert sur trois rangs : le nom de l’écran, celui d’une colonne,
+  // celui d’une carte.
   headings: {
     fontFamily: SANS,
     fontWeight: '700',
     sizes: {
       h1: { fontSize: tokens.text.display, lineHeight: '1.05' },
-      h2: { fontSize: '28px', lineHeight: '1.15' },
-      h3: { fontSize: tokens.text.title, lineHeight: '1.2' },
-      h4: { fontSize: '17px', lineHeight: '1.3' },
-      h5: { fontSize: '15px', lineHeight: '1.35' },
-      h6: { fontSize: tokens.text.cap, lineHeight: '1.4' },
+      h2: { fontSize: tokens.text.title, lineHeight: '1.2' },
+      h3: { fontSize: tokens.text.lead, lineHeight: '1.3' },
+      h4: { fontSize: tokens.text.body, lineHeight: '1.35' },
+      h5: { fontSize: tokens.text.cap, lineHeight: '1.4' },
+      h6: { fontSize: tokens.text.eyebrow, lineHeight: '1.4' },
     },
   },
 

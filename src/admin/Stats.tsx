@@ -56,7 +56,7 @@ export function Stats({
 
   if (!audience.readable) {
     return (
-      <Stack gap="md" maw={860}>
+      <Stack gap="md" maw="var(--panel-measure-page)">
         <Alert color="orange" title="Aucune mesure disponible">
           Les journaux d’accès ne sont pas lisibles depuis le panel. Le site
           continue de fonctionner : seule cette page est vide.
@@ -68,7 +68,7 @@ export function Stats({
   const peak = Math.max(1, ...audience.days.map((day) => day.visits))
 
   return (
-    <Stack gap="md" maw={860}>
+    <Stack gap="md" maw="var(--panel-measure-page)">
       <Text size="sm" c="dimmed">
         Du {PERIOD.format(audience.from)} au {PERIOD.format(audience.to)}
       </Text>
@@ -81,7 +81,7 @@ export function Stats({
 
       <Paper p="md">
         <Stack gap="xs">
-          <Title order={4}>Jour par jour</Title>
+          <Title order={3}>Jour par jour</Title>
           {audience.days.length === 0 ? (
             <Text size="sm" c="dimmed">
               Aucune visite sur la période.
@@ -161,7 +161,7 @@ function Ranking({
   return (
     <Paper p="md">
       <Stack gap="xs">
-        <Title order={4}>{title}</Title>
+        <Title order={3}>{title}</Title>
         {rows.length === 0 ? (
           <Text size="sm" c="dimmed">
             {empty}

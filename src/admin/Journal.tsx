@@ -22,6 +22,7 @@ import {
   Switch,
   Text,
   TextInput,
+  Title,
 } from '@mantine/core'
 import { useState } from 'react'
 
@@ -148,9 +149,7 @@ export function Journal({
 
       <div className="basalte-stage">
         <div className="basalte-stage__head">
-          <Text fz="var(--panel-text-title)" fw={700}>
-            Aperçu
-          </Text>
+          <Title order={2}>Aperçu</Title>
           <SegmentedControl
             size="xs"
             radius="xl"
@@ -194,9 +193,7 @@ export function Journal({
         ) : (
           <Stack gap="md">
             <div>
-              <Text fz="var(--panel-text-title)" fw={700}>
-                {open.title}
-              </Text>
+              <Title order={2}>{open.title}</Title>
               <Text size="sm" c="dimmed">
                 {open.route}
               </Text>

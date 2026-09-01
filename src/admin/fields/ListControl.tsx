@@ -8,7 +8,7 @@
 // L’ouverture suit l’élément quand la liste se réordonne, jamais son rang.
 
 import { useId, useState } from 'react'
-import { Button, Group, Modal, Paper, Stack, Text } from '@mantine/core'
+import { Button, Group, Input, Modal, Paper, Stack, Text } from '@mantine/core'
 
 import {
   emptyValues,
@@ -51,23 +51,17 @@ export function ListControl({ description, value, onChange }: ControlProps) {
     `l’élément ${index + 1}`
 
   return (
-    <Stack gap="xs">
-      <Group justify="space-between" align="baseline">
-        <Text fw={500} size="sm">
-          {description.label}
-          {description.required && ' *'}
-        </Text>
+    <Input.Wrapper
+      label={description.label}
+      description={description.help}
+      required={description.required}
+    >
+      <Group justify="flex-end" mb="xs">
         <Text size="xs" c="dimmed">
           {items.length} élément{items.length > 1 ? 's' : ''}
           {description.max === undefined ? '' : ` sur ${description.max}`}
         </Text>
       </Group>
-
-      {description.help !== undefined && (
-        <Text size="xs" c="dimmed">
-          {description.help}
-        </Text>
-      )}
 
       <SortableList
         ids={items.map((_, index) => String(index))}
@@ -166,7 +160,7 @@ export function ListControl({ description, value, onChange }: ControlProps) {
         </Stack>
       </Modal>
 
-      <Group gap="sm">
+      <Group gap="sm" mt="xs">
         <Button
           variant="default"
           size="xs"
@@ -190,6 +184,6 @@ export function ListControl({ description, value, onChange }: ControlProps) {
           </Text>
         )}
       </Group>
-    </Stack>
+    </Input.Wrapper>
   )
 }

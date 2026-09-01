@@ -147,7 +147,7 @@ export function Account({
           }}
         >
           <Stack gap="md">
-            <Title order={4}>Mot de passe</Title>
+            <Title order={3}>Mot de passe</Title>
             <Text size="sm" c="dimmed">
               {MINIMUM} caractères au minimum. Le changer ferme les sessions
               ouvertes ailleurs.
@@ -176,7 +176,7 @@ export function Account({
 
       <Paper p="lg">
         <Stack gap="md">
-          <Title order={4}>Appareils reconnus</Title>
+          <Title order={3}>Appareils reconnus</Title>
           {session === undefined ? (
             <Waiting what="Lecture de la session…" />
           ) : session.devices.length === 0 ? (
@@ -212,7 +212,7 @@ export function Account({
 
       <Paper p="lg">
         <Stack gap="md">
-          <Title order={4}>Connexions récentes</Title>
+          <Title order={3}>Connexions récentes</Title>
           {session === undefined ? (
             <Waiting what="Lecture du journal…" />
           ) : session.journal.length === 0 ? (
@@ -238,7 +238,7 @@ export function Account({
       {support !== '' && (
         <Paper p="lg">
           <Stack gap="xs">
-            <Title order={4}>Besoin d’aide</Title>
+            <Title order={3}>Besoin d’aide</Title>
             <Text size="sm" c="dimmed">
               Une page cassée, une section à ajouter, une question : écrivez à{' '}
               <Anchor href={`mailto:${support}`}>{support}</Anchor>.
