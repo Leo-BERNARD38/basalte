@@ -63,20 +63,29 @@ const items = props.items.map((item) => ({
 
 <style>
   .testimonials {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-surface);
   }
 
   .testimonials__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
   .testimonials__title {
-    margin: 0 0 var(--space-6);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    margin-block: 0;
+    text-align: center;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .testimonials__list {
@@ -90,18 +99,20 @@ const items = props.items.map((item) => ({
   .testimonials__item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-5);
     height: 100%;
     margin: 0;
-    padding: var(--space-5);
+    padding: var(--space-6);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
   }
 
   .testimonials__quote {
     margin: 0;
     font-size: var(--text-lg);
     line-height: 1.5;
+    text-wrap: pretty;
   }
 
   .testimonials__quote::before {
@@ -121,15 +132,15 @@ const items = props.items.map((item) => ({
 
   .testimonials__portrait {
     flex: none;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
     object-fit: cover;
+    border-radius: 50%;
   }
 
   .testimonials__name {
     display: block;
-    font-size: var(--text-base);
+    font-weight: 600;
   }
 
   .testimonials__role {
@@ -140,14 +151,14 @@ const items = props.items.map((item) => ({
 
   @media (min-width: 48rem) {
     .testimonials__list {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-6);
     }
   }
 
   @media (min-width: 68rem) {
     .testimonials__list {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 </style>

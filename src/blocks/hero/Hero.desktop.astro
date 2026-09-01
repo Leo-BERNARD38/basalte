@@ -30,7 +30,7 @@ const illustration = image(props.image, '36rem')
       {subtitle !== '' && <p class="hero__subtitle">{subtitle}</p>}
       {
         label !== '' && href !== '' && (
-          <a class="hero__cta" href={href}>
+          <a class="button hero__cta" href={href}>
             {label}
           </a>
         )
@@ -58,7 +58,8 @@ const illustration = image(props.image, '36rem')
 
 <style>
   .hero {
-    padding: var(--space-8) var(--space-5);
+    padding-block: var(--space-9);
+    padding-inline: var(--space-5);
     background: var(--color-bg);
     color: var(--color-fg);
   }
@@ -67,7 +68,7 @@ const illustration = image(props.image, '36rem')
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     align-items: center;
-    gap: var(--space-7);
+    gap: var(--space-8);
     max-width: var(--width-wide);
     margin-inline: auto;
   }
@@ -75,43 +76,34 @@ const illustration = image(props.image, '36rem')
   .hero__text {
     display: flex;
     flex-direction: column;
+    align-items: start;
     gap: var(--space-4);
   }
 
   .hero__title {
     margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-3xl);
-    line-height: 1.1;
+    font-size: clamp(var(--text-3xl), 4.5vw, var(--text-5xl));
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
   }
 
   .hero__subtitle {
     margin: 0;
     color: var(--color-muted);
-    font-size: var(--text-lg);
+    font-size: var(--text-xl);
+    line-height: 1.45;
   }
 
   .hero__cta {
-    align-self: start;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
-    font-size: var(--text-base);
-    text-decoration: none;
-  }
-
-  .hero__cta:hover {
-    text-decoration: underline;
+    margin-top: var(--space-2);
   }
 
   .hero__image {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
   }
 </style>

@@ -22,15 +22,16 @@ const { props, language } = Astro.props
 <style>
   .temoignage {
     margin: 0;
-    padding: var(--space-8) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: var(--space-9);
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .temoignage__inner {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
     align-items: end;
-    gap: var(--space-6);
+    gap: var(--space-7);
     max-width: var(--width-wide);
     margin-inline: auto;
   }
@@ -38,8 +39,10 @@ const { props, language } = Astro.props
   .temoignage__quote {
     margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
+    font-size: clamp(var(--text-xl), 3vw, var(--text-3xl));
+    font-weight: 600;
     line-height: 1.25;
+    letter-spacing: -0.02em;
   }
 
   .temoignage__author {

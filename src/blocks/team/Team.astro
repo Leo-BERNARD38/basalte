@@ -25,8 +25,14 @@ const items = props.items.map((item) => ({
 
 <section class="team">
   <div class="team__inner">
-    {title !== '' && <Title class="team__title">{title}</Title>}
-    {intro !== '' && <p class="team__intro">{intro}</p>}
+    {
+      (title !== '' || intro !== '') && (
+        <div class="team__head">
+          {title !== '' && <Title class="team__title">{title}</Title>}
+          {intro !== '' && <p class="team__intro">{intro}</p>}
+        </div>
+      )
+    }
     <ul class="team__list">
       {
         items.map((item) => (
@@ -57,26 +63,42 @@ const items = props.items.map((item) => ({
 
 <style>
   .team {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .team__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
+  .team__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    text-align: center;
+  }
+
   .team__title {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .team__intro {
-    max-width: var(--width-content);
-    margin: 0 0 var(--space-6);
+    margin: 0;
     color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.55;
   }
 
   .team__list {
@@ -87,36 +109,48 @@ const items = props.items.map((item) => ({
     list-style: none;
   }
 
+  .team__item {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-2);
+  }
+
   .team__portrait {
     width: 12rem;
-    max-width: 100%;
+    margin-bottom: var(--space-3);
     aspect-ratio: 1 / 1;
-    margin-bottom: var(--space-4);
-    border-radius: var(--radius-md);
     object-fit: cover;
+    border-radius: var(--radius-lg);
   }
 
   .team__name {
     margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-xl);
-    line-height: 1.25;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .team__role {
-    margin: var(--space-1) 0 0;
-    color: var(--color-muted);
+    margin: 0;
+    color: var(--color-accent);
     font-size: var(--text-sm);
   }
 
   .team__body {
-    margin: var(--space-3) 0 0;
+    margin: var(--space-2) 0 0;
+    color: var(--color-muted);
+    line-height: 1.55;
   }
 
   @media (min-width: 48rem) {
     .team__list {
       grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: var(--space-7) var(--space-6);
+    }
+
+    .team__portrait {
+      width: 100%;
     }
   }
 </style>

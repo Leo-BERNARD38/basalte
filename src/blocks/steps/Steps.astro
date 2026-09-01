@@ -19,8 +19,14 @@ const intro = pick(props.intro, language)
 
 <section class="steps">
   <div class="steps__inner">
-    {title !== '' && <Title class="steps__title">{title}</Title>}
-    {intro !== '' && <p class="steps__intro">{intro}</p>}
+    {
+      (title !== '' || intro !== '') && (
+        <div class="steps__head">
+          {title !== '' && <Title class="steps__title">{title}</Title>}
+          {intro !== '' && <p class="steps__intro">{intro}</p>}
+        </div>
+      )
+    }
     <ol class="steps__list">
       {
         props.items.map((item) => (
@@ -40,26 +46,43 @@ const intro = pick(props.intro, language)
 
 <style>
   .steps {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .steps__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
+  .steps__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    text-align: center;
+  }
+
   .steps__title {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .steps__intro {
     max-width: var(--width-content);
-    margin: 0 0 var(--space-6);
+    margin: 0;
     color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.55;
   }
 
   .steps__list {
@@ -72,40 +95,49 @@ const intro = pick(props.intro, language)
   }
 
   .steps__item {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-3);
     counter-increment: step;
   }
 
-  .steps__item-title {
-    margin: 0 0 var(--space-2);
-    font-family: var(--font-title);
-    font-size: var(--text-xl);
-    line-height: 1.25;
-  }
-
-  .steps__item-title::before {
-    content: counter(step);
-    display: inline-flex;
+  /* Le rang porte le numéro : rien ne le saisit, rien ne peut donc le
+     désaccorder de l’ordre des étapes. */
+  .steps__item::before {
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 2em;
-    height: 2em;
-    margin-right: var(--space-3);
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: 50%;
     background: var(--color-accent);
     color: var(--color-accent-fg);
+    font-family: var(--font-title);
     font-size: var(--text-sm);
-    vertical-align: middle;
+    font-weight: 600;
+    content: counter(step);
+  }
+
+  .steps__item-title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
   }
 
   .steps__item-body {
     margin: 0;
     color: var(--color-muted);
+    line-height: 1.55;
   }
 
   @media (min-width: 48rem) {
     .steps__list {
       grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: var(--space-6);
+      gap: var(--space-7) var(--space-6);
     }
   }
 </style>

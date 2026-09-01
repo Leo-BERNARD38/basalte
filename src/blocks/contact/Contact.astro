@@ -30,8 +30,14 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
 <section class="contact">
   <div class="contact__inner">
-    {title !== '' && <Title class="contact__title">{title}</Title>}
-    {intro !== '' && <p class="contact__intro">{intro}</p>}
+    {
+      (title !== '' || intro !== '') && (
+        <div class="contact__head">
+          {title !== '' && <Title class="contact__title">{title}</Title>}
+          {intro !== '' && <p class="contact__intro">{intro}</p>}
+        </div>
+      )
+    }
 
     <p
       class="contact__answer contact__answer--sent"
@@ -119,7 +125,7 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
         </label>
       </div>
 
-      <button class="contact__submit" type="submit">
+      <button class="button contact__submit" type="submit">
         {say(props.labels.submit, 'Envoyer')}
       </button>
 
@@ -134,36 +140,51 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
 <style>
   .contact {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .contact__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-7));
     max-width: var(--width-content);
     margin-inline: auto;
   }
 
+  .contact__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+
   .contact__title {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .contact__intro {
-    margin: 0 0 var(--space-6);
+    margin: 0;
     color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.55;
   }
 
   /* La réponse du serveur arrive en fragment d’URL : seule celle qu’il désigne
      s’affiche, et le navigateur y amène le visiteur. */
   .contact__answer {
     display: none;
-    margin: 0 0 var(--space-5);
-    padding: var(--space-4);
+    margin: 0;
+    padding: var(--space-4) var(--space-5);
     border-left: var(--space-1) solid var(--color-accent);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
   }
 
   .contact__answer--refused {
@@ -185,18 +206,24 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
   }
 
   .contact__label {
+    color: var(--color-muted);
     font-size: var(--text-sm);
   }
 
   .contact__input {
     width: 100%;
-    padding: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-body);
     font-size: var(--text-base);
+    transition: border-color 0.15s ease;
+  }
+
+  .contact__input:hover {
+    border-color: var(--color-muted);
   }
 
   .contact__input:focus-visible {
@@ -206,6 +233,7 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
   .contact__input--area {
     resize: vertical;
+    line-height: 1.6;
   }
 
   /* Le leurre : hors de l’écran plutôt que masqué, pour qu’un robot qui lit le
@@ -220,19 +248,12 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
   .contact__submit {
     justify-self: start;
-    padding: var(--space-3) var(--space-5);
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
-    font-family: var(--font-body);
-    font-size: var(--text-base);
-    cursor: pointer;
   }
 
   .contact__consent {
     color: var(--color-muted);
     font-size: var(--text-sm);
+    line-height: 1.5;
   }
 
   .contact__consent :global(p) {
@@ -245,5 +266,11 @@ const consentHtml = renderRichtext(consent, schema.fields.consent)
 
   .contact__consent :global(a) {
     color: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact__input {
+      transition: none;
+    }
   }
 </style>

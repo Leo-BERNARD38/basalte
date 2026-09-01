@@ -24,7 +24,7 @@ const href = props.cta.href
     {body !== '' && <p class="cta__body">{body}</p>}
     {
       label !== '' && href !== '' && (
-        <a class="cta__button" href={href}>
+        <a class="button button--invert cta__button" href={href}>
           {label}
         </a>
       )
@@ -34,46 +34,39 @@ const href = props.cta.href
 
 <style>
   .cta {
-    padding: var(--space-8) var(--space-5);
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
+    padding-block: clamp(var(--space-8), 10vw, var(--space-10));
+    padding-inline: var(--space-5);
+    background: var(--color-contrast);
+    color: var(--color-contrast-fg);
   }
 
   .cta__inner {
     display: flex;
     flex-direction: column;
-    align-items: start;
+    align-items: center;
     gap: var(--space-4);
     max-width: var(--width-content);
     margin-inline: auto;
+    text-align: center;
   }
 
   .cta__title {
     margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 6vw, var(--text-4xl));
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
   .cta__body {
     margin: 0;
-    font-size: var(--text-lg);
+    font-size: clamp(var(--text-base), 3vw, var(--text-lg));
+    line-height: 1.5;
+    opacity: 0.75;
   }
 
   .cta__button {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
     margin-top: var(--space-2);
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    background: var(--color-accent-fg);
-    color: var(--color-accent);
-    font-size: var(--text-base);
-    text-decoration: none;
-  }
-
-  .cta__button:hover {
-    text-decoration: underline;
   }
 </style>

@@ -1,6 +1,6 @@
 ---
-// La variante bureau de l’en-tête : la même barre, le menu déplié d’emblée et
-// sans bouton, sur la largeur large du site.
+// La variante bureau de l’en-tête : la même barre collante, le menu déplié
+// d’emblée et sans bouton, sur la largeur large du site.
 //
 // Elle ne montre rien que le rendu mobile ne montre pas — mêmes liens, même
 // nom de site en toutes lettres — sinon les mots ou les adresses qui n’y
@@ -75,9 +75,20 @@ const logo = image(props.logo, '12rem')
 
 <style>
   .chrome-header {
-    padding: var(--space-5);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
     background: var(--color-bg);
     color: var(--color-fg);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .chrome-header {
+      background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+      backdrop-filter: blur(20px) saturate(180%);
+    }
   }
 
   .chrome-header__inner {
@@ -96,7 +107,9 @@ const logo = image(props.logo, '12rem')
     min-height: 44px;
     color: inherit;
     font-family: var(--font-title);
-    font-size: var(--text-xl);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     text-decoration: none;
   }
 
@@ -117,14 +130,20 @@ const logo = image(props.logo, '12rem')
   .chrome-header__link {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
-    color: inherit;
-    font-size: var(--text-base);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
     text-decoration: none;
+    transition: color 0.15s ease;
   }
 
   .chrome-header__link:hover,
   .chrome-header__link[aria-current='page'] {
-    text-decoration: underline;
+    color: var(--color-fg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chrome-header__link {
+      transition: none;
+    }
   }
 </style>

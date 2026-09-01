@@ -80,67 +80,85 @@ const photos = props.gallery.flatMap((item) => {
 
 <style>
   .post {
-    padding: var(--space-7) var(--space-5);
+    padding-block: clamp(var(--space-7), 8vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .post__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     max-width: var(--width-content);
     margin-inline: auto;
   }
 
   .post__title {
-    margin: 0 0 var(--space-2);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 7vw, var(--text-4xl));
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
   .post__date {
-    display: block;
-    margin-bottom: var(--space-5);
+    margin-top: calc(-1 * var(--space-3));
     color: var(--color-muted);
     font-size: var(--text-sm);
   }
 
   .post__cover {
     width: 100%;
+    margin-block: var(--space-3);
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-6);
+    border-radius: var(--radius-lg);
+  }
+
+  .post__body {
+    font-size: var(--text-lg);
+    line-height: 1.7;
+  }
+
+  .post__body :global(h2) {
+    margin: var(--space-7) 0 var(--space-3);
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .post__body :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .post__body :global(*:first-child) {
+    margin-top: 0;
   }
 
   .post__body :global(p),
   .post__body :global(ul),
   .post__body :global(ol) {
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-5);
   }
 
-  .post__body :global(h2),
-  .post__body :global(h3) {
-    margin: var(--space-6) 0 var(--space-3);
-    font-family: var(--font-title);
-    line-height: 1.3;
-  }
-
-  .post__body :global(h2) {
-    font-size: var(--text-xl);
-  }
-
-  .post__body :global(h3) {
-    font-size: var(--text-lg);
-  }
-
-  .post__body :global(:first-child) {
-    margin-top: 0;
-  }
-
-  .post__body :global(:last-child) {
-    margin-bottom: 0;
+  .post__body :global(ul),
+  .post__body :global(ol) {
+    padding-left: var(--space-6);
   }
 
   .post__body :global(li) {
     margin-bottom: var(--space-2);
+  }
+
+  .post__body :global(*:last-child) {
+    margin-bottom: 0;
   }
 
   .post__body :global(a) {
@@ -150,12 +168,15 @@ const photos = props.gallery.flatMap((item) => {
   .post__photos {
     display: grid;
     gap: var(--space-4);
-    margin: var(--space-7) 0 0;
+    margin: var(--space-3) 0 0;
     padding: 0;
     list-style: none;
   }
 
   .post__photo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
     margin: 0;
   }
 
@@ -163,18 +184,17 @@ const photos = props.gallery.flatMap((item) => {
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
   }
 
   .post__caption {
-    margin-top: var(--space-2);
     color: var(--color-muted);
     font-size: var(--text-sm);
   }
 
   @media (min-width: 40rem) {
     .post__photos {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>

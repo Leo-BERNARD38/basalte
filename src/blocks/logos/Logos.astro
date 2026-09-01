@@ -43,7 +43,7 @@ const items = props.items.flatMap((item) => {
                 decoding="async"
               />
             ) : (
-              <a href={item.href} rel="noopener">
+              <a class="logos__link" href={item.href} rel="noopener">
                 <img
                   class="logos__image"
                   src={item.resolved.src}
@@ -66,20 +66,28 @@ const items = props.items.flatMap((item) => {
 
 <style>
   .logos {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-6), 6vw, var(--space-8));
+    padding-inline: var(--space-5);
+    background: var(--color-surface);
   }
 
   .logos__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
   .logos__title {
-    margin: 0 0 var(--space-6);
+    margin: 0;
+    color: var(--color-muted);
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
   }
 
   .logos__list {
@@ -87,16 +95,35 @@ const items = props.items.flatMap((item) => {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: var(--space-6);
+    gap: clamp(var(--space-5), 5vw, var(--space-7));
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  /* Une rangée de marques doit se lire comme une rangée, pas comme une
+     collection de couleurs : le gris les met au même niveau, et le survol rend
+     la sienne à celle qu’on regarde. */
   .logos__image {
     display: block;
     width: auto;
-    max-height: 3rem;
+    max-height: 2.25rem;
     object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.6;
+    transition:
+      filter 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .logos__link:hover .logos__image {
+    filter: none;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logos__image {
+      transition: none;
+    }
   }
 </style>

@@ -29,8 +29,14 @@ const items = props.items.map((item) => ({
 
 <section class="pricing">
   <div class="pricing__inner">
-    {title !== '' && <Title class="pricing__title">{title}</Title>}
-    {intro !== '' && <p class="pricing__intro">{intro}</p>}
+    {
+      (title !== '' || intro !== '') && (
+        <div class="pricing__head">
+          {title !== '' && <Title class="pricing__title">{title}</Title>}
+          {intro !== '' && <p class="pricing__intro">{intro}</p>}
+        </div>
+      )
+    }
     <ul class="pricing__list">
       {
         items.map((item) => (
@@ -46,7 +52,7 @@ const items = props.items.map((item) => ({
               <div class="pricing__body" set:html={item.body} />
             )}
             {item.label !== '' && item.href !== '' && (
-              <a class="pricing__cta" href={item.href}>
+              <a class="button button--quiet pricing__cta" href={item.href}>
                 {item.label}
               </a>
             )}
@@ -59,26 +65,42 @@ const items = props.items.map((item) => ({
 
 <style>
   .pricing {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .pricing__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
+  .pricing__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    text-align: center;
+  }
+
   .pricing__title {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .pricing__intro {
-    max-width: var(--width-content);
-    margin: 0 0 var(--space-6);
+    margin: 0;
     color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.55;
   }
 
   .pricing__list {
@@ -92,33 +114,50 @@ const items = props.items.map((item) => ({
   .pricing__item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
     height: 100%;
-    padding: var(--space-5);
+    padding: var(--space-6);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
   }
 
   .pricing__name {
     margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-xl);
-    line-height: 1.25;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .pricing__price {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     margin: 0;
     font-family: var(--font-title);
     font-size: var(--text-2xl);
+    font-weight: 600;
     line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   .pricing__note {
-    display: block;
-    margin-top: var(--space-1);
     color: var(--color-muted);
     font-family: var(--font-body);
     font-size: var(--text-sm);
+    font-weight: 400;
+    letter-spacing: normal;
+  }
+
+  .pricing__body {
+    color: var(--color-muted);
+    line-height: 1.55;
+  }
+
+  .pricing__body :global(p) {
+    margin: 0 0 var(--space-3);
   }
 
   .pricing__body :global(ul) {
@@ -126,35 +165,17 @@ const items = props.items.map((item) => ({
     padding-left: var(--space-5);
   }
 
-  .pricing__body :global(p) {
-    margin: 0 0 var(--space-3);
-  }
-
   .pricing__body :global(li) {
     margin-bottom: var(--space-2);
   }
 
   .pricing__cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
     margin-top: auto;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
-    font-size: var(--text-base);
-    text-decoration: none;
-  }
-
-  .pricing__cta:hover {
-    text-decoration: underline;
   }
 
   @media (min-width: 48rem) {
     .pricing__list {
-      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
       gap: var(--space-6);
     }
   }

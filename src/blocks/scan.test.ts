@@ -74,6 +74,6 @@ describe('findBlocks', () => {
       .filter((source) => source.desktop !== undefined)
       .map((source) => source.name)
 
-    expect(withVariant).toEqual(['faq', 'hero'])
+    expect(withVariant).toEqual(['comparison', 'faq', 'hero', 'showcase'])
   })
 })

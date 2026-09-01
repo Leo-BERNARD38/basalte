@@ -23,52 +23,71 @@ const body = renderRichtext(pick(props.body, language), schema.fields.body)
 
 <style>
   .richtext {
-    padding: var(--space-7) var(--space-5);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .richtext__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
     max-width: var(--width-content);
     margin-inline: auto;
   }
 
   .richtext__title {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .richtext__body {
+    font-size: var(--text-lg);
+    line-height: 1.7;
+  }
+
+  .richtext__body :global(h2) {
+    margin: var(--space-7) 0 var(--space-3);
+    font-family: var(--font-title);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .richtext__body :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .richtext__body :global(*:first-child) {
+    margin-top: 0;
   }
 
   .richtext__body :global(p),
   .richtext__body :global(ul),
   .richtext__body :global(ol) {
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-5);
   }
 
-  .richtext__body :global(h2),
-  .richtext__body :global(h3) {
-    margin: var(--space-6) 0 var(--space-3);
-    font-family: var(--font-title);
-    line-height: 1.3;
-  }
-
-  .richtext__body :global(h2) {
-    font-size: var(--text-xl);
-  }
-
-  .richtext__body :global(h3) {
-    font-size: var(--text-lg);
-  }
-
-  .richtext__body :global(:first-child) {
-    margin-top: 0;
-  }
-
-  .richtext__body :global(:last-child) {
-    margin-bottom: 0;
+  .richtext__body :global(ul),
+  .richtext__body :global(ol) {
+    padding-left: var(--space-6);
   }
 
   .richtext__body :global(li) {
     margin-bottom: var(--space-2);
+  }
+
+  .richtext__body :global(*:last-child) {
+    margin-bottom: 0;
   }
 
   .richtext__body :global(a) {

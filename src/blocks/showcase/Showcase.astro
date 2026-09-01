@@ -1,0 +1,158 @@
+---
+// La mise en avant, rendu mobile — celui qui existe toujours (D104).
+//
+// Le texte précède l’image : la section porte son titre en premier, ce que le
+// plan de titres de la page attend et ce qu’un lecteur d’écran annonce.
+// `side` ne dit rien ici, il ne joue qu’au bureau.
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+const body = pick(props.body, language)
+const label = pick(props.cta.label, language)
+const href = props.cta.href
+
+const points = props.points
+  .map((point) => pick(point.label, language))
+  .filter((point) => point !== '')
+
+const media = image(props.image, '(min-width: 46rem) 42rem, 92vw')
+---
+
+<section class="showcase">
+  <div class="showcase__inner">
+    <div class="showcase__text">
+      <Title class="showcase__title">{title}</Title>
+      {body !== '' && <p class="showcase__body">{body}</p>}
+      {
+        points.length > 0 && (
+          <ul class="showcase__points">
+            {points.map((point) => (
+              <li class="showcase__point">{point}</li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        label !== '' && href !== '' && (
+          <a class="showcase__cta" href={href}>
+            {label}
+          </a>
+        )
+      }
+    </div>
+    {
+      media !== undefined && (
+        <img
+          class="showcase__image"
+          src={media.src}
+          srcset={media.srcset}
+          sizes={media.sizes}
+          width={media.width}
+          height={media.height}
+          alt={media.alt}
+          style={`object-position:${media.objectPosition}`}
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .showcase {
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
+  }
+
+  .showcase__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-5), 6vw, var(--space-7));
+    max-width: var(--width-content);
+    margin-inline: auto;
+  }
+
+  .showcase__text {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-4);
+  }
+
+  .showcase__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(var(--text-2xl), 6vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .showcase__body {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.6;
+  }
+
+  .showcase__points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* La coche est dessinée : deux filets et une rotation, plutôt qu’une image
+     de plus à charger — le même geste que le chevron de la FAQ. */
+  .showcase__point {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    line-height: 1.5;
+  }
+
+  .showcase__point::before {
+    flex: none;
+    width: 0.35rem;
+    height: 0.65rem;
+    border-right: 2px solid var(--color-accent);
+    border-bottom: 2px solid var(--color-accent);
+    rotate: 45deg;
+    translate: 0 -0.15rem;
+    content: '';
+  }
+
+  .showcase__cta {
+    margin-top: var(--space-2);
+    color: var(--color-accent);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .showcase__cta::after {
+    content: ' →';
+  }
+
+  .showcase__cta:hover {
+    text-decoration: underline;
+  }
+
+  .showcase__image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+</style>

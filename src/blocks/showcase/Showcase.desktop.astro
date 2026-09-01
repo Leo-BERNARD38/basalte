@@ -1,0 +1,170 @@
+---
+// La variante bureau de la mise en avant : le texte et l’image côte à côte, et
+// `side` décide de quel côté tombe l’image.
+//
+// C’est une variante et non une media query : le mobile empile texte puis
+// image, le bureau les met en regard et peut inverser leur ordre. Défaire
+// l’ordre du mobile est exactement ce que `docs/design.md` nomme comme la
+// frontière entre les deux outils.
+//
+// Elle ne montre rien de plus que le mobile — mêmes mots, même lien —, sinon
+// rien de ce qui n’est qu’ici ne serait indexé (`src/render/parity.ts`, D108).
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+const body = pick(props.body, language)
+const label = pick(props.cta.label, language)
+const href = props.cta.href
+
+const points = props.points
+  .map((point) => pick(point.label, language))
+  .filter((point) => point !== '')
+
+const media = image(props.image, '34rem')
+const left = props.side === 'left'
+---
+
+<section class="showcase">
+  <div class:list={['showcase__inner', left && 'showcase__inner--left']}>
+    <div class="showcase__text">
+      <Title class="showcase__title">{title}</Title>
+      {body !== '' && <p class="showcase__body">{body}</p>}
+      {
+        points.length > 0 && (
+          <ul class="showcase__points">
+            {points.map((point) => (
+              <li class="showcase__point">{point}</li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        label !== '' && href !== '' && (
+          <a class="showcase__cta" href={href}>
+            {label}
+          </a>
+        )
+      }
+    </div>
+    {
+      media !== undefined && (
+        <img
+          class="showcase__image"
+          src={media.src}
+          srcset={media.srcset}
+          sizes={media.sizes}
+          width={media.width}
+          height={media.height}
+          alt={media.alt}
+          style={`object-position:${media.objectPosition}`}
+          loading="lazy"
+          decoding="async"
+        />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .showcase {
+    padding-block: var(--space-10);
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
+  }
+
+  .showcase__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(var(--space-7), 6vw, var(--space-9));
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  /* L’image passe devant le texte dans l’ordre visuel seulement : le HTML
+     garde le titre en premier, et le plan de titres avec lui. */
+  .showcase__inner--left .showcase__text {
+    order: 2;
+  }
+
+  .showcase__text {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+  }
+
+  .showcase__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(var(--text-2xl), 3.5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .showcase__body {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-lg);
+    line-height: 1.6;
+  }
+
+  .showcase__points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .showcase__point {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    line-height: 1.5;
+  }
+
+  .showcase__point::before {
+    flex: none;
+    width: 0.35rem;
+    height: 0.65rem;
+    border-right: 2px solid var(--color-accent);
+    border-bottom: 2px solid var(--color-accent);
+    rotate: 45deg;
+    translate: 0 -0.15rem;
+    content: '';
+  }
+
+  .showcase__cta {
+    margin-top: var(--space-2);
+    color: var(--color-accent);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .showcase__cta::after {
+    content: ' →';
+  }
+
+  .showcase__cta:hover {
+    text-decoration: underline;
+  }
+
+  .showcase__image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-xl);
+  }
+</style>
