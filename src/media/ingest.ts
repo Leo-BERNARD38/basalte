@@ -15,7 +15,6 @@ import sharp, { type Metadata } from 'sharp'
 
 import type { Translated } from '../fields/types.js'
 import type { MediaEntry } from './manifest.js'
-import type { PixelBox } from './ratio.js'
 import { fileName } from './resolve.js'
 
 export const MEDIA_DIR = path.join('public', 'media')
@@ -44,12 +43,6 @@ export function isDerivative(name: string): boolean {
 
 export type IngestOptions = {
   readonly alt?: Translated<string>
-  /**
-   * Le cadre à découper avant de produire les largeurs. Un recadrage est une
-   * ingestion : il n’ajoute pas une passe d’encodage, il déplace la seule qu’il
-   * y ait déjà.
-   */
-  readonly crop?: PixelBox
 }
 
 export async function ingest(
@@ -79,15 +72,10 @@ export async function ingest(
 
   // Le cadre entre dans l’empreinte : deux recadrages différents d’une même
   // image sont deux fichiers, et recommencer le même rend la même clé.
-  const key = createHash('sha256')
-    .update(input)
-    .update(options.crop === undefined ? '' : JSON.stringify(options.crop))
-    .digest('hex')
-    .slice(0, 16)
+  const key = createHash('sha256').update(input).digest('hex').slice(0, 16)
 
   const rotated = sharp(input, { animated: false }).rotate()
-  const upright =
-    options.crop === undefined ? rotated : rotated.extract(options.crop)
+  const upright = rotated
   const natural = await upright.clone().toBuffer({ resolveWithObject: true })
 
   // La plus grande largeur produite est celle de l’image, plafonnée. Les

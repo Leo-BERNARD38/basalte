@@ -360,7 +360,6 @@ tourne : un build dure des secondes, une requête ne les attend pas
 
 | Adresse | Ce qu'elle fait |
 |---|---|
-| `POST /api/media/crop` | recadre une image, et rend la nouvelle clé |
 | `PUT /api/business` | valide, écrit `content/business.json`, commit |
 
 ### Les adresses des messages et de l'audience
@@ -517,18 +516,14 @@ sur les octets réels, nom dérivé de l'empreinte, suppression refusée tant
 qu'une section l'emploie. Ce qui les sépare — le ré-encodage impossible, et les
 conditions qui le compensent — est dans `securite.md`.
 
-**Point focal** réglable, transformé en `object-position`. Il a longtemps tenu
-lieu de recadrage ; un vrai outil lui a été adjoint sans le remplacer (D118) : le recadrage donne le format, le point focal dit où est le sujet à
-l'intérieur de ce format — et c'est encore lui qui travaille quand le CSS
-re-cadre d'un support à l'autre.
+**Point focal** réglable, transformé en `object-position`, et **seul réglage
+d'image** (D178). Le client clique le sujet ; le site cadre autour de lui, quelle
+que soit la forme de l'emplacement — un bandeau en 16/9 et une vignette en 4/3
+se servent du même point, et le corriger ne réencode rien.
 
-**Recadrage** au format que l'emplacement attend. Il ne s'ouvre pas depuis la
-médiathèque, qui ne connaît aucun format, mais depuis le champ, qui le déclare.
-Le cadre est verrouillé au ratio : le client le déplace et le redimensionne, à
-la souris ou aux flèches du clavier, il ne le déforme pas. Ce qui en sort est
-une **nouvelle** image, dérivée de l'originale, qui reste (D117) — la
-médiathèque affiche « Recadrée », et supprimer une originale dont un recadrage
-est en ligne est refusé.
+Le panel ne recadre plus. Un site monté de version peut porter des recadrages
+faits avant : ce sont des médias comme les autres, leur filiation reste lue, et
+supprimer l'originale d'un recadrage encore employé reste refusé.
 
 La suppression d'un média encore référencé est refusée : le panel affiche
 « employée par une section » à la place du bouton. `basalte check` signale

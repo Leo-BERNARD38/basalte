@@ -98,7 +98,7 @@ src/
 │                   capacités déclarées
 ├── fields/         DSL f.* → schéma Zod + description d'interface
 ├── content/        format de page, lecture, validation, messages français
-├── media/          ingestion sharp, recadrage, manifeste, résolution, emplois ;
+├── media/          ingestion sharp, manifeste, résolution, emplois ;
 │                   documents PDF, seule exception à l'invariant 3
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro, plus <Nom>.desktop.astro
@@ -364,7 +364,7 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   sont rendus en permanence, seul leur `opened` change : l’initialisation d’un
   `useState` n’y rejoue donc jamais, et le sélecteur ouvert depuis un second
   champ proposait l’image choisie pour le premier. La remise à zéro se fait au
-  rendu, sur le passage de `opened` — c’est le motif de `CropDialog`.
+  rendu, sur le passage de `opened`.
 - **`pageOfPost` reporte le masque du billet sur sa section.** Une page compilée
   n’a qu’un emplacement : masqué, il ne reste rien de visible. L’aperçu doit
   donc démasquer (D168), faute de quoi relire un brouillon montre un en-tête et
@@ -398,11 +398,11 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   tous ceux qui ont été tentés ont échoué, `skipped` quand il n'y avait personne
   à prévenir. Confondre les deux derniers fait afficher « non transmis » sur
   chaque message d'un site qui a choisi le silence.
-- **Le recadrage repart toujours de l'originale**, jamais d'un recadrage : le
-  cadre est exprimé en pourcentage de l'originale, et repartir d'une découpe
-  ajouterait une passe d'encodage à chaque correction. Le cadre entre dans
-  l'empreinte, si bien que deux cadres différents sont deux clés et que refaire
-  le même rend la même.
+- **Un média peut en avoir un autre pour origine.** Le panel ne recadre plus
+  (D178), mais un site monté de version porte peut-être des recadrages faits
+  avant : `withLineage` continue de compter l'emploi d'un dérivé au crédit de
+  son originale, et c'est ce qui empêche d'effacer celle dont un dérivé est en
+  ligne.
 - **Un billet n'est pas une page, et il ne faut surtout pas lui en faire une.**
   `pageOfPost` le compile en `Page` juste avant le rendu : c'est ce qui lui donne
   gratuitement le sitemap, les `hreflang`, la carte de partage, le plan de titres,
