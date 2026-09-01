@@ -232,13 +232,13 @@ export function DocumentPanel({
               title="Supprimer ce document"
               onClose={() => setAsked(false)}
               foot={
-                <Group>
+                <>
                   <Spacer />
                   <Button onClick={() => setAsked(false)}>Le garder</Button>
                   <Button tone="danger" onClick={() => void drop()}>
                     Supprimer
                   </Button>
-                </Group>
+                </>
               }
             >
               <Text tone="muted">

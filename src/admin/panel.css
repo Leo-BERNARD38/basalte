@@ -238,16 +238,6 @@ body {
   gap: var(--panel-space-xl);
 }
 
-.basalte-stack[data-gap='xxl'],
-.basalte-group[data-gap='xxl'] {
-  gap: var(--panel-space-xxl);
-}
-
-.basalte-stack[data-gap='xxxl'],
-.basalte-group[data-gap='xxxl'] {
-  gap: var(--panel-space-xxxl);
-}
-
 .basalte-spacer {
   margin-left: auto;
 }
@@ -271,12 +261,6 @@ body {
   font-size: var(--panel-text-lead);
   font-weight: 600;
   letter-spacing: -0.008em;
-}
-
-.basalte-title[data-rank='display'] {
-  font-size: var(--panel-text-display);
-  letter-spacing: -0.032em;
-  line-height: 1.1;
 }
 
 .basalte-text {
@@ -488,17 +472,13 @@ body {
   border-color: var(--panel-state-refused);
 }
 
-/* Une surcharge mobile se voit au filet : c’est le seul champ que le client
-   n’écrit pas pour les deux supports à la fois. */
-.basalte-input[data-override='true'] {
-  border-width: 1.5px;
-  border-color: var(--panel-accent-stroke);
-}
-
+/* La zone grandit avec ce qu’on y écrit, sans descendre sous sa hauteur de
+   départ. Un navigateur qui ne connaît pas `field-sizing` garde `rows`. */
 textarea.basalte-input {
   height: auto;
   min-height: 76px;
-  padding: var(--panel-space-md) var(--panel-space-md);
+  field-sizing: content;
+  padding: var(--panel-space-md);
   line-height: 1.6;
   resize: vertical;
 }
@@ -585,11 +565,6 @@ textarea.basalte-input {
   color: var(--panel-ink-1);
 }
 
-.basalte-row[data-dragging='true'] {
-  background: var(--panel-surface-card);
-  box-shadow: var(--panel-shadow-menu);
-}
-
 .basalte-row__text {
   flex: 1;
   min-width: 0;
@@ -672,12 +647,6 @@ textarea.basalte-input {
   color: var(--panel-state-refused);
 }
 
-.basalte-badge[data-hatched='true'] {
-  border-color: var(--panel-line-strong);
-  background-image: var(--panel-hatch);
-  color: var(--panel-ink-2);
-}
-
 .basalte-badge__dot {
   width: 6px;
   height: 6px;
@@ -706,21 +675,11 @@ textarea.basalte-input {
   white-space: nowrap;
 }
 
-.basalte-mark[data-tone='accent'] {
-  border-color: var(--panel-accent-edge);
-  background: var(--panel-accent-veil);
-  color: var(--panel-accent-ink);
-}
-
 /* Sur un aplat d’accent, le fond passe au voile et le filet s’assombrit. */
 .basalte-row[data-current='true'] .basalte-mark {
   border-color: var(--panel-accent-line);
   background: transparent;
   color: var(--panel-accent-ink);
-}
-
-.basalte-row[data-current='true'] .basalte-mark[data-tone='accent'] {
-  background: var(--panel-surface-card);
 }
 
 .basalte-mark[data-hatched='true'] {
@@ -755,6 +714,12 @@ textarea.basalte-input {
   background: var(--panel-surface-card);
   box-shadow: inset 0 0 0 1px var(--panel-line-strong);
   cursor: pointer;
+}
+
+.basalte-switch-line {
+  display: flex;
+  align-items: center;
+  gap: var(--panel-space-md);
 }
 
 .basalte-switch__thumb {
@@ -822,15 +787,6 @@ textarea.basalte-input {
   box-shadow: none;
 }
 
-.basalte-segmented__item[data-off='true'] {
-  color: var(--panel-mute-inert);
-}
-
-.basalte-segmented[data-block='true'],
-.basalte-segmented[data-block='true'] .basalte-segmented__item {
-  flex: 1;
-}
-
 /* ---- Les surfaces ---- */
 
 /* Une carte se détache par son filet, jamais par une ombre : dans la page,
@@ -876,7 +832,7 @@ textarea.basalte-input {
   border: 1px solid var(--panel-line-edge);
   border-radius: var(--panel-radius-nested);
   background: var(--panel-surface-card);
-  padding: var(--panel-space-md) var(--panel-space-md);
+  padding: var(--panel-space-md);
   box-shadow: var(--panel-shadow-float);
 }
 
@@ -1436,10 +1392,19 @@ textarea.basalte-input {
 .basalte-focal {
   position: relative;
   display: block;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: crosshair;
+}
+
+.basalte-focal img {
+  display: block;
+  max-width: 100%;
+  max-height: 18rem;
+  border-radius: var(--panel-radius-field);
+  object-fit: contain;
 }
 
 .basalte-focal__dot {
@@ -1538,7 +1503,7 @@ textarea.basalte-input {
 }
 
 .basalte-messages__body {
-  white-space: pre-line;
+  white-space: pre-wrap;
   line-height: 1.75;
 }
 

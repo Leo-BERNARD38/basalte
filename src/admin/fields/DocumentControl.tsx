@@ -33,6 +33,7 @@ export function DocumentControl({
       hint={hint(description)}
       error={error}
       required={description.required}
+      group
     >
       {(bound) => (
         <Card nested pad="sm" {...bound}>

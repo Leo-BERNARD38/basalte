@@ -52,6 +52,7 @@ export function Section({
         {hideable && (
           <Switch
             on={!hidden}
+            shown
             label={
               several
                 ? `Visible en ${languageLabel(editing.languages, editing.language)}`

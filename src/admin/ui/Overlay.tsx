@@ -14,6 +14,24 @@ import { Close } from './icons.js'
 const FOCUSABLE =
   'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
 
+/**
+ * Les fenêtres ouvertes, de la première à la dernière. La bibliothèque en
+ * ouvre une seconde par-dessus la sienne, et sans cette pile une échappée les
+ * fermait toutes les deux : seule celle du dessus écoute le clavier.
+ */
+const stack: HTMLElement[] = []
+
+/**
+ * Le curseur à l’ouverture. React pose `autoFocus` lui-même, avant cet effet et
+ * sans laisser d’attribut à chercher : un champ déjà visé garde donc le
+ * curseur, et le premier pas ne sert qu’à la fenêtre qui ne vise rien.
+ */
+function focusEntry(frame: HTMLElement): void {
+  if (frame.contains(document.activeElement)) return
+
+  frame.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+}
+
 type ModalProps = {
   readonly opened: boolean
   readonly title: string
@@ -36,24 +54,34 @@ export function Modal({
   const frame = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!opened) return
+    const mine = frame.current
+
+    if (!opened || mine === null) return
 
     const opener = document.activeElement
-    const first = frame.current?.querySelector<HTMLElement>(FOCUSABLE)
+    const scroll = document.body.style.overflow
 
-    first?.focus()
+    stack.push(mine)
+    document.body.style.overflow = 'hidden'
+    focusEntry(mine)
 
     function onKey(event: KeyboardEvent): void {
+      // Une fenêtre en couvre une autre : celle du dessous se tait.
+      if (stack[stack.length - 1] !== mine) return
+
       if (event.key === 'Escape') {
+        event.stopPropagation()
         onClose()
         return
       }
 
-      if (event.key !== 'Tab' || frame.current === null) return
+      if (event.key !== 'Tab') return
 
       // Le clavier ne sort pas d’une fenêtre ouverte : sans cela, la tabulation
       // repart dans la page éteinte derrière elle, où plus rien ne se voit.
-      const stops = [...frame.current.querySelectorAll<HTMLElement>(FOCUSABLE)]
+      const stops = [...mine.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+        (stop) => stop.offsetParent !== null,
+      )
       const edge = event.shiftKey ? stops[0] : stops[stops.length - 1]
 
       if (document.activeElement !== edge) return
@@ -66,7 +94,9 @@ export function Modal({
 
     return () => {
       document.removeEventListener('keydown', onKey)
+      stack.splice(stack.indexOf(mine), 1)
 
+      if (stack.length === 0) document.body.style.overflow = scroll
       if (opener instanceof HTMLElement) opener.focus()
     }
   }, [opened, onClose])
@@ -117,7 +147,13 @@ type MenuProps = {
   readonly children: ReactNode
 }
 
-/** Le menu se ferme au clic ailleurs et à l’échappement, jamais tout seul. */
+/**
+ * Le menu se ferme au clic ailleurs et à l’échappement, jamais tout seul.
+ *
+ * Il porte `group` et non `menu` : ce qu’il contient est de la prose ou des
+ * lignes de liste, et `menu` promettrait des `menuitem` qu’un lecteur d’écran
+ * chercherait en vain.
+ */
 export function Menu({ opened, onClose, align, label, children }: MenuProps) {
   const frame = useRef<HTMLDivElement>(null)
 
@@ -152,7 +188,7 @@ export function Menu({ opened, onClose, align, label, children }: MenuProps) {
       ref={frame}
       className="basalte-menu"
       data-align={align}
-      role="menu"
+      role="group"
       aria-label={label}
     >
       {children}

@@ -7,6 +7,9 @@ import type { ComponentProps, ReactNode } from 'react'
 import { joined } from './Layout.js'
 
 type ButtonProps = Omit<ComponentProps<'button'>, 'type'> & {
+  /** Seul un formulaire en demande un autre : il soumet, et le navigateur
+      vérifie alors ce que les champs exigent. */
+  readonly type?: 'button' | 'submit' | undefined
   readonly tone?: 'ink' | 'line' | 'bare' | 'danger' | undefined
   readonly size?: 'xs' | 'sm' | undefined
   readonly block?: boolean | undefined
@@ -15,6 +18,7 @@ type ButtonProps = Omit<ComponentProps<'button'>, 'type'> & {
 }
 
 export function Button({
+  type = 'button',
   tone = 'line',
   size,
   block,
@@ -26,7 +30,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      type="button"
+      type={type}
       className={joined('basalte-button', className)}
       data-tone={tone}
       data-size={size}

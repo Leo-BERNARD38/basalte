@@ -294,7 +294,12 @@ function MediaDetail({
     else onError(answer.message)
   }
 
+  // Entrée et Espace sur un bouton produisent un clic dont les coordonnées
+  // valent zéro : le poser tel quel enverrait le point dans le coin haut
+  // gauche. Le clavier a les flèches ; seul un vrai pointeur vise ici.
   const aim = (event: React.MouseEvent<HTMLElement>) => {
+    if (event.detail === 0) return
+
     const box = event.currentTarget.getBoundingClientRect()
     const next = {
       x: clamp(Math.round(((event.clientX - box.left) / box.width) * 100)),
@@ -426,13 +431,13 @@ function MediaDetail({
         title="Supprimer cette image"
         onClose={() => setAsked(false)}
         foot={
-          <Group>
+          <>
             <Spacer />
             <Button onClick={() => setAsked(false)}>La garder</Button>
             <Button tone="danger" onClick={() => void drop()}>
               Supprimer
             </Button>
-          </Group>
+          </>
         }
       >
         <Text tone="muted">

@@ -2,22 +2,28 @@
 // deux ou trois. Tous deux sont pleinement arrondis : ce qui étiquette un état
 // prend la forme pleine, et seuls le champ, la ligne et la surface l’évitent.
 
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 
 type SwitchProps = {
   readonly on: boolean
   readonly label: string
+  /** Le libellé s’écrit à côté, au lieu de n’exister que pour la synthèse. */
+  readonly shown?: boolean | undefined
   readonly onChange: () => void
   readonly disabled?: boolean | undefined
 }
 
-export function Switch({ on, label, onChange, disabled }: SwitchProps) {
-  return (
+export function Switch({ on, label, shown, onChange, disabled }: SwitchProps) {
+  const id = useId()
+
+  const control = (
     <button
       type="button"
       role="switch"
       aria-checked={on}
-      aria-label={label}
+      {...(shown === true
+        ? { 'aria-labelledby': id }
+        : { 'aria-label': label })}
       className="basalte-switch"
       data-on={on ? 'true' : undefined}
       disabled={disabled}
@@ -25,6 +31,17 @@ export function Switch({ on, label, onChange, disabled }: SwitchProps) {
     >
       <span className="basalte-switch__thumb" />
     </button>
+  )
+
+  if (shown !== true) return control
+
+  return (
+    <span className="basalte-switch-line">
+      {control}
+      <span id={id} className="basalte-text" data-size="small">
+        {label}
+      </span>
+    </span>
   )
 }
 

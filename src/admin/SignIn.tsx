@@ -162,10 +162,7 @@ export function SignIn({
     <div className="basalte-signin">
       <Card pad="lg">
         <form
-          onSubmit={(event) => event.preventDefault()}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter') return
-
+          onSubmit={(event) => {
             event.preventDefault()
             submit()
           }}
@@ -176,7 +173,7 @@ export function SignIn({
                 <span className="basalte-signin__mark" />
                 <Text>{site}</Text>
               </Group>
-              <Title>Administration</Title>
+              <Title level={1}>Administration</Title>
             </Stack>
 
             {notice !== '' && problem === '' && step === 'password' && (
@@ -258,26 +255,22 @@ export function SignIn({
                     />
                   )}
                 </Field>
-                <Group gap="md">
-                  <Switch
-                    on={remember}
-                    label={TRUSTED}
-                    disabled={busy}
-                    onChange={() => setRemember(!remember)}
-                  />
-                  <Text tone="muted" size="small">
-                    {TRUSTED}
-                  </Text>
-                </Group>
+                <Switch
+                  on={remember}
+                  shown
+                  label={TRUSTED}
+                  disabled={busy}
+                  onChange={() => setRemember(!remember)}
+                />
               </>
             )}
 
             <Button
+              type="submit"
               tone="ink"
               block
               busy={busy}
               disabled={locked}
-              onClick={submit}
             >
               {step === 'password' ? 'Continuer' : 'Se connecter'}
             </Button>

@@ -1,5 +1,5 @@
-// Une suite répétable d’un même groupe de champs. C’est le seul endroit où le
-// client ajoute et retire quelque chose : il ne crée ni page ni section (D3).
+// Une suite répétable d’un même groupe de champs : le client y ajoute et y
+// retire des éléments, comme il ajoute une section ou une page (D179).
 //
 // Les éléments sont repliés, un seul ouvert à la fois (D163). Une FAQ de trente
 // questions se parcourt alors comme une table des matières : chaque ligne porte
@@ -91,6 +91,7 @@ export function ListControl({
       hint={hint(description)}
       error={error}
       required={description.required}
+      group
     >
       {(bound) => (
         <Stack gap="sm" {...bound}>

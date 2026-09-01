@@ -75,10 +75,13 @@ export function Question({ size = 16 }: IconProps) {
   )
 }
 
-/** L’œil barré : un contenu qui reste dans le panel sans paraître. */
+/**
+ * L’œil barré : un contenu qui reste dans le panel sans paraître. Il ne se
+ * nomme pas — le mot est écrit à côté de lui, et le dire deux fois l’efface.
+ */
 export function HiddenMark({ size = 14 }: IconProps) {
   return (
-    <Stroked size={size} label="Masquée">
+    <Stroked size={size}>
       <path d="M4.2 6.3C2.7 7.6 1.8 10 1.8 10s3.1 5.5 8.2 5.5c1.3 0 2.4-.3 3.4-.8" />
       <path d="M8.1 5c.6-.3 1.2-.5 1.9-.5 5.1 0 8.2 5.5 8.2 5.5s-.8 1.4-2.1 2.8" />
       <path d="m3 3 14 14" />
@@ -138,25 +141,6 @@ export function Mobile({ size = 14 }: IconProps) {
     <Stroked size={size} width={1.7}>
       <rect x="6" y="2.6" width="8" height="14.8" rx="1.8" />
       <path d="M9 15h2" />
-    </Stroked>
-  )
-}
-
-/** Le téléphone barré : une section que le visiteur sur mobile ne voit pas. */
-export function NoMobile({ size = 11 }: IconProps) {
-  return (
-    <Stroked size={size} label="Hors mobile">
-      <rect x="6" y="2.6" width="8" height="14.8" rx="1.8" />
-      <path d="m3 3 14 14" />
-    </Stroked>
-  )
-}
-
-export function Upload({ size = 13 }: IconProps) {
-  return (
-    <Stroked size={size} width={1.9}>
-      <path d="M10 15.4V4.6" />
-      <path d="M5.8 8.8 10 4.6l4.2 4.2" />
     </Stroked>
   )
 }

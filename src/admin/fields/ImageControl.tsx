@@ -41,6 +41,7 @@ export function ImageControl({
       hint={hint(description)}
       error={error}
       required={description.required}
+      group
     >
       {(bound) => (
         <Stack gap="sm" {...bound}>

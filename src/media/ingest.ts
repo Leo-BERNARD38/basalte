@@ -70,12 +70,11 @@ export async function ingest(
     )
   }
 
-  // Le cadre entre dans l’empreinte : deux recadrages différents d’une même
-  // image sont deux fichiers, et recommencer le même rend la même clé.
+  // L’empreinte est celle des octets reçus : reposer deux fois la même image
+  // rend la même clé, et n’écrit rien de plus.
   const key = createHash('sha256').update(input).digest('hex').slice(0, 16)
 
-  const rotated = sharp(input, { animated: false }).rotate()
-  const upright = rotated
+  const upright = sharp(input, { animated: false }).rotate()
   const natural = await upright.clone().toBuffer({ resolveWithObject: true })
 
   // La plus grande largeur produite est celle de l’image, plafonnée. Les

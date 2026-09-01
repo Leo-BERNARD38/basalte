@@ -15,24 +15,43 @@ type FieldProps = {
   readonly hint?: string | undefined
   readonly error?: string | undefined
   readonly required?: boolean | undefined
+  /**
+   * Le contrôle n’est pas un élément étiquetable mais un ensemble — une
+   * vignette et deux boutons, une liste d’éléments. Le libellé cesse alors de
+   * le viser par `for`, qui ne désigne qu’un contrôle, et le nomme.
+   */
+  readonly group?: boolean | undefined
   /** Reçoit ce qu’un contrôle doit porter pour que l’erreur le désigne. */
   readonly children: (bound: Bound) => ReactNode
 }
 
 export type Bound = {
   readonly id: string
+  readonly role?: 'group' | undefined
+  readonly 'aria-labelledby'?: string | undefined
   readonly 'aria-invalid': boolean | undefined
   readonly 'aria-describedby': string | undefined
   readonly 'data-wrong': 'true' | undefined
 }
 
-export function Field({ label, hint, error, required, children }: FieldProps) {
+export function Field({
+  label,
+  hint,
+  error,
+  required,
+  group,
+  children,
+}: FieldProps) {
   const id = useId()
   const said = error ?? hint
   const saidId = said === undefined ? undefined : `${id}-said`
+  const labelId = `${id}-label`
 
   const bound: Bound = {
     id,
+    ...(group === true
+      ? { role: 'group' as const, 'aria-labelledby': labelId }
+      : {}),
     'aria-invalid': error === undefined ? undefined : true,
     'aria-describedby': saidId,
     'data-wrong': error === undefined ? undefined : 'true',
@@ -40,12 +59,18 @@ export function Field({ label, hint, error, required, children }: FieldProps) {
 
   return (
     <div className="basalte-field">
-      {label !== undefined && (
-        <label className="basalte-label" htmlFor={id}>
-          {label}
-          {required === true && ' *'}
-        </label>
-      )}
+      {label !== undefined &&
+        (group === true ? (
+          <span className="basalte-label" id={labelId}>
+            {label}
+            {required === true && ' *'}
+          </span>
+        ) : (
+          <label className="basalte-label" htmlFor={id}>
+            {label}
+            {required === true && ' *'}
+          </label>
+        ))}
       {children(bound)}
       {said !== undefined && (
         <span

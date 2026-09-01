@@ -18,7 +18,7 @@ import { translated } from './draft.js'
 import { useEditing } from './editing.js'
 import { Button } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
-import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Text } from './ui/Text.js'
 
@@ -198,7 +198,7 @@ export function UploadButton({
         }
         onClose={close}
         foot={
-          <Group>
+          <>
             <Spacer />
             <Button onClick={close}>Annuler</Button>
             <Button
@@ -209,7 +209,7 @@ export function UploadButton({
             >
               Ajouter
             </Button>
-          </Group>
+          </>
         }
       >
         <Stack>

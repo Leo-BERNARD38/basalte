@@ -8,18 +8,12 @@ import type { ReactNode } from 'react'
 type BadgeProps = {
   readonly tone?: 'muted' | 'refused' | undefined
   readonly dot?: 'ink' | 'online' | undefined
-  /** Les hachures : ce qui n’existe pas encore sur le site. */
-  readonly hatched?: boolean | undefined
   readonly children: ReactNode
 }
 
-export function Badge({ tone, dot, hatched, children }: BadgeProps) {
+export function Badge({ tone, dot, children }: BadgeProps) {
   return (
-    <span
-      className="basalte-badge"
-      data-tone={tone}
-      data-hatched={hatched === true ? 'true' : undefined}
-    >
+    <span className="basalte-badge" data-tone={tone}>
       {dot !== undefined && (
         <span
           className="basalte-badge__dot"
@@ -32,7 +26,7 @@ export function Badge({ tone, dot, hatched, children }: BadgeProps) {
 }
 
 type MarkProps = {
-  readonly tone?: 'accent' | undefined
+  /** Les hachures : ce qui n’existe pas encore sur le site. */
   readonly hatched?: boolean | undefined
   readonly children: ReactNode
 }
@@ -41,11 +35,10 @@ type MarkProps = {
  * La micro-marque de dix-neuf pixels : elle tient dans la hauteur d’une ligne
  * de liste, et qualifie celle-ci sans qu’on la quitte du regard.
  */
-export function Mark({ tone, hatched, children }: MarkProps) {
+export function Mark({ hatched, children }: MarkProps) {
   return (
     <span
       className="basalte-mark"
-      data-tone={tone}
       data-hatched={hatched === true ? 'true' : undefined}
     >
       {children}

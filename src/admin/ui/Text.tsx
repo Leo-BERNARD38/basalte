@@ -13,7 +13,9 @@ type TextProps = ComponentProps<'span'> & {
 }
 
 type TitleProps = ComponentProps<'h2'> & {
-  readonly rank?: 'card' | 'display' | undefined
+  readonly rank?: 'card' | undefined
+  /** Le rang dans le plan de la page. Un écran en porte un et un seul. */
+  readonly level?: 1 | undefined
   readonly children: ReactNode
 }
 
@@ -30,15 +32,23 @@ export function Text({ tone, size, className, children, ...rest }: TextProps) {
   )
 }
 
-export function Title({ rank, className, children, ...rest }: TitleProps) {
+export function Title({
+  rank,
+  level,
+  className,
+  children,
+  ...rest
+}: TitleProps) {
+  const Tag = level === 1 ? 'h1' : 'h2'
+
   return (
-    <h2
+    <Tag
       className={joined('basalte-title', className)}
       data-rank={rank}
       {...rest}
     >
       {children}
-    </h2>
+    </Tag>
   )
 }
 

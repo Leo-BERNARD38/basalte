@@ -204,7 +204,7 @@ export function Shell({
           </Eyebrow>
 
           <Group gap="md">
-            <Title>{heading}</Title>
+            <Title level={1}>{heading}</Title>
             {writes &&
               (dirty ? (
                 <Badge dot="ink">Modifications non enregistrées</Badge>

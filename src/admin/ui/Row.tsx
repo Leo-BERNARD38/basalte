@@ -11,7 +11,6 @@ type RowProps = Omit<ComponentProps<'button'>, 'type'> & {
   readonly current?: boolean | undefined
   readonly hidden?: boolean | undefined
   readonly wrong?: boolean | undefined
-  readonly dragging?: boolean | undefined
   /** La forme pleine, quand la ligne vit dans un menu et non dans une colonne. */
   readonly pill?: boolean | undefined
   /**
@@ -28,7 +27,6 @@ export function Row({
   current,
   hidden,
   wrong,
-  dragging,
   pill,
   handle,
   className,
@@ -41,11 +39,15 @@ export function Row({
       data-current={current === true ? 'true' : undefined}
       data-hidden={hidden === true ? 'true' : undefined}
       data-wrong={wrong === true ? 'true' : undefined}
-      data-dragging={dragging === true ? 'true' : undefined}
       data-pill={pill === true ? 'true' : undefined}
     >
       {handle}
-      <button type="button" className="basalte-row__label" {...rest}>
+      <button
+        type="button"
+        className="basalte-row__label"
+        aria-current={current === true ? 'true' : undefined}
+        {...rest}
+      >
         {children}
       </button>
     </div>
