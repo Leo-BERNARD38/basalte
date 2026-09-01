@@ -44,6 +44,24 @@ function writeTo(support: string): ReactNode {
 }
 
 /**
+ * Ce que le panel ajoute, et ce qu’il n’ajoute pas. Le client pose une page et
+ * une section quand il le veut (D179) ; une sorte de section qui n’existe pas
+ * encore reste un travail de développement, et c’est là que l’adresse sert.
+ */
+function addingNote(support: string): Note {
+  return {
+    heading: 'Ajouter une section ou une page',
+    body: (
+      <>
+        « Ajouter une section » est sous la liste, « Ajouter une page » dans le
+        sélecteur de page. Une sorte de section qui n’existe pas dans la liste{' '}
+        {writeTo(support)}
+      </>
+    ),
+  }
+}
+
+/**
  * Ce que cet écran-là explique. La première note est sur tous : les deux
  * boutons sont sur tous, et c’est la question que le client pose le plus
  * souvent.
@@ -63,12 +81,9 @@ export function notesFor(
     edit: [
       {
         heading: 'Les sections d’une page',
-        body: 'Vous modifiez, réordonnez et masquez les sections. Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.',
+        body: 'Vous ajoutez, modifiez, réordonnez, masquez et supprimez les sections. Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.',
       },
-      {
-        heading: 'Ajouter une section ou une page',
-        body: <>Cela {writeTo(support)}</>,
-      },
+      addingNote(support),
       {
         heading: 'L’aperçu',
         body: 'Il montre le dernier enregistrement, c’est-à-dire ce qui partira en ligne. Enregistrez pour le voir se mettre à jour.',

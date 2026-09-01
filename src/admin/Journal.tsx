@@ -186,6 +186,7 @@ export function Journal({
               <Spacer />
               <Switch
                 on={!hidden}
+                shown
                 label="Le billet paraît sur le site"
                 onChange={() =>
                   onDraft({

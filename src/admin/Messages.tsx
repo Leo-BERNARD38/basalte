@@ -38,17 +38,15 @@ const DAY = new Intl.DateTimeFormat('fr-FR', {
 })
 
 /**
- * Le sujet d’un message : le formulaire n’en demande pas, c’est donc sa
- * première ligne qui le tient — c’est elle qu’on lit pour savoir de quoi il
- * s’agit.
+ * Ce qu’on lit d’un message sans l’ouvrir. Le formulaire ne demande pas de
+ * sujet : c’est le texte entier, mis sur une ligne, et la ligne se coupe où
+ * la colonne s’arrête. Prendre la première ligne seule ne dirait « Bonjour, »
+ * de tout message qui commence par une salutation.
  */
-function subjectOf(lead: LeadSummary): string {
-  const first = lead.message
-    .split('\n')
-    .map((line) => line.trim())
-    .find((line) => line !== '')
+function previewOf(lead: LeadSummary): string {
+  const flat = lead.message.replace(/\s+/g, ' ').trim()
 
-  return first ?? 'Message sans texte'
+  return flat === '' ? 'Message sans texte' : flat
 }
 
 /** L’heure du jour, la date au-delà : une colonne de « 14:32 » ne dit rien. */
@@ -158,7 +156,7 @@ export function Messages({
                   <RowText>{lead.name}</RowText>
                   <RowText>
                     <Text tone="meta" size="small">
-                      {subjectOf(lead)}
+                      {previewOf(lead)}
                     </Text>
                   </RowText>
                 </RowStack>
@@ -176,10 +174,8 @@ export function Messages({
             <Card>
               <Stack gap="xl">
                 <Stack gap="xs">
-                  <Title rank="card">{subjectOf(current)}</Title>
-                  <Text tone="muted">
-                    {current.name} · {current.email}
-                  </Text>
+                  <Title rank="card">{current.name}</Title>
+                  <Text tone="muted">{current.email}</Text>
                   <Eyebrow>
                     {MOMENT.format(current.at)} · reçu depuis {current.page}
                   </Eyebrow>
