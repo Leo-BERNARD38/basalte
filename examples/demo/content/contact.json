@@ -2,75 +2,76 @@
   "$format": 1,
   "meta": {
     "title": {
-      "fr": "Nous écrire — Atelier Démonstration",
+      "fr": "Nous écrire — Basalte",
       "en": ""
     },
     "description": {
-      "fr": "Un formulaire servi en HTML pur : aucun script, aucun CAPTCHA, et un message qui ne se perd pas.",
+      "fr": "Dites-nous ce que vous faites et ce que votre site devrait obtenir. Nous répondons sous deux jours ouvrés, avec un prix.",
       "en": ""
-    }
+    },
+    "image": "c995042cc72d5bb0"
   },
   "blocks": [
     {
-      "id": "c1",
+      "id": "formulaire",
       "type": "contact",
       "props": {
         "title": {
-          "fr": "Nous écrire",
+          "fr": "Parlons de votre site",
           "en": ""
         },
         "intro": {
-          "fr": "Dites-nous ce que vous cherchez. Nous répondons sous deux jours ouvrés.",
+          "fr": "Trois lignes suffisent : ce que vous faites, à qui vous le vendez, et ce qui ne va pas avec votre site actuel.",
           "en": ""
         },
         "labels": {
           "name": {
-            "fr": "",
+            "fr": "Votre nom",
             "en": ""
           },
           "email": {
-            "fr": "",
+            "fr": "Votre adresse email",
             "en": ""
           },
           "message": {
-            "fr": "",
+            "fr": "Votre message",
             "en": ""
           },
           "submit": {
-            "fr": "Envoyer le message",
+            "fr": "Envoyer",
             "en": ""
           }
         },
         "answers": {
           "sent": {
-            "fr": "",
+            "fr": "Merci, votre message est bien arrivé. Nous répondons sous deux jours ouvrés.",
             "en": ""
           },
           "refused": {
-            "fr": "",
+            "fr": "Le message n’a pas pu être envoyé. Vérifiez votre adresse email et réessayez.",
             "en": ""
           },
           "waiting": {
-            "fr": "",
+            "fr": "Trop de messages envoyés depuis cette connexion. Réessayez dans quelques minutes.",
             "en": ""
           }
         },
         "consent": {
-          "fr": "Vos coordonnées servent à vous répondre, et à rien d’autre. Elles sont effacées au bout de douze mois — voir la [politique de confidentialité](/mentions-legales).",
+          "fr": "Vos coordonnées servent à vous répondre, et à rien d’autre. Voir notre [politique de confidentialité](/mentions-legales).",
           "en": ""
         }
       }
     },
     {
-      "id": "co1",
+      "id": "coordonnees",
       "type": "contact-details",
       "props": {
         "title": {
-          "fr": "Passer nous voir",
+          "fr": "Nous joindre autrement",
           "en": ""
         },
         "intro": {
-          "fr": "L’atelier est ouvert du lundi au vendredi. Un mot avant de venir évite une porte close.",
+          "fr": "Par téléphone aux heures ouvrables, ou par email à toute heure.",
           "en": ""
         }
       }

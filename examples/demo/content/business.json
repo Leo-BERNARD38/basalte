@@ -1,23 +1,43 @@
 {
   "$format": 1,
   "facts": {
-    "legalName": "Atelier Démonstration SARL",
-    "kind": "HomeAndConstructionBusiness",
+    "legalName": "Basalte",
+    "kind": "ProfessionalService",
     "address": {
-      "street": "12 rue des Copeaux",
+      "street": "12 rue des Alpes",
       "postalCode": "38000",
       "city": "Grenoble",
       "country": "France"
     },
     "phone": "+33 4 76 00 00 00",
-    "email": "bonjour@exemple.fr",
-    "area": "Grenoble et l’agglomération",
+    "email": "bonjour@basalte.test",
+    "area": "Grenoble, Lyon et à distance",
     "hours": [
-      { "day": "Monday", "opens": "09:00", "closes": "18:00" },
-      { "day": "Tuesday", "opens": "09:00", "closes": "18:00" },
-      { "day": "Wednesday", "opens": "09:00", "closes": "18:00" },
-      { "day": "Thursday", "opens": "09:00", "closes": "18:00" },
-      { "day": "Friday", "opens": "09:00", "closes": "17:00" }
+      {
+        "day": "Monday",
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      {
+        "day": "Tuesday",
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      {
+        "day": "Wednesday",
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      {
+        "day": "Thursday",
+        "opens": "09:00",
+        "closes": "18:00"
+      },
+      {
+        "day": "Friday",
+        "opens": "09:00",
+        "closes": "17:00"
+      }
     ]
   }
 }

@@ -64,7 +64,10 @@ describe('render', () => {
   })
 
   it('nomme chaque section par son type et son identifiant', () => {
-    expect(lines).toContain('hero h1')
+    const first = view.pages[0]?.sections[0]
+
+    expect(first).toBeDefined()
+    expect(lines).toContain(`${first?.type} ${first?.id}`)
   })
 
   it('dit la langue en préparation en toutes lettres', () => {

@@ -1,8 +1,8 @@
 import { defineSite } from '@leobernard/basalte'
 
 export default defineSite({
-  name: 'Atelier Démonstration',
-  domain: 'demo.basalte.test',
+  name: 'Basalte',
+  domain: 'basalte.test',
   languages: {
     fr: { default: true },
     en: { draft: true },
@@ -13,6 +13,7 @@ export default defineSite({
   },
   redirects: {
     '/accueil': '/',
+    '/atelier': '/fonctionnement',
   },
   journal: {
     base: 'actualites',
@@ -21,11 +22,14 @@ export default defineSite({
   tokens: {
     color: {
       bg: '#ffffff',
-      fg: '#101014',
-      muted: '#5c5c64',
-      accent: '#16181d',
+      fg: '#0d0d10',
+      muted: '#63636d',
+      accent: '#2f5bea',
       accentFg: '#ffffff',
-      border: '#e6e8ee',
+      border: '#e5e6ec',
+      surface: '#f5f5f7',
+      contrast: '#0d0d10',
+      contrastFg: '#ffffff',
     },
   },
 })

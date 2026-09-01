@@ -67,6 +67,8 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 17 | Relire le panel | `lint` étendu à la feuille et aux tokens du panel, l'encre ramenée au-dessus du plancher, douze défauts corrigés, une seule voix et une seule forme par geste, l'erreur de validation posée sous son champ, l'écran de connexion refait, le panel qui tient sur un portable et sur un téléphone, l'aide sous un « ? », et une allure qui porte un accent | D164 à D171 |
 | 18 | La direction artistique du panel | une couche de tokens refaite et tenue par un test, la feuille qui porte tout le dessin, les composants du panel écrits dans le dépôt, Geist auto-hébergée, les sept écrans repris sur la maquette, le plancher du dessin borné à ce qui porte une information, le recadrage retiré au profit du point focal, la section que le client ajoute, et douze images de départ pour un site neuf | D172 à D181 |
 
+| 19 | Habiller | trois plans de couleur et l'échelle étendue, le rythme et l'axe communs à tous les blocs, le bouton dans la feuille commune, l'en-tête collant, `showcase`, `bento` et `comparison`, et le site de démonstration devenu la landing de Basalte | D182 à D189 |
+
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
 n'étaient que de la prose (D135).
@@ -90,7 +92,7 @@ couvrent.
 | le panel | sa partie serveur, sur un dépôt de site jetable (`src/server/panel.fixture.ts`) ; son interface dans un vrai navigateur, seul endroit où se voient les cookies `HttpOnly` et le réordonnancement au clavier |
 | la mise en ligne | build injectable — la file, la bascule et les chemins d'échec sans lancer Astro ; le rebase et le push contre de vrais dépôts git |
 | la livraison | le dépôt qu'`init` produit comparé fichier par fichier sans qu'un seul soit écrit ; `deploy` contre un runner qui retient les commandes ; `doctor` avec ses résolutions DNS et son canal email ; `update` contre un dépôt jetable |
-| les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra |
+| les conventions | `lint` rejoué sur les blocs du socle, qui les tiennent : une dérive future s'y verra — la feuille commune et le gabarit de billet y sont entrés en phase 19 (D186) |
 | la publication du socle | un dépôt jetable avec son distant, et un npm injecté qui porte vraiment le numéro sans rien installer — l'ordre des cinq étapes, chaque refus, et le retour à l'état d'avant, la note gardée |
 | la trouvabilité | `findableIssues` sur des pages écrites à la main, et `basalte content` relu sur le site de démonstration — le seul contenu qui ait toutes les formes à la fois |
 | le poids d'une page | `checkWeight` sur un dossier de sortie écrit à la main — un `srcset` dont une seule dérivée compte, une page de redirection écartée, un budget franchi |
@@ -107,7 +109,7 @@ d'images, ni à la bascule atomique.
 
 ## Blocs de référence
 
-Le socle livre seize blocs. C'est la seule base commune que les sites
+Le socle livre dix-neuf blocs. C'est la seule base commune que les sites
 partagent : un bloc absent d'ici se réécrit dans chaque dépôt client, et aucun
 correctif n'y redescend jamais (D147).
 
@@ -130,6 +132,12 @@ coordonnée) · `team` · `logos` · `pricing`.
 **Un seizième démontre une mécanique de plus** : `journal` (une liste que le
 contenu ne porte pas — les billets arrivent en prop, comme la fiche
 d'entreprise, D149).
+
+**Trois derniers sont venus avec la phase 19** (D188) : `showcase` (une chose
+expliquée, média et texte en regard, dont la variante bureau inverse l'ordre) ·
+`bento` (une liste dont chaque élément décide de la place qu'il prend) ·
+`comparison` (deux colonnes nommées, cartes au téléphone et vrai tableau au
+bureau).
 
 Plus deux emplacements de chrome, `header` et `footer`, et un gabarit de billet,
 `post` — remplaçables, jamais ajoutables (D109, D153).

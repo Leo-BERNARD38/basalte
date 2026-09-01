@@ -1,0 +1,23 @@
+{
+  "$format": 1,
+  "hidden": {
+    "fr": true
+  },
+  "fields": {
+    "title": {
+      "fr": "Bientôt : le choix des couleurs depuis le panneau",
+      "en": ""
+    },
+    "date": "2026-09-15",
+    "excerpt": {
+      "fr": "Un brouillon, gardé pour l’exemple : il n’a pas d’adresse publique et n’apparaît ni au plan du site, ni dans le flux.",
+      "en": ""
+    },
+    "cover": "",
+    "body": {
+      "fr": "Ce billet est un **brouillon**. Il vit dans le dépôt, il se relit dans le panneau, et il n’existe nulle part ailleurs tant que personne ne l’a fait paraître.\n\nC’est ce qui permet de préparer une annonce à l’avance sans qu’un moteur de recherche la découvre avant l’heure.",
+      "en": ""
+    },
+    "gallery": []
+  }
+}
