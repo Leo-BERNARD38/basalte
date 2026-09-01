@@ -146,11 +146,15 @@ des tokens de `design.md` reste donc bornée aux blocs.
 
 ### La couche de tokens
 
-Cette échelle, le panel la **configure** plutôt que de la subir (D95). Tout vit
-dans `src/admin/theme.ts` : surfaces, encre, couleurs, échelle de texte,
-espacements, rayons, ombres. L'objet alimente `createTheme` — et donc chaque
-composant Mantine — puis, par son résolveur, les variables `--panel-*` que
-`panel.css` consomme. Une valeur n'est écrite qu'une fois.
+Cette échelle, le panel la **configure** plutôt que de la subir (D95). Les
+valeurs vivent dans `src/admin/tokens.ts` : surfaces, encre, couleurs, échelle
+de texte, espacements, rayons, ombres, largeurs de lecture. `theme.ts` les verse
+dans `createTheme` — et donc dans chaque composant Mantine — puis, par son
+résolveur, dans les variables `--panel-*` que `panel.css` consomme. Une valeur
+n'est écrite qu'une fois.
+
+Le module des valeurs n'importe rien : `theme.ts` entraîne `@mantine/core`, et
+`basalte lint` doit les relire depuis une commande Node (D164).
 
 Trois principes portent l'allure :
 
@@ -160,11 +164,32 @@ Trois principes portent l'allure :
   L'action qui change l'état du site est noire, une fois par écran ; l'action
   fréquente est bleue et douce ; ce qui détruit est rouge.
 - **Le contraste vient de la graisse et de la taille**, pas de la couleur :
-  38 / 22 / 16 / 14 / 13 / 11, en 700 ou 500, et rien entre les deux.
+  38 / 22 / 16 / 14 / 13 / 11, en 700 ou 500, et rien entre les deux. Les six
+  rangs de titre tombent sur ces six pas, et le panel en emploie trois : le nom
+  de l'écran, celui d'une colonne, celui d'une carte.
 
-Le plancher est vérifié : 4,5:1 sur les trois premiers niveaux d'encre, focus
-visible à 3 px, cible tactile de 48 px sous 60 rem, et jamais la couleur seule
-pour porter un état.
+L'encre compte **trois** niveaux, et c'est une mesure, pas un goût : entre
+`#16181d` et une surface presque blanche, un quatrième gris qui tienne 4,5:1
+serait indiscernable du troisième. Ce qui reste en dessous est du dessin —
+`line`, la poignée et les glyphes — et ne porte jamais de texte.
+
+Le plancher est **vérifié par `basalte lint`** (D164), et non plus annoncé :
+`design/panel-contrast` mesure chaque niveau d'encre sur chacune des quatre
+surfaces, l'encre d'une ligne sélectionnée, les accents employés en texte, et le
+bleu des marques au seuil du graphique. Les règles `style/*` refusent une
+longueur ou une couleur écrite en clair dans `panel.css`. Le reste du plancher —
+focus visible à 3 px, cible tactile de 48 px sous 60 rem, jamais la couleur
+seule pour porter un état — demande encore de regarder un écran.
+
+### Ce qui tient sur l'écran qu'on a
+
+La barre du haut demande environ 1 250 px pour ses six onglets, sa marque, sa
+langue et ses deux commandes : elle se replie donc à **80 rem**, ses onglets sur
+leur propre ligne et défilants (D167). Sous **75 rem**, les trois colonnes
+s'empilent dans l'ordre liste, réglages, aperçu — ce qu'on règle et ce qu'on lit
+voisinent, et l'aperçu passe en dernier. Sous **60 rem**, l'en-tête d'écran
+s'empile et tout ce qui se clique atteint 48 px, y compris ce que Mantine
+dessine en petit.
 
 `panel.css` ne dessine plus que ce que Mantine ne sait pas dessiner : la mise
 en page des écrans, la poignée de déplacement, la vignette, la jauge, le point
@@ -327,6 +352,14 @@ celui qui refuse de s'afficher. À l'enregistrement, en revanche, un contenu
 invalide est refusé avec les messages français de `check` (D60) : chaque commit
 reste constructible.
 
+**Ce qui bloque se montre là où on le corrige** (D166). Le refus rend les
+incidents entiers, pas des phrases : `ContentIssue` porte la section, le champ,
+la langue et le chemin machine. Chaque niveau du formulaire retire le segment
+qu'il porte, si bien que le champ affiche son erreur, qu'un élément de liste
+replié se marque et s'ouvre, que la ligne de la section se marque dans la
+colonne, et que chaque ligne du résumé ouvre la section qu'elle nomme. Le panel
+ne valide toujours rien (D58) : il range un verdict qui vient du serveur.
+
 **Ce qui n'est pas dans le panel.** Le client n'ajoute ni page ni section
 (D3) : il modifie, réordonne, masque, et remplit ou vide une liste répétable.
 
@@ -379,8 +412,9 @@ sont pas des pages sont nommées au même endroit, `src/admin/asides.ts` : une
 quatrième s'y ajoute sans qu'une condition se répande dans les écrans.
 
 L'enregistrement et la mise en ligne vivent dans l'en-tête, à droite du titre :
-un seul endroit pour agir sur l'état du site, à la même place sur les cinq
-écrans.
+un seul endroit pour agir sur l'état du site, à la même place sur les six
+écrans. « Enregistrer » suit le badge et rien d'autre : un avertissement à côté
+d'un bouton éteint vaut moins que pas d'avertissement.
 
 ## Médias
 

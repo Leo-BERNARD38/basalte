@@ -4,12 +4,13 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les seize phases sont faites — le socle rend, authentifie, édite,
+**État :** les dix-sept phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
 cadre ses images, joint son client, constate ce qu'un site contient, se publie
 lui-même, porte les sections que la plupart des sites demandent, tient un
-journal que le client alimente lui-même, et laisse ses listes s'allonger sans
-rendre son panel illisible. Un site se crée, se met en production et se monte de
+journal que le client alimente lui-même, laisse ses listes s'allonger sans
+rendre son panel illisible, et tient son panel au plancher qu'il exige de ses
+blocs — vérifié, non plus annoncé. Un site se crée, se met en production et se monte de
 version en une commande chacune ; une version du socle se publie en une commande
 aussi. Ce que chaque phase a mis en place est relevé dans
 `docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
@@ -104,7 +105,8 @@ src/
 │   └── <nom>/      des blocs, qu'un dépôt client remplace dossier pour dossier
 ├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
-│   ├── theme.ts    les tokens du panel → thème Mantine + variables --panel-*
+│   ├── tokens.ts   les valeurs du système, dans un module sans import
+│   ├── theme.ts    tokens.ts → thème Mantine + variables --panel-*
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git ;
 │                   webhook.ts, le second canal qui prévient d'un message
@@ -161,8 +163,9 @@ Détail dans `docs/conventions.md`. L'essentiel :
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
   est un token à ajouter, jamais un `padding: 27px` isolé. `basalte lint` le
   refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le panel a sa propre
-  couche de tokens, `src/admin/theme.ts` (D95), et ne dessine aucune bordure
-  (D97) : les plans se séparent par la valeur et l'ombre.
+  couche de tokens, `src/admin/tokens.ts` (D95), contrôlée par le même `lint`
+  (D164), et ne dessine aucune bordure (D97) : les plans se séparent par la
+  valeur et l'ombre. Ce qui s'affiche devant un client vouvoie (D165).
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
@@ -348,6 +351,15 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   `content-visibility` sur `::details-content`, que `display` ne défait plus.
   N'écrire que la première donne un menu qui s'ouvre dans un navigateur et
   reste vide dans l'autre, sans la moindre erreur.
+- **Une fenêtre du panel ne se démonte pas.** `MediaPicker` et `DocumentPicker`
+  sont rendus en permanence, seul leur `opened` change : l’initialisation d’un
+  `useState` n’y rejoue donc jamais, et le sélecteur ouvert depuis un second
+  champ proposait l’image choisie pour le premier. La remise à zéro se fait au
+  rendu, sur le passage de `opened` — c’est le motif de `CropDialog`.
+- **`pageOfPost` reporte le masque du billet sur sa section.** Une page compilée
+  n’a qu’un emplacement : masqué, il ne reste rien de visible. L’aperçu doit
+  donc démasquer (D168), faute de quoi relire un brouillon montre un en-tête et
+  un pied séparés par du vide.
 - **Le panel vit dans un navigateur.** Un module de `src/server/` importé pour
   une valeur — fût-ce une constante — y entraîne `node:path` et `node:fs`, et
   le build du panel échoue loin de la cause : le message nomme un paquet
