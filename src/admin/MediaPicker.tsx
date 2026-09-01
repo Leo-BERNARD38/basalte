@@ -1,22 +1,33 @@
 // Le choix d’une image depuis un champ. La même grille que l’écran « Médias »,
 // dans une fenêtre : le client n’a jamais deux médiathèques à apprendre.
 //
-// C’est ici, et seulement ici, qu’un format attendu est connu : la médiathèque
-// ne déclare aucun ratio, c’est l’emplacement qui le fait. Une image qui ne le
-// tient pas n’est donc pas refusée — elle s’emploie en la recadrant, sans
-// quitter l’écran.
+// La fenêtre pose l’image, l’écran la range — texte alternatif, point focal,
+// suppression. C’est la seule division à tenir, et le pied de la fenêtre la
+// rappelle.
+//
+// Aucun format n’est refusé ici. Un emplacement attend des proportions, mais
+// le site cadre autour du point focal (D178) : une image d’une autre forme s’y
+// emploie, et c’est le point focal qu’on corrige si le cadrage déplaît.
 
-import { Alert, Button, Group, Modal, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
 
-import { matchesRatio } from '../media/ratio.js'
 import type { MediaSummary } from '../server/library.js'
-import { CropDialog } from './CropDialog.js'
+import type { PanelPayload } from '../server/panel.js'
 import { MediaGrid, UploadButton } from './Media.js'
+import { placesOf } from './places.js'
+import { Button } from './ui/Button.js'
+import { TextField } from './ui/Field.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Banner, Empty } from './ui/Surface.js'
+import { Eyebrow, Mono, Text } from './ui/Text.js'
+import { Segmented } from './ui/Toggle.js'
+
+type Filter = 'all' | 'unused'
 
 export function MediaPicker({
   opened,
-  media,
+  payload,
   current,
   ratio,
   onChanged,
@@ -24,7 +35,7 @@ export function MediaPicker({
   onChoose,
 }: {
   readonly opened: boolean
-  readonly media: readonly MediaSummary[]
+  readonly payload: PanelPayload
   readonly current: string
   readonly ratio: string | undefined
   readonly onChanged: () => void
@@ -33,7 +44,8 @@ export function MediaPicker({
 }) {
   const [selected, setSelected] = useState(current)
   const [problem, setProblem] = useState('')
-  const [cropping, setCropping] = useState(false)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<Filter>('all')
   const [shown, setShown] = useState(opened)
 
   // La fenêtre reste montée, seule sa visibilité change : sans cette remise à
@@ -45,101 +57,157 @@ export function MediaPicker({
     if (opened) {
       setSelected(current)
       setProblem('')
-      setCropping(false)
+      setSearch('')
+      setFilter('all')
     }
   }
 
-  const entry = media.find((item) => item.key === selected)
-  const fits =
-    ratio === undefined || entry === undefined || matchesRatio(entry, ratio)
+  const media = payload.media
+  const unused = media.filter((entry) => entry.usage === 0)
+  const asked = search.trim().toLowerCase()
+  const shownMedia = (filter === 'unused' ? unused : media).filter(
+    (entry) => asked === '' || alt(entry).toLowerCase().includes(asked),
+  )
 
-  // Recadrer repart toujours de l’originale : une image déjà recadrée rouvre sa
-  // source et son cadre, de sorte qu’aucune chaîne de découpes ne s’accumule.
-  const origin =
-    entry === undefined
-      ? undefined
-      : (media.find((item) => item.key === entry.source) ?? entry)
+  const entry = media.find((item) => item.key === selected)
+  const places = entry === undefined ? [] : placesOf(payload, entry.key)
 
   return (
-    <>
-      <Modal
-        opened={opened && !cropping}
-        onClose={onClose}
-        title="Choisir une image"
-        size="xl"
-        centered
-      >
-        <Stack gap="md">
-          {problem !== '' && (
-            <Alert
-              color="red"
-              title="La demande a été refusée"
-              withCloseButton
-              onClose={() => setProblem('')}
-            >
-              {problem}
-            </Alert>
-          )}
+    <Modal
+      opened={opened}
+      title="Bibliothèque d’images"
+      width="var(--panel-width-modal)"
+      note={
+        <Text tone="muted" data-size="small">
+          Toutes vos images, quelle que soit la page.
+        </Text>
+      }
+      onClose={onClose}
+      foot={
+        <>
+          <Mono className="basalte-row__note">
+            {shownMedia.length} affichée{shownMedia.length > 1 ? 's' : ''} ·{' '}
+            {media.length} en tout
+          </Mono>
+          <Spacer />
+          <Button onClick={onClose}>Annuler</Button>
+          <Button
+            tone="ink"
+            disabled={selected === ''}
+            onClick={() => onChoose(selected)}
+          >
+            Utiliser cette image
+          </Button>
+        </>
+      }
+    >
+      <Stack>
+        {problem !== '' && (
+          <Banner tone="refused">
+            <Stack gap="sm">
+              <strong>La demande a été refusée</strong>
+              <Text tone="muted">{problem}</Text>
+            </Stack>
+          </Banner>
+        )}
 
-          {ratio !== undefined && (
-            <Text size="sm" c="dimmed">
-              Cet emplacement attend des proportions {ratio}. Une image d’un
-              autre format se recadre ici, et l’originale est conservée.
+        <Group gap="md">
+          <Segmented
+            label="Ce que la grille montre"
+            value={filter}
+            items={[
+              { value: 'all' as const, label: `Toutes · ${media.length}` },
+              {
+                value: 'unused' as const,
+                label: `Jamais utilisées · ${unused.length}`,
+              },
+            ]}
+            onChange={setFilter}
+          />
+          <TextField
+            placeholder="Rechercher une image"
+            value={search}
+            aria-label="Rechercher une image"
+            onChange={(event) => setSearch(event.currentTarget.value)}
+          />
+          <Spacer />
+          <UploadButton
+            label="Importer depuis mon ordinateur"
+            onDone={(added) => {
+              setSelected(added.key)
+              onChanged()
+            }}
+            onError={setProblem}
+          />
+        </Group>
+
+        <div className="basalte-picker-body">
+          <MediaGrid
+            media={shownMedia}
+            selected={selected}
+            columns={4}
+            flag={(item) => (item.usage === 0 ? 'jamais utilisée' : undefined)}
+            empty={
+              <Empty
+                title="Aucune image"
+                note={
+                  filter === 'unused'
+                    ? 'Toutes vos images servent quelque part.'
+                    : 'Importez-en une depuis votre ordinateur.'
+                }
+              />
+            }
+            onSelect={setSelected}
+          />
+
+          <Stack gap="lg" className="basalte-picker-aside">
+            {entry === undefined ? (
+              <Text tone="meta" data-size="small">
+                Choisissez une image pour voir ce qu’elle porte.
+              </Text>
+            ) : (
+              <>
+                <Eyebrow>
+                  {entry.width}×{entry.height} · {entry.format}
+                </Eyebrow>
+                <Stack gap="xs">
+                  <span className="basalte-label">Texte alternatif</span>
+                  <Text tone="muted" data-size="small">
+                    {alt(entry) === ''
+                      ? 'Rien n’est écrit. Il se règle dans l’onglet Médias.'
+                      : alt(entry)}
+                  </Text>
+                </Stack>
+                <Stack gap="xs">
+                  <span className="basalte-label">Utilisée dans</span>
+                  {places.length === 0 ? (
+                    <Text tone="meta" data-size="small">
+                      Nulle part pour l’instant.
+                    </Text>
+                  ) : (
+                    places.map((place) => (
+                      <Text key={place.entry} tone="muted" data-size="small">
+                        {place.label}
+                      </Text>
+                    ))
+                  )}
+                </Stack>
+              </>
+            )}
+            <Spacer />
+            <Text tone="meta" data-size="eyebrow">
+              Le texte alternatif et le point focal se règlent dans l’onglet
+              Médias. Aucun recadrage : le site cadre autour du point focal
+              {ratio === undefined ? '' : `, y compris en ${ratio}`}.
             </Text>
-          )}
-
-          <MediaGrid media={media} selected={selected} onSelect={setSelected} />
-
-          {entry !== undefined && !fits && (
-            <Alert color="orange" title="Format inattendu">
-              Cette image est en {entry.width}×{entry.height} : elle n’est pas
-              au format attendu. Recadrez-la pour l’employer ici.
-            </Alert>
-          )}
-
-          <Group justify="space-between">
-            <UploadButton
-              onDone={(added) => {
-                setSelected(added.key)
-                onChanged()
-              }}
-              onError={setProblem}
-            />
-            <Group>
-              <Button variant="default" onClick={onClose}>
-                Annuler
-              </Button>
-              {ratio !== undefined && entry !== undefined && (
-                <Button variant="default" onClick={() => setCropping(true)}>
-                  Recadrer
-                </Button>
-              )}
-              <Button
-                disabled={selected === '' || !fits}
-                onClick={() => onChoose(selected)}
-              >
-                Employer cette image
-              </Button>
-            </Group>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <CropDialog
-        origin={cropping ? origin : undefined}
-        start={entry?.crop}
-        ratio={ratio ?? ''}
-        onClose={() => setCropping(false)}
-        onError={(message) => {
-          setProblem(message)
-          setCropping(false)
-        }}
-        onDone={(added) => {
-          setCropping(false)
-          setSelected(added.key)
-          onChanged()
-        }}
-      />
-    </>
+          </Stack>
+        </div>
+      </Stack>
+    </Modal>
   )
+}
+
+/** Le texte alternatif dans la langue par défaut, quelle qu’elle soit. */
+function alt(entry: MediaSummary): string {
+  return Object.values(entry.alt).find((written) => written !== '') ?? ''
 }

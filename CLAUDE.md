@@ -4,16 +4,17 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les dix-sept phases sont faites — le socle rend, authentifie, édite,
+**État :** les dix-huit phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
 cadre ses images, joint son client, constate ce qu'un site contient, se publie
 lui-même, porte les sections que la plupart des sites demandent, tient un
 journal que le client alimente lui-même, laisse ses listes s'allonger sans
-rendre son panel illisible, et tient son panel au plancher qu'il exige de ses
-blocs — vérifié, non plus annoncé. Un site se crée, se met en production et se monte de
-version en une commande chacune ; une version du socle se publie en une commande
-aussi. Ce que chaque phase a mis en place est relevé dans
-`docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
+rendre son panel illisible, tient son panel au plancher qu'il exige de ses
+blocs — vérifié, non plus annoncé — et porte enfin une direction artistique
+qui lui appartient, sans bibliothèque d'interface. Un site se crée, se met en
+production et se monte de version en une commande chacune ; une version du
+socle se publie en une commande aussi. Ce que chaque phase a mis en place est
+relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
 `docs/decisions.md`, qui est la mémoire du projet.
 
 **À faire :** aucune phase en attente. Ce qui a été identifié et laissé de côté
@@ -73,7 +74,7 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Tout le code | TypeScript |
 | Rendu du site public | Astro, statique |
 | Schémas de contenu | Zod, sous un DSL `f.*` |
-| Panel d'édition | React 19 + compilateur React, Mantine, dnd-kit |
+| Panel d'édition | React 19 + compilateur React, dnd-kit ; composants maison |
 | Styles | CSS natif + custom properties |
 | Auth, sessions, leads | SQLite, par `node:sqlite` |
 | Traitement d'images | sharp |
@@ -82,7 +83,8 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Mots de passe | Argon2id, par `@node-rs/argon2` |
 | Email | Brevo, derrière une interface agnostique |
 
-Pas de Tailwind. Pas de framework CSS. Pas d'ORM.
+Pas de Tailwind. Pas de framework CSS. Pas de bibliothèque de composants.
+Pas d'ORM.
 
 Versions épinglées à l'exact, et les deux qui ne sont volontairement pas les
 dernières : `docs/environnement.md`. Le compilateur React est actif dès le
@@ -96,7 +98,7 @@ src/
 │                   capacités déclarées
 ├── fields/         DSL f.* → schéma Zod + description d'interface
 ├── content/        format de page, lecture, validation, messages français
-├── media/          ingestion sharp, recadrage, manifeste, résolution, emplois ;
+├── media/          ingestion sharp, manifeste, résolution, emplois ;
 │                   documents PDF, seule exception à l'invariant 3
 ├── blocks/         blocs de référence
 │   └── <nom>/      schema.ts + <Nom>.astro, plus <Nom>.desktop.astro
@@ -106,7 +108,9 @@ src/
 ├── astro/          intégration : routes du site, du panel, aperçu, API
 ├── admin/          panel : island React unique
 │   ├── tokens.ts   les valeurs du système, dans un module sans import
-│   ├── theme.ts    tokens.ts → thème Mantine + variables --panel-*
+│   ├── panel.css   les mêmes en variables --panel-*, et tout le dessin
+│   ├── ui/         les composants du panel, et son jeu d'icônes
+│   ├── fonts/      Geist, en fonte variable auto-hébergée (D181)
 │   ├── Help.tsx    ce que chaque écran explique, sous son « ? »
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git ;
@@ -163,12 +167,14 @@ Détail dans `docs/conventions.md`. L'essentiel :
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
   est un token à ajouter, jamais un `padding: 27px` isolé. `basalte lint` le
-  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le panel a sa propre
-  couche de tokens, `src/admin/tokens.ts` (D95), contrôlée par le même `lint`
-  (D164), et ne dessine aucune bordure (D97) : les plans se séparent par la
-  valeur et l'ombre. Deux éléments accentués par écran au plus (D170). Ce qui
-  s'affiche devant un client vouvoie (D165), et ce qui explique attend qu'on le
-  demande, sous le « ? » de l'en-tête (D169).
+  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le
+  panel a sa propre couche de tokens, `src/admin/tokens.ts` (D95), contrôlée
+  par le même `lint` (D164). Un filet d'un pixel y sépare deux plans, et
+  l'ombre ne reste qu'à ce qui flotte (D172) ; l'action est noire, et l'accent
+  ne dit jamais « fais » (D174) ; la forme pleine est le défaut, sauf pour le
+  champ, la ligne de liste et la surface (D173). Ce qui s'affiche devant un
+  client vouvoie (D165), et ce qui explique attend qu'on le demande, sous le
+  « ? » de l'en-tête (D169).
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
@@ -358,7 +364,7 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   sont rendus en permanence, seul leur `opened` change : l’initialisation d’un
   `useState` n’y rejoue donc jamais, et le sélecteur ouvert depuis un second
   champ proposait l’image choisie pour le premier. La remise à zéro se fait au
-  rendu, sur le passage de `opened` — c’est le motif de `CropDialog`.
+  rendu, sur le passage de `opened`.
 - **`pageOfPost` reporte le masque du billet sur sa section.** Une page compilée
   n’a qu’un emplacement : masqué, il ne reste rien de visible. L’aperçu doit
   donc démasquer (D168), faute de quoi relire un brouillon montre un en-tête et
@@ -392,11 +398,11 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   tous ceux qui ont été tentés ont échoué, `skipped` quand il n'y avait personne
   à prévenir. Confondre les deux derniers fait afficher « non transmis » sur
   chaque message d'un site qui a choisi le silence.
-- **Le recadrage repart toujours de l'originale**, jamais d'un recadrage : le
-  cadre est exprimé en pourcentage de l'originale, et repartir d'une découpe
-  ajouterait une passe d'encodage à chaque correction. Le cadre entre dans
-  l'empreinte, si bien que deux cadres différents sont deux clés et que refaire
-  le même rend la même.
+- **Un média peut en avoir un autre pour origine.** Le panel ne recadre plus
+  (D178), mais un site monté de version porte peut-être des recadrages faits
+  avant : `withLineage` continue de compter l'emploi d'un dérivé au crédit de
+  son originale, et c'est ce qui empêche d'effacer celle dont un dérivé est en
+  ligne.
 - **Un billet n'est pas une page, et il ne faut surtout pas lui en faire une.**
   `pageOfPost` le compile en `Page` juste avant le rendu : c'est ce qui lui donne
   gratuitement le sitemap, les `hreflang`, la carte de partage, le plan de titres,

@@ -1,18 +1,24 @@
-// Le panneau d’une section : ce qu’elle est, si elle est visible, et le
-// formulaire produit par son schéma. Le mot « bloc » n’apparaît nulle part
-// devant le client (D25).
+// Le panneau d’une section : ce qu’elle est, si elle paraît, et le formulaire
+// produit par son schéma. Le mot « bloc » n’apparaît nulle part devant le
+// client (D25).
 //
 // Le panneau ne montre qu’une section à la fois — celle choisie dans la liste.
 // Un accordéon de toutes les sections rendait la page illisible dès qu’elles
 // dépassaient la demi-douzaine.
-
-import { Alert, Group, Stack, Switch, Text, Title } from '@mantine/core'
+//
+// Une section masquée se dit par les hachures, comme tout ce qui n’existe pas
+// encore sur le site : le bandeau rappelle qu’elle reste modifiable ici.
 
 import type { PageBlock } from '../content/page.js'
 import type { PanelBlockType } from '../server/panel.js'
 import type { Values } from './draft.js'
 import { languageLabel, useEditing } from './editing.js'
 import { FieldSet, type FieldIssue } from './fields/Field.js'
+import { Button } from './ui/Button.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Banner } from './ui/Surface.js'
+import { Eyebrow, Text, Title } from './ui/Text.js'
+import { Switch } from './ui/Toggle.js'
 
 export function Section({
   section,
@@ -20,6 +26,7 @@ export function Section({
   hideable = true,
   issues,
   onChange,
+  onRemove,
 }: {
   readonly section: PageBlock
   readonly type: PanelBlockType | undefined
@@ -27,56 +34,62 @@ export function Section({
   readonly hideable?: boolean
   readonly issues: readonly FieldIssue[]
   readonly onChange: (section: PageBlock) => void
+  /** Absent sur un emplacement fixe, qui ne se retire pas de sa page. */
+  readonly onRemove?: (() => void) | undefined
 }) {
   const editing = useEditing()
   const hidden = section.hidden[editing.language] === true
   const several = editing.languages.length > 1
 
   return (
-    <Stack gap="sm">
-      <div>
-        <Title order={2}>{type?.label ?? section.type}</Title>
-        {type?.help !== undefined && (
-          <Text size="sm" c="dimmed">
-            {type.help}
-          </Text>
-        )}
-      </div>
-
-      {type === undefined && (
-        <Alert color="red" title="Cette section n’existe plus dans le site">
-          Rien n’est modifiable tant qu’elle n’est pas rétablie. Le contenu
-          qu’elle porte est intact : il reparaîtra avec elle.
-        </Alert>
-      )}
-
-      {hideable && (
-        <Group
-          justify="space-between"
-          wrap="nowrap"
-          p="sm"
-          bg="var(--panel-sunken)"
-          style={{ borderRadius: 'var(--panel-radius-md)' }}
-        >
-          <Text fw={600}>
-            {several
-              ? `Visible en ${languageLabel(editing.languages, editing.language)}`
-              : 'Visible'}
-          </Text>
+    <Stack gap="xl">
+      <Group gap="md" align="start">
+        <Stack gap="xs">
+          <Eyebrow>section choisie</Eyebrow>
+          <Title rank="card">{type?.label ?? section.type}</Title>
+        </Stack>
+        <Spacer />
+        {hideable && (
           <Switch
-            checked={!hidden}
-            aria-label="Visibilité de cette section"
-            onChange={(event) =>
+            on={!hidden}
+            shown
+            label={
+              several
+                ? `Visible en ${languageLabel(editing.languages, editing.language)}`
+                : 'Visible sur le site'
+            }
+            onChange={() =>
               onChange({
                 ...section,
-                hidden: {
-                  ...section.hidden,
-                  [editing.language]: !event.currentTarget.checked,
-                },
+                hidden: { ...section.hidden, [editing.language]: !hidden },
               })
             }
           />
-        </Group>
+        )}
+      </Group>
+
+      {type?.help !== undefined && <Text tone="muted">{type.help}</Text>}
+
+      {type === undefined && (
+        <Banner tone="refused">
+          <Stack gap="sm">
+            <strong>Cette section n’existe plus dans le site</strong>
+            <Text tone="muted">
+              Rien n’est modifiable tant qu’elle n’est pas rétablie. Le contenu
+              qu’elle porte est intact : il reparaîtra avec elle.
+            </Text>
+          </Stack>
+        </Banner>
+      )}
+
+      {hideable && hidden && (
+        <Banner hatched>
+          Cette section n’est pas en ligne
+          {several
+            ? ` en ${languageLabel(editing.languages, editing.language)}`
+            : ''}
+          . Elle reste modifiable ici ; le visiteur ne la voit pas.
+        </Banner>
       )}
 
       {type !== undefined && (
@@ -86,6 +99,14 @@ export function Section({
           issues={issues}
           onChange={(props) => onChange({ ...section, props })}
         />
+      )}
+
+      {onRemove !== undefined && (
+        <Group>
+          <Button tone="danger" onClick={onRemove}>
+            Supprimer la section
+          </Button>
+        </Group>
       )}
     </Stack>
   )

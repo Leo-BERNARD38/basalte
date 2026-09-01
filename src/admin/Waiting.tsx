@@ -3,17 +3,15 @@
 // troisième son état vide — « Aucun appareil retenu » pendant que la requête
 // était en vol, ce qui est une phrase fausse.
 
-import { Center, Loader, Text, Stack } from '@mantine/core'
+import { Spinner } from './ui/Button.js'
+import { Group } from './ui/Layout.js'
+import { Text } from './ui/Text.js'
 
 export function Waiting({ what }: { readonly what: string }) {
   return (
-    <Center py="xl">
-      <Stack align="center" gap="xs">
-        <Loader size="sm" />
-        <Text size="sm" c="dimmed">
-          {what}
-        </Text>
-      </Stack>
-    </Center>
+    <Group gap="md">
+      <Spinner />
+      <Text tone="meta">{what}</Text>
+    </Group>
   )
 }

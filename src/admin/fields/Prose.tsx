@@ -12,11 +12,12 @@
 // une seule ligne. Il ne se colore qu’en approchant de la borne — une valeur
 // qui ne bouge pas n’a rien à signaler.
 
-import { Group, Text, Textarea, TextInput } from '@mantine/core'
-
 import { renderRichtext } from '../../fields/richtext.js'
 import { translated, withLanguage } from '../draft.js'
 import { useEditing } from '../editing.js'
+import { Field, TextArea, TextField, type Bound } from '../ui/Field.js'
+import { Group, Spacer } from '../ui/Layout.js'
+import { Text } from '../ui/Text.js'
 import { hint, useFieldError, type ControlProps } from './Field.js'
 
 const ROWS = 4
@@ -42,66 +43,72 @@ export function Prose({ description, value, issues, onChange }: ControlProps) {
     )
   }
 
-  const shared = {
-    label: description.label,
-    description: hint(description),
-    required: description.required,
-    error,
-    value: text,
-    ...(description.max === undefined ? {} : { maxLength: description.max }),
-    onChange: (event: { currentTarget: { value: string } }) =>
-      change(event.currentTarget.value),
-  }
+  const rows =
+    description.kind === 'textarea' ? (description.rows ?? ROWS) : ROWS
 
-  const counter =
-    description.max === undefined ? undefined : (
-      <Group justify="flex-end" mt={4}>
-        <Text
-          size="xs"
-          c={text.length >= description.max * CLOSE ? 'orange' : 'dimmed'}
-        >
-          {text.length} / {description.max}
-          {text.length >= description.max ? ' — c’est le maximum' : ''}
-        </Text>
-      </Group>
-    )
-
-  if (description.kind === 'text') {
-    return (
-      <div>
-        <TextInput {...shared} />
-        {counter}
-      </div>
-    )
-  }
-
-  if (description.kind === 'textarea') {
-    return (
-      <div>
-        <Textarea {...shared} autosize minRows={description.rows ?? ROWS} />
-        {counter}
-      </div>
-    )
-  }
-
+  // La grammaire déclarée par le champ, montrée par l’exemple : ce qu’on peut
+  // écrire ici se lit plus vite qu’il ne s’explique.
   const placeholder = [
     ...(description.headings === true ? ['## titre'] : []),
     ...(description.lists === true ? ['- élément'] : []),
     INLINE,
   ].join(', ')
 
+  const control = (bound: Bound) =>
+    description.kind === 'text' ? (
+      <TextField
+        {...bound}
+        value={text}
+        maxLength={description.max}
+        onChange={(event) => change(event.target.value)}
+      />
+    ) : (
+      <TextArea
+        {...bound}
+        rows={rows}
+        value={text}
+        maxLength={description.max}
+        {...(description.kind === 'richtext' ? { placeholder } : {})}
+        onChange={(event) => change(event.target.value)}
+      />
+    )
+
   return (
-    <div>
-      <Textarea {...shared} autosize minRows={ROWS} placeholder={placeholder} />
-      {counter}
-      {text.trim() !== '' && (
-        <div
-          className="basalte-markdown"
-          dangerouslySetInnerHTML={{
-            __html: renderRichtext(text, description),
-          }}
-        />
+    <Field
+      label={description.label}
+      hint={hint(description)}
+      error={error}
+      required={description.required}
+    >
+      {(bound) => (
+        <>
+          {control(bound)}
+
+          {description.max !== undefined && (
+            <Group gap="sm">
+              <Spacer />
+              <Text
+                size="eyebrow"
+                tone={
+                  text.length >= description.max * CLOSE ? 'accent' : 'meta'
+                }
+              >
+                {text.length} / {description.max}
+                {text.length >= description.max ? ' — c’est le maximum' : ''}
+              </Text>
+            </Group>
+          )}
+
+          {description.kind === 'richtext' && text.trim() !== '' && (
+            <div
+              className="basalte-markdown"
+              dangerouslySetInnerHTML={{
+                __html: renderRichtext(text, description),
+              }}
+            />
+          )}
+        </>
       )}
-    </div>
+    </Field>
   )
 }

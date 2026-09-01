@@ -1,16 +1,19 @@
 // Un champ image ne porte qu’une clé de la médiathèque : le rendu y trouve les
 // largeurs, le texte alternatif et le point focal. Le client, lui, ne voit que
 // la vignette et le bouton qui ouvre la médiathèque.
+//
+// La vignette est elle-même le bouton : c’est l’image qu’on vise du regard, et
+// « Remplacer » reste à côté pour qui parcourt l’écran au clavier.
 
-import { Button, Group, Image, Input, Paper, Text } from '@mantine/core'
-
-import { matchesRatio } from '../../media/ratio.js'
 import { translated } from '../draft.js'
 import { useEditing } from '../editing.js'
 import { thumbnail } from '../Media.js'
+import { Button } from '../ui/Button.js'
+import { Field } from '../ui/Field.js'
+import { Picture } from '../ui/icons.js'
+import { Group, Spacer, Stack } from '../ui/Layout.js'
+import { Text } from '../ui/Text.js'
 import { hint, useFieldError, type ControlProps } from './Field.js'
-
-const THUMBNAIL = 96
 
 export function ImageControl({
   description,
@@ -24,12 +27,8 @@ export function ImageControl({
   const entry = editing.media.find((item) => item.key === key)
 
   // Le format attendu est déclaré par le champ : il n’est connu qu’ici, et
-  // c’est lui qui décide de ce que la médiathèque propose.
-  const fits =
-    description.ratio === undefined ||
-    entry === undefined ||
-    matchesRatio(entry, description.ratio)
-
+  // c’est lui qui décide de ce que la médiathèque propose. Le cadrage, lui, se
+  // règle au point focal, dans la médiathèque.
   const choose = async () => {
     const chosen = await editing.pickImage(key, description.ratio)
 
@@ -37,61 +36,56 @@ export function ImageControl({
   }
 
   return (
-    <Input.Wrapper
+    <Field
       label={description.label}
-      description={hint(description)}
-      required={description.required}
+      hint={hint(description)}
       error={error}
+      required={description.required}
+      group
     >
-      <Paper p="xs" mt={4}>
-        <Group wrap="nowrap" align="center">
+      {(bound) => (
+        <Stack gap="sm" {...bound}>
           {entry === undefined ? (
-            <Text c="dimmed" size="sm" style={{ flex: 1 }}>
+            <div className="basalte-slot">
+              <Picture />
               Aucune image
               {description.ratio === undefined
                 ? ''
                 : ` — proportions attendues ${description.ratio}`}
-            </Text>
+            </div>
           ) : (
-            <>
-              <Image
-                w={THUMBNAIL}
-                h={THUMBNAIL}
-                fit="cover"
-                radius="sm"
+            <button
+              type="button"
+              className="basalte-tile"
+              aria-label="Remplacer l’image"
+              onClick={choose}
+            >
+              <img
+                className="basalte-tile__image"
                 src={thumbnail(entry)}
                 alt={translated(entry.alt, editing.language)}
               />
-              <div style={{ flex: 1 }}>
-                <Text size="sm" lineClamp={2}>
-                  {translated(entry.alt, editing.language) ||
-                    'Sans description'}
-                </Text>
-                {!fits && (
-                  <Text size="xs" c="orange">
-                    Pas au format {description.ratio} — à recadrer
-                  </Text>
-                )}
-              </div>
-            </>
+            </button>
           )}
-          <Group gap="xs" wrap="nowrap">
-            <Button variant="default" size="xs" onClick={choose}>
+
+          <Group gap="sm">
+            {entry !== undefined && (
+              <Text tone="meta" size="small">
+                {translated(entry.alt, editing.language) || 'Sans description'}
+              </Text>
+            )}
+            <Spacer />
+            <Button size="xs" onClick={choose}>
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button
-                variant="subtle"
-                color="red"
-                size="xs"
-                onClick={() => onChange('')}
-              >
+              <Button tone="danger" size="xs" onClick={() => onChange('')}>
                 Retirer
               </Button>
             )}
           </Group>
-        </Group>
-      </Paper>
-    </Input.Wrapper>
+        </Stack>
+      )}
+    </Field>
   )
 }

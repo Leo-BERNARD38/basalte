@@ -13,12 +13,15 @@
 // Tout ce que le panel explique vit ici, et nulle part ailleurs : deux endroits
 // auraient divergé à la première correction.
 
-import { ActionIcon, Anchor, Popover, Stack, Text } from '@mantine/core'
 import { useState, type ReactNode } from 'react'
 
 import type { PanelPayload } from '../server/panel.js'
-import { Question } from './Question.js'
 import type { Screen } from './Shell.js'
+import { IconButton } from './ui/Button.js'
+import { Question } from './ui/icons.js'
+import { Stack } from './ui/Layout.js'
+import { Anchor, Menu } from './ui/Overlay.js'
+import { Text } from './ui/Text.js'
 
 type Note = {
   readonly heading: string
@@ -31,9 +34,31 @@ function writeTo(support: string): ReactNode {
     'ne se fait pas depuis le panel.'
   ) : (
     <>
-      se demande à <Anchor href={`mailto:${support}`}>{support}</Anchor>.
+      se demande à{' '}
+      <a className="basalte-link" href={`mailto:${support}`}>
+        {support}
+      </a>
+      .
     </>
   )
+}
+
+/**
+ * Ce que le panel ajoute, et ce qu’il n’ajoute pas. Le client pose une page et
+ * une section quand il le veut (D179) ; une sorte de section qui n’existe pas
+ * encore reste un travail de développement, et c’est là que l’adresse sert.
+ */
+function addingNote(support: string): Note {
+  return {
+    heading: 'Ajouter une section ou une page',
+    body: (
+      <>
+        « Ajouter une section » est sous la liste, « Ajouter une page » dans le
+        sélecteur de page. Une sorte de section qui n’existe pas dans la liste{' '}
+        {writeTo(support)}
+      </>
+    ),
+  }
 }
 
 /**
@@ -56,12 +81,9 @@ export function notesFor(
     edit: [
       {
         heading: 'Les sections d’une page',
-        body: 'Vous modifiez, réordonnez et masquez les sections. Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.',
+        body: 'Vous ajoutez, modifiez, réordonnez, masquez et supprimez les sections. Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.',
       },
-      {
-        heading: 'Ajouter une section ou une page',
-        body: <>Cela {writeTo(support)}</>,
-      },
+      addingNote(support),
       {
         heading: 'L’aperçu',
         body: 'Il montre le dernier enregistrement, c’est-à-dire ce qui partira en ligne. Enregistrez pour le voir se mettre à jour.',
@@ -128,7 +150,10 @@ export function notesFor(
           ) : (
             <>
               Une page cassée, une section à ajouter, une question : écrivez à{' '}
-              <Anchor href={`mailto:${support}`}>{support}</Anchor>.
+              <a className="basalte-link" href={`mailto:${support}`}>
+                {support}
+              </a>
+              .
             </>
           ),
       },
@@ -149,38 +174,33 @@ export function Help({
   const notes = notesFor(screen, payload)
 
   return (
-    <Popover
-      opened={opened}
-      onChange={setOpened}
-      width={340}
-      position="bottom-start"
-      shadow="lg"
-      radius="md"
-      withinPortal
-    >
-      <Popover.Target>
-        <ActionIcon
+    <span className="basalte-help">
+      <Anchor>
+        <IconButton
+          label="Aide"
           aria-expanded={opened}
-          aria-label="Ce que cet écran permet"
           onClick={() => setOpened(!opened)}
         >
           <Question />
-        </ActionIcon>
-      </Popover.Target>
-      <Popover.Dropdown>
-        <Stack gap="sm">
-          {notes.map((note) => (
-            <div key={note.heading}>
-              <Text size="sm" fw={700}>
-                {note.heading}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {note.body}
-              </Text>
-            </div>
-          ))}
-        </Stack>
-      </Popover.Dropdown>
-    </Popover>
+        </IconButton>
+
+        <Menu
+          opened={opened}
+          onClose={() => setOpened(false)}
+          label="Ce que cet écran permet"
+        >
+          <Stack gap="xl">
+            {notes.map((note) => (
+              <Stack key={note.heading} gap="xs">
+                <strong>{note.heading}</strong>
+                <Text tone="muted" size="small">
+                  {note.body}
+                </Text>
+              </Stack>
+            ))}
+          </Stack>
+        </Menu>
+      </Anchor>
+    </span>
   )
 }

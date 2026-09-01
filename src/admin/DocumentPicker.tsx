@@ -1,11 +1,15 @@
 // Le choix d’un document depuis un champ. La même liste que l’écran
-// « Médias », dans une fenêtre.
+// « Médias », dans une fenêtre : un document se sert, il ne s’affiche jamais.
 
-import { Alert, Button, Group, Modal, Stack } from '@mantine/core'
 import { useState } from 'react'
 
 import type { DocumentSummary } from '../server/documents.js'
 import { DocumentList, DocumentUploadButton } from './Documents.js'
+import { Button } from './ui/Button.js'
+import { Spacer, Stack } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Banner, Empty } from './ui/Surface.js'
+import { Text } from './ui/Text.js'
 
 export function DocumentPicker({
   opened,
@@ -26,7 +30,9 @@ export function DocumentPicker({
   const [problem, setProblem] = useState('')
   const [shown, setShown] = useState(opened)
 
-  // Même remise à zéro que pour les images : la fenêtre ne se démonte pas.
+  // La fenêtre reste montée, seule sa visibilité change : sans cette remise à
+  // zéro, l’état initial ne se rejouait jamais et le sélecteur ouvert depuis un
+  // second champ proposait le document choisi pour le premier.
   if (shown !== opened) {
     setShown(opened)
 
@@ -39,49 +45,52 @@ export function DocumentPicker({
   return (
     <Modal
       opened={opened}
-      onClose={onClose}
       title="Choisir un document"
-      size="lg"
-      centered
-    >
-      <Stack gap="md">
-        {problem !== '' && (
-          <Alert
-            color="red"
-            title="La demande a été refusée"
-            withCloseButton
-            onClose={() => setProblem('')}
-          >
-            {problem}
-          </Alert>
-        )}
-
-        <DocumentList
-          documents={documents}
-          selected={selected}
-          onSelect={setSelected}
-        />
-
-        <Group justify="space-between">
+      onClose={onClose}
+      foot={
+        <>
           <DocumentUploadButton
+            tone="line"
+            label="Importer"
             onDone={(added) => {
               setSelected(added.key)
               onChanged()
             }}
             onError={setProblem}
           />
-          <Group>
-            <Button variant="default" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button
-              disabled={selected === ''}
-              onClick={() => onChoose(selected)}
-            >
-              Employer ce document
-            </Button>
-          </Group>
-        </Group>
+          <Spacer />
+          <Button onClick={onClose}>Annuler</Button>
+          <Button
+            tone="ink"
+            disabled={selected === ''}
+            onClick={() => onChoose(selected)}
+          >
+            Employer ce document
+          </Button>
+        </>
+      }
+    >
+      <Stack>
+        {problem !== '' && (
+          <Banner tone="refused">
+            <Stack gap="sm">
+              <strong>La demande a été refusée</strong>
+              <Text tone="muted">{problem}</Text>
+            </Stack>
+          </Banner>
+        )}
+
+        <DocumentList
+          documents={documents}
+          selected={selected}
+          empty={
+            <Empty
+              title="Aucun document"
+              note="Importez-en un depuis votre ordinateur."
+            />
+          }
+          onSelect={setSelected}
+        />
       </Stack>
     </Modal>
   )

@@ -16,7 +16,6 @@ import { z } from 'zod'
 import type { Schemas } from '../content/project.js'
 import { languageName } from '../content/report.js'
 import type { Translated } from '../fields/types.js'
-import { cropImage } from '../media/crop.js'
 import {
   ingest,
   MAX_IMAGE_BYTES,
@@ -56,16 +55,6 @@ const Coordinate = z.number().min(0).max(100)
 const Update = z.object({
   alt: z.record(z.string(), z.string()).optional(),
   focal: z.object({ x: Coordinate, y: Coordinate }).nullable().optional(),
-})
-
-const Crop = z.object({
-  key: z.string().regex(KEY),
-  box: z.object({
-    x: Coordinate,
-    y: Coordinate,
-    width: z.number().min(1).max(100),
-    height: z.number().min(1).max(100),
-  }),
 })
 
 export type MediaSummary = MediaEntry & {
@@ -188,66 +177,6 @@ export async function updateMedia(
   await commit([MANIFEST_PATH], `média : ${key} décrit`)
 
   return json({ ok: true, media: { ...manifest[key], key } })
-}
-
-/**
- * Recadrer produit une **nouvelle** image, dérivée de l’originale, qui reste.
- * Le cadre arrive en pourcentage de l’originale : c’est la seule forme qui
- * survive au fait que le panel travaille sur une vignette.
- */
-export async function cropMedia(
-  panel: Panel,
-  request: Request,
-  commit: Commit,
-): Promise<Response> {
-  let body
-
-  try {
-    body = Crop.safeParse(await request.json())
-  } catch {
-    return badRequest()
-  }
-
-  if (!body.success) return badRequest()
-
-  const manifest = { ...(await readManifest(panel.root)) }
-
-  if (manifest[body.data.key] === undefined) {
-    return json({ ok: false, message: 'Média inconnu.' }, 404)
-  }
-
-  let ingested
-
-  try {
-    ingested = await cropImage(
-      panel.root,
-      manifest,
-      body.data.key,
-      body.data.box,
-    )
-  } catch (cause) {
-    return json({ ok: false, message: (cause as Error).message }, 422)
-  }
-
-  const previous = manifest[ingested.key]
-
-  await storeMedia(panel.root, ingested)
-
-  manifest[ingested.key] = {
-    ...ingested.entry,
-    ...(previous?.focal === undefined ? {} : { focal: previous.focal }),
-  }
-
-  await writeManifest(panel.root, manifest)
-  await commit(
-    [MANIFEST_PATH, ...ingested.files.map((item) => mediaPath(item.name))],
-    `média : ${ingested.key} recadré depuis ${ingested.entry.source}`,
-  )
-
-  return json({
-    ok: true,
-    media: { ...manifest[ingested.key], key: ingested.key, usage: 0 },
-  })
 }
 
 export async function deleteMedia(

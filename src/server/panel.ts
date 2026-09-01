@@ -53,7 +53,6 @@ import {
   refuseMethod,
 } from './http.js'
 import {
-  cropMedia,
   deleteMedia,
   describeMedia,
   updateMedia,
@@ -239,16 +238,6 @@ export async function handlePanel(
     if (guard !== undefined) return guard
 
     return uploadMedia(panel, request, await panel.schemas(), commit)
-  }
-
-  // Avant la route par clé : « crop » n’est pas une empreinte, et tomber dans
-  // le cas général répondrait « média inconnu » à une demande de recadrage.
-  if (route[0] === 'media' && route.length === 2 && route[1] === 'crop') {
-    if (request.method !== 'POST') return refuseMethod()
-
-    const guard = guardWrite(request)
-
-    return guard ?? cropMedia(panel, request, commit)
   }
 
   if (route[0] === 'media' && route.length === 2) {

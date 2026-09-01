@@ -45,13 +45,12 @@
   il crée en revanche des **billets**, qui n'en sont pas (D151, plus bas).
 - **Une valeur d'image est une clé de la médiathèque**, pas un chemin : le
   rendu y trouve les largeurs disponibles, le texte alternatif et le point
-  focal (`panel.md` pour le manifeste, D40 pour la raison). Une image recadrée
-  est une clé de plus, dérivée de l'originale (D117) : le contenu ne porte
-  toujours qu'une chaîne, et le recadrage n'a demandé aucune migration.
-- **Un champ image peut déclarer un `ratio`**, et il est alors réellement
-  obtenu : le panel ne laisse employer qu'une image à ce format, en la
-  recadrant si besoin, et `basalte check` avertit d'un contenu écrit à la main
-  qui y échapperait (`seo-performances.md`).
+  focal (`panel.md` pour le manifeste, D40 pour la raison).
+- **Un champ image peut déclarer un `ratio`**, et c'est le point focal qui le
+  tient (D178) : le site cadre autour du sujet que le client a désigné, ou au
+  centre s'il n'en a désigné aucun. Aucune image n'est refusée pour sa forme, et
+  `basalte check` avertit d'un contenu écrit à la main qui y échapperait
+  (`seo-performances.md`).
 - **La carte de langues est toujours là**, même sur un site à une seule langue
   (D41). Ce que le client voit n'en dépend pas : le panel n'affiche un
   sélecteur que s'il y a plusieurs langues.

@@ -11,22 +11,15 @@
 // le reste — une image ajoutée, une description corrigée — recharge la charge
 // utile sans y toucher.
 
-import '@mantine/core/styles.css'
 import './panel.css'
 
-import {
-  Button,
-  Center,
-  Group,
-  Loader,
-  MantineProvider,
-  Modal,
-  Stack,
-  Text,
-} from '@mantine/core'
 import { useEffect, useState } from 'react'
 
 import { asideOf, asidesOf, isAside } from './asides.js'
+import { Button, Spinner } from './ui/Button.js'
+import { Spacer } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Text } from './ui/Text.js'
 import type { ContentIssue } from '../content/report.js'
 import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
@@ -56,7 +49,6 @@ import { Messages } from './Messages.js'
 import { screensFor, SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
 import { Stats } from './Stats.js'
-import { cssVariables, theme } from './theme.js'
 
 const EMPTY: Draft = { meta: {}, blocks: [] }
 const NO_POST: PostValues = { hidden: {}, fields: {} }
@@ -284,26 +276,22 @@ export default function Panel({ site }: { readonly site: string }) {
 
   if (!ready) {
     return (
-      <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-        <Center h="100dvh">
-          <Loader />
-        </Center>
-      </MantineProvider>
+      <div className="basalte-boot">
+        <Spinner />
+      </div>
     )
   }
 
   if (payload === undefined) {
     return (
-      <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-        <SignIn
-          site={site}
-          notice={closed}
-          onSignedIn={() => {
-            setClosed('')
-            void load()
-          }}
-        />
-      </MantineProvider>
+      <SignIn
+        site={site}
+        notice={closed}
+        onSignedIn={() => {
+          setClosed('')
+          void load()
+        }}
+      />
     )
   }
 
@@ -513,146 +501,142 @@ export default function Panel({ site }: { readonly site: string }) {
   }
 
   return (
-    <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-      <EditingContext.Provider value={editing}>
-        <Shell
-          payload={known}
-          screen={shown}
-          heading={heading(
-            shown,
-            shown === 'journal'
-              ? post?.title
-              : (aside?.title ??
-                  (page === undefined ? undefined : pageLabel(page.name))),
-          )}
-          onScreen={goTo}
-          language={language}
-          onLanguage={setLanguage}
-          dirty={dirty}
-          busy={busy}
-          savedAt={savedAt}
-          problems={problems}
-          issues={issues}
-          onIssue={setWanted}
-          publication={publication}
-          onSave={() => void save()}
-          onPublish={() => void goOnline()}
-          onSignOut={() => ask({ kind: 'sign-out' })}
-        >
-          {shown === 'edit' && (
-            <Edit
-              payload={known}
-              selected={selected}
-              draft={draft}
-              savedAt={savedAt}
-              dirty={dirty}
-              issues={issues}
-              wanted={wanted}
-              onSelect={select}
-              onDraft={setDraft}
-            />
-          )}
+    <EditingContext.Provider value={editing}>
+      <Shell
+        payload={known}
+        screen={shown}
+        heading={heading(
+          shown,
+          shown === 'journal'
+            ? post?.title
+            : (aside?.title ??
+                (page === undefined ? undefined : pageLabel(page.name))),
+        )}
+        onScreen={goTo}
+        language={language}
+        onLanguage={setLanguage}
+        dirty={dirty}
+        busy={busy}
+        savedAt={savedAt}
+        problems={problems}
+        issues={issues}
+        onIssue={setWanted}
+        publication={publication}
+        onSave={() => void save()}
+        onPublish={() => void goOnline()}
+        onSignOut={() => ask({ kind: 'sign-out' })}
+      >
+        {shown === 'edit' && (
+          <Edit
+            payload={known}
+            selected={selected}
+            draft={draft}
+            savedAt={savedAt}
+            dirty={dirty}
+            issues={issues}
+            wanted={wanted}
+            onSelect={select}
+            onDraft={setDraft}
+          />
+        )}
 
-          {shown === 'journal' && (
-            <Journal
-              payload={known}
-              selected={openedPost}
-              draft={postDraft}
-              savedAt={savedAt}
-              dirty={dirty}
-              busy={busy}
-              onSelect={selectPost}
-              onDraft={setPostDraft}
-              issues={issues}
-              onCreate={(title) => void compose(title)}
-              onDelete={(slug) => void remove(slug)}
-            />
-          )}
+        {shown === 'journal' && (
+          <Journal
+            payload={known}
+            selected={openedPost}
+            draft={postDraft}
+            savedAt={savedAt}
+            dirty={dirty}
+            busy={busy}
+            onSelect={selectPost}
+            onDraft={setPostDraft}
+            issues={issues}
+            onCreate={(title) => void compose(title)}
+            onDelete={(slug) => void remove(slug)}
+          />
+        )}
 
-          {shown === 'media' && (
-            <MediaLibrary
-              media={known.media}
-              documents={known.documents}
-              onChanged={() => void refresh()}
-            />
-          )}
+        {shown === 'media' && (
+          <MediaLibrary
+            payload={known}
+            onChanged={() => void refresh()}
+            onOpen={(place) => {
+              if (place.kind === 'post') {
+                goTo('journal')
+                selectPost(place.entry)
 
-          {shown === 'messages' && (
-            <Messages
-              notified={known.notified}
-              onChanged={() => void refresh()}
-              onSignedOut={dropSession}
-            />
-          )}
+                return
+              }
 
-          {shown === 'stats' && <Stats onSignedOut={dropSession} />}
+              goTo('edit')
+              select(place.entry)
+            }}
+          />
+        )}
 
-          {shown === 'account' && <Account onSignedOut={dropSession} />}
-        </Shell>
+        {shown === 'messages' && (
+          <Messages
+            notified={known.notified}
+            onChanged={() => void refresh()}
+            onSignedOut={dropSession}
+          />
+        )}
 
-        <MediaPicker
-          opened={picker !== undefined}
-          media={known.media}
-          current={picker?.current ?? ''}
-          ratio={picker?.ratio}
-          onChanged={() => void refresh()}
-          onClose={() => answerPicker(undefined)}
-          onChoose={answerPicker}
-        />
+        {shown === 'stats' && <Stats onSignedOut={dropSession} />}
 
-        <DocumentPicker
-          opened={documentPicker !== undefined}
-          documents={known.documents}
-          current={documentPicker?.current ?? ''}
-          onChanged={() => void refresh()}
-          onClose={() => answerDocumentPicker(undefined)}
-          onChoose={answerDocumentPicker}
-        />
+        {shown === 'account' && <Account onSignedOut={dropSession} />}
+      </Shell>
 
-        {/* Trois issues, et la première est celle que l’on veut presque
+      <MediaPicker
+        opened={picker !== undefined}
+        payload={known}
+        current={picker?.current ?? ''}
+        ratio={picker?.ratio}
+        onChanged={() => void refresh()}
+        onClose={() => answerPicker(undefined)}
+        onChoose={answerPicker}
+      />
+
+      <DocumentPicker
+        opened={documentPicker !== undefined}
+        documents={known.documents}
+        current={documentPicker?.current ?? ''}
+        onChanged={() => void refresh()}
+        onClose={() => answerDocumentPicker(undefined)}
+        onChoose={answerDocumentPicker}
+      />
+
+      {/* Trois issues, et la première est celle que l’on veut presque
             toujours : garder son travail, puis continuer. Deux boutons dont
             aucun n’enregistrait obligeaient à fermer, enregistrer, rouvrir. */}
-        <Modal
-          opened={asked !== undefined}
-          onClose={() => setAsked(undefined)}
-          title="Modifications non enregistrées"
-          centered
-        >
-          <Stack gap="md">
-            <Text size="sm">{warning(asked)}</Text>
-            <Stack gap="xs">
-              <Button
-                loading={busy}
-                onClick={() => {
-                  void keepThenGo()
-                }}
-              >
-                {asked?.kind === 'sign-out'
-                  ? 'Enregistrer puis se déconnecter'
-                  : 'Enregistrer puis ouvrir'}
-              </Button>
-              <Group justify="space-between">
-                <Button
-                  variant="subtle"
-                  color="red"
-                  size="sm"
-                  onClick={abandon}
-                >
-                  Abandonner les modifications
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setAsked(undefined)}
-                >
-                  Rester ici
-                </Button>
-              </Group>
-            </Stack>
-          </Stack>
-        </Modal>
-      </EditingContext.Provider>
-    </MantineProvider>
+      <Modal
+        opened={asked !== undefined}
+        title="Modifications non enregistrées"
+        onClose={() => setAsked(undefined)}
+        foot={
+          <>
+            <Button tone="danger" onClick={abandon}>
+              Abandonner les modifications
+            </Button>
+            <Spacer />
+            <Button onClick={() => setAsked(undefined)}>Rester ici</Button>
+            <Button
+              tone="ink"
+              busy={busy}
+              onClick={() => {
+                void keepThenGo()
+              }}
+            >
+              {asked?.kind === 'sign-out'
+                ? 'Enregistrer puis se déconnecter'
+                : 'Enregistrer puis ouvrir'}
+            </Button>
+          </>
+        }
+      >
+        <Text>{warning(asked)}</Text>
+      </Modal>
+    </EditingContext.Provider>
   )
 }
 

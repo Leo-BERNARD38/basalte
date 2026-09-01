@@ -156,60 +156,96 @@ des tokens de `design.md` reste donc bornée aux blocs.
 
 ### La couche de tokens
 
-Cette échelle, le panel la **configure** plutôt que de la subir (D95). Les
-valeurs vivent dans `src/admin/tokens.ts` : surfaces, encre, couleurs, échelle
-de texte, espacements, rayons, ombres, largeurs de lecture. `theme.ts` les verse
-dans `createTheme` — et donc dans chaque composant Mantine — puis, par son
-résolveur, dans les variables `--panel-*` que `panel.css` consomme. Une valeur
-n'est écrite qu'une fois.
+Le panel porte sa propre couche de tokens (D95). Les valeurs vivent dans
+`src/admin/tokens.ts` : surfaces, encre, filets, accent, états, échelle de
+texte, espacements, rayons, hauteurs de contrôle, ombres, largeurs de lecture,
+polices, et les hachures. `panel.css` les pose en variables `--panel-*` dans
+son bloc `:root`, et ne consomme rien d'autre.
 
-Le module des valeurs n'importe rien : `theme.ts` entraîne `@mantine/core`, et
-`basalte lint` doit les relire depuis une commande Node (D164).
+Les deux ne peuvent pas diverger : `src/admin/tokens.test.ts` relit ce bloc et
+le compare au module — chaque token doit y être, à la même valeur, et la feuille
+ne peut en poser aucun que le module ne porte. La feuille reste donc écrite à
+la main, sans étape de génération, et reste juste.
 
-Trois principes portent l'allure :
+Le module des valeurs n'importe rien : `basalte lint` doit les relire depuis une
+commande Node (D164).
 
-- **Aucune bordure** (D97). Ce qui sépare deux plans est un écart de valeur et
-  une ombre très douce. Entre deux lignes d'une liste, c'est l'écart seul.
-- **La couleur est réservée** aux actions et aux données, et **deux éléments
-  accentués par écran au plus** (D170) : l'accent plein pour l'action qui change
-  l'état du site, son lavis pour l'action propre à l'écran, le gris pour tout le
-  reste. À trois, plus aucun ne ressort. Ce qui détruit est rouge.
-- **Les rayons sont courts** (D171) : 6 / 8 / 10 / 14, et la forme pleine ne
-  reste qu'au badge, à la pastille et à l'icône ronde. Les quatre surfaces sont
-  assez creusées pour qu'une carte blanche s'en détache sans un trait.
+Quatre principes portent l'allure :
+
+- **Un filet, pas une ombre** (D172). Un pixel de `#ebebed` sépare deux plans.
+  L'ombre ne reste qu'à ce qui flotte réellement au-dessus du reste : la barre
+  posée sur l'aperçu, un menu, une fenêtre. Cinq plans, et l'ombre grandit avec
+  la distance au document.
+- **L'action est noire** (D174). Le bouton qui change l'état du site, l'onglet
+  ouvert et la marque sont en `#17171a`. L'accent pétrole ne dit jamais
+  « fais » : il dit « voici ce que tu modifies » — l'aplat d'une ligne choisie,
+  où l'encre reste noire — et « voici ce qui se mesure » — une variation, une
+  jauge, l'anneau de focus. Ce qui détruit est rouge, et ce qui est en ligne est
+  vert, toujours doublé du mot.
+- **La forme pleine est le défaut** (D173). Tout ce qui agit, étiquette ou
+  compte s'arrondit complètement. Trois familles gardent l'arête, et elles
+  seules : le champ et la ligne de liste, parce qu'une colonne se lit sur un axe
+  vertical net, et la surface, parce qu'on ne manipule pas une carte. Là, quatre
+  rayons — 8 pour un champ ou une ligne, 10 pour une carte posée dans une autre,
+  12 pour une surface, 14 pour la fenêtre.
 - **Le contraste vient de la graisse et de la taille**, pas de la couleur :
-  38 / 22 / 16 / 14 / 13 / 11, en 700 ou 500, et rien entre les deux. Les six
-  rangs de titre tombent sur ces six pas, et le panel en emploie trois : le nom
-  de l'écran, celui d'une colonne, celui d'une carte.
+  32 / 20 / 15 / 13 / 12 / 11, en 400, 450, 500 ou 600. Le chiffre passe en
+  Geist Mono, en chasse fixe, pour qu'une colonne s'aligne.
+
+Les **hachures à 45°** — un pixel tous les six, 7,5 % de noir — ne décorent
+aucun fond. Elles marquent les trois choses qui n'existent pas encore sur le
+site : un brouillon, une section masquée, un emplacement vide.
 
 L'encre compte **trois** niveaux, et c'est une mesure, pas un goût : entre
-`#16181d` et une surface presque blanche, un quatrième gris qui tienne 4,5:1
-serait indiscernable du troisième. Ce qui reste en dessous est du dessin —
-`line`, la poignée et les glyphes — et ne porte jamais de texte.
+`#17171a` et une surface presque blanche, un quatrième gris qui tienne 4,5:1
+serait indiscernable du troisième. Le plan sombre porte les siens, trois aussi.
+Ce qui reste en dessous est du dessin, et ne porte jamais de texte.
 
-Le plancher est **vérifié par `basalte lint`** (D164), et non plus annoncé :
-`design/panel-contrast` mesure chaque niveau d'encre sur chacune des quatre
-surfaces, l'encre d'une ligne sélectionnée, les accents employés en texte, et le
-bleu des marques au seuil du graphique. Les règles `style/*` refusent une
-longueur ou une couleur écrite en clair dans `panel.css`. Le reste du plancher —
-focus visible à 3 px, cible tactile de 48 px sous 60 rem, jamais la couleur
-seule pour porter un état — demande encore de regarder un écran.
+Le plancher est **vérifié par `basalte lint`** (D164) : `design/panel-contrast`
+mesure chaque niveau d'encre sur chacun des trois plans clairs, l'encre du plan
+sombre, l'accent partout où il porte du texte, et le rouge du refus. Les règles
+`style/*` refusent une longueur ou une couleur écrite en clair dans
+`panel.css`.
+
+Le seuil du dessin, lui, ne vaut que pour ce qui **porte une information**
+(D177) : la barre d'un histogramme, une jauge, l'anneau de focus. Le filet qui
+sépare, la poignée au repos et le glyphe inerte en sont tenus dehors, et
+`panel.test.ts` vérifie qu'ils y restent — les y inclure obligerait à les
+assombrir jusqu'à ce qu'ils se lisent comme du contenu. La poignée se donne
+autrement : elle passe à l'encre 3 au survol et au focus, et une section se
+déplace aussi au clavier.
+
+Le reste du plancher — focus visible, cible tactile de 48 px sous 60 rem, jamais
+la couleur seule pour porter un état — demande encore de regarder un écran.
+
+### Les composants
+
+Le panel n'emploie aucune bibliothèque d'interface (D175). Ses composants vivent
+dans `src/admin/ui/`, un fichier par famille : la mise en place, la
+typographie, les boutons, le champ et ce qui l'entoure, la ligne de liste, les
+marques, les interrupteurs, les surfaces, ce qui flotte, et le jeu d'icônes.
+
+Deux d'entre eux portent plus qu'une allure. `Field` tient l'affichage d'un
+refus de validation : son render-prop remet à chaque contrôle l'identifiant,
+l'`aria-invalid` et l'`aria-describedby` qui font qu'une erreur atteint le champ
+qui la cause (D166). `Modal` piège le focus, ferme à Échap et au clic sur le
+voile, et ne rend rien tant qu'elle est fermée — le composant qui la porte reste
+monté, ce qui évite qu'un sélecteur rouvert propose le choix du précédent.
+
+La **police** est Geist, en fonte variable auto-hébergée (D181) : la graisse 450
+que portent les lignes de liste n'existe pas en statique, et le panel est servi
+depuis le VPS du client — il n'appelle pas un tiers pour s'afficher. Les deux
+`.woff2` vivent dans `src/admin/fonts/`, et `scripts/build.mjs` les recopie dans
+le paquet au même titre que la feuille.
 
 ### Ce qui tient sur l'écran qu'on a
 
 La barre du haut demande environ 1 250 px pour ses six onglets, sa marque, sa
 langue et ses deux commandes : elle se replie donc à **80 rem**, ses onglets sur
-leur propre ligne et défilants (D167). Sous **75 rem**, les trois colonnes
-s'empilent dans l'ordre liste, réglages, aperçu — ce qu'on règle et ce qu'on lit
-voisinent, et l'aperçu passe en dernier. Sous **60 rem**, l'en-tête d'écran
-s'empile et tout ce qui se clique atteint 48 px, y compris ce que Mantine
-dessine en petit.
-
-`panel.css` ne dessine plus que ce que Mantine ne sait pas dessiner : la mise
-en page des écrans, la poignée de déplacement, la vignette, la jauge, le point
-focal, et le cadre de recadrage. Ce cadre est le seul trait du panel : ce n'est
-pas une bordure qui sépare deux plans (D97), c'est la commande elle-même — hors
-de lui, tout est assombri, et c'est cet écart qui montre ce qui sera gardé.
+leur propre ligne et défilants (D167). Sous **75 rem**, les deux colonnes de
+l'édition s'empilent, et la colonne des sections et des réglages passe la
+première — ce qu'on règle vient avant ce qu'on relit. Sous **60 rem**, l'en-tête
+d'écran s'empile et tout ce qui se clique atteint 48 px.
 
 ## Authentification
 
@@ -324,7 +360,6 @@ tourne : un build dure des secondes, une requête ne les attend pas
 
 | Adresse | Ce qu'elle fait |
 |---|---|
-| `POST /api/media/crop` | recadre une image, et rend la nouvelle clé |
 | `PUT /api/business` | valide, écrit `content/business.json`, commit |
 
 ### Les adresses des messages et de l'audience
@@ -481,18 +516,14 @@ sur les octets réels, nom dérivé de l'empreinte, suppression refusée tant
 qu'une section l'emploie. Ce qui les sépare — le ré-encodage impossible, et les
 conditions qui le compensent — est dans `securite.md`.
 
-**Point focal** réglable, transformé en `object-position`. Il a longtemps tenu
-lieu de recadrage ; un vrai outil lui a été adjoint sans le remplacer (D118) : le recadrage donne le format, le point focal dit où est le sujet à
-l'intérieur de ce format — et c'est encore lui qui travaille quand le CSS
-re-cadre d'un support à l'autre.
+**Point focal** réglable, transformé en `object-position`, et **seul réglage
+d'image** (D178). Le client clique le sujet ; le site cadre autour de lui, quelle
+que soit la forme de l'emplacement — un bandeau en 16/9 et une vignette en 4/3
+se servent du même point, et le corriger ne réencode rien.
 
-**Recadrage** au format que l'emplacement attend. Il ne s'ouvre pas depuis la
-médiathèque, qui ne connaît aucun format, mais depuis le champ, qui le déclare.
-Le cadre est verrouillé au ratio : le client le déplace et le redimensionne, à
-la souris ou aux flèches du clavier, il ne le déforme pas. Ce qui en sort est
-une **nouvelle** image, dérivée de l'originale, qui reste (D117) — la
-médiathèque affiche « Recadrée », et supprimer une originale dont un recadrage
-est en ligne est refusé.
+Le panel ne recadre plus. Un site monté de version peut porter des recadrages
+faits avant : ce sont des médias comme les autres, leur filiation reste lue, et
+supprimer l'originale d'un recadrage encore employé reste refusé.
 
 La suppression d'un média encore référencé est refusée : le panel affiche
 « employée par une section » à la place du bouton. `basalte check` signale

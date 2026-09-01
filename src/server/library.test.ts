@@ -6,10 +6,13 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
 import { MAX_IMAGE_BYTES, MEDIA_DIR } from '../media/ingest.js'
+import { readManifest, writeManifest } from '../media/manifest.js'
 import { handlePanel } from './panel.js'
 import { bench, defaultPage, IMAGE, ORIGIN } from './panel.fixture.js'
 
 let png: Buffer
+/** Une seconde image : l’empreinte vient du contenu, deux clés en demandent deux. */
+let other: Buffer
 
 beforeAll(async () => {
   png = await sharp({
@@ -18,6 +21,17 @@ beforeAll(async () => {
       height: 400,
       channels: 3,
       background: { r: 30, g: 80, b: 150 },
+    },
+  })
+    .png()
+    .toBuffer()
+
+  other = await sharp({
+    create: {
+      width: 320,
+      height: 200,
+      channels: 3,
+      background: { r: 150, g: 80, b: 30 },
     },
   })
     .png()
@@ -317,65 +331,10 @@ describe('médias et contenu', () => {
   })
 })
 
-describe('POST /api/media/crop', () => {
-  it('rend une nouvelle image au format demandé, sans toucher à l’originale', async () => {
-    const site = await bench()
-
-    const added = await (
-      await site.call('POST', '/api/media', upload(png, { fr: 'Un aplat' }))
-    ).json()
-
-    // 640 × 400 recadré sur sa moitié haute : du 640 × 200, soit du 16/5.
-    const cropped = await (
-      await site.call('POST', '/api/media/crop', {
-        key: added.media.key,
-        box: { x: 0, y: 0, width: 100, height: 50 },
-      })
-    ).json()
-
-    expect(cropped.ok).toBe(true)
-    expect(cropped.media.key).not.toBe(added.media.key)
-    expect(cropped.media.width).toBe(640)
-    expect(cropped.media.height).toBe(200)
-    expect(cropped.media.source).toBe(added.media.key)
-    expect(cropped.media.crop).toEqual({ x: 0, y: 0, width: 100, height: 50 })
-
-    const manifest = await site.media()
-
-    expect(manifest[added.media.key]?.height).toBe(400)
-    expect(manifest[cropped.media.key]?.alt).toEqual({ fr: 'Un aplat' })
-
-    await site.close()
-  })
-
-  it('refuse une clé absente de la médiathèque', async () => {
-    const site = await bench()
-
-    const answer = await site.call('POST', '/api/media/crop', {
-      key: '0000000000000000',
-      box: { x: 0, y: 0, width: 50, height: 50 },
-    })
-
-    expect(answer.status).toBe(404)
-
-    await site.close()
-  })
-
-  it('refuse un cadre hors bornes', async () => {
-    const site = await bench()
-
-    const answer = await site.call('POST', '/api/media/crop', {
-      key: IMAGE,
-      box: { x: -10, y: 0, width: 50, height: 50 },
-    })
-
-    expect(answer.status).toBe(400)
-
-    await site.close()
-  })
-})
-
 describe('DELETE /api/media/<clé>', () => {
+  // Le panel ne recadre plus (D178), mais un site monté de version peut porter
+  // des recadrages faits avant : leur filiation continue de protéger
+  // l’originale, et c’est ce que cette garde vérifie.
   it('refuse de supprimer l’originale d’un recadrage employé', async () => {
     const site = await bench()
 
@@ -383,12 +342,19 @@ describe('DELETE /api/media/<clé>', () => {
       await site.call('POST', '/api/media', upload(png, { fr: 'Un aplat' }))
     ).json()
 
-    const cropped = await (
-      await site.call('POST', '/api/media/crop', {
-        key: added.media.key,
-        box: { x: 0, y: 0, width: 100, height: 50 },
-      })
+    const derived = await (
+      await site.call('POST', '/api/media', upload(other, { fr: 'Un autre' }))
     ).json()
+
+    const manifest = await readManifest(site.root)
+
+    await writeManifest(site.root, {
+      ...manifest,
+      [derived.media.key]: {
+        ...manifest[derived.media.key],
+        source: added.media.key,
+      },
+    })
 
     await site.call('PUT', '/api/pages/index', {
       meta: { title: { fr: 'Accueil' }, description: { fr: 'Un mot.' } },
@@ -397,7 +363,7 @@ describe('DELETE /api/media/<clé>', () => {
           id: 'h1',
           type: 'hero',
           hidden: {},
-          props: { title: { fr: 'Bonjour' }, image: cropped.media.key },
+          props: { title: { fr: 'Bonjour' }, image: derived.media.key },
         },
       ],
     })

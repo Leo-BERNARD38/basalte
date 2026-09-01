@@ -188,19 +188,6 @@ export function updateMedia(
   return send('PATCH', `/api/media/${key}`, patch)
 }
 
-/** Recadrer rend une **nouvelle** image : l’originale reste dans la médiathèque. */
-export function cropMedia(
-  key: string,
-  box: {
-    readonly x: number
-    readonly y: number
-    readonly width: number
-    readonly height: number
-  },
-): Promise<Answer<{ readonly media: MediaSummary }>> {
-  return send('POST', '/api/media/crop', { key, box })
-}
-
 export function deleteMedia(key: string): Promise<Answer<unknown>> {
   return send('DELETE', `/api/media/${key}`)
 }

@@ -1,14 +1,14 @@
-// Une suite répétable d’un même groupe de champs. C’est le seul endroit où le
-// client ajoute et retire quelque chose : il ne crée ni page ni section (D3).
+// Une suite répétable d’un même groupe de champs : le client y ajoute et y
+// retire des éléments, comme il ajoute une section ou une page (D179).
 //
 // Les éléments sont repliés, un seul ouvert à la fois (D163). Une FAQ de trente
 // questions se parcourt alors comme une table des matières : chaque ligne porte
-// le champ que le bloc a désigné en `itemLabel` ; à défaut, son rang.
+// le champ que le bloc a désigné en `itemLabel` ; à défaut, son rang. L’élément
+// ouvert garde sa ligne, et ses champs se posent dessous.
 //
 // L’ouverture suit l’élément quand la liste se réordonne, jamais son rang.
 
 import { useId, useState } from 'react'
-import { Button, Group, Input, Modal, Paper, Stack, Text } from '@mantine/core'
 
 import {
   emptyValues,
@@ -22,10 +22,22 @@ import {
 } from '../draft.js'
 import type { Values } from '../draft.js'
 import { useEditing } from '../editing.js'
-import { Chevron } from '../Chevron.js'
-import { Grip } from '../Grip.js'
 import { SortableItem, SortableList } from '../Sortable.js'
-import { below, FieldSet, useFieldError, type ControlProps } from './Field.js'
+import { Button } from '../ui/Button.js'
+import { Field } from '../ui/Field.js'
+import { Chevron, Grip } from '../ui/icons.js'
+import { Group, Spacer, Stack } from '../ui/Layout.js'
+import { Modal } from '../ui/Overlay.js'
+import { Row, RowGlyph, RowText } from '../ui/Row.js'
+import { Card } from '../ui/Surface.js'
+import { Text } from '../ui/Text.js'
+import {
+  below,
+  FieldSet,
+  hint,
+  useFieldError,
+  type ControlProps,
+} from './Field.js'
 
 export function ListControl({
   description,
@@ -74,142 +86,146 @@ export function ListControl({
     `l’élément ${index + 1}`
 
   return (
-    <Input.Wrapper
+    <Field
       label={description.label}
-      description={description.help}
-      required={description.required}
+      hint={hint(description)}
       error={error}
+      required={description.required}
+      group
     >
-      <Group justify="flex-end" mb="xs">
-        <Text size="xs" c="dimmed">
-          {items.length} élément{items.length > 1 ? 's' : ''}
-          {description.max === undefined ? '' : ` sur ${description.max}`}
-        </Text>
-      </Group>
+      {(bound) => (
+        <Stack gap="sm" {...bound}>
+          <Group gap="sm">
+            <Spacer />
+            <Text tone="meta" size="eyebrow">
+              {items.length} élément{items.length > 1 ? 's' : ''}
+              {description.max === undefined ? '' : ` sur ${description.max}`}
+            </Text>
+          </Group>
 
-      <SortableList
-        ids={items.map((_, index) => String(index))}
-        onMove={(from, to) => {
-          onChange(move(items, from, to))
-          setOpen(movedIndex(open, from, to))
-        }}
-      >
-        <Stack gap="xs">
-          {items.map((item, index) => (
-            <SortableItem key={index} id={String(index)}>
-              {(handle) => (
-                <Paper
-                  p="xs"
-                  bg="var(--panel-sunken)"
-                  shadow="none"
-                  radius="md"
-                >
-                  <Group justify="space-between" wrap="nowrap" gap="xs">
-                    <button
-                      type="button"
-                      className="basalte-handle"
-                      ref={handle.ref}
-                      aria-label="Déplacer cet élément"
-                      {...handle.props}
-                    >
-                      <Grip />
-                    </button>
-                    <button
-                      type="button"
-                      className="basalte-item"
-                      data-wrong={wrong.has(index)}
-                      aria-expanded={open === index}
-                      aria-controls={`${name}-${index}`}
-                      onClick={() => setOpen(open === index ? null : index)}
-                    >
-                      <span className="basalte-item__label">
-                        {labelOfItem(
-                          description.itemLabel,
-                          item,
-                          editing.language,
-                        ) || `Élément ${index + 1}`}
-                      </span>
-                      <Chevron />
-                    </button>
-                    <Button
-                      variant="subtle"
-                      color="red"
-                      size="xs"
-                      disabled={scarce}
-                      onClick={() =>
-                        hasContent(item) ? setAsked(index) : drop(index)
-                      }
-                    >
-                      Retirer
-                    </Button>
-                  </Group>
-                  {open === index && (
-                    <Stack gap="sm" mt="sm" id={`${name}-${index}`}>
-                      <FieldSet
-                        descriptions={fields}
-                        values={item}
-                        issues={below(issues, index)}
-                        onChange={(next) =>
-                          onChange(replace(items, index, next as Values))
-                        }
-                      />
+          <SortableList
+            ids={items.map((_, index) => String(index))}
+            onMove={(from, to) => {
+              onChange(move(items, from, to))
+              setOpen(movedIndex(open, from, to))
+            }}
+          >
+            <Stack gap="xs">
+              {items.map((item, index) => (
+                <SortableItem key={index} id={String(index)}>
+                  {(handle) => (
+                    <Stack gap="xs">
+                      <Group gap="xs">
+                        <button
+                          type="button"
+                          className="basalte-handle"
+                          ref={handle.ref}
+                          aria-label="Déplacer cet élément"
+                          {...handle.props}
+                        >
+                          <Grip />
+                        </button>
+                        <Row
+                          current={open === index}
+                          wrong={wrong.has(index)}
+                          aria-expanded={open === index}
+                          aria-controls={`${name}-${index}`}
+                          onClick={() => setOpen(open === index ? null : index)}
+                        >
+                          <RowText>
+                            {labelOfItem(
+                              description.itemLabel,
+                              item,
+                              editing.language,
+                            ) || `Élément ${index + 1}`}
+                          </RowText>
+                          <RowGlyph>
+                            <Chevron />
+                          </RowGlyph>
+                        </Row>
+                        <Button
+                          tone="danger"
+                          size="xs"
+                          disabled={scarce}
+                          onClick={() =>
+                            hasContent(item) ? setAsked(index) : drop(index)
+                          }
+                        >
+                          Retirer
+                        </Button>
+                      </Group>
+                      {open === index && (
+                        <Card nested id={`${name}-${index}`}>
+                          <Stack gap="md">
+                            <FieldSet
+                              descriptions={fields}
+                              values={item}
+                              issues={below(issues, index)}
+                              onChange={(next) =>
+                                onChange(replace(items, index, next))
+                              }
+                            />
+                          </Stack>
+                        </Card>
+                      )}
                     </Stack>
                   )}
-                </Paper>
-              )}
-            </SortableItem>
-          ))}
-        </Stack>
-      </SortableList>
+                </SortableItem>
+              ))}
+            </Stack>
+          </SortableList>
 
-      {/* Un élément rempli ne disparaît pas d’un clic : c’est le seul geste du
-          panel qui détruit ce que le client a écrit sans rien enregistrer. */}
-      <Modal
-        opened={asked !== null}
-        onClose={() => setAsked(null)}
-        title="Retirer cet élément"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            {asked === null ? '' : `« ${named(asked)} »`} sera retiré de la
-            liste. L’enregistrement suivant le fera disparaître du site.
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setAsked(null)}>
-              Le garder
+          <Group gap="sm">
+            <Button
+              size="xs"
+              disabled={full}
+              onClick={() => {
+                onChange([...items, emptyValues(fields, codes)])
+                setOpen(items.length)
+              }}
+            >
+              Ajouter un élément
             </Button>
-            <Button color="red" onClick={() => asked !== null && drop(asked)}>
-              Retirer
-            </Button>
+            {full && (
+              <Text tone="meta" size="eyebrow">
+                La mise en page de ce bloc n’en porte pas davantage.
+              </Text>
+            )}
+            {scarce && (
+              <Text tone="meta" size="eyebrow">
+                Ce bloc en demande au moins {description.min} : « Retirer »
+                attendra qu’il y en ait un de plus.
+              </Text>
+            )}
           </Group>
-        </Stack>
-      </Modal>
 
-      <Group gap="sm" mt="xs">
-        <Button
-          variant="default"
-          size="xs"
-          disabled={full}
-          onClick={() => {
-            onChange([...items, emptyValues(fields, codes)])
-            setOpen(items.length)
-          }}
-        >
-          Ajouter un élément
-        </Button>
-        {full && (
-          <Text size="xs" c="dimmed">
-            La mise en page de ce bloc n’en porte pas davantage.
-          </Text>
-        )}
-        {scarce && (
-          <Text size="xs" c="dimmed">
-            Ce bloc en demande au moins {description.min} : « Retirer » attendra
-            qu’il y en ait un de plus.
-          </Text>
-        )}
-      </Group>
-    </Input.Wrapper>
+          {/* Un élément rempli ne disparaît pas d’un clic : c’est le seul geste
+              du panel qui détruit ce que le client a écrit sans rien
+              enregistrer. */}
+          <Modal
+            opened={asked !== null}
+            title="Retirer cet élément"
+            onClose={() => setAsked(null)}
+            foot={
+              <>
+                <Spacer />
+                <Button onClick={() => setAsked(null)}>Le garder</Button>
+                <Button
+                  tone="danger"
+                  onClick={() => asked !== null && drop(asked)}
+                >
+                  Retirer
+                </Button>
+              </>
+            }
+          >
+            <Text>
+              {asked === null ? '' : `« ${named(asked)} »`} sera retiré de la
+              liste. L’enregistrement suivant le fera disparaître du site.
+            </Text>
+          </Modal>
+        </Stack>
+      )}
+    </Field>
   )
 }

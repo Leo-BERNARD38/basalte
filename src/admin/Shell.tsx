@@ -1,38 +1,24 @@
 // Le cadre du panel : la navigation, la langue affichée, et l’en-tête d’écran
 // — seul endroit où agir sur l’état du site.
 //
-// Trois informations y sont lisibles en permanence : reste-t-il quelque chose
-// à enregistrer, quand la dernière modification a-t-elle été enregistrée, et
+// La barre est noire, et l’onglet ouvert y est une pastille blanche : l’outil
+// se tient au-dessus du document, pas à côté, et le blanc reste à la page
+// qu’on fabrique.
+//
+// Trois informations sont lisibles en permanence : reste-t-il quelque chose à
+// enregistrer, quand la dernière modification a-t-elle été enregistrée, et
 // quelque chose est-il cassé. Elles vivent sous le titre, à côté des deux
-// boutons, pour qu’un seul regard suffise — sur une ligne, dans un ordre fixe.
+// boutons, pour qu’un seul regard suffise.
 //
 // Le titre nomme ce qui est ouvert ; l’œilleton qui le surmonte nomme l’écran.
-// Il disait l’un ou l’autre : sur « Édition », le nom de la page remplaçait
-// celui de l’écran, et rien ne rappelait où l’on était.
+// Ce que les deux boutons font est à un clic, sous le « ? » de l’en-tête, avec
+// tout ce que cet écran-là explique (D169).
 //
-// Ce que les deux boutons font ne va pas de soi, et c’est la question que le
-// client pose le plus souvent. La réponse est à un clic, sous le « ? » de
-// l’en-tête, avec tout ce que cet écran-là explique (D169) — elle occupait
-// jusqu’ici une ligne permanente sur chacun des six écrans.
-//
-// « Enregistrer » suit le badge, et rien d’autre : il était grisé partout
-// ailleurs que sur « Édition », si bien qu’un billet modifié affichait
-// « Modifications non enregistrées » à côté du seul bouton capable de les
-// enregistrer, éteint. Un avertissement sur lequel on ne peut pas agir vaut
-// moins que pas d’avertissement.
+// « Enregistrer » et « Mettre en ligne » ne paraissent que sur les deux écrans
+// qui écrivent du contenu. Ailleurs ils ne veulent rien dire : une médiathèque
+// enregistre à chaque geste, et des messages ne se mettent pas en ligne. La
+// place, elle, ne bouge pas — l’en-tête garde sa forme d’un écran à l’autre.
 
-import {
-  Alert,
-  Anchor,
-  Badge,
-  Button,
-  Group,
-  Select,
-  Stack,
-  Tabs,
-  Text,
-  Title,
-} from '@mantine/core'
 import { useState, type ReactNode } from 'react'
 
 import type { ContentIssue } from '../content/report.js'
@@ -40,6 +26,11 @@ import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
 import { Help } from './Help.js'
+import { Badge, Count } from './ui/Badge.js'
+import { Button } from './ui/Button.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Banner } from './ui/Surface.js'
+import { Eyebrow, Text, Title } from './ui/Text.js'
 
 export type Screen =
   'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
@@ -77,6 +68,13 @@ export function screensFor(
     return true
   })
 }
+
+/**
+ * Les deux écrans où « Enregistrer » et « Mettre en ligne » ont un sens : ceux
+ * qui tiennent un brouillon. Une médiathèque enregistre à chaque geste, et des
+ * messages ne se mettent pas en ligne.
+ */
+const WRITES = new Set<Screen>(['edit', 'journal'])
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
 
@@ -130,6 +128,7 @@ export function Shell({
   const blocking = payload.problems.some(
     (problem) => problem.severity === 'error',
   )
+  const writes = WRITES.has(screen)
 
   return (
     <div className="basalte-shell">
@@ -139,199 +138,193 @@ export function Shell({
           {payload.site.name}
         </span>
 
-        <Tabs
-          className="basalte-tabs-holder"
-          value={screen}
-          onChange={(value) => onScreen((value ?? 'edit') as Screen)}
-        >
-          <Tabs.List>
-            {screensFor(
-              payload.site.capabilities,
-              payload.journal !== undefined,
-            ).map((entry) => (
-              <Tabs.Tab
-                key={entry.value}
-                value={entry.value}
-                rightSection={
-                  entry.value === 'messages' && payload.unread > 0 ? (
-                    <Badge size="sm" color="red" variant="filled" circle>
-                      {payload.unread}
-                    </Badge>
-                  ) : undefined
-                }
-              >
-                {entry.label}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
+        <nav className="basalte-tabs" aria-label="Les écrans du panel">
+          {screensFor(
+            payload.site.capabilities,
+            payload.journal !== undefined,
+          ).map((entry) => (
+            <button
+              key={entry.value}
+              type="button"
+              className="basalte-tab"
+              data-on={entry.value === screen ? 'true' : undefined}
+              aria-current={entry.value === screen ? 'page' : undefined}
+              onClick={() => onScreen(entry.value)}
+            >
+              {entry.label}
+              {entry.value === 'messages' && payload.unread > 0 && (
+                <Count>{payload.unread}</Count>
+              )}
+            </button>
+          ))}
+        </nav>
 
-        <Group gap="sm" wrap="nowrap" ml="auto">
+        <span className="basalte-topbar__aside">
           {several && (
-            <Select
-              size="sm"
-              w={150}
-              variant="unstyled"
+            <select
+              className="basalte-topbar__lang"
               aria-label="Langue affichée"
-              data={payload.site.languages.map((entry) => ({
-                value: entry.code,
-                label: entry.draft
-                  ? `${entry.label} (en préparation)`
-                  : entry.label,
-              }))}
               value={language}
-              allowDeselect={false}
-              onChange={(value) => onLanguage(value ?? language)}
-            />
+              onChange={(event) => onLanguage(event.target.value)}
+            >
+              {payload.site.languages.map((entry) => (
+                <option key={entry.code} value={entry.code}>
+                  {entry.draft
+                    ? `${entry.label} (en préparation)`
+                    : entry.label}
+                </option>
+              ))}
+            </select>
           )}
-          <Text size="sm" c="dimmed" visibleFrom="md">
-            {payload.account}
-          </Text>
-          <Button
-            variant="subtle"
-            color="gray"
-            size="sm"
-            loading={busy}
+          <span className="basalte-topbar__account">{payload.account}</span>
+          <button
+            type="button"
+            className="basalte-signout"
+            disabled={busy}
             onClick={onSignOut}
           >
             Se déconnecter
-          </Button>
-        </Group>
+          </button>
+        </span>
       </header>
 
-      <main className="basalte-main">
-        <div className="basalte-head">
-          <div className="basalte-head__facts">
-            <div className="basalte-head__eyebrow">
-              <span className="basalte-eyebrow">
-                {SCREENS.find((entry) => entry.value === screen)?.label}
-              </span>
-              <Text size="xs" c="dimmed">
-                {[
-                  savedAt === undefined
-                    ? undefined
-                    : `enregistré à ${MOMENT.format(savedAt)}`,
-                  onlineLabel(publication),
-                  payload.tracked ? undefined : 'sans historique',
-                ]
-                  .filter((part) => part !== undefined)
-                  .join(' · ')}
-              </Text>
-            </div>
+      <div className="basalte-head">
+        <Stack gap="xs">
+          <Eyebrow>
+            {[
+              SCREENS.find((entry) => entry.value === screen)?.label,
+              savedAt === undefined
+                ? undefined
+                : `enregistré à ${MOMENT.format(savedAt)}`,
+              onlineLabel(publication),
+              payload.tracked ? undefined : 'sans historique',
+            ]
+              .filter((part) => part !== undefined)
+              .join(' · ')}
+          </Eyebrow>
 
-            <div className="basalte-head__title">
-              <Title order={2} component="h1" m={0}>
-                {heading}
-              </Title>
-              {dirty ? (
-                <Badge color="orange">Modifications non enregistrées</Badge>
+          <Group gap="md">
+            <Title level={1}>{heading}</Title>
+            {writes &&
+              (dirty ? (
+                <Badge dot="ink">Modifications non enregistrées</Badge>
               ) : (
-                <Badge color="green">Tout est enregistré</Badge>
-              )}
-              <Help screen={screen} payload={payload} />
-            </div>
-          </div>
+                <Badge dot="online" tone="muted">
+                  Tout est enregistré
+                </Badge>
+              ))}
+          </Group>
+        </Stack>
 
-          <div className="basalte-head__actions">
-            <div className="basalte-head__buttons">
-              <Button
-                variant="default"
-                disabled={!dirty}
-                loading={busy}
-                onClick={onSave}
-              >
+        <div className="basalte-head__actions">
+          <Help screen={screen} payload={payload} />
+          {writes && (
+            <>
+              <Button disabled={!dirty} busy={busy} onClick={onSave}>
                 Enregistrer
               </Button>
-              <Button disabled={busy} loading={busyOnline} onClick={onPublish}>
+              <Button
+                tone="ink"
+                disabled={busy}
+                busy={busyOnline}
+                onClick={onPublish}
+              >
                 Mettre en ligne
               </Button>
-            </div>
-          </div>
+            </>
+          )}
         </div>
+      </div>
 
-        {/* L’état du site, replié à une ligne. Un site multilingue en
-            préparation porte un avertissement par page : déplié, le bandeau
-            prenait le tiers de l’écran, tous les jours, pour ce qu’on ne
-            corrigera pas aujourd’hui. Ce qui bloque, lui, s’ouvre entier. */}
-        {payload.problems.length > 0 && (
-          <Alert
-            color={blocking ? 'red' : 'orange'}
-            title={
-              <Group gap="sm">
-                <span>
-                  {blocking
-                    ? 'À corriger avant la prochaine mise en ligne'
-                    : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`}
-                </span>
-                {!blocking && (
-                  <Anchor
-                    component="button"
-                    type="button"
-                    size="sm"
-                    fw={500}
-                    onClick={() => setAll(!all)}
-                  >
-                    {all ? 'replier' : 'voir'}
-                  </Anchor>
+      <main className="basalte-main">
+        <Stack>
+          {/* L’état du site, replié à une ligne. Un site multilingue en
+              préparation porte un avertissement par page : déplié, le bandeau
+              prenait le tiers de l’écran, tous les jours, pour ce qu’on ne
+              corrigera pas aujourd’hui. Ce qui bloque, lui, s’ouvre entier. */}
+          {payload.problems.length > 0 && (
+            <Banner tone={blocking ? 'refused' : undefined}>
+              <Stack gap="sm">
+                <Group gap="md">
+                  <strong>
+                    {blocking
+                      ? 'À corriger avant la prochaine mise en ligne'
+                      : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`}
+                  </strong>
+                  {!blocking && (
+                    <>
+                      <Spacer />
+                      <button
+                        type="button"
+                        className="basalte-link"
+                        onClick={() => setAll(!all)}
+                      >
+                        {all ? 'replier' : 'voir'}
+                      </button>
+                    </>
+                  )}
+                </Group>
+                {(blocking || all) && (
+                  <Stack gap="xs">
+                    {payload.problems.map((problem, rank) => (
+                      <Text key={`${rank}-${problem.message}`} tone="muted">
+                        {problem.message}
+                      </Text>
+                    ))}
+                  </Stack>
                 )}
-              </Group>
-            }
-          >
-            {(blocking || all) && (
-              <Stack gap={2} align="flex-start">
-                {payload.problems.map((problem, rank) => (
-                  <Text key={`${rank}-${problem.message}`} size="sm">
-                    {problem.message}
+              </Stack>
+            </Banner>
+          )}
+
+          {last?.outcome === 'failed' && !busyOnline && (
+            <Banner>
+              <Stack gap="sm">
+                <strong>La dernière mise en ligne n’a pas abouti</strong>
+                <Text tone="muted">{last.message}</Text>
+              </Stack>
+            </Banner>
+          )}
+
+          {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait quelle
+              section et quel champ, et une liste de phrases faisait relire
+              l’écran à la main pour retrouver lequel (D166). */}
+          {issues.length > 0 && (
+            <Banner tone="refused">
+              <Stack gap="sm">
+                <strong>Rien n’a été enregistré</strong>
+                <Stack gap="xs">
+                  {issues.map((issue, rank) => (
+                    <button
+                      key={`${rank}-${issue.message}`}
+                      type="button"
+                      className="basalte-link basalte-notice"
+                      onClick={() => onIssue(issue)}
+                    >
+                      {where(issue)}
+                      {issue.message}
+                    </button>
+                  ))}
+                </Stack>
+              </Stack>
+            </Banner>
+          )}
+
+          {issues.length === 0 && problems.length > 0 && (
+            <Banner tone="refused">
+              <Stack gap="sm">
+                <strong>Rien n’a été enregistré</strong>
+                {problems.map((problem, rank) => (
+                  <Text key={`${rank}-${problem}`} tone="muted">
+                    {problem}
                   </Text>
                 ))}
               </Stack>
-            )}
-          </Alert>
-        )}
+            </Banner>
+          )}
 
-        {last?.outcome === 'failed' && !busyOnline && (
-          <Alert
-            color="orange"
-            title="La dernière mise en ligne n’a pas abouti"
-          >
-            <Text size="sm">{last.message}</Text>
-          </Alert>
-        )}
-
-        {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait quelle
-            section et quel champ, et une liste de phrases faisait relire
-            l’écran à la main pour retrouver lequel (D166). */}
-        {issues.length > 0 && (
-          <Alert color="red" title="Rien n’a été enregistré">
-            <Stack gap={2} align="flex-start" className="basalte-notice">
-              {issues.map((issue, rank) => (
-                <Anchor
-                  key={`${rank}-${issue.message}`}
-                  component="button"
-                  type="button"
-                  size="sm"
-                  ta="left"
-                  onClick={() => onIssue(issue)}
-                >
-                  {where(issue)}
-                  {issue.message}
-                </Anchor>
-              ))}
-            </Stack>
-          </Alert>
-        )}
-
-        {issues.length === 0 && problems.length > 0 && (
-          <Alert color="red" title="Rien n’a été enregistré">
-            {problems.map((problem, rank) => (
-              <Text key={`${rank}-${problem}`} size="sm">
-                {problem}
-              </Text>
-            ))}
-          </Alert>
-        )}
-
-        {children}
+          {children}
+        </Stack>
       </main>
     </div>
   )

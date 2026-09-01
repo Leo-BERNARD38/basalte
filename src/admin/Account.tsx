@@ -1,24 +1,13 @@
 // L’écran « Compte » : le mot de passe, les appareils reconnus et le journal
 // des connexions. Ce dernier vaut plus qu’un verrouillage — il montre au
-// client ce qui se passe sur son site.
+// client ce qui se passe sur son site, et il tient donc toute la hauteur de
+// l’écran, à côté des deux réglages qu’on ne touche presque jamais.
 //
 // C’est aussi là qu’il apprend à qui écrire. Un client qui ne sait pas qui
 // appeler appelle quand même, et il appelle plus tard qu’il n’aurait dû : la
 // phrase est ici parce que c’est l’écran où l’on vient quand quelque chose ne
 // va pas.
 
-import {
-  Alert,
-  Button,
-  Group,
-  Modal,
-  Paper,
-  PasswordInput,
-  Stack,
-  Table,
-  Text,
-  Title,
-} from '@mantine/core'
 import { useEffect, useState } from 'react'
 
 import {
@@ -28,6 +17,13 @@ import {
   type SessionInfo,
 } from './api.js'
 import { Waiting } from './Waiting.js'
+import { Button, IconButton } from './ui/Button.js'
+import { Field, TextField } from './ui/Field.js'
+import { Close } from './ui/icons.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Banner, Card } from './ui/Surface.js'
+import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
 
 /** La borne du serveur, redite ici pour qu’un refus n’ait pas à faire l’aller. */
 const MINIMUM = 12
@@ -36,6 +32,10 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
   timeStyle: 'short',
 })
+
+/** Les colonnes des deux tableaux : chaque rangée est sa propre grille. */
+const DEVICE_COLUMNS = 'minmax(0, 1fr) 130px'
+const JOURNAL_COLUMNS = '130px minmax(0, 1fr) 120px'
 
 export function Account({
   onSignedOut,
@@ -113,167 +113,214 @@ export function Account({
   const ready = current !== '' && next.length >= MINIMUM
 
   return (
-    <Stack gap="md" maw="var(--panel-measure-page)">
+    <Stack gap="xl">
       {notice !== '' && (
-        <Alert
-          color="green"
-          title="C’est fait"
-          withCloseButton
-          onClose={() => setNotice('')}
-        >
-          {notice}
-        </Alert>
+        <Banner>
+          <Group gap="md">
+            <Stack gap="xs">
+              <strong>C’est fait</strong>
+              <Text tone="muted">{notice}</Text>
+            </Stack>
+            <Spacer />
+            <IconButton label="Fermer" onClick={() => setNotice('')}>
+              <Close />
+            </IconButton>
+          </Group>
+        </Banner>
       )}
 
       {problem !== '' && (
-        <Alert
-          color="red"
-          title="La demande a été refusée"
-          withCloseButton
-          onClose={() => setProblem('')}
-        >
-          {problem}
-        </Alert>
+        <Banner tone="refused">
+          <Group gap="md">
+            <Stack gap="xs">
+              <strong>La demande a été refusée</strong>
+              <Text tone="muted">{problem}</Text>
+            </Stack>
+            <Spacer />
+            <IconButton label="Fermer" onClick={() => setProblem('')}>
+              <Close />
+            </IconButton>
+          </Group>
+        </Banner>
       )}
 
-      <Paper p="md">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            void change()
-          }}
-        >
-          {/* Un champ de mot de passe large de huit cents pixels ne se lit pas
-              mieux : la colonne d’un formulaire a sa propre mesure. */}
-          <Stack gap="md" maw="var(--panel-measure-form)">
-            <Title order={3}>Mot de passe</Title>
-            <PasswordInput
-              label="Mot de passe actuel"
-              autoComplete="current-password"
-              value={current}
-              onChange={(event) => setCurrent(event.currentTarget.value)}
-            />
-            <PasswordInput
-              label="Nouveau mot de passe"
-              description={`${MINIMUM} caractères au minimum.`}
-              autoComplete="new-password"
-              error={tooShort ? `${MINIMUM} caractères au minimum.` : undefined}
-              value={next}
-              onChange={(event) => setNext(event.currentTarget.value)}
-            />
-            <Group justify="flex-end">
-              <Button
-                type="submit"
-                variant="light"
-                loading={changing}
-                disabled={!ready}
-              >
-                Changer le mot de passe
-              </Button>
-            </Group>
-          </Stack>
-        </form>
-      </Paper>
+      <div className="basalte-account">
+        <Stack gap="xl">
+          <Card>
+            {/* Aucun bouton du panel n’est de type « submit » : la touche
+                entrée vaut le bouton, et ne relance pas ce qui est parti. */}
+            <form
+              onSubmit={(event) => event.preventDefault()}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return
 
-      <Paper p="md">
-        <Stack gap="md">
-          <Title order={3}>Appareils reconnus</Title>
-          {session === undefined ? (
-            <Waiting what="Lecture de la session…" />
-          ) : session.devices.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              Aucun appareil retenu : le code est demandé à chaque connexion.
-            </Text>
-          ) : (
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Navigateur</Table.Th>
-                  <Table.Th>Adresse</Table.Th>
-                  <Table.Th>Reconnu jusqu’au</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {session.devices.map((device) => (
-                  <Table.Tr key={`${device.createdAt}-${device.ip}`}>
-                    <Table.Td>
-                      <Text size="sm" lineClamp={1} title={device.agent}>
-                        {device.agent || 'Navigateur inconnu'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>{device.ip || 'adresse inconnue'}</Table.Td>
-                    <Table.Td>{MOMENT.format(device.expiresAt)}</Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
-          <Group justify="flex-end">
-            <Button
-              variant="default"
-              loading={forgetting}
-              onClick={() => setAsked(true)}
+                event.preventDefault()
+
+                if (ready && !changing) void change()
+              }}
             >
-              Oublier tous les appareils
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
+              <Stack gap="lg">
+                <Title rank="card">Mot de passe</Title>
 
-      <Paper p="md">
-        <Stack gap="md">
-          <Title order={3}>Connexions récentes</Title>
-          {session === undefined ? (
-            <Waiting what="Lecture du journal…" />
-          ) : session.journal.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              Rien à afficher pour l’instant.
-            </Text>
-          ) : (
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Quand</Table.Th>
-                  <Table.Th>Quoi</Table.Th>
-                  <Table.Th>Adresse</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {session.journal.map((entry) => (
-                  <Table.Tr key={`${entry.at}-${entry.label}`}>
-                    <Table.Td>{MOMENT.format(entry.at)}</Table.Td>
-                    <Table.Td>{entry.label}</Table.Td>
-                    <Table.Td>{entry.ip || 'adresse inconnue'}</Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
+                <Field label="Mot de passe actuel">
+                  {(bound) => (
+                    <TextField
+                      {...bound}
+                      type="password"
+                      autoComplete="current-password"
+                      value={current}
+                      onChange={(event) =>
+                        setCurrent(event.currentTarget.value)
+                      }
+                    />
+                  )}
+                </Field>
+
+                <Field
+                  label="Nouveau mot de passe"
+                  hint={`${MINIMUM} caractères au minimum.`}
+                  error={
+                    tooShort ? `${MINIMUM} caractères au minimum.` : undefined
+                  }
+                >
+                  {(bound) => (
+                    <TextField
+                      {...bound}
+                      type="password"
+                      autoComplete="new-password"
+                      value={next}
+                      onChange={(event) => setNext(event.currentTarget.value)}
+                    />
+                  )}
+                </Field>
+
+                <Group gap="md">
+                  <Spacer />
+                  <Button
+                    tone="ink"
+                    busy={changing}
+                    disabled={!ready}
+                    onClick={() => void change()}
+                  >
+                    Changer le mot de passe
+                  </Button>
+                </Group>
+              </Stack>
+            </form>
+          </Card>
+
+          <Card>
+            <Stack gap="lg">
+              <Title rank="card">Appareils reconnus</Title>
+
+              {session === undefined ? (
+                <Waiting what="Lecture de la session…" />
+              ) : session.devices.length === 0 ? (
+                <Text tone="meta" size="small">
+                  Aucun appareil retenu : le code est demandé à chaque
+                  connexion.
+                </Text>
+              ) : (
+                <div className="basalte-table">
+                  <div
+                    className="basalte-table__row"
+                    data-head="true"
+                    style={{ gridTemplateColumns: DEVICE_COLUMNS }}
+                  >
+                    <Eyebrow>Navigateur</Eyebrow>
+                    <Eyebrow>Reconnu jusqu’au</Eyebrow>
+                  </div>
+
+                  {session.devices.map((device) => (
+                    <div
+                      key={`${device.createdAt}-${device.ip}`}
+                      className="basalte-table__row"
+                      style={{ gridTemplateColumns: DEVICE_COLUMNS }}
+                    >
+                      <Stack gap="hair">
+                        <Text
+                          className="basalte-row__text"
+                          title={device.agent}
+                        >
+                          {device.agent || 'Navigateur inconnu'}
+                        </Text>
+                        <Eyebrow>{device.ip || 'adresse inconnue'}</Eyebrow>
+                      </Stack>
+                      <Mono>{MOMENT.format(device.expiresAt)}</Mono>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Group gap="md">
+                <Spacer />
+                <Button busy={forgetting} onClick={() => setAsked(true)}>
+                  Oublier tous les appareils
+                </Button>
+              </Group>
+            </Stack>
+          </Card>
         </Stack>
-      </Paper>
+
+        <Card>
+          <Stack gap="lg">
+            <Title rank="card">Journal de connexion</Title>
+
+            {session === undefined ? (
+              <Waiting what="Lecture du journal…" />
+            ) : session.journal.length === 0 ? (
+              <Text tone="meta" size="small">
+                Rien à afficher pour l’instant.
+              </Text>
+            ) : (
+              <div className="basalte-table">
+                <div
+                  className="basalte-table__row"
+                  data-head="true"
+                  style={{ gridTemplateColumns: JOURNAL_COLUMNS }}
+                >
+                  <Eyebrow>Quand</Eyebrow>
+                  <Eyebrow>Quoi</Eyebrow>
+                  <Eyebrow>Adresse</Eyebrow>
+                </div>
+
+                {session.journal.map((entry) => (
+                  <div
+                    key={`${entry.at}-${entry.label}`}
+                    className="basalte-table__row"
+                    style={{ gridTemplateColumns: JOURNAL_COLUMNS }}
+                  >
+                    <Mono>{MOMENT.format(entry.at)}</Mono>
+                    <Text className="basalte-row__text">{entry.label}</Text>
+                    <Mono>{entry.ip || 'adresse inconnue'}</Mono>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Stack>
+        </Card>
+      </div>
 
       {/* Oublier les appareils déconnecte : c’est la seule action de cet écran
           dont on ne revient pas, et elle se demandait sans rien dire. */}
       <Modal
         opened={asked}
-        onClose={() => setAsked(false)}
         title="Oublier tous les appareils"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            Le code par email sera redemandé à chaque connexion, sur chaque
-            appareil. Vous serez déconnecté d’ici.
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setAsked(false)}>
-              Annuler
-            </Button>
-            <Button color="red" onClick={() => void forget()}>
+        onClose={() => setAsked(false)}
+        foot={
+          <>
+            <Spacer />
+            <Button onClick={() => setAsked(false)}>Annuler</Button>
+            <Button tone="danger" onClick={() => void forget()}>
               Oublier
             </Button>
-          </Group>
-        </Stack>
+          </>
+        }
+      >
+        <Text tone="muted">
+          Le code par email sera redemandé à chaque connexion, sur chaque
+          appareil. Vous serez déconnecté d’ici.
+        </Text>
       </Modal>
     </Stack>
   )
