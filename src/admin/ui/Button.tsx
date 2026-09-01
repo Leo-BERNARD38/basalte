@@ -1,6 +1,7 @@
 // Les boutons. Quatre rangs, et l’ordre est celui de l’engagement : le noir
 // change l’état du site, le filet agit sur l’écran, le nu annule, le rouge
-// détruit. L’accent n’en porte aucun — il ne dit jamais « fais ».
+// détruit. Aucun n’est en couleur hors le rouge : le panel n’a pas de teinte
+// d’identité, et « fais » se dit par le noir.
 
 import type { ComponentProps, ReactNode } from 'react'
 

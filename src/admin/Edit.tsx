@@ -25,13 +25,12 @@ import { asideOf, asidesOf } from './asides.js'
 import { emptyValues, move, type Draft, type Values } from './draft.js'
 import { editedLanguage, previewAddress, useEditing } from './editing.js'
 import { FieldSet, type FieldIssue } from './fields/Field.js'
+import { Language } from './Language.js'
 import { Section } from './Section.js'
 import { SortableItem, SortableList } from './Sortable.js'
 import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
 import {
-  Check,
-  Chevron,
   Desktop,
   External,
   Grip,
@@ -42,8 +41,8 @@ import {
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Anchor, Menu } from './ui/Overlay.js'
 import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
-import { Card, Empty, Float } from './ui/Surface.js'
-import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
+import { Banner, Card, Empty } from './ui/Surface.js'
+import { Eyebrow, Mono, plural, Text, Title } from './ui/Text.js'
 import { Segmented } from './ui/Toggle.js'
 
 type Focus =
@@ -71,6 +70,31 @@ const SUPPORTS = [
     ),
   },
 ]
+
+/**
+ * Les points, rangés sous la page qu’ils visent. Une médiathèque qui porte
+ * douze images inemployées écrivait douze phrases identiques à un mot près :
+ * groupées, elles font un titre, un compte, et douze lignes qu’on parcourt au
+ * lieu de les lire. L’ordre d’arrivée est gardé — c’est celui du contrôle.
+ */
+export function groupProblems(problems: PanelPayload['problems']): readonly {
+  readonly page: string
+  readonly points: PanelPayload['problems']
+}[] {
+  const pages: string[] = []
+  const under = new Map<string, PanelPayload['problems'][number][]>()
+
+  for (const problem of problems) {
+    const found = under.get(problem.page)
+
+    if (found === undefined) {
+      pages.push(problem.page)
+      under.set(problem.page, [problem])
+    } else found.push(problem)
+  }
+
+  return pages.map((page) => ({ page, points: under.get(page) ?? [] }))
+}
 
 export function Edit({
   payload,
@@ -101,6 +125,11 @@ export function Edit({
   const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
   const [pages, setPages] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [allProblems, setAllProblems] = useState(false)
+
+  const blocking = payload.problems.some(
+    (problem) => problem.severity === 'error',
+  )
 
   // Une ligne du résumé ouvre la section qu’elle nomme : c’est le geste que le
   // client faisait à la main, en relisant la liste pour retrouver laquelle.
@@ -186,109 +215,166 @@ export function Edit({
   return (
     <div className="basalte-edit">
       <div className="basalte-stage">
-        <Float className="basalte-stage__bar">
-          <Segmented
-            tone="ink"
-            label="Le support regardé"
-            value={viewport}
-            items={SUPPORTS}
-            onChange={setViewport}
+        <div className="basalte-stage__screen" data-viewport={viewport}>
+          <div className="basalte-stage__bar">
+            <Segmented
+              tone="ink"
+              label="Le support regardé"
+              value={viewport}
+              items={SUPPORTS}
+              onChange={setViewport}
+            />
+
+            <Spacer />
+
+            <Group gap="md">
+              <Language />
+
+              <Anchor>
+                <button
+                  type="button"
+                  className="basalte-picker"
+                  aria-expanded={pages}
+                  onClick={() => setPages(!pages)}
+                >
+                  <Mono>{fixed ? (aside?.title ?? '') : previewed}</Mono>
+                </button>
+
+                <Menu
+                  opened={pages}
+                  label="Vos pages"
+                  onClose={() => setPages(false)}
+                >
+                  <Eyebrow className="basalte-menu__note">
+                    vos pages · cliquez pour la modifier
+                  </Eyebrow>
+
+                  {payload.pages.map((entry) => (
+                    <Row
+                      key={entry.name}
+                      pill
+                      current={entry.name === selected}
+                      onClick={() => {
+                        onSelect(entry.name)
+                        setPages(false)
+                      }}
+                    >
+                      <RowStack>
+                        <span>{pageLabel(entry.name)}</span>
+                        <Mono className="basalte-row__note">{entry.route}</Mono>
+                      </RowStack>
+                      <Mono className="basalte-row__note">
+                        {entry.blocks.length}{' '}
+                        {plural(entry.blocks.length, 'section')}
+                      </Mono>
+                    </Row>
+                  ))}
+
+                  <span className="basalte-menu__rule" />
+
+                  {asidesOf(payload).map((entry) => (
+                    <Row
+                      key={entry.entry}
+                      pill
+                      current={entry.entry === selected}
+                      onClick={() => {
+                        onSelect(entry.entry)
+                        setPages(false)
+                      }}
+                    >
+                      <RowText>{entry.title}</RowText>
+                    </Row>
+                  ))}
+                </Menu>
+              </Anchor>
+
+              <a
+                className="basalte-preview-link"
+                href={address}
+                target="_blank"
+                rel="noopener"
+                aria-label="Ouvrir la page dans un onglet"
+              >
+                <External />
+              </a>
+            </Group>
+          </div>
+
+          {dirty && (
+            <Text className="basalte-stage__note" tone="meta" size="eyebrow">
+              L’aperçu montre le dernier enregistrement. Enregistrez pour le
+              voir se mettre à jour.
+            </Text>
+          )}
+
+          <iframe
+            key={`${savedAt ?? 0}-${viewport}`}
+            className="basalte-stage__frame"
+            title="Aperçu de la page"
+            src={address}
           />
-
-          <Spacer />
-
-          <Group gap="md">
-            <Anchor>
-              <button
-                type="button"
-                className="basalte-picker"
-                aria-expanded={pages}
-                onClick={() => setPages(!pages)}
-              >
-                {fixed ? (aside?.title ?? '') : pageLabel(selected)}
-                <Chevron />
-              </button>
-
-              <Menu
-                opened={pages}
-                label="Vos pages"
-                onClose={() => setPages(false)}
-              >
-                <Eyebrow className="basalte-menu__note">
-                  vos pages · cliquez pour la modifier
-                </Eyebrow>
-
-                {payload.pages.map((entry) => (
-                  <Row
-                    key={entry.name}
-                    pill
-                    current={entry.name === selected}
-                    onClick={() => {
-                      onSelect(entry.name)
-                      setPages(false)
-                    }}
-                  >
-                    <RowGlyph>{entry.name === selected && <Check />}</RowGlyph>
-                    <RowStack>
-                      <span>{pageLabel(entry.name)}</span>
-                      <Mono className="basalte-row__note">{entry.route}</Mono>
-                    </RowStack>
-                    <Mono className="basalte-row__note">
-                      {entry.blocks.length} sections
-                    </Mono>
-                  </Row>
-                ))}
-
-                <span className="basalte-menu__rule" />
-
-                {asidesOf(payload).map((entry) => (
-                  <Row
-                    key={entry.entry}
-                    pill
-                    current={entry.entry === selected}
-                    onClick={() => {
-                      onSelect(entry.entry)
-                      setPages(false)
-                    }}
-                  >
-                    <RowGlyph>{entry.entry === selected && <Check />}</RowGlyph>
-                    <RowText>{entry.title}</RowText>
-                  </Row>
-                ))}
-              </Menu>
-            </Anchor>
-
-            <span className="basalte-rule" />
-
-            <a
-              className="basalte-preview-link"
-              href={address}
-              target="_blank"
-              rel="noopener"
-            >
-              <Mono>{previewed}</Mono>
-              <External />
-            </a>
-          </Group>
-        </Float>
-
-        {dirty && (
-          <Text tone="meta" size="small">
-            L’aperçu montre le dernier enregistrement. Enregistrez pour le voir
-            se mettre à jour.
-          </Text>
-        )}
-
-        <iframe
-          key={`${savedAt ?? 0}-${viewport}`}
-          className="basalte-stage__frame"
-          data-viewport={viewport}
-          title="Aperçu de la page"
-          src={address}
-        />
+        </div>
       </div>
 
       <div className="basalte-rail">
+        {/* Ce qu’il reste à corriger est ici et pas dans le tronc commun : ces
+            points naissent du contenu, et c’est dans cette colonne qu’on les
+            corrige. Sur les autres écrans, ils n’étaient qu’un bandeau de plus
+            à sauter. L’ambre appelle le regard, le rouge empêche la mise en
+            ligne — et la couleur se lit sans qu’on lise la phrase. */}
+        {payload.problems.length > 0 && (
+          <Banner tone={blocking ? 'refused' : 'watch'}>
+            <Stack gap="sm">
+              <Group gap="md">
+                <strong>
+                  {blocking
+                    ? 'À corriger avant la mise en ligne'
+                    : `${payload.problems.length} ${plural(payload.problems.length, 'point')} à regarder`}
+                </strong>
+                {!blocking && (
+                  <>
+                    <Spacer />
+                    <button
+                      type="button"
+                      className="basalte-link"
+                      onClick={() => setAllProblems(!allProblems)}
+                    >
+                      {allProblems ? 'replier' : 'voir'}
+                    </button>
+                  </>
+                )}
+              </Group>
+              {(blocking || allProblems) && (
+                <Stack gap="md">
+                  {groupProblems(payload.problems).map((group) => (
+                    <Stack key={group.page} gap="xs" className="basalte-points">
+                      <Group gap="md" align="baseline">
+                        <Eyebrow>{group.page}</Eyebrow>
+                        <Spacer />
+                        {/* Un compte de un ne dit rien que la ligne en
+                            dessous ne dise déjà. */}
+                        {group.points.length > 1 && (
+                          <Eyebrow>{group.points.length}</Eyebrow>
+                        )}
+                      </Group>
+                      {group.points.map((point, rank) => (
+                        <Text
+                          key={`${rank}-${point.message}`}
+                          tone="muted"
+                          size="eyebrow"
+                        >
+                          {point.place === '' ? '' : `${point.place} — `}
+                          {point.message}
+                        </Text>
+                      ))}
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </Banner>
+        )}
+
         <Card pad="sm">
           <Stack gap="md">
             <Group gap="md" align="baseline" className="basalte-rail__head">
@@ -297,8 +383,7 @@ export function Edit({
               </Title>
               <Spacer />
               <Mono className="basalte-row__note">
-                {draft.blocks.length} section
-                {draft.blocks.length > 1 ? 's' : ''}
+                {draft.blocks.length} {plural(draft.blocks.length, 'section')}
               </Mono>
             </Group>
 

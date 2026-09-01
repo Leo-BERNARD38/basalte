@@ -36,7 +36,7 @@ const PERIOD = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
 const NUMBER = new Intl.NumberFormat('fr-FR')
 
 /** Les colonnes d’un classement : chaque rangée est sa propre grille. */
-const RANK_COLUMNS = 'minmax(0, 1fr) 120px 56px'
+const RANK_COLUMNS = 'minmax(0, 1fr) 120px 72px'
 
 type Span = '7' | '14' | '30'
 
@@ -198,7 +198,7 @@ export function Stats({
           <Title rank="card">Visites par jour</Title>
 
           {measured === 0 ? (
-            <Text tone="meta" size="small">
+            <Text tone="meta" size="eyebrow">
               Aucune visite sur la période.
             </Text>
           ) : (
@@ -283,8 +283,8 @@ function Figure({
     <Stack gap="sm">
       <Eyebrow>{name}</Eyebrow>
       <Mono className="basalte-figure">{NUMBER.format(value)}</Mono>
-      {change !== undefined && <Text tone="accent">{change}</Text>}
-      <Text tone="meta" size="small">
+      {change !== undefined && <Text tone="strong">{change}</Text>}
+      <Text tone="meta" size="eyebrow">
         {note}
       </Text>
       {spark !== undefined && spark.length > 0 && (
@@ -322,7 +322,7 @@ function Ranking({
         <Title rank="card">{title}</Title>
 
         {rows.length === 0 ? (
-          <Text tone="meta" size="small">
+          <Text tone="meta" size="eyebrow">
             {empty}
           </Text>
         ) : (

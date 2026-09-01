@@ -45,7 +45,7 @@ export function Float({ className, children, ...rest }: ComponentProps<'div'>) {
 }
 
 type BannerProps = ComponentProps<'div'> & {
-  readonly tone?: 'refused' | 'raised' | undefined
+  readonly tone?: 'refused' | 'watch' | 'raised' | undefined
   readonly hatched?: boolean | undefined
   readonly children: ReactNode
 }
@@ -63,9 +63,38 @@ export function Banner({
       data-tone={tone}
       data-hatched={hatched === true ? 'true' : undefined}
       role={tone === 'refused' ? 'alert' : undefined}
+      aria-live={tone === 'watch' ? 'polite' : undefined}
       {...rest}
     >
       {children}
+    </div>
+  )
+}
+
+/**
+ * Ce qui a échoué au niveau du site, et qui n’est attaché à aucun champ : une
+ * mise en ligne qui n’a pas abouti, un enregistrement que le serveur a refusé
+ * en bloc. Le bandeau traverse la fenêtre sous la barre, en aplat plein — il
+ * n’appartient à aucun écran, il ne défile pas, et il reste jusqu’à ce que la
+ * cause disparaisse.
+ *
+ * C’est la forme réservée à l’**annonce** : un titre, une précision, rien à
+ * cliquer. Ce qui se corrige champ par champ reste dans la page, où le clic
+ * mène à l’endroit fautif (D166).
+ */
+export function Alert({
+  title,
+  children,
+}: {
+  readonly title: string
+  readonly children?: ReactNode | undefined
+}) {
+  return (
+    <div className="basalte-alert" role="alert">
+      <strong>{title}</strong>
+      {children !== undefined && (
+        <span className="basalte-alert__note">{children}</span>
+      )}
     </div>
   )
 }
@@ -82,7 +111,7 @@ export function Empty({ title, note, children }: EmptyProps) {
     <div className="basalte-empty">
       <strong>{title}</strong>
       {note !== undefined && (
-        <Text tone="meta" data-size="small">
+        <Text tone="meta" data-size="eyebrow">
           {note}
         </Text>
       )}

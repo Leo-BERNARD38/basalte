@@ -118,7 +118,7 @@ describe('mise en ligne réussie', () => {
 
     expect(state.running).toBe(false)
     expect(state.last?.outcome).toBe('published')
-    expect(state.last?.message).toBe('Ton site est en ligne.')
+    expect(state.last?.message).toBe('Votre site est en ligne.')
     expect(site.alerts).toHaveLength(0)
 
     await site.close()
@@ -230,7 +230,9 @@ describe('sans dépôt distant', () => {
 
     await publish(site)
 
-    expect(site.publisher.state().last?.message).toBe('Ton site est en ligne.')
+    expect(site.publisher.state().last?.message).toBe(
+      'Votre site est en ligne.',
+    )
     expect(site.alerts).toHaveLength(0)
 
     await site.close()

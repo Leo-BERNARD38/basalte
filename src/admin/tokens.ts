@@ -7,13 +7,17 @@
 // `basalte lint` le relit pour tenir le plancher de contraste (D164), et c’est
 // pourquoi il n’importe rien : la commande est du Node.
 //
-// Quatre principes portent l’allure. Un filet d’un pixel sépare deux plans, et
-// l’ombre ne reste qu’à ce qui flotte réellement au-dessus du reste. L’action
-// est noire ; l’accent ne dit jamais « fais », il dit « voici ce que tu
-// modifies » et « voici ce qui se mesure ». Le neutre est pur, sans une teinte.
-// La forme pleine est le défaut, et trois familles gardent l’arête — les
-// champs et les lignes de liste, parce qu’une colonne se lit sur un axe
+// Cinq principes portent l’allure. Un filet d’un pixel sépare deux plans, et
+// l’ombre ne reste qu’à ce qui flotte réellement au-dessus du reste. Le panel
+// n’a pas de couleur d’identité : le neutre est pur, l’action est noire, ce
+// qui se mesure est noir, et la sélection se donne par le poids de son aplat —
+// ne restent en couleur que le vert qui dit « en ligne » et le rouge qui
+// refuse. La forme pleine est le défaut, et trois familles gardent l’arête —
+// les champs et les lignes de liste, parce qu’une colonne se lit sur un axe
 // vertical net, et les surfaces, parce qu’on ne manipule pas une carte.
+// Enfin, l’écart porte la hiérarchie avant le trait : l’échelle monte jusqu’à
+// la gouttière d’un écran, et la typographie ne compte que cinq pas, chacun
+// séparé du suivant d’assez pour se voir.
 
 export const tokens = {
   surface: {
@@ -22,6 +26,16 @@ export const tokens = {
     card: '#ffffff',
     /** Le creux d’une carte posée dans une autre, et l’en-tête d’un tableau. */
     raised: '#fafafa',
+    /**
+     * L’aplat de ce que le client est en train de modifier, et le surlignage
+     * d’un texte sélectionné. C’est la seule marque de la sélection, dans tout
+     * le panel : ni chevron, ni bâtonnet, ni coche — un aplat et un cran de
+     * graisse, partout pareil. Il se tient donc entre deux bornes : assez
+     * franc pour se distinguer du survol, assez clair pour ne pas se lire
+     * comme une ligne éteinte. Il ne porte que l’encre 1 et l’encre 2 :
+     * l’encre 3 n’y tient que 4,2:1.
+     */
+    chosen: '#e8e8eb',
     /** Le plan sombre : la barre du haut et le bouton qui agit. */
     ink: '#17171a',
     /** Le noir plein, où le plan sombre n’a plus qu’un cran à descendre. */
@@ -73,27 +87,12 @@ export const tokens = {
   },
 
   /**
-   * Le pétrole. Deux emplois et pas un de plus : ce que le client modifie, et
-   * ce qui se mesure. Assez sourd pour ne jamais entrer en conflit avec les
-   * couleurs du site qu’il est en train d’éditer.
+   * Les deux seules couleurs du panel, et elles disent toutes les deux quelque
+   * chose. Le panel n’a pas de couleur d’identité : la sélection se donne par
+   * le poids de son aplat et ce qui se mesure est noir, si bien qu’aucune
+   * teinte n’entre jamais en concurrence avec le site que le client édite,
+   * ouvert en aperçu au milieu de l’écran.
    */
-  accent: {
-    /** Une marque posée sur un aplat d’accent. */
-    veil: '#dbeeeb',
-    /** L’aplat de ce qu’on désigne. L’encre y reste noire. */
-    wash: '#cfe6e3',
-    /** Le filet d’une marque d’accent posée sur l’aplat. */
-    line: '#a9cfca',
-    /** Le même filet, quand la marque est sur blanc. */
-    edge: '#8fbdb8',
-    /** Un glyphe inerte posé sur l’aplat. Jamais du texte. */
-    glyph: '#6f9b9a',
-    /** Le trait : ce qui se mesure, le lien survolé, le focus. */
-    stroke: '#0f6b70',
-    /** L’encre seconde, uniquement sur l’aplat. */
-    ink: '#12494c',
-  },
-
   state: {
     /** Tout est enregistré, la section paraît. Toujours doublé du mot. */
     online: '#1a7f4b',
@@ -101,6 +100,32 @@ export const tokens = {
     refused: '#c0362c',
     refusedWash: '#fdf1f0',
     refusedLine: '#f6d9d6',
+    /**
+     * Ce qui mérite un regard sans rien empêcher. L’ambre se distingue du
+     * rouge par ce qu’il autorise : on peut mettre en ligne avec, jamais
+     * contre le rouge.
+     */
+    watch: '#8f5300',
+    watchWash: '#fdf6ec',
+    watchLine: '#f5e2c4',
+  },
+
+  /**
+   * Le mouvement. Une seule courbe pour tout ce qui se pose — départ franc,
+   * arrivée longue — et une durée choisie sur la distance parcourue. Sous
+   * `prefers-reduced-motion`, il ne reste que l’attente qui tourne.
+   */
+  motion: {
+    /** Une couleur qui change sous le curseur. */
+    fast: '120ms',
+    /** Ce qui se déplace : la pastille d’un interrupteur, un panneau. */
+    base: '200ms',
+    /** Ce qui paraît par-dessus la page. */
+    slow: '260ms',
+    /** Départ franc, arrivée longue : la courbe de ce qui se pose. */
+    ease: 'cubic-bezier(0.2, 0, 0, 1)',
+    /** L’aller-retour d’un même objet, sans arrivée privilégiée. */
+    swing: 'cubic-bezier(0.4, 0, 0.2, 1)',
   },
 
   /** Le voile posé sur le plan sombre, où aucun gris ne tiendrait. */
@@ -126,15 +151,20 @@ export const tokens = {
    * arête : un champ, une ligne de liste, une carte, une fenêtre.
    */
   radius: {
-    field: '8px',
-    nested: '10px',
-    surface: '12px',
-    modal: '14px',
+    field: '10px',
+    nested: '12px',
+    surface: '16px',
+    modal: '20px',
     pill: '999px',
     /** L’arrondi d’une barre de graphique : un dessin, pas une surface. */
     bar: '3px',
   },
 
+  /**
+   * L’échelle va du cheveu à la gouttière. Les deux derniers pas ne servent
+   * jamais dans un objet : ils séparent des régions, et c’est par eux qu’un
+   * écran respire.
+   */
   space: {
     hair: '1px',
     xxs: '2px',
@@ -145,16 +175,27 @@ export const tokens = {
     xl: '16px',
     xxl: '20px',
     xxxl: '24px',
+    /** Entre deux régions d’un même écran. */
+    region: '32px',
+    /** L’air entre le contenu et le bord de la fenêtre. */
+    gutter: '48px',
   },
 
+  /**
+   * Cinq pas, et de vrais écarts entre eux. Quatre tailles séparées d’un pixel
+   * ne font pas une hiérarchie : elles font une seule masse de petit gris. Un
+   * écran en emploie trois.
+   */
   text: {
-    micro: '10px',
-    eyebrow: '11px',
-    small: '12px',
-    body: '13px',
-    lead: '15px',
-    title: '20px',
-    display: '32px',
+    /** La méta, l’étiquette, l’en-tête d’une colonne, le contrôle compact. */
+    eyebrow: '12px',
+    body: '15px',
+    /** Le titre d’une carte. */
+    lead: '19px',
+    /** Le titre de l’écran, et lui seul. */
+    title: '28px',
+    /** Le chiffre d’un indicateur. */
+    display: '40px',
   },
 
   font: {
@@ -165,13 +206,14 @@ export const tokens = {
   /** Les hauteurs de contrôle, et rien entre elles. */
   control: {
     /** La micro-marque, qui tient dans la hauteur d’une ligne de liste. */
-    mark: '19px',
-    xs: '26px',
-    sm: '28px',
-    md: '32px',
-    /** La ligne de liste, et la barre du haut. */
-    row: '34px',
-    bar: '52px',
+    mark: '22px',
+    xs: '28px',
+    sm: '32px',
+    md: '38px',
+    /** La ligne de liste. */
+    row: '40px',
+    /** La barre du haut. */
+    bar: '60px',
     /** La cible tactile, sous 60 rem. */
     touch: '48px',
   },
@@ -185,6 +227,12 @@ export const tokens = {
     modal: '960px',
     /** Le cadre de l’aperçu en mobile. */
     phone: '414px',
+    /**
+     * La colonne de l’application. Au-delà, la fenêtre grandit mais le
+     * contenu reste centré : une ligne qui court la fenêtre entière ne se lit
+     * plus, et un écran collé à ses deux bords n’a plus de composition.
+     */
+    shell: '1600px',
   },
 
   /** L’ombre grandit avec la distance au document. Rien d’autre en porte. */

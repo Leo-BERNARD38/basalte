@@ -3,7 +3,7 @@
 // — une phrase posée ailleurs oblige à relire l’écran pour retrouver lequel.
 //
 // Le champ garde l’arête : une colonne de formulaire se lit sur un axe
-// vertical net. Le focus noircit le filet et pose l’anneau d’accent à côté.
+// vertical net. Le focus noircit le filet et pose l’anneau à côté.
 
 import { useId, type ComponentProps, type ReactNode } from 'react'
 
@@ -76,7 +76,7 @@ export function Field({
         <span
           id={saidId}
           className="basalte-text"
-          data-size={error === undefined ? 'eyebrow' : 'small'}
+          data-size="eyebrow"
           data-tone={error === undefined ? 'meta' : 'refused'}
         >
           {said}
@@ -88,7 +88,7 @@ export function Field({
 
 type InputProps = ComponentProps<'input'> & {
   readonly mono?: boolean | undefined
-  /** Le filet d’accent d’un texte écrit pour le mobile seul. */
+  /** Le filet d’un texte écrit pour le mobile seul. */
   readonly override?: boolean | undefined
 }
 

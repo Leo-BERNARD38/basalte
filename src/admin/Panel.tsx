@@ -80,6 +80,10 @@ export default function Panel({ site }: { readonly site: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [savedAt, setSavedAt] = useState<number | undefined>(undefined)
   const [problems, setProblems] = useState<readonly string[]>([])
+  // Le même bandeau sert deux refus : celui d’un enregistrement et celui d’une
+  // mise en ligne. Sans ce titre, « Rien n’a été enregistré » s’affichait
+  // au-dessus d’un message qui parlait de mise en ligne.
+  const [refusal, setRefusal] = useState<string | undefined>(undefined)
   const [issues, setIssues] = useState<readonly ContentIssue[]>([])
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
@@ -118,6 +122,7 @@ export default function Panel({ site }: { readonly site: string }) {
     const answer = await loadPanel()
 
     setReady(true)
+    setRefusal(undefined)
 
     if (!answer.ok) {
       if (answer.signedOut) dropSession(answer.message)
@@ -309,6 +314,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
   const save = async (): Promise<boolean> => {
     setBusy(true)
+    setRefusal(undefined)
 
     const answer = editingJournal
       ? await savePost(openedPost, postDraft)
@@ -389,8 +395,13 @@ export default function Panel({ site }: { readonly site: string }) {
 
     const answer = await publishSite()
 
-    if (answer.ok) setPublication(answer.data.publication)
-    else setProblems([answer.message])
+    if (answer.ok) {
+      setPublication(answer.data.publication)
+      return
+    }
+
+    setRefusal('La mise en ligne n’a pas démarré')
+    setProblems([answer.message])
   }
 
   const select = (name: string) => {
@@ -475,6 +486,7 @@ export default function Panel({ site }: { readonly site: string }) {
   const editing: Editing = {
     language,
     languages: known.site.languages,
+    onLanguage: setLanguage,
     capabilities: known.site.capabilities,
     media: known.media,
     documents: known.documents,
@@ -513,12 +525,11 @@ export default function Panel({ site }: { readonly site: string }) {
                 (page === undefined ? undefined : pageLabel(page.name))),
         )}
         onScreen={goTo}
-        language={language}
-        onLanguage={setLanguage}
         dirty={dirty}
         busy={busy}
         savedAt={savedAt}
         problems={problems}
+        refusal={refusal}
         issues={issues}
         onIssue={setWanted}
         publication={publication}

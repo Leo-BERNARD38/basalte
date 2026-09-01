@@ -38,7 +38,7 @@ export function Switch({ on, label, shown, onChange, disabled }: SwitchProps) {
   return (
     <span className="basalte-switch-line">
       {control}
-      <span id={id} className="basalte-text" data-size="small">
+      <span id={id} className="basalte-text" data-size="eyebrow">
         {label}
       </span>
     </span>

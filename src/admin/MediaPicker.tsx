@@ -78,7 +78,7 @@ export function MediaPicker({
       title="Bibliothèque d’images"
       width="var(--panel-width-modal)"
       note={
-        <Text tone="muted" data-size="small">
+        <Text tone="muted" data-size="eyebrow">
           Toutes vos images, quelle que soit la page.
         </Text>
       }
@@ -162,7 +162,7 @@ export function MediaPicker({
 
           <Stack gap="lg" className="basalte-picker-aside">
             {entry === undefined ? (
-              <Text tone="meta" data-size="small">
+              <Text tone="meta" data-size="eyebrow">
                 Choisissez une image pour voir ce qu’elle porte.
               </Text>
             ) : (
@@ -172,7 +172,7 @@ export function MediaPicker({
                 </Eyebrow>
                 <Stack gap="xs">
                   <span className="basalte-label">Texte alternatif</span>
-                  <Text tone="muted" data-size="small">
+                  <Text tone="muted" data-size="eyebrow">
                     {alt(entry) === ''
                       ? 'Rien n’est écrit. Il se règle dans l’onglet Médias.'
                       : alt(entry)}
@@ -181,12 +181,12 @@ export function MediaPicker({
                 <Stack gap="xs">
                   <span className="basalte-label">Utilisée dans</span>
                   {places.length === 0 ? (
-                    <Text tone="meta" data-size="small">
+                    <Text tone="meta" data-size="eyebrow">
                       Nulle part pour l’instant.
                     </Text>
                   ) : (
                     places.map((place) => (
-                      <Text key={place.entry} tone="muted" data-size="small">
+                      <Text key={place.entry} tone="muted" data-size="eyebrow">
                         {place.label}
                       </Text>
                     ))

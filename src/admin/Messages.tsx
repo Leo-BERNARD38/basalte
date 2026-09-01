@@ -155,7 +155,7 @@ export function Messages({
                 <RowStack>
                   <RowText>{lead.name}</RowText>
                   <RowText>
-                    <Text tone="meta" size="small">
+                    <Text tone="meta" size="eyebrow">
                       {previewOf(lead)}
                     </Text>
                   </RowText>

@@ -191,7 +191,7 @@ export function UploadButton({
         opened={chosen !== undefined}
         title="Décrire l’image"
         note={
-          <Text tone="muted" size="small">
+          <Text tone="muted" size="eyebrow">
             Décrivez ce que montre l’image : c’est ce que lisent les personnes
             qui ne la voient pas, et ce que comprend Google.
           </Text>

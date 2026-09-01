@@ -4,7 +4,8 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 
-export type Gap = 'hair' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'xxxl'
+export type Gap =
+  'hair' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'xxxl' | 'region'
 
 type StackProps = ComponentProps<'div'> & {
   readonly gap?: Gap | undefined
@@ -13,6 +14,13 @@ type StackProps = ComponentProps<'div'> & {
 
 type GroupProps = StackProps & {
   readonly align?: 'center' | 'start' | 'baseline' | undefined
+  /**
+   * Ce qui passe à la ligne plutôt que de se serrer. Une rangée qui porte un
+   * titre et un contrôle n’a pas la même largeur d’un écran à l’autre : sans
+   * cela, c’est le libellé du contrôle qui se coupe en deux, et une commande
+   * sur deux lignes ne se lit plus comme une commande.
+   */
+  readonly wrap?: boolean | undefined
 }
 
 export function Stack({ gap, className, children, ...rest }: StackProps) {
@@ -30,6 +38,7 @@ export function Stack({ gap, className, children, ...rest }: StackProps) {
 export function Group({
   gap,
   align,
+  wrap,
   className,
   children,
   ...rest
@@ -39,6 +48,7 @@ export function Group({
       className={joined('basalte-group', className)}
       data-gap={gap}
       data-align={align}
+      data-wrap={wrap === true ? 'true' : undefined}
       {...rest}
     >
       {children}

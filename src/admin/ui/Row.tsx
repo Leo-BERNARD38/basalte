@@ -1,7 +1,8 @@
 // La ligne de liste : l’objet le plus vu du panel. Elle garde l’arête, comme
 // le champ — c’est une colonne qu’on parcourt du regard, pas un objet qu’on
-// presse. Ce qu’on est en train de modifier porte l’aplat d’accent, et l’encre
-// y reste noire : c’est ce qui le distingue d’une couleur d’action.
+// presse. Ce qu’on est en train de modifier porte l’aplat choisi — un gris
+// franc, sans teinte — et l’encre y reste noire : c’est le poids de l’aplat
+// qui désigne, jamais une couleur.
 
 import type { ComponentProps, ReactNode } from 'react'
 

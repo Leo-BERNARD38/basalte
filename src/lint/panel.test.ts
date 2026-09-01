@@ -44,14 +44,25 @@ describe('le plancher de contraste du panel', () => {
     }
   })
 
-  it('lit aussi l’encre posée sur la barre noire', () => {
+  it('lit aussi l’encre posée sur les deux fonds sombres', () => {
     const backs = new Set(
       panelPairs()
         .filter((pair) => pair.front.startsWith('onInk.'))
         .map((pair) => pair.back),
     )
 
-    expect(backs).toEqual(new Set(['surface.ink']))
+    expect(backs).toEqual(new Set(['surface.ink', 'state.refused']))
+  })
+
+  // Le bandeau plein n’écrit qu’en blanc : ses deux niveaux se donnent par la
+  // taille et la graisse. Une seconde encre y descendrait sous le plancher, et
+  // c’est ce que cette borne empêche d’écrire par distraction.
+  it('n’écrit que le blanc plein sur le bandeau de refus', () => {
+    const fronts = panelPairs()
+      .filter((pair) => pair.back === 'state.refused')
+      .map((pair) => pair.front)
+
+    expect(fronts).toEqual(['onInk.1'])
   })
 
   it('lit ce qui porte une valeur au seuil du graphique, le texte au sien', () => {

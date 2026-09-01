@@ -21,7 +21,7 @@ import { IconButton } from './ui/Button.js'
 import { Question } from './ui/icons.js'
 import { Stack } from './ui/Layout.js'
 import { Anchor, Menu } from './ui/Overlay.js'
-import { Text } from './ui/Text.js'
+import { Eyebrow, Text } from './ui/Text.js'
 
 type Note = {
   readonly heading: string
@@ -100,6 +100,10 @@ export function notesFor(
       },
     ],
     media: [
+      {
+        heading: 'Ce que cet onglet range',
+        body: 'Vous y écrivez le texte alternatif d’une image, vous y désignez son sujet, vous voyez où elle sert, et vous la supprimez. Pour poser une image sur une page, passez par l’onglet « Édition » : la bibliothèque s’y ouvre par-dessus la page que vous remplissez.',
+      },
       {
         heading: 'La description d’une image',
         body: 'C’est ce que lisent les personnes qui ne la voient pas, et ce que comprend Google. Elle est demandée dans chaque langue en ligne.',
@@ -190,12 +194,12 @@ export function Help({
           label="Ce que cet écran permet"
         >
           <Stack gap="xl">
+            <Eyebrow>ce que cet écran permet</Eyebrow>
+
             {notes.map((note) => (
               <Stack key={note.heading} gap="xs">
                 <strong>{note.heading}</strong>
-                <Text tone="muted" size="small">
-                  {note.body}
-                </Text>
+                <Text tone="muted">{note.body}</Text>
               </Stack>
             ))}
           </Stack>

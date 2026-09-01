@@ -68,7 +68,24 @@ function machinePath(
 }
 
 export function renderIssue(issue: ContentIssue): string {
-  const parts = [issue.page]
+  return `${issuePlace(issue)} : ${issue.message}`
+}
+
+/**
+ * L’endroit que le problème désigne, sans le reproche : la page, puis ce qui
+ * s’y trouve. Le terminal les recolle en une ligne ; le panel groupe par la
+ * page et met le reste en dessous, et c’est pourquoi les deux ne partagent
+ * que ces deux fonctions.
+ */
+export function issuePlace(issue: ContentIssue): string {
+  const detail = issueDetail(issue)
+
+  return detail === '' ? issue.page : `${issue.page} › ${detail}`
+}
+
+/** Sous la page : la section, puis le champ. Vide, la page entière est visée. */
+export function issueDetail(issue: ContentIssue): string {
+  const parts: string[] = []
 
   if (issue.section !== undefined) {
     parts.push(`section ${issue.section.index + 1} « ${issue.section.label} »`)
@@ -82,7 +99,7 @@ export function renderIssue(issue: ContentIssue): string {
     )
   }
 
-  return `${parts.join(' › ')} : ${issue.message}`
+  return parts.join(' › ')
 }
 
 function messageFor(

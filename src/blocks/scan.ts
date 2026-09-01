@@ -94,7 +94,13 @@ export async function loadRegistry(
   const registry: Record<string, BlockDefinition> = {}
 
   for (const source of sources) {
-    const loaded: unknown = await import(pathToFileURL(source.schema).href)
+    // Le chemin sort du disque, jamais des sources : c’est ce qui dispense
+    // d’un registre central (invariant 7). Vite le signale à chaque démarrage
+    // parce qu’il ne peut pas l’analyser, et cette lecture n’a jamais lieu
+    // dans un navigateur — le commentaire lui dit que c’est voulu.
+    const loaded: unknown = await import(
+      /* @vite-ignore */ pathToFileURL(source.schema).href
+    )
     const definition = (loaded as { default?: unknown }).default
 
     if (!isDefinition(definition)) {

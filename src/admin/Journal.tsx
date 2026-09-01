@@ -23,6 +23,7 @@ import type { Values } from './draft.js'
 import { editedLanguage, previewAddress, useEditing } from './editing.js'
 import { issuesOf } from './Edit.js'
 import { FieldSet } from './fields/Field.js'
+import { Language } from './Language.js'
 import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
@@ -174,7 +175,7 @@ export function Journal({
           />
         ) : (
           <Stack gap="xl">
-            <Group gap="md" align="start">
+            <Group gap="md" align="start" wrap>
               <Stack gap="xs">
                 <Eyebrow>
                   {[open.route, editedLanguage(editing)]
@@ -197,7 +198,7 @@ export function Journal({
               />
             </Group>
 
-            <Text tone="meta" size="small">
+            <Text tone="meta" size="eyebrow">
               {hidden
                 ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
                 : 'Ce billet partira à la prochaine mise en ligne.'}
@@ -223,42 +224,48 @@ export function Journal({
         )}
       </Card>
 
+      {/* L’aperçu d’un billet est le même objet que celui d’une page : sa barre
+          et ce qu’elle commande partagent un filet et un rayon. Le support
+          demandé se lit sur le cadre, et non sur la page qu’il porte — sans
+          quoi « Mobile » changeait le rendu sans jamais rétrécir la fenêtre
+          qui le montre. */}
       <div className="basalte-stage">
-        <Group gap="md">
-          <Eyebrow>aperçu du billet</Eyebrow>
-          <Spacer />
-          <Segmented
-            tone="ink"
-            label="Le support regardé"
-            value={viewport}
-            items={SUPPORTS}
-            onChange={setViewport}
-          />
-        </Group>
+        <div className="basalte-stage__screen" data-viewport={viewport}>
+          <div className="basalte-stage__bar">
+            <Segmented
+              tone="ink"
+              label="Le support regardé"
+              value={viewport}
+              items={SUPPORTS}
+              onChange={setViewport}
+            />
 
-        {open === undefined ? (
-          <Empty
-            title="Aucun billet ouvert"
-            note="Choisissez-en un à gauche, ou écrivez-en un."
-          />
-        ) : (
-          <>
-            {dirty && (
-              <Text tone="meta" size="small">
-                L’aperçu montre le dernier enregistrement. Enregistrez pour le
-                voir se mettre à jour.
-              </Text>
-            )}
+            <Spacer />
 
+            <Language />
+          </div>
+
+          {open !== undefined && dirty && (
+            <Text className="basalte-stage__note" tone="meta" size="eyebrow">
+              L’aperçu montre le dernier enregistrement. Enregistrez pour le
+              voir se mettre à jour.
+            </Text>
+          )}
+
+          {open === undefined ? (
+            <Empty
+              title="Aucun billet ouvert"
+              note="Choisissez-en un à gauche, ou écrivez-en un."
+            />
+          ) : (
             <iframe
               key={`${savedAt ?? 0}-${viewport}-${open.slug}`}
               className="basalte-stage__frame"
-              data-viewport={viewport}
               title="Aperçu du billet"
               src={previewAddress(open.route, editing, viewport)}
             />
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       <Modal

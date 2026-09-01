@@ -39,12 +39,12 @@ export function DocumentControl({
         <Card nested pad="sm" {...bound}>
           <Group gap="sm">
             {entry === undefined ? (
-              <Text tone="meta" size="small">
+              <Text tone="meta" size="eyebrow">
                 Aucun document
               </Text>
             ) : (
               <>
-                <Text size="small">{entry.name}</Text>
+                <Text size="eyebrow">{entry.name}</Text>
                 <Mono>{documentWeight(entry.bytes)}</Mono>
               </>
             )}

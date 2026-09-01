@@ -70,7 +70,7 @@ export function ImageControl({
 
           <Group gap="sm">
             {entry !== undefined && (
-              <Text tone="meta" size="small">
+              <Text tone="meta" size="eyebrow">
                 {translated(entry.alt, editing.language) || 'Sans description'}
               </Text>
             )}

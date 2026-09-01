@@ -7,8 +7,8 @@ import type { ComponentProps, ReactNode } from 'react'
 import { joined } from './Layout.js'
 
 type TextProps = ComponentProps<'span'> & {
-  readonly tone?: 'muted' | 'meta' | 'refused' | 'accent' | undefined
-  readonly size?: 'small' | 'eyebrow' | undefined
+  readonly tone?: 'muted' | 'meta' | 'refused' | 'strong' | undefined
+  readonly size?: 'eyebrow' | undefined
   readonly children: ReactNode
 }
 
@@ -63,6 +63,14 @@ export function Eyebrow({
       {children}
     </span>
   )
+}
+
+/**
+ * Le pluriel français : zéro et un restent au singulier. Écrit à la main, il
+ * s’oublie — « 1 sections » se lisait dans le menu des pages.
+ */
+export function plural(count: number, one: string, many = `${one}s`): string {
+  return count > 1 ? many : one
 }
 
 /** Un chiffre, une empreinte, un horodatage. */

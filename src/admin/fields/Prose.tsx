@@ -90,7 +90,7 @@ export function Prose({ description, value, issues, onChange }: ControlProps) {
               <Text
                 size="eyebrow"
                 tone={
-                  text.length >= description.max * CLOSE ? 'accent' : 'meta'
+                  text.length >= description.max * CLOSE ? 'strong' : 'meta'
                 }
               >
                 {text.length} / {description.max}

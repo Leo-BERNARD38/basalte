@@ -25,6 +25,7 @@ import { readDocuments } from '../media/documents.js'
 import { readManifest } from '../media/manifest.js'
 import { alertMaintainer } from '../publish/alert.js'
 import { createPublisher, publishIfStale } from '../publish/publish.js'
+import { discardStalePartials, siteRoot } from '../publish/release.js'
 import type { Panel } from '../server/context.js'
 import { adminAddress, contactAddress } from '../server/email/provider.js'
 import { openServer, siteProvider } from '../server/open.js'
@@ -63,6 +64,10 @@ function open(): Panel {
 
   const publisher = createPublisher(target)
 
+  // Un build tué laisse son dossier derrière lui, et la purge ne le voit pas.
+  // Ici, aucun build ne tourne encore : tout `.partial` est un orphelin.
+  void discardStalePartials(siteRoot(root)).catch(() => undefined)
+
   // Le site sort de lui-même quand il ne correspond plus au dépôt : premier
   // déploiement, machine mise à jour, ou reprise sur une machine neuve. Jamais
   // sous `astro dev`, que le module généré signale.
@@ -75,6 +80,7 @@ function open(): Panel {
   return {
     server,
     root,
+    dev,
     schemas: async (): Promise<Schemas> => ({
       site,
       registry,

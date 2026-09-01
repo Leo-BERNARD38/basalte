@@ -14,6 +14,7 @@ import { resolveCapabilities, type Capabilities } from '../site/capabilities.js'
 export type Editing = {
   readonly language: string
   readonly languages: readonly PanelLanguage[]
+  readonly onLanguage: (language: string) => void
   readonly capabilities: Capabilities
   readonly media: readonly MediaSummary[]
   readonly documents: readonly DocumentSummary[]
@@ -31,6 +32,7 @@ export type Editing = {
 const EMPTY: Editing = {
   language: '',
   languages: [],
+  onLanguage: () => undefined,
   capabilities: resolveCapabilities(),
   media: [],
   documents: [],

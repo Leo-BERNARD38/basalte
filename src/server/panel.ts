@@ -18,7 +18,7 @@ import { validateFiles } from '../content/project.js'
 import { readContent } from '../content/read.js'
 import {
   languageName,
-  renderIssue,
+  issueDetail,
   type ContentIssue,
 } from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
@@ -162,6 +162,11 @@ export type PanelPayload = {
   readonly documents: readonly DocumentSummary[]
   readonly problems: readonly {
     readonly severity: 'error' | 'warning'
+    /** La page, ou « médiathèque » : ce sur quoi le panel regroupe. */
+    readonly page: string
+    /** La section et le champ, quand le problème en désigne. */
+    readonly place: string
+    /** Le reproche seul, sans l’endroit qui le porte. */
     readonly message: string
   }[]
   readonly tracked: boolean
@@ -492,7 +497,9 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
     documents: describeDocuments(schemas.documents, pages, schemas),
     problems: issues.map((issue) => ({
       severity: issue.severity,
-      message: renderIssue(issue),
+      page: issue.page,
+      place: issueDetail(issue),
+      message: issue.message,
     })),
     ...(schemas.site.journal === undefined
       ? {}
@@ -639,6 +646,20 @@ function publish(panel: Panel, request: Request, account: Account): Response {
   const guard = guardWrite(request)
 
   if (guard !== undefined) return guard
+
+  // La même règle que la publication au démarrage, à l’autre bout du même
+  // travail : sous `astro dev`, aucune version n’est servie, et le build
+  // écrirait dans le dossier que le serveur surveille.
+  if (panel.dev === true) {
+    return json(
+      {
+        ok: false,
+        message:
+          'La mise en ligne ne part pas en développement : ce serveur sert le site depuis les sources, jamais une version construite. Lancez « basalte check --build » pour éprouver le build.',
+      },
+      409,
+    )
+  }
 
   return json({
     ok: true,

@@ -32,6 +32,12 @@ export type Panel = {
   schemas(): Promise<Schemas>
   /** La file de mise en ligne, unique pour le processus (D71). */
   readonly publisher: Publisher
+  /**
+   * Vrai sous `astro dev`. Aucune version n’y est jamais servie : une mise en
+   * ligne y construirait le site dans le dossier même que le serveur de
+   * développement surveille, et le rechargement qui suit ne s’arrête plus.
+   */
+  readonly dev?: boolean
   /** Où partent les messages du formulaire, et combien de temps ils vivent. */
   readonly leads: Leads
   /** Le log d’accès de Caddy, d’où sort le rapport d’audience. */

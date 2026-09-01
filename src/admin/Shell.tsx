@@ -1,9 +1,17 @@
-// Le cadre du panel : la navigation, la langue affichée, et l’en-tête d’écran
-// — seul endroit où agir sur l’état du site.
+// Le cadre du panel : la navigation, ce qui a échoué, et l’en-tête d’écran —
+// seul endroit où agir sur l’état du site.
 //
 // La barre est noire, et l’onglet ouvert y est une pastille blanche : l’outil
 // se tient au-dessus du document, pas à côté, et le blanc reste à la page
-// qu’on fabrique.
+// qu’on fabrique. Elle ne porte que la session — le compte, la déconnexion, le
+// « ? » à son extrémité droite. La langue écrite n’y est pas : elle décide de
+// ce qu’on écrit, pas de qui est connecté, et vit avec le choix de la page
+// (`Language.tsx`).
+//
+// Sous la barre, un bandeau plein d’un bord à l’autre dit ce qui a échoué au
+// niveau du site. Il ne défile pas et n’appartient à aucun écran : c’est la
+// forme de l’annonce, réservée à ce qui ne s’attache à aucun champ. Ce qui se
+// corrige champ par champ reste dans la page, en liste cliquable (D166).
 //
 // Trois informations sont lisibles en permanence : reste-t-il quelque chose à
 // enregistrer, quand la dernière modification a-t-elle été enregistrée, et
@@ -11,15 +19,21 @@
 // boutons, pour qu’un seul regard suffise.
 //
 // Le titre nomme ce qui est ouvert ; l’œilleton qui le surmonte nomme l’écran.
-// Ce que les deux boutons font est à un clic, sous le « ? » de l’en-tête, avec
-// tout ce que cet écran-là explique (D169).
+// Ce que les deux boutons font est à un clic, sous le « ? » de la barre, avec
+// tout ce que cet écran-là explique (D169). Le « ? » est dans la barre et non
+// dans l’en-tête : celui-ci ne porte que ce qui agit sur le site, et lire
+// n’agit sur rien. Il est le dernier de la barre, et son panneau se déplie
+// donc contre la gouttière plutôt qu’au-dessus des onglets.
+//
+// Ce qu’il reste à corriger ne vit pas ici : les points à regarder sont dans
+// le rail de l’écran d’édition, qui est le seul endroit où on les corrige.
 //
 // « Enregistrer » et « Mettre en ligne » ne paraissent que sur les deux écrans
 // qui écrivent du contenu. Ailleurs ils ne veulent rien dire : une médiathèque
 // enregistre à chaque geste, et des messages ne se mettent pas en ligne. La
 // place, elle, ne bouge pas — l’en-tête garde sa forme d’un écran à l’autre.
 
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import type { ContentIssue } from '../content/report.js'
 import type { PublishState } from '../publish/publish.js'
@@ -28,9 +42,9 @@ import type { Capabilities } from '../site/capabilities.js'
 import { Help } from './Help.js'
 import { Badge, Count } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
-import { Group, Spacer, Stack } from './ui/Layout.js'
-import { Banner } from './ui/Surface.js'
-import { Eyebrow, Text, Title } from './ui/Text.js'
+import { Group, Stack } from './ui/Layout.js'
+import { Alert, Banner } from './ui/Surface.js'
+import { Eyebrow, Title } from './ui/Text.js'
 
 export type Screen =
   'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
@@ -76,6 +90,13 @@ export function screensFor(
  */
 const WRITES = new Set<Screen>(['edit', 'journal'])
 
+/**
+ * Les écrans qui tiennent dans la fenêtre plutôt que de la faire défiler. Ce
+ * sont ceux qui portent un aperçu : la page ne défile pas sous lui, et il
+ * prend toute la hauteur qu’elle laisse.
+ */
+const FILLS = new Set<Screen>(['edit', 'journal'])
+
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
 
 const ONLINE = new Intl.DateTimeFormat('fr-FR', {
@@ -88,12 +109,11 @@ export function Shell({
   screen,
   heading,
   onScreen,
-  language,
-  onLanguage,
   dirty,
   busy,
   savedAt,
   problems,
+  refusal,
   issues,
   onIssue,
   publication,
@@ -106,12 +126,12 @@ export function Shell({
   readonly screen: Screen
   readonly heading: string
   readonly onScreen: (screen: Screen) => void
-  readonly language: string
-  readonly onLanguage: (language: string) => void
   readonly dirty: boolean
   readonly busy: boolean
   readonly savedAt: number | undefined
   readonly problems: readonly string[]
+  /** Ce que le refus annonce. Sans lui, il s’agit d’un enregistrement. */
+  readonly refusal?: string | undefined
   /** Ce qui bloque, avec la section et le champ que le serveur a nommés. */
   readonly issues: readonly ContentIssue[]
   readonly onIssue: (issue: ContentIssue) => void
@@ -121,13 +141,8 @@ export function Shell({
   readonly onSignOut: () => void
   readonly children: ReactNode
 }) {
-  const [all, setAll] = useState(false)
-  const several = payload.site.languages.length > 1
   const busyOnline = publication.running || publication.queued
   const last = publication.last
-  const blocking = payload.problems.some(
-    (problem) => problem.severity === 'error',
-  )
   const writes = WRITES.has(screen)
 
   return (
@@ -160,22 +175,6 @@ export function Shell({
         </nav>
 
         <span className="basalte-topbar__aside">
-          {several && (
-            <select
-              className="basalte-topbar__lang"
-              aria-label="Langue affichée"
-              value={language}
-              onChange={(event) => onLanguage(event.target.value)}
-            >
-              {payload.site.languages.map((entry) => (
-                <option key={entry.code} value={entry.code}>
-                  {entry.draft
-                    ? `${entry.label} (en préparation)`
-                    : entry.label}
-                </option>
-              ))}
-            </select>
-          )}
           <span className="basalte-topbar__account">{payload.account}</span>
           <button
             type="button"
@@ -185,14 +184,35 @@ export function Shell({
           >
             Se déconnecter
           </button>
+          <Help screen={screen} payload={payload} />
         </span>
       </header>
+
+      {/* Ce qui a échoué au niveau du site se dit en bandeau plein, d’un bord
+          à l’autre et sous la barre : ce n’est l’affaire d’aucun écran, et un
+          aplat rouge se lit avant d’être lu. Ce qui se corrige champ par champ
+          reste dans la page, où le clic mène à l’endroit fautif. */}
+      {last?.outcome === 'failed' && !busyOnline && (
+        <Alert title="La dernière mise en ligne n’a pas abouti">
+          {last.message}
+        </Alert>
+      )}
+
+      {issues.length === 0 && problems.length > 0 && (
+        <Alert title={refusal ?? 'Rien n’a été enregistré'}>
+          {problems.join(' · ')}
+        </Alert>
+      )}
 
       <div className="basalte-head">
         <Stack gap="xs">
           <Eyebrow>
             {[
-              SCREENS.find((entry) => entry.value === screen)?.label,
+              // L’écran ne se nomme au-dessus du titre que lorsqu’il en dit
+              // autre chose : sur « Compte », les deux lignes se répétaient.
+              SCREENS.find(
+                (entry) => entry.value === screen && entry.label !== heading,
+              )?.label,
               savedAt === undefined
                 ? undefined
                 : `enregistré à ${MOMENT.format(savedAt)}`,
@@ -217,7 +237,6 @@ export function Shell({
         </Stack>
 
         <div className="basalte-head__actions">
-          <Help screen={screen} payload={payload} />
           {writes && (
             <>
               <Button disabled={!dirty} busy={busy} onClick={onSave}>
@@ -236,56 +255,11 @@ export function Shell({
         </div>
       </div>
 
-      <main className="basalte-main">
-        <Stack>
-          {/* L’état du site, replié à une ligne. Un site multilingue en
-              préparation porte un avertissement par page : déplié, le bandeau
-              prenait le tiers de l’écran, tous les jours, pour ce qu’on ne
-              corrigera pas aujourd’hui. Ce qui bloque, lui, s’ouvre entier. */}
-          {payload.problems.length > 0 && (
-            <Banner tone={blocking ? 'refused' : undefined}>
-              <Stack gap="sm">
-                <Group gap="md">
-                  <strong>
-                    {blocking
-                      ? 'À corriger avant la prochaine mise en ligne'
-                      : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`}
-                  </strong>
-                  {!blocking && (
-                    <>
-                      <Spacer />
-                      <button
-                        type="button"
-                        className="basalte-link"
-                        onClick={() => setAll(!all)}
-                      >
-                        {all ? 'replier' : 'voir'}
-                      </button>
-                    </>
-                  )}
-                </Group>
-                {(blocking || all) && (
-                  <Stack gap="xs">
-                    {payload.problems.map((problem, rank) => (
-                      <Text key={`${rank}-${problem.message}`} tone="muted">
-                        {problem.message}
-                      </Text>
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-            </Banner>
-          )}
-
-          {last?.outcome === 'failed' && !busyOnline && (
-            <Banner>
-              <Stack gap="sm">
-                <strong>La dernière mise en ligne n’a pas abouti</strong>
-                <Text tone="muted">{last.message}</Text>
-              </Stack>
-            </Banner>
-          )}
-
+      <main
+        className="basalte-main"
+        data-fill={FILLS.has(screen) ? 'true' : undefined}
+      >
+        <Stack gap="region">
           {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait quelle
               section et quel champ, et une liste de phrases faisait relire
               l’écran à la main pour retrouver lequel (D166). */}
@@ -306,19 +280,6 @@ export function Shell({
                     </button>
                   ))}
                 </Stack>
-              </Stack>
-            </Banner>
-          )}
-
-          {issues.length === 0 && problems.length > 0 && (
-            <Banner tone="refused">
-              <Stack gap="sm">
-                <strong>Rien n’a été enregistré</strong>
-                {problems.map((problem, rank) => (
-                  <Text key={`${rank}-${problem}`} tone="muted">
-                    {problem}
-                  </Text>
-                ))}
               </Stack>
             </Banner>
           )}

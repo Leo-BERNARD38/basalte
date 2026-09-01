@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import {
   currentRelease,
+  discardStalePartials,
   KEEP,
   listReleases,
   openRelease,
@@ -191,5 +192,30 @@ describe('pruneReleases', () => {
 
     expect(await listReleases(root)).toContain('2026-08-29T00-00-00')
     expect(await currentRelease(root)).toBe('2026-08-29T00-00-00')
+  })
+})
+
+describe('discardStalePartials', () => {
+  it('efface le dossier d’un build interrompu, et lui seul', async () => {
+    const root = await serving()
+
+    await release(root, '2026-08-29T10-00-00', 'aboutie')
+    await release(root, `2026-08-29T13-00-00${PARTIAL}`, 'tuée en route')
+
+    const swept = await discardStalePartials(root)
+
+    expect(swept).toEqual([`2026-08-29T13-00-00${PARTIAL}`])
+    expect(await readdir(path.join(root, RELEASES))).toEqual([
+      '2026-08-29T10-00-00',
+    ])
+  })
+
+  it('ne dit rien quand il n’y a rien à balayer', async () => {
+    const root = await serving()
+
+    await release(root, '2026-08-29T10-00-00', 'aboutie')
+
+    expect(await discardStalePartials(root)).toEqual([])
+    expect(await listReleases(root)).toHaveLength(1)
   })
 })

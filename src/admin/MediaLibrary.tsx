@@ -141,18 +141,6 @@ export function MediaLibrary({
         )}
       </Group>
 
-      <Banner tone="raised">
-        <Stack gap="sm">
-          <strong>Cet onglet est le rangement de vos médias</strong>
-          <Text tone="muted">
-            Vous y écrivez le texte alternatif d’une image, vous y désignez son
-            sujet, vous voyez où elle sert, et vous la supprimez. Pour poser une
-            image sur une page, passez par l’onglet « Édition » : la
-            bibliothèque s’y ouvre par-dessus la page que vous remplissez.
-          </Text>
-        </Stack>
-      </Banner>
-
       <div className="basalte-edit">
         {images ? (
           <>
@@ -399,7 +387,7 @@ function MediaDetail({
 
         <Stack gap="xs">
           <Eyebrow>Point focal</Eyebrow>
-          <Text id={`${name}-focal`} tone="muted" size="small">
+          <Text id={`${name}-focal`} tone="muted" size="eyebrow">
             Cliquez le sujet de l’image, ou déplacez le point aux flèches :
             c’est lui que le cadrage garde toujours visible, quel que soit le
             format de l’emplacement. Il est à {focal.x} % depuis la gauche et{' '}
@@ -419,7 +407,7 @@ function MediaDetail({
             </Button>
           </Group>
           {entry.usage > 0 && (
-            <Text tone="meta" size="small">
+            <Text tone="meta" size="eyebrow">
               Une section l’emploie : retirez-la d’abord de la page.
             </Text>
           )}

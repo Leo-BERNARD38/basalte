@@ -152,6 +152,26 @@ export async function pruneReleases(
   return removed
 }
 
+/**
+ * Efface les dossiers d’un build interrompu. `discardRelease` ne s’appelle que
+ * lorsqu’un build rend la main : un processus tué en cours de route laisse le
+ * sien pour toujours, puisque `listReleases` ne retient que les noms aboutis
+ * et que la purge ne voit donc jamais un `.partial`. Le démarrage les balaie,
+ * seul moment où l’on sait qu’aucun build n’écrit.
+ */
+export async function discardStalePartials(
+  serving: string,
+): Promise<readonly string[]> {
+  const directory = path.join(serving, RELEASES)
+  const stale = (await entries(directory)).filter((name) =>
+    name.endsWith(PARTIAL),
+  )
+
+  for (const name of stale) await discardRelease(path.join(directory, name))
+
+  return stale
+}
+
 /** Efface un dossier de version inachevé, sans jamais faire échouer ce qui l’appelle. */
 export async function discardRelease(directory: string): Promise<void> {
   await rm(directory, { recursive: true, force: true }).catch(() => undefined)

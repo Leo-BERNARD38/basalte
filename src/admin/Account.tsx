@@ -34,8 +34,12 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
 })
 
 /** Les colonnes des deux tableaux : chaque rangée est sa propre grille. */
-const DEVICE_COLUMNS = 'minmax(0, 1fr) 130px'
-const JOURNAL_COLUMNS = '130px minmax(0, 1fr) 120px'
+// Chaque rangée est sa propre grille : les colonnes se déclarent donc en
+// largeurs fixes, faute de quoi l’en-tête se mesure sur ses libellés et les
+// rangées sur leurs données, et les deux ne tombent plus l’une sous l’autre.
+// Ces deux largeurs tiennent un horodatage entier à la taille du texte.
+const DEVICE_COLUMNS = 'minmax(0, 1fr) 148px'
+const JOURNAL_COLUMNS = '148px minmax(0, 1fr) 116px'
 
 export function Account({
   onSignedOut,
@@ -216,7 +220,7 @@ export function Account({
               {session === undefined ? (
                 <Waiting what="Lecture de la session…" />
               ) : session.devices.length === 0 ? (
-                <Text tone="meta" size="small">
+                <Text tone="meta" size="eyebrow">
                   Aucun appareil retenu : le code est demandé à chaque
                   connexion.
                 </Text>
@@ -269,7 +273,7 @@ export function Account({
             {session === undefined ? (
               <Waiting what="Lecture du journal…" />
             ) : session.journal.length === 0 ? (
-              <Text tone="meta" size="small">
+              <Text tone="meta" size="eyebrow">
                 Rien à afficher pour l’instant.
               </Text>
             ) : (
@@ -292,7 +296,15 @@ export function Account({
                   >
                     <Mono>{MOMENT.format(entry.at)}</Mono>
                     <Text className="basalte-row__text">{entry.label}</Text>
-                    <Mono>{entry.ip || 'adresse inconnue'}</Mono>
+                    {/* La chasse fixe aligne une colonne d’adresses ; son
+                        absence est une phrase, et se lit comme telle. */}
+                    {entry.ip ? (
+                      <Mono>{entry.ip}</Mono>
+                    ) : (
+                      <Text tone="meta" size="eyebrow">
+                        adresse inconnue
+                      </Text>
+                    )}
                   </div>
                 ))}
               </div>

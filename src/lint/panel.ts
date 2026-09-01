@@ -24,7 +24,7 @@ import { finding, type Finding } from './finding.js'
 /** Le seuil de l’AA sur ce qui est dessiné plutôt que lu. */
 export const GRAPHIC_RATIO = 3
 
-/** Les trois plans clairs sur lesquels le panel pose du texte. */
+/** Les trois plans clairs sur lesquels le panel pose ses trois encres. */
 const SURFACES = {
   'surface.canvas': tokens.surface.canvas,
   'surface.card': tokens.surface.card,
@@ -42,8 +42,8 @@ type Pair = {
 
 /**
  * Chaque niveau d’encre sur chacun des trois plans clairs, l’encre du plan
- * sombre, l’accent partout où il porte du texte, le rouge du refus, et ce qui
- * se dessine en portant une valeur.
+ * sombre, les deux encres que porte l’aplat choisi, le rouge du refus, et ce
+ * qui se dessine en portant une valeur.
  */
 export function panelPairs(): readonly Pair[] {
   const pairs: Pair[] = []
@@ -59,13 +59,18 @@ export function panelPairs(): readonly Pair[] {
         ratio: MINIMUM_RATIO,
       })
     }
+  }
 
+  // L’aplat de ce qu’on modifie ne porte que deux encres : la pleine, et la
+  // seconde. L’encre 3 n’y tient que 3,8:1, et c’est pourquoi la marque et la
+  // méta d’une ligne choisie montent d’un cran.
+  for (const level of ['1', '2'] as const) {
     pairs.push({
-      front: 'accent.stroke',
-      frontValue: tokens.accent.stroke,
-      back: name,
-      backValue: value,
-      what: 'le trait de l’accent — variation, lien survolé, action seconde',
+      front: `ink.${level}`,
+      frontValue: tokens.ink[level === '1' ? 1 : 2],
+      back: 'surface.chosen',
+      backValue: tokens.surface.chosen,
+      what: `le texte d’encre ${level} sur ce qu’on modifie`,
       ratio: MINIMUM_RATIO,
     })
   }
@@ -107,30 +112,6 @@ export function panelPairs(): readonly Pair[] {
     })
   }
 
-  // L’aplat de ce qu’on modifie porte deux encres : la noire, et la sienne.
-  for (const [name, wash] of Object.entries({
-    'accent.wash': tokens.accent.wash,
-    'accent.veil': tokens.accent.veil,
-  })) {
-    pairs.push({
-      front: 'accent.ink',
-      frontValue: tokens.accent.ink,
-      back: name,
-      backValue: wash,
-      what: 'l’encre seconde sur l’aplat d’accent',
-      ratio: MINIMUM_RATIO,
-    })
-
-    pairs.push({
-      front: 'ink.1',
-      frontValue: tokens.ink[1],
-      back: name,
-      backValue: wash,
-      what: 'le texte d’une ligne choisie',
-      ratio: MINIMUM_RATIO,
-    })
-  }
-
   pairs.push({
     front: 'state.refused',
     frontValue: tokens.state.refused,
@@ -148,6 +129,45 @@ export function panelPairs(): readonly Pair[] {
     what: 'le titre d’un bandeau de refus',
     ratio: MINIMUM_RATIO,
   })
+
+  // Le bandeau plein posé sous la barre. Il ne porte qu’un blanc : sur cet
+  // aplat, l’encre du plan sombre ne tient que 3,1:1, et un second niveau de
+  // gris y serait donc illisible.
+  pairs.push({
+    front: 'onInk.1',
+    frontValue: tokens.onInk[1],
+    back: 'state.refused',
+    backValue: tokens.state.refused,
+    what: 'ce qu’annonce le bandeau plein',
+    ratio: MINIMUM_RATIO,
+  })
+
+  // L’ambre de ce qui mérite un regard, sur les plans où le bandeau se pose et
+  // sur son propre aplat.
+  for (const [name, value] of Object.entries({
+    ...SURFACES,
+    'state.watchWash': tokens.state.watchWash,
+  })) {
+    pairs.push({
+      front: 'state.watch',
+      frontValue: tokens.state.watch,
+      back: name,
+      backValue: value,
+      what: 'le titre d’un bandeau à regarder',
+      ratio: MINIMUM_RATIO,
+    })
+  }
+
+  for (const [level, ink] of Object.entries(tokens.ink)) {
+    pairs.push({
+      front: `ink.${level}`,
+      frontValue: ink,
+      back: 'state.watchWash',
+      backValue: tokens.state.watchWash,
+      what: `le texte d’encre ${level} sur un point à regarder`,
+      ratio: MINIMUM_RATIO,
+    })
+  }
 
   for (const [level, ink] of Object.entries(tokens.ink)) {
     pairs.push({

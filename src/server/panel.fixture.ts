@@ -81,6 +81,8 @@ export type BenchOptions = {
   readonly journal?: JournalDeclaration
   /** Des billets écrits d’avance, par slug. */
   readonly posts?: Readonly<Record<string, unknown>>
+  /** Monte le panel comme sous `astro dev`, où rien ne se met en ligne. */
+  readonly dev?: boolean
 }
 
 export type Bench = {
@@ -217,6 +219,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
   const panel: Panel = {
     server: carrier.server,
     root,
+    ...(settings.dev === true ? { dev: true } : {}),
     schemas: async (): Promise<Schemas> => ({
       site,
       registry,

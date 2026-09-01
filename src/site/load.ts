@@ -18,7 +18,13 @@ export async function loadSite(root: string): Promise<Site> {
     throw new Error(`Aucun « ${CONFIG_FILE} » dans ${root}.`)
   }
 
-  const loaded: unknown = await import(pathToFileURL(file).href)
+  // Le fichier appartient au dépôt du client, pas au socle : son chemin ne
+  // peut pas être écrit ici. Vite le signale à chaque démarrage faute de
+  // pouvoir l’analyser, et ce chargement n’a jamais lieu dans un navigateur —
+  // le commentaire lui dit que c’est voulu.
+  const loaded: unknown = await import(
+    /* @vite-ignore */ pathToFileURL(file).href
+  )
   const site = (loaded as { default?: unknown }).default
 
   if (!isSite(site)) {

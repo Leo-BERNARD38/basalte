@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { CONTENT_FORMAT } from '../content/page.js'
-import { bench, buildsBadly, defaultPage, IMAGE } from './panel.fixture.js'
+import {
+  bench,
+  buildsBadly,
+  buildsFine,
+  defaultPage,
+  IMAGE,
+} from './panel.fixture.js'
 
 describe('GET /api/panel', () => {
   it('décrit le site, ses champs, ses pages et ses médias', async () => {
@@ -107,6 +113,27 @@ describe('/api/publish', () => {
     await site.close()
   })
 
+  it('refuse la mise en ligne sous « astro dev », sans lancer de build', async () => {
+    let started = false
+    const site = await bench({
+      dev: true,
+      build: async (root, outDir) => {
+        started = true
+
+        return buildsFine(root, outDir)
+      },
+    })
+
+    const body = await (await site.call('POST', '/api/publish', {})).json()
+
+    expect(body.ok).toBe(false)
+    expect(body.message).toContain('développement')
+    expect(started).toBe(false)
+    expect(site.publisher.state().running).toBe(false)
+
+    await site.close()
+  })
+
   it('porte le dernier état dans la charge utile de démarrage', async () => {
     const site = await bench()
 
@@ -119,7 +146,7 @@ describe('/api/publish', () => {
 
     const after = await (await site.call('GET', '/api/panel')).json()
 
-    expect(after.publication.last.message).toBe('Ton site est en ligne.')
+    expect(after.publication.last.message).toBe('Votre site est en ligne.')
 
     await site.close()
   })

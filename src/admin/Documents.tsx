@@ -220,7 +220,7 @@ export function DocumentPanel({
                   </Button>
                 </Group>
                 {entry.usage > 0 && (
-                  <Text tone="meta" size="small">
+                  <Text tone="meta" size="eyebrow">
                     Une section y mène : retirez-le d’abord de la page.
                   </Text>
                 )}

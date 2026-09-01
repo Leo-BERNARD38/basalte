@@ -45,15 +45,15 @@ import {
 import { pushToRemote, rebaseOnRemote } from './remote.js'
 
 const REFUSED =
-  'La mise en ligne a échoué. Ton site en ligne n’a pas changé, et personne d’autre que toi ne l’a vu.'
+  'La mise en ligne a échoué. Votre site en ligne n’a pas changé, et personne d’autre que vous ne l’a vu.'
 
-const PUBLISHED = 'Ton site est en ligne.'
+const PUBLISHED = 'Votre site est en ligne.'
 
 /** Ce que le journal des mises en ligne inscrit quand personne ne l’a demandée. */
 export const DEPLOYMENT = 'déploiement'
 
 const UNSAVED =
-  'Ton site est en ligne. La sauvegarde à distance n’a pas abouti — le mainteneur est prévenu.'
+  'Votre site est en ligne. La sauvegarde à distance n’a pas abouti — le mainteneur est prévenu.'
 
 /** Ce que le build reçoit : la racine du dépôt, et où écrire. */
 export type Build = (root: string, outDir: string) => Promise<BuildResult>
