@@ -1,12 +1,10 @@
-// La couche de tokens du panel : surfaces, encre, couleurs, échelle de texte,
-// espacements, rayons, ombres. Déclarée une fois ici, elle alimente le thème
-// Mantine et, par le résolveur de variables, les classes de `panel.css`.
+// Le thème Mantine du panel, tiré des valeurs de `tokens.ts`.
 //
-// Le panel n’emprunte rien aux tokens du site (D65) : la direction artistique
-// d’un client ne décide pas de la lisibilité de son outil de travail. On
-// configure l’échelle de Mantine plutôt que de la subir — c’est ce qui permet
-// aux composants de la bibliothèque et aux classes maison de tomber sur les
-// mêmes valeurs.
+// Le panel n’emprunte rien aux tokens du site (D65). On configure l’échelle de
+// Mantine plutôt que de la subir — c’est ce qui permet aux composants de la
+// bibliothèque et aux classes maison de tomber sur les mêmes valeurs. Les
+// valeurs elles-mêmes vivent à côté, dans un module que `basalte lint` peut
+// relire sans entraîner `@mantine/core` (D164).
 //
 // Deux principes portent l’allure : aucune bordure, et la couleur réservée aux
 // actions et aux données. Ce qui sépare deux plans est un écart de valeur et
@@ -21,7 +19,6 @@ import {
   createTheme,
   Fieldset,
   Modal,
-  NavLink,
   Paper,
   PasswordInput,
   Select,
@@ -32,70 +29,14 @@ import {
   type CSSVariablesResolver,
 } from '@mantine/core'
 
+import { tokens } from './tokens.js'
+
+export { tokens }
+
 const SANS =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif'
 const MONO =
   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace'
-
-/**
- * Les valeurs du système, hors de l’objet Mantine pour qu’un test puisse les
- * lire et que `panel.css` les retrouve sous `--panel-*`.
- */
-export const tokens = {
-  surface: {
-    bg: '#f3f5f9',
-    card: '#ffffff',
-    sunken: '#eef1f7',
-    hover: '#f6f8fc',
-    ink: '#16181d',
-  },
-  ink: {
-    1: '#16181d',
-    2: '#565a63',
-    3: '#71757f',
-    4: '#9ea3af',
-  },
-  accent: {
-    blue: '#1266d6',
-    blueMark: '#1b7cf2',
-    green: '#12864f',
-    orange: '#c2410c',
-    red: '#b42318',
-  },
-  radius: {
-    sm: '12px',
-    md: '16px',
-    lg: '24px',
-    pill: '999px',
-  },
-  space: {
-    1: '4px',
-    2: '8px',
-    3: '12px',
-    4: '16px',
-    5: '24px',
-    6: '32px',
-    7: '48px',
-  },
-  text: {
-    eyebrow: '11px',
-    cap: '13px',
-    body: '14px',
-    lead: '16px',
-    title: '22px',
-    display: '38px',
-  },
-  control: {
-    sm: '34px',
-    md: '40px',
-    touch: '48px',
-  },
-  shadow: {
-    sm: '0 1px 2px rgba(20, 24, 35, .06), 0 4px 10px -6px rgba(20, 24, 35, .10)',
-    card: '0 1px 2px rgba(20, 24, 35, .05), 0 12px 28px -14px rgba(20, 24, 35, .13)',
-    pop: '0 4px 10px rgba(20, 24, 35, .07), 0 20px 44px -16px rgba(20, 24, 35, .24)',
-  },
-} as const
 
 /**
  * Les gammes de dix pas qu’attend Mantine. Le pas 6 porte la valeur du système
@@ -130,16 +71,21 @@ const ink: MantineColorTuple = [
   '#0a0c0f',
 ]
 
-// Le gris froid du système. Mantine y prend son texte estompé (pas 6) et ses
-// fonds en creux (pas 0 et 1) : régler cette gamme suffit à teinter tout ce que
-// la bibliothèque dessine.
+// Le gris froid du système. Mantine y prend son texte estompé (pas 6), son
+// texte d’invite et ses états inertes (pas 5), et ses fonds en creux (pas 0 et
+// 1) : régler cette gamme suffit à teinter tout ce que la bibliothèque dessine.
+//
+// Les pas 5 et 6 portent la même encre, et c’est voulu : une invite se lit
+// autant qu’un texte estompé, et l’encre du panel n’a que trois niveaux
+// lisibles.
+
 const gray: MantineColorTuple = [
   tokens.surface.hover,
   tokens.surface.sunken,
   '#e3e7ef',
   '#d3d8e2',
   '#b9bfcd',
-  tokens.ink[4],
+  tokens.ink[3],
   tokens.ink[3],
   tokens.ink[2],
   '#3b3e46',
@@ -230,7 +176,7 @@ export const theme = createTheme({
 
   defaultRadius: 'md',
   radius: {
-    xs: '8px',
+    xs: tokens.radius.xs,
     sm: tokens.radius.sm,
     md: tokens.radius.md,
     lg: tokens.radius.lg,
@@ -313,10 +259,6 @@ export const theme = createTheme({
       },
       styles: { title: { fontSize: tokens.text.title, fontWeight: 700 } },
     }),
-    NavLink: NavLink.extend({
-      defaultProps: { color: 'ink' },
-      styles: { root: { borderRadius: tokens.radius.pill } },
-    }),
     Accordion: Accordion.extend({
       defaultProps: { radius: 'lg', variant: 'filled' },
     }),
@@ -343,12 +285,14 @@ export const cssVariables: CSSVariablesResolver = () => ({
     '--panel-ink': tokens.ink[1],
     '--panel-ink-2': tokens.ink[2],
     '--panel-ink-3': tokens.ink[3],
-    '--panel-ink-4': tokens.ink[4],
+    '--panel-line': tokens.line,
+    '--panel-scrim': tokens.scrim,
     '--panel-blue': tokens.accent.blue,
     '--panel-blue-mark': tokens.accent.blueMark,
     '--panel-green': tokens.accent.green,
     '--panel-orange': tokens.accent.orange,
     '--panel-red': tokens.accent.red,
+    '--panel-radius-xs': tokens.radius.xs,
     '--panel-radius-sm': tokens.radius.sm,
     '--panel-radius-md': tokens.radius.md,
     '--panel-radius-lg': tokens.radius.lg,
@@ -369,6 +313,8 @@ export const cssVariables: CSSVariablesResolver = () => ({
     '--panel-control-sm': tokens.control.sm,
     '--panel-control-md': tokens.control.md,
     '--panel-control-touch': tokens.control.touch,
+    '--panel-measure-form': tokens.measure.form,
+    '--panel-measure-page': tokens.measure.page,
     '--panel-shadow-sm': tokens.shadow.sm,
     '--panel-shadow-card': tokens.shadow.card,
     '--panel-shadow-pop': tokens.shadow.pop,

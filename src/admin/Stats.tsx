@@ -133,7 +133,7 @@ function Figure({
       <Text size="sm" c="dimmed">
         {label}
       </Text>
-      <Text fz={32} fw={700}>
+      <Text fz="var(--panel-text-display)" fw={700} lh={1.1}>
         {value}
       </Text>
     </Paper>

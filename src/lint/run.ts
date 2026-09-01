@@ -10,7 +10,7 @@
 // `node_modules` vient du socle, il a passé les mêmes règles chez lui, et le
 // signaler ici donnerait un rapport que personne ne peut corriger.
 
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import { findBlocks, type BlockSource } from '../blocks/scan.js'
@@ -19,7 +19,8 @@ import { loadSite } from '../site/load.js'
 import { listBounds } from './bounds.js'
 import { contrastFindings } from './contrast.js'
 import { ordered, relative, type Finding } from './finding.js'
-import { hardcodedStyle } from './style.js'
+import { panelContrast } from './panel.js'
+import { hardcodedStyle, PANEL } from './style.js'
 import { manualValidation } from './validation.js'
 import { catchAll, inlineScripts } from './structure.js'
 
@@ -32,6 +33,7 @@ export async function lintProject(root: string): Promise<readonly Finding[]> {
   const findings: Finding[] = [
     ...(await catchAll(root)),
     ...(await tokens(root)),
+    ...(await panel(root)),
   ]
 
   for (const source of sources) {
@@ -76,6 +78,34 @@ function components(source: BlockSource): readonly string[] {
   return source.desktop === undefined
     ? [source.component]
     : [source.component, source.desktop]
+}
+
+/**
+ * La feuille et les tokens du panel, quand ce dépôt les porte (D164). Un dépôt
+ * client installe le panel, il ne l’écrit pas : lui signaler une valeur de la
+ * feuille du socle lui donnerait un rapport qu’il ne peut pas corriger.
+ */
+async function panel(root: string): Promise<readonly Finding[]> {
+  const sheet = path.join(root, 'src', 'admin', 'panel.css')
+
+  if (!(await exists(sheet))) return []
+
+  const named = relative(root, sheet)
+
+  return [
+    ...hardcodedStyle(named, await readFile(sheet, 'utf8'), PANEL),
+    ...panelContrast('src/admin/tokens.ts'),
+  ]
+}
+
+async function exists(file: string): Promise<boolean> {
+  try {
+    await stat(file)
+
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**

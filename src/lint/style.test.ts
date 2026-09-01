@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { hardcodedStyle } from './style.js'
+import { hardcodedStyle, PANEL } from './style.js'
 
 function css(...declarations: readonly string[]): string {
   return [
@@ -82,5 +82,41 @@ describe('hardcodedStyle', () => {
 
   it('ne prend pas la définition d’un token pour son emploi', () => {
     expect(rules(css('--space-custom: 27px;'))).toEqual([])
+  })
+})
+
+describe('hardcodedStyle, sur la feuille du panel', () => {
+  function panel(source: string) {
+    return hardcodedStyle('panel.css', source, PANEL)
+  }
+
+  it('lit la feuille entière, sans balise de style', () => {
+    expect(panel('.a {\n  gap: 11px;\n}').map((entry) => entry.rule)).toEqual([
+      'style/space',
+    ])
+  })
+
+  it('nomme le token du panel dans la correction', () => {
+    expect(panel('.a {\n  gap: 11px;\n}')[0]?.message).toContain(
+      'var(--panel-space-… )',
+    )
+    expect(panel('.a {\n  color: #fff;\n}')[0]?.message).toContain(
+      'var(--panel-ink)',
+    )
+  })
+
+  it('laisse passer une famille que le panel ne porte pas', () => {
+    expect(panel('.a {\n  font-family: Menlo;\n}')).toEqual([])
+    expect(panel('.a {\n  max-width: 42rem;\n}')).toEqual([])
+  })
+
+  it('ignore une déclaration écrite dans un commentaire', () => {
+    const source = '/* gap: 11px, et une phrase ; */\n.a {\n  gap: 11px;\n}'
+
+    expect(panel(source).map((entry) => entry.line)).toEqual([3])
+  })
+
+  it('accepte ce qui vient d’un token', () => {
+    expect(panel('.a {\n  gap: var(--panel-space-3);\n}')).toEqual([])
   })
 })

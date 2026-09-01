@@ -15,7 +15,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
@@ -25,6 +25,13 @@ import { useEditing } from './editing.js'
 import { MediaGrid, preview, UploadButton } from './Media.js'
 
 const CENTRE = 50
+
+/** Le pas d’une flèche, en pourcentage de l’image. */
+const STEP = 2
+
+function clamp(value: number): number {
+  return Math.min(Math.max(value, 0), 100)
+}
 
 export function MediaLibrary({
   media,
@@ -104,6 +111,7 @@ function MediaDetail({
   readonly onDeleted: () => void
   readonly onError: (message: string) => void
 }) {
+  const name = useId()
   const [alt, setAlt] = useState<Record<string, string>>({ ...entry.alt })
   const [focal, setFocal] = useState(entry.focal ?? { x: CENTRE, y: CENTRE })
   const [busy, setBusy] = useState(false)
@@ -130,13 +138,31 @@ function MediaDetail({
     else onError(answer.message)
   }
 
-  const aim = (event: React.MouseEvent<HTMLImageElement>) => {
+  const aim = (event: React.MouseEvent<HTMLElement>) => {
     const box = event.currentTarget.getBoundingClientRect()
 
     setFocal({
-      x: Math.round(((event.clientX - box.left) / box.width) * 100),
-      y: Math.round(((event.clientY - box.top) / box.height) * 100),
+      x: clamp(Math.round(((event.clientX - box.left) / box.width) * 100)),
+      y: clamp(Math.round(((event.clientY - box.top) / box.height) * 100)),
     })
+  }
+
+  // Le point se déplace aussi aux flèches, comme le cadre de recadrage : une
+  // image qu’on ne cadre qu’à la souris laisse dehors qui ne s’en sert pas.
+  const nudge = (event: React.KeyboardEvent) => {
+    const moves: Readonly<Record<string, { x: number; y: number }>> = {
+      ArrowLeft: { x: focal.x - STEP, y: focal.y },
+      ArrowRight: { x: focal.x + STEP, y: focal.y },
+      ArrowUp: { x: focal.x, y: focal.y - STEP },
+      ArrowDown: { x: focal.x, y: focal.y + STEP },
+    }
+
+    const next = moves[event.key]
+
+    if (next === undefined) return
+
+    event.preventDefault()
+    setFocal({ x: clamp(next.x), y: clamp(next.y) })
   }
 
   return (
@@ -144,15 +170,23 @@ function MediaDetail({
       <Stack gap="md">
         <Title order={4}>Cette image</Title>
 
-        <div className="basalte-focal">
-          <img src={preview(entry)} alt="" onClick={aim} />
+        <button
+          type="button"
+          className="basalte-focal"
+          aria-label="Point de l’image que le cadrage garde visible"
+          aria-describedby={`${name}-focal`}
+          onClick={aim}
+          onKeyDown={nudge}
+        >
+          <img src={preview(entry)} alt="" draggable={false} />
           <span style={{ left: `${focal.x}%`, top: `${focal.y}%` }} />
-        </div>
+        </button>
 
-        <Text size="xs" c="dimmed">
-          Clique sur le sujet de l’image : c’est ce point que le cadrage garde
-          toujours visible. {entry.width} × {entry.height} pixels,{' '}
-          {entry.widths.length} largeurs produites.
+        <Text id={`${name}-focal`} size="xs" c="dimmed">
+          Cliquez sur le sujet de l’image, ou déplacez le point aux flèches :
+          c’est lui que le cadrage garde toujours visible. Il est à {focal.x} %
+          depuis la gauche et {focal.y} % depuis le haut. {entry.width} ×{' '}
+          {entry.height} pixels, {entry.widths.length} largeurs produites.
         </Text>
 
         {languages.map((language) => (

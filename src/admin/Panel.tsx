@@ -260,7 +260,7 @@ export default function Panel({ site }: { readonly site: string }) {
   if (!ready) {
     return (
       <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-        <Center h="100vh">
+        <Center h="100dvh">
           <Loader />
         </Center>
       </MantineProvider>
