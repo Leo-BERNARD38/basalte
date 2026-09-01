@@ -96,7 +96,7 @@ export function Journal({
     <div className="basalte-edit">
       <Paper className="basalte-rail" p="md">
         <Stack gap="sm">
-          <Button size="sm" onClick={() => setWriting(true)}>
+          <Button variant="light" size="sm" onClick={() => setWriting(true)}>
             Nouveau billet
           </Button>
 
@@ -148,13 +148,6 @@ export function Journal({
               </Button>
             </div>
           )}
-
-          <div className="basalte-note">
-            <p>
-              Un billet masqué reste ici et ne part pas en ligne. C’est ce qui
-              permet de l’écrire en plusieurs fois.
-            </p>
-          </div>
         </Stack>
       </Paper>
 
@@ -206,7 +199,7 @@ export function Journal({
             <span>Le billet ouvert apparaîtra ici.</span>
           </div>
         ) : (
-          <Stack gap="md">
+          <Stack gap="sm">
             <div>
               <Title order={2}>{open.title}</Title>
               <Text size="sm" c="dimmed">

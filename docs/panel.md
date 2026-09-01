@@ -92,23 +92,33 @@ Arriver à dix pages signifie que deux d'entre elles auraient dû fusionner. La
 hiérarchie suit la fréquence d'usage : le client édite chaque semaine, il
 consulte ses statistiques une fois par mois.
 
-### Les quatre phrases
+### Le « ? » de l'en-tête
 
-Le panel ne s'explique pas dans un écran d'aide — ce serait la sixième page que
-D63 refuse, et personne ne l'ouvrirait. Ce qui n'était pas clair pour le client
-se dit **là où la question se pose** (D134) :
+Le panel ne s'explique pas dans un écran d'aide — ce serait la septième page que
+D63 refuse, et il faudrait l'ouvrir en sachant qu'elle existe. Ce qui n'est pas
+clair se dit **là où la question se pose** (D134), mais **quand on le demande**
+(D169) : un « ? » dans l'en-tête déplie ce que cet écran-là explique, et rien
+d'autre.
 
-| Où | Ce qui est dit |
-|---|---|
-| sous les deux boutons | enregistrer garde le travail, mettre en ligne le montre aux visiteurs |
-| sous la liste des sections | ce que le client fait — modifier, réordonner, masquer — et que le reste se demande à toi (D3) |
-| sous la liste des billets | qu'un billet masqué reste là et ne part pas en ligne, ce qui permet de l'écrire en plusieurs fois |
-| au bas de « Compte » | à qui écrire quand quelque chose casse |
-| en tête de « Messages » | combien de temps ses messages sont gardés |
+Les phrases étaient posées en permanence. Elles occupaient huit paragraphes gris
+sur les six écrans, tous les jours, pour expliquer des boutons à quelqu'un qui
+les connaît depuis sa deuxième visite — et le premier reproche fait au panel a
+été celui-là. Une réponse qu'on n'a pas demandée est du bruit ; la même, à un
+clic, ne coûte rien.
+
+Elles vivent toutes dans `src/admin/Help.tsx`, et nulle part ailleurs : deux
+endroits auraient divergé à la première correction. La première note est sur
+tous les écrans — les deux boutons y sont aussi, et c'est la question que le
+client pose le plus souvent.
 
 L'adresse vient d'`EMAIL_ADMIN`, déjà dans le `.env` : aucune variable nouvelle,
 et pas de seconde source à faire diverger. Vide, les phrases s'arrêtent avant
 l'adresse plutôt que de nommer un destinataire qui n'existe pas.
+
+Ce qui reste dans les écrans est ce qui n'est pas de l'explication : ce qui
+décrit un **état** — « L'aperçu montre le dernier enregistrement », « Employée
+par une section : retirez-la d'abord » — et ce qui accompagne un **geste** dans
+la fenêtre où on le fait.
 
 **Deux niveaux de navigation au maximum.** Menu, puis page. Jamais un troisième
 étage d'onglets : une page qui réclame des onglets est deux pages.
@@ -160,9 +170,13 @@ Trois principes portent l'allure :
 
 - **Aucune bordure** (D97). Ce qui sépare deux plans est un écart de valeur et
   une ombre très douce. Entre deux lignes d'une liste, c'est l'écart seul.
-- **La couleur est réservée** aux actions et aux données. Le reste est neutre.
-  L'action qui change l'état du site est noire, une fois par écran ; l'action
-  fréquente est bleue et douce ; ce qui détruit est rouge.
+- **La couleur est réservée** aux actions et aux données, et **deux éléments
+  accentués par écran au plus** (D170) : l'accent plein pour l'action qui change
+  l'état du site, son lavis pour l'action propre à l'écran, le gris pour tout le
+  reste. À trois, plus aucun ne ressort. Ce qui détruit est rouge.
+- **Les rayons sont courts** (D171) : 6 / 8 / 10 / 14, et la forme pleine ne
+  reste qu'au badge, à la pastille et à l'icône ronde. Les quatre surfaces sont
+  assez creusées pour qu'une carte blanche s'en détache sans un trait.
 - **Le contraste vient de la graisse et de la taille**, pas de la couleur :
   38 / 22 / 16 / 14 / 13 / 11, en 700 ou 500, et rien entre les deux. Les six
   rangs de titre tombent sur ces six pas, et le panel en emploie trois : le nom

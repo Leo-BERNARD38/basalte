@@ -579,7 +579,6 @@ export default function Panel({ site }: { readonly site: string }) {
 
           {shown === 'messages' && (
             <Messages
-              retention={known.retention}
               notified={known.notified}
               onChanged={() => void refresh()}
               onSignedOut={dropSession}
@@ -588,9 +587,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
           {shown === 'stats' && <Stats onSignedOut={dropSession} />}
 
-          {shown === 'account' && (
-            <Account support={known.support} onSignedOut={dropSession} />
-          )}
+          {shown === 'account' && <Account onSignedOut={dropSession} />}
         </Shell>
 
         <MediaPicker

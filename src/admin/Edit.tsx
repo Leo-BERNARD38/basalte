@@ -20,7 +20,6 @@
 
 import {
   ActionIcon,
-  Anchor,
   Group,
   Paper,
   SegmentedControl,
@@ -285,33 +284,6 @@ export function Edit({
               </span>
             </div>
           )}
-
-          {/* Les phrases que D134 pose là où la limite se rencontre, réunies
-              en une note : trois blocs gris empilés dans une colonne de deux
-              cent quarante pixels se lisaient comme du bruit. */}
-          <div className="basalte-note">
-            <p>
-              {aside?.note ??
-                'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
-            </p>
-            {!fixed && (
-              <p>
-                Vous modifiez, réordonnez et masquez les sections. Ajouter une
-                section ou une page{' '}
-                {payload.support === '' ? (
-                  'ne se fait pas depuis le panel.'
-                ) : (
-                  <>
-                    se demande à{' '}
-                    <Anchor href={`mailto:${payload.support}`} inherit>
-                      {payload.support}
-                    </Anchor>
-                    .
-                  </>
-                )}
-              </p>
-            )}
-          </div>
         </Stack>
       </Paper>
 
@@ -358,7 +330,7 @@ export function Edit({
       </div>
 
       <Paper className="basalte-inspector" p="md">
-        <Stack gap="md">
+        <Stack gap="sm">
           {spoken !== undefined && (
             <Text size="xs" c="dimmed">
               {spoken}

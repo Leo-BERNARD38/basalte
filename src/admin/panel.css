@@ -34,7 +34,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--panel-space-6);
-  height: 60px;
+  height: 52px;
   padding: 0 var(--panel-space-5);
   flex-shrink: 0;
 }
@@ -52,7 +52,7 @@ body {
   width: 30px;
   height: 30px;
   border-radius: var(--panel-radius-xs);
-  background: var(--panel-ink-card);
+  background: var(--panel-blue);
   flex-shrink: 0;
 }
 
@@ -69,7 +69,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--panel-space-2);
-  height: 60px;
+  height: 52px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -87,7 +87,7 @@ body {
 .basalte-tab[data-active] {
   color: var(--panel-ink);
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--panel-ink);
+  box-shadow: inset 0 -2px 0 var(--panel-blue);
 }
 
 .basalte-main {
@@ -113,6 +113,15 @@ body {
   flex-direction: column;
   gap: var(--panel-space-1);
   min-width: 0;
+}
+
+/* L’œilleton et l’état sur une ligne : le titre, sa mesure et son horodatage
+   tenaient trois rangs pour trois lignes de texte. */
+.basalte-head__eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--panel-space-3);
+  flex-wrap: wrap;
 }
 
 .basalte-head__title {
@@ -152,7 +161,7 @@ body {
 
 @media (min-width: 75rem) {
   .basalte-edit {
-    grid-template-columns: 240px minmax(0, 1fr) 376px;
+    grid-template-columns: 260px minmax(0, 1fr) 376px;
   }
 }
 
@@ -187,7 +196,7 @@ body {
   width: 100%;
   min-height: 38px;
   padding: 0 var(--panel-space-3);
-  border-radius: var(--panel-pill);
+  border-radius: var(--panel-radius-sm);
   color: var(--panel-ink-2);
 }
 
@@ -272,10 +281,9 @@ body {
   flex-direction: column;
   gap: var(--panel-space-3);
   min-height: 0;
-  padding: var(--panel-space-4);
+  padding: var(--panel-space-3);
   border-radius: var(--panel-radius-lg);
-  background: var(--panel-hover);
-  box-shadow: var(--panel-shadow-card);
+  background: var(--panel-sunken);
 }
 
 .basalte-stage__head {
@@ -488,26 +496,6 @@ body {
   height: 100%;
   border-radius: var(--panel-pill);
   background: var(--panel-blue-mark);
-}
-
-/* Les phrases d’une colonne (D134) : un seul plan en creux, au pied, plutôt que
-   des paragraphes gris qui flottent entre les commandes. */
-.basalte-note {
-  margin-top: auto;
-  padding: var(--panel-space-3);
-  border-radius: var(--panel-radius-md);
-  background: var(--panel-sunken);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-cap);
-  line-height: 1.5;
-}
-
-.basalte-note p {
-  margin: 0;
-}
-
-.basalte-note p + p {
-  margin-top: var(--panel-space-2);
 }
 
 .basalte-empty {

@@ -107,6 +107,7 @@ src/
 ├── admin/          panel : island React unique
 │   ├── tokens.ts   les valeurs du système, dans un module sans import
 │   ├── theme.ts    tokens.ts → thème Mantine + variables --panel-*
+│   ├── Help.tsx    ce que chaque écran explique, sous son « ? »
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git ;
 │                   webhook.ts, le second canal qui prévient d'un message
@@ -165,7 +166,9 @@ Détail dans `docs/conventions.md`. L'essentiel :
   refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le panel a sa propre
   couche de tokens, `src/admin/tokens.ts` (D95), contrôlée par le même `lint`
   (D164), et ne dessine aucune bordure (D97) : les plans se séparent par la
-  valeur et l'ombre. Ce qui s'affiche devant un client vouvoie (D165).
+  valeur et l'ombre. Deux éléments accentués par écran au plus (D170). Ce qui
+  s'affiche devant un client vouvoie (D165), et ce qui explique attend qu'on le
+  demande, sous le « ? » de l'en-tête (D169).
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans

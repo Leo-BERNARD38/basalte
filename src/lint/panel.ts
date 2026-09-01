@@ -90,6 +90,24 @@ export function panelPairs(): readonly Pair[] {
     ratio: MINIMUM_RATIO,
   })
 
+  pairs.push({
+    front: 'accent.blue',
+    frontValue: tokens.accent.blue,
+    back: 'accentWash',
+    backValue: tokens.accentWash,
+    what: 'le texte d’une action seconde sur son lavis',
+    ratio: MINIMUM_RATIO,
+  })
+
+  pairs.push({
+    front: 'surface.card',
+    frontValue: tokens.surface.card,
+    back: 'accent.blue',
+    backValue: tokens.accent.blue,
+    what: 'le texte du bouton qui met en ligne',
+    ratio: MINIMUM_RATIO,
+  })
+
   for (const [name, value] of Object.entries(tokens.ink)) {
     pairs.push({
       front: `ink.${name}`,

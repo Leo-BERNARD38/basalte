@@ -95,7 +95,7 @@ export function DocumentUploadButton({
   return (
     <FileButton accept={DOCUMENT_TYPE} onChange={(file) => void send(file)}>
       {(props) => (
-        <Button {...props} loading={busy}>
+        <Button {...props} variant="default" loading={busy}>
           Ajouter un document
         </Button>
       )}
@@ -137,71 +137,69 @@ export function DocumentPanel({
   }
 
   return (
-    <Stack gap="sm">
-      <Group justify="space-between" align="center">
-        <Title order={3}>Documents</Title>
-        <DocumentUploadButton
-          onDone={(added) => {
-            setProblem('')
-            setSelected(added.key)
-            onChanged()
-          }}
-          onError={setProblem}
+    <Paper p="md">
+      <Stack gap="sm">
+        <Group justify="space-between" align="center">
+          <Title order={3}>Documents</Title>
+          <DocumentUploadButton
+            onDone={(added) => {
+              setProblem('')
+              setSelected(added.key)
+              onChanged()
+            }}
+            onError={setProblem}
+          />
+        </Group>
+
+        {problem !== '' && (
+          <Alert
+            color="red"
+            title="La demande a été refusée"
+            withCloseButton
+            onClose={() => setProblem('')}
+          >
+            {problem}
+          </Alert>
+        )}
+
+        <DocumentList
+          documents={documents}
+          selected={selected}
+          onSelect={setSelected}
         />
-      </Group>
 
-      <Text size="xs" c="dimmed">
-        Un document se télécharge, il ne s’affiche jamais dans une page.
-      </Text>
-
-      {problem !== '' && (
-        <Alert
-          color="red"
-          title="La demande a été refusée"
-          withCloseButton
-          onClose={() => setProblem('')}
-        >
-          {problem}
-        </Alert>
-      )}
-
-      <DocumentList
-        documents={documents}
-        selected={selected}
-        onSelect={setSelected}
-      />
-
-      {entry !== undefined && (
-        <Paper p="md">
-          <Group justify="space-between" align="center">
-            <Button
-              component="a"
-              href={documentUrl(entry.key)}
-              variant="default"
-              size="xs"
-            >
-              Télécharger
-            </Button>
-            <Stack gap={2} align="flex-end">
+        {entry !== undefined && (
+          <Paper p="md">
+            <Group justify="space-between" align="center">
               <Button
-                variant="subtle"
-                color="red"
+                component="a"
+                href={documentUrl(entry.key)}
+                variant="default"
                 size="xs"
-                loading={busy}
-                disabled={entry.usage > 0}
-                onClick={() => setAsked(true)}
               >
-                Supprimer
+                Télécharger
               </Button>
-              {entry.usage > 0 && (
-                <Text size="xs" c="dimmed">
-                  Employé par une section : retirez-le d’abord.
-                </Text>
-              )}
-            </Stack>
-          </Group>
-        </Paper>
-      )}
+              <Stack gap={2} align="flex-end">
+                <Button
+                  variant="subtle"
+                  color="red"
+                  size="xs"
+                  loading={busy}
+                  disabled={entry.usage > 0}
+                  onClick={() => setAsked(true)}
+                >
+                  Supprimer
+                </Button>
+                {entry.usage > 0 && (
+                  <Text size="xs" c="dimmed">
+                    Employé par une section : retirez-le d’abord.
+                  </Text>
+                )}
+              </Stack>
+            </Group>
+          </Paper>
+        )}
+      </Stack>
 
       <Modal
         opened={asked}
@@ -224,6 +222,6 @@ export function DocumentPanel({
           </Group>
         </Stack>
       </Modal>
-    </Stack>
+    </Paper>
   )
 }

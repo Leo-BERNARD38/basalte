@@ -10,10 +10,10 @@
 // Il disait l’un ou l’autre : sur « Édition », le nom de la page remplaçait
 // celui de l’écran, et rien ne rappelait où l’on était.
 //
-// Une quatrième les accompagne, et c’est une phrase : deux boutons côte à côte
-// n’expliquent pas d’eux-mêmes que l’un garde et que l’autre montre. C’est la
-// question que le client pose le plus souvent, et elle se règle ici plutôt que
-// dans un écran d’aide qui n’existera pas (D63).
+// Ce que les deux boutons font ne va pas de soi, et c’est la question que le
+// client pose le plus souvent. La réponse est à un clic, sous le « ? » de
+// l’en-tête, avec tout ce que cet écran-là explique (D169) — elle occupait
+// jusqu’ici une ligne permanente sur chacun des six écrans.
 //
 // « Enregistrer » suit le badge, et rien d’autre : il était grisé partout
 // ailleurs que sur « Édition », si bien qu’un billet modifié affichait
@@ -39,6 +39,7 @@ import type { ContentIssue } from '../content/report.js'
 import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
+import { Help } from './Help.js'
 
 export type Screen =
   'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
@@ -76,9 +77,6 @@ export function screensFor(
     return true
   })
 }
-
-/** Ce qu’un bandeau montre avant qu’on lui demande le reste. */
-const SHOWN = 3
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
 
@@ -204,9 +202,22 @@ export function Shell({
       <main className="basalte-main">
         <div className="basalte-head">
           <div className="basalte-head__facts">
-            <span className="basalte-eyebrow">
-              {SCREENS.find((entry) => entry.value === screen)?.label}
-            </span>
+            <div className="basalte-head__eyebrow">
+              <span className="basalte-eyebrow">
+                {SCREENS.find((entry) => entry.value === screen)?.label}
+              </span>
+              <Text size="xs" c="dimmed">
+                {[
+                  savedAt === undefined
+                    ? undefined
+                    : `enregistré à ${MOMENT.format(savedAt)}`,
+                  onlineLabel(publication),
+                  payload.tracked ? undefined : 'sans historique',
+                ]
+                  .filter((part) => part !== undefined)
+                  .join(' · ')}
+              </Text>
+            </div>
 
             <div className="basalte-head__title">
               <Title order={2} component="h1" m={0}>
@@ -217,23 +228,8 @@ export function Shell({
               ) : (
                 <Badge color="green">Tout est enregistré</Badge>
               )}
+              <Help screen={screen} payload={payload} />
             </div>
-
-            {/* Une ligne, dans un ordre fixe : trois textes gris accolés se
-                lisaient comme une phrase, et aucun ne se retrouvait. */}
-            <Text size="sm" c="dimmed">
-              {[
-                savedAt === undefined
-                  ? undefined
-                  : `dernier enregistrement à ${MOMENT.format(savedAt)}`,
-                onlineLabel(publication),
-                payload.tracked
-                  ? undefined
-                  : 'sans historique — ce dossier n’est pas un dépôt git',
-              ]
-                .filter((part) => part !== undefined)
-                .join(' · ')}
-            </Text>
           </div>
 
           <div className="basalte-head__actions">
@@ -246,55 +242,50 @@ export function Shell({
               >
                 Enregistrer
               </Button>
-              <Button
-                color="ink"
-                disabled={busy}
-                loading={busyOnline}
-                onClick={onPublish}
-              >
+              <Button disabled={busy} loading={busyOnline} onClick={onPublish}>
                 Mettre en ligne
               </Button>
             </div>
-            <Text size="xs" c="dimmed" className="basalte-head__hint">
-              Enregistrer garde votre travail. Mettre en ligne le montre aux
-              visiteurs.
-            </Text>
           </div>
         </div>
 
-        {/* L’état du site, replié à trois lignes. Un site multilingue en
-            préparation en porte une par page : déplié, le bandeau prenait le
-            tiers de l’écran, tous les jours, pour un avertissement. */}
+        {/* L’état du site, replié à une ligne. Un site multilingue en
+            préparation porte un avertissement par page : déplié, le bandeau
+            prenait le tiers de l’écran, tous les jours, pour ce qu’on ne
+            corrigera pas aujourd’hui. Ce qui bloque, lui, s’ouvre entier. */}
         {payload.problems.length > 0 && (
           <Alert
             color={blocking ? 'red' : 'orange'}
             title={
-              blocking
-                ? 'À corriger avant la prochaine mise en ligne'
-                : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`
+              <Group gap="sm">
+                <span>
+                  {blocking
+                    ? 'À corriger avant la prochaine mise en ligne'
+                    : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`}
+                </span>
+                {!blocking && (
+                  <Anchor
+                    component="button"
+                    type="button"
+                    size="sm"
+                    fw={500}
+                    onClick={() => setAll(!all)}
+                  >
+                    {all ? 'replier' : 'voir'}
+                  </Anchor>
+                )}
+              </Group>
             }
           >
-            <Stack gap={2} align="flex-start">
-              {(all ? payload.problems : payload.problems.slice(0, SHOWN)).map(
-                (problem, rank) => (
+            {(blocking || all) && (
+              <Stack gap={2} align="flex-start">
+                {payload.problems.map((problem, rank) => (
                   <Text key={`${rank}-${problem.message}`} size="sm">
                     {problem.message}
                   </Text>
-                ),
-              )}
-              {payload.problems.length > SHOWN && (
-                <Anchor
-                  component="button"
-                  type="button"
-                  size="sm"
-                  onClick={() => setAll(!all)}
-                >
-                  {all
-                    ? 'Replier'
-                    : `Voir les ${payload.problems.length - SHOWN} autres`}
-                </Anchor>
-              )}
-            </Stack>
+                ))}
+              </Stack>
+            )}
           </Alert>
         )}
 
@@ -312,7 +303,7 @@ export function Shell({
             l’écran à la main pour retrouver lequel (D166). */}
         {issues.length > 0 && (
           <Alert color="red" title="Rien n’a été enregistré">
-            <Stack gap={2} align="flex-start">
+            <Stack gap={2} align="flex-start" className="basalte-notice">
               {issues.map((issue, rank) => (
                 <Anchor
                   key={`${rank}-${issue.message}`}

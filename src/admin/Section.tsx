@@ -33,7 +33,7 @@ export function Section({
   const several = editing.languages.length > 1
 
   return (
-    <Stack gap="md">
+    <Stack gap="sm">
       <div>
         <Title order={2}>{type?.label ?? section.type}</Title>
         {type?.help !== undefined && (

@@ -32,12 +32,10 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
 })
 
 export function Messages({
-  retention,
   notified,
   onChanged,
   onSignedOut,
 }: {
-  readonly retention: number
   readonly notified: boolean
   readonly onChanged: () => void
   readonly onSignedOut: (message: string) => void
@@ -85,10 +83,6 @@ export function Messages({
 
   return (
     <Stack gap="md" maw="var(--panel-measure-page)">
-      <Text size="sm" c="dimmed">
-        Conservés {retention} mois, puis effacés.
-      </Text>
-
       {problem !== '' && (
         <Alert color="red" title="Les messages n’ont pas pu être lus">
           {problem}

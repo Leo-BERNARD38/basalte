@@ -119,13 +119,6 @@ export function Stats({
           rows={audience.referrers}
         />
       </Group>
-
-      <Text size="xs" c="dimmed">
-        Ce rapport est un ordre de grandeur. Il ne pose aucun cookie et ne suit
-        personne : deux personnes derrière la même connexion comptent pour une,
-        et les robots sont écartés sur leur signature, qui n’est jamais
-        complète.
-      </Text>
     </Stack>
   )
 }

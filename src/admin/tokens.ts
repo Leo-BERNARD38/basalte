@@ -18,10 +18,10 @@
 
 export const tokens = {
   surface: {
-    bg: '#f3f5f9',
+    bg: '#eaeef4',
     card: '#ffffff',
-    sunken: '#eef1f7',
-    hover: '#f6f8fc',
+    sunken: '#e2e7ef',
+    hover: '#f2f5f9',
     ink: '#16181d',
   },
   ink: {
@@ -32,21 +32,35 @@ export const tokens = {
   /** Le ton du trait dessiné : poignée, glyphe. Jamais du texte. */
   line: '#7d818b',
   accent: {
-    blue: '#1266d6',
-    blueMark: '#1b7cf2',
+    /**
+     * La couleur de l’action. Elle porte le bouton qui change l’état du site,
+     * le trait de l’onglet ouvert et l’anneau de focus — et rien d’autre : deux
+     * éléments accentués par écran au plus, sans quoi plus rien ne ressort.
+     */
+    blue: '#4f39f6',
+    blueMark: '#6455f8',
     green: '#12864f',
     orange: '#c2410c',
     red: '#b42318',
   },
   /** Le lavis rouge d’une ligne fautive : un fond, jamais une encre. */
   redWash: '#fdeeec',
+  /** Le lavis de l’accent : le fond d’une action seconde, jamais une encre. */
+  accentWash: '#eceafe',
   /** Le voile du recadrage : le seul noir du panel, et il n’est pas une encre. */
   scrim: 'rgb(0 0 0 / 45%)',
+  /**
+   * Les rayons. Ils étaient au double, et l’arrondi finissait par dire quelque
+   * chose : un panel entier en pastilles se lit comme un jouet, et un angle
+   * de vingt-quatre pixels mange le coin d’une carte qui n’a que seize pixels
+   * de marge. Seuls un badge, une pastille et une icône ronde gardent la
+   * forme pleine.
+   */
   radius: {
-    xs: '8px',
-    sm: '12px',
-    md: '16px',
-    lg: '24px',
+    xs: '6px',
+    sm: '8px',
+    md: '10px',
+    lg: '14px',
     pill: '999px',
   },
   space: {

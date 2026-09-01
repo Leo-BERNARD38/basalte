@@ -9,7 +9,6 @@
 
 import {
   Alert,
-  Anchor,
   Button,
   Group,
   Modal,
@@ -39,10 +38,8 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
 })
 
 export function Account({
-  support,
   onSignedOut,
 }: {
-  readonly support: string
   readonly onSignedOut: (message: string) => void
 }) {
   const [session, setSession] = useState<SessionInfo | undefined>(undefined)
@@ -139,19 +136,17 @@ export function Account({
         </Alert>
       )}
 
-      <Paper p="lg">
+      <Paper p="md">
         <form
           onSubmit={(event) => {
             event.preventDefault()
             void change()
           }}
         >
-          <Stack gap="md">
+          {/* Un champ de mot de passe large de huit cents pixels ne se lit pas
+              mieux : la colonne d’un formulaire a sa propre mesure. */}
+          <Stack gap="md" maw="var(--panel-measure-form)">
             <Title order={3}>Mot de passe</Title>
-            <Text size="sm" c="dimmed">
-              {MINIMUM} caractères au minimum. Le changer ferme les sessions
-              ouvertes ailleurs.
-            </Text>
             <PasswordInput
               label="Mot de passe actuel"
               autoComplete="current-password"
@@ -160,13 +155,19 @@ export function Account({
             />
             <PasswordInput
               label="Nouveau mot de passe"
+              description={`${MINIMUM} caractères au minimum.`}
               autoComplete="new-password"
               error={tooShort ? `${MINIMUM} caractères au minimum.` : undefined}
               value={next}
               onChange={(event) => setNext(event.currentTarget.value)}
             />
             <Group justify="flex-end">
-              <Button type="submit" loading={changing} disabled={!ready}>
+              <Button
+                type="submit"
+                variant="light"
+                loading={changing}
+                disabled={!ready}
+              >
                 Changer le mot de passe
               </Button>
             </Group>
@@ -174,7 +175,7 @@ export function Account({
         </form>
       </Paper>
 
-      <Paper p="lg">
+      <Paper p="md">
         <Stack gap="md">
           <Title order={3}>Appareils reconnus</Title>
           {session === undefined ? (
@@ -219,7 +220,7 @@ export function Account({
         </Stack>
       </Paper>
 
-      <Paper p="lg">
+      <Paper p="md">
         <Stack gap="md">
           <Title order={3}>Connexions récentes</Title>
           {session === undefined ? (
@@ -250,18 +251,6 @@ export function Account({
           )}
         </Stack>
       </Paper>
-
-      {support !== '' && (
-        <Paper p="lg">
-          <Stack gap="xs">
-            <Title order={3}>Besoin d’aide</Title>
-            <Text size="sm" c="dimmed">
-              Une page cassée, une section à ajouter, une question : écrivez à{' '}
-              <Anchor href={`mailto:${support}`}>{support}</Anchor>.
-            </Text>
-          </Stack>
-        </Paper>
-      )}
 
       {/* Oublier les appareils déconnecte : c’est la seule action de cet écran
           dont on ne revient pas, et elle se demandait sans rien dire. */}

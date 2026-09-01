@@ -51,17 +51,6 @@ export function MediaLibrary({
 
   return (
     <Stack gap="md">
-      <Group justify="flex-end" align="center">
-        <UploadButton
-          onDone={(added) => {
-            setProblem('')
-            setSelected(added.key)
-            onChanged()
-          }}
-          onError={setProblem}
-        />
-      </Group>
-
       {problem !== '' && (
         <Alert
           color="red"
@@ -73,7 +62,22 @@ export function MediaLibrary({
         </Alert>
       )}
 
-      <MediaGrid media={media} selected={selected} onSelect={setSelected} />
+      <Paper p="md">
+        <Stack gap="sm">
+          <Group justify="space-between" align="center">
+            <Title order={3}>Images</Title>
+            <UploadButton
+              onDone={(added) => {
+                setProblem('')
+                setSelected(added.key)
+                onChanged()
+              }}
+              onError={setProblem}
+            />
+          </Group>
+          <MediaGrid media={media} selected={selected} onSelect={setSelected} />
+        </Stack>
+      </Paper>
 
       {entry !== undefined && (
         <MediaDetail

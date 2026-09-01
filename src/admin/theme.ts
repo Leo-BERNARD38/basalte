@@ -21,6 +21,7 @@ import {
   Modal,
   Paper,
   PasswordInput,
+  SegmentedControl,
   Select,
   Switch,
   Tabs,
@@ -46,16 +47,16 @@ const MONO =
  * jamais lus.
  */
 const brand: MantineColorTuple = [
-  '#edf3fd',
-  '#d8e5fa',
-  '#aec8f4',
-  '#81a9ee',
-  '#5c90e9',
-  '#4581e6',
+  tokens.accentWash,
+  '#dcd8fd',
+  '#bdb5fb',
+  '#9b8ef9',
+  '#7f6ef7',
+  '#6957f7',
   tokens.accent.blue,
-  '#0f59bd',
-  '#0c4da5',
-  '#08408c',
+  '#4230d8',
+  '#3828b6',
+  '#2e2095',
 ]
 
 const ink: MantineColorTuple = [
@@ -208,14 +209,16 @@ export const theme = createTheme({
   other: tokens,
 
   components: {
-    // Tout ce qui se clique est une pilule. Le noir plein est réservé à
-    // l’action qui change l’état du site, une seule fois par écran.
+    // Deux éléments accentués par écran, et pas un de plus : l’accent plein
+    // pour l’action qui change l’état du site, son lavis pour l’action propre
+    // à l’écran. Tout le reste est gris. Une pastille n’est plus la forme par
+    // défaut — un panel entier en pastilles se lit comme un jouet.
     Button: Button.extend({
-      defaultProps: { radius: 'xl', size: 'md' },
+      defaultProps: { radius: 'sm', size: 'md' },
       styles: { root: { fontWeight: 600 } },
     }),
     ActionIcon: ActionIcon.extend({
-      defaultProps: { radius: 'xl', variant: 'subtle', color: 'gray' },
+      defaultProps: { radius: 'sm', variant: 'subtle', color: 'gray' },
     }),
 
     // Une carte se détache par sa valeur et son ombre, jamais par un trait :
@@ -227,19 +230,19 @@ export const theme = createTheme({
 
     // Un champ est un creux, pas un contour. Le focus est un anneau.
     TextInput: TextInput.extend({
-      defaultProps: { variant: 'filled', radius: 'md', size: 'md' },
+      defaultProps: { variant: 'filled', radius: 'sm', size: 'md' },
     }),
     Textarea: Textarea.extend({
-      defaultProps: { variant: 'filled', radius: 'md', size: 'md' },
+      defaultProps: { variant: 'filled', radius: 'sm', size: 'md' },
     }),
     PasswordInput: PasswordInput.extend({
-      defaultProps: { variant: 'filled', radius: 'md', size: 'md' },
+      defaultProps: { variant: 'filled', radius: 'sm', size: 'md' },
     }),
     Select: Select.extend({
-      defaultProps: { variant: 'filled', radius: 'md', size: 'md' },
+      defaultProps: { variant: 'filled', radius: 'sm', size: 'md' },
     }),
     Fieldset: Fieldset.extend({
-      defaultProps: { variant: 'filled', radius: 'md' },
+      defaultProps: { variant: 'filled', radius: 'sm' },
     }),
 
     Badge: Badge.extend({
@@ -248,6 +251,9 @@ export const theme = createTheme({
     }),
     Switch: Switch.extend({
       defaultProps: { radius: 'xl', size: 'md', color: 'green' },
+    }),
+    SegmentedControl: SegmentedControl.extend({
+      defaultProps: { radius: 'sm' },
     }),
     Alert: Alert.extend({
       defaultProps: { radius: 'md', variant: 'light', p: 'sm' },
@@ -299,6 +305,7 @@ export const cssVariables: CSSVariablesResolver = () => ({
     '--panel-orange': tokens.accent.orange,
     '--panel-red': tokens.accent.red,
     '--panel-red-wash': tokens.redWash,
+    '--panel-accent-wash': tokens.accentWash,
     '--panel-radius-xs': tokens.radius.xs,
     '--panel-radius-sm': tokens.radius.sm,
     '--panel-radius-md': tokens.radius.md,

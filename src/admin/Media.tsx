@@ -162,7 +162,11 @@ export function UploadButton({
         accept="image/jpeg,image/png,image/webp,image/avif,image/tiff"
         onChange={pick}
       >
-        {(props) => <Button {...props}>Ajouter une image</Button>}
+        {(props) => (
+          <Button {...props} variant="light">
+            Ajouter une image
+          </Button>
+        )}
       </FileButton>
 
       <Modal
