@@ -28,7 +28,8 @@ import {
   BUSINESS_TITLE,
 } from '../seo/business.js'
 import type { Commit } from './pages.js'
-import { problemsOf } from './pages.js'
+import type { ContentIssue } from '../content/report.js'
+import { blockingIssues, problemsOf } from './pages.js'
 
 export type BusinessDraft = {
   readonly sections: readonly PageBlock[]
@@ -41,7 +42,11 @@ export type BusinessSave =
       readonly business: BusinessDraft
       readonly commit: boolean
     }
-  | { readonly kind: 'refused'; readonly problems: readonly string[] }
+  | {
+      readonly kind: 'refused'
+      readonly problems: readonly string[]
+      readonly issues: readonly ContentIssue[]
+    }
 
 export async function readBusinessDraft(
   root: string,
@@ -71,7 +76,13 @@ export async function saveBusiness(
 
   const problems = problemsOf(result.issues)
 
-  if (problems.length > 0) return { kind: 'refused', problems }
+  if (problems.length > 0) {
+    return {
+      kind: 'refused',
+      problems,
+      issues: blockingIssues(result.issues),
+    }
+  }
 
   const written = { $format: CONTENT_FORMAT, facts: result.business }
 

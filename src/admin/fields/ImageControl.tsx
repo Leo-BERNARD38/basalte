@@ -8,11 +8,17 @@ import { matchesRatio } from '../../media/ratio.js'
 import { translated } from '../draft.js'
 import { useEditing } from '../editing.js'
 import { thumbnail } from '../Media.js'
-import { hint, type ControlProps } from './Field.js'
+import { hint, useFieldError, type ControlProps } from './Field.js'
 
 const THUMBNAIL = 96
 
-export function ImageControl({ description, value, onChange }: ControlProps) {
+export function ImageControl({
+  description,
+  value,
+  issues,
+  onChange,
+}: ControlProps) {
+  const error = useFieldError(issues)
   const editing = useEditing()
   const key = typeof value === 'string' ? value : ''
   const entry = editing.media.find((item) => item.key === key)
@@ -35,6 +41,7 @@ export function ImageControl({ description, value, onChange }: ControlProps) {
       label={description.label}
       description={hint(description)}
       required={description.required}
+      error={error}
     >
       <Paper p="xs" mt={4}>
         <Group wrap="nowrap" align="center">

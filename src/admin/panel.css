@@ -111,7 +111,7 @@ body {
 .basalte-head__facts {
   display: flex;
   flex-direction: column;
-  gap: var(--panel-space-2);
+  gap: var(--panel-space-1);
   min-width: 0;
 }
 
@@ -134,6 +134,10 @@ body {
   display: flex;
   align-items: center;
   gap: var(--panel-space-3);
+}
+
+.basalte-head__hint {
+  text-align: right;
 }
 
 /* ---- L’écran d’édition : la liste, la page, le panneau ---- */
@@ -204,6 +208,19 @@ body {
   color: var(--panel-ink-3);
 }
 
+/* Une section qui bloque l’enregistrement. Le fond porte la marque plutôt que
+   le texte : la ligne sélectionnée est noire, et une encre rouge y disparaît. */
+.basalte-section-row[data-wrong='true'] {
+  background: var(--panel-red-wash);
+}
+
+.basalte-section-row[data-wrong='true'] .basalte-section-row__label::after {
+  flex-shrink: 0;
+  color: var(--panel-red);
+  content: '!';
+  font-weight: 700;
+}
+
 /* Le libellé porte le geste : c’est lui qu’on vise, pas la gouttière. */
 .basalte-section-row__label {
   display: flex;
@@ -231,9 +248,21 @@ body {
 
 .basalte-section-row__text {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Un titre et sa date : la date sous le titre, jamais à côté. Une colonne de
+   deux cent quarante pixels ne porte pas les deux sur une ligne — le titre y
+   était réduit à trois lettres. */
+.basalte-section-row__stack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--panel-space-1) 0;
 }
 
 /* L’aperçu : la page du site, dans le cadre du panel. Le plan en creux fait
@@ -267,6 +296,7 @@ body {
 
 .basalte-stage__frame[data-viewport='mobile'] {
   width: 390px;
+  max-width: 100%;
   align-self: center;
 }
 
@@ -331,6 +361,13 @@ body {
 }
 
 .basalte-item[aria-expanded='true'] {
+  font-weight: 600;
+}
+
+/* Un élément qui bloque l’enregistrement, replié : sans marque, il fallait
+   déplier la liste entière pour retrouver lequel. */
+.basalte-item[data-wrong='true'] {
+  color: var(--panel-red);
   font-weight: 600;
 }
 
@@ -453,17 +490,43 @@ body {
   background: var(--panel-blue-mark);
 }
 
+/* Les phrases d’une colonne (D134) : un seul plan en creux, au pied, plutôt que
+   des paragraphes gris qui flottent entre les commandes. */
+.basalte-note {
+  margin-top: auto;
+  padding: var(--panel-space-3);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-sunken);
+  color: var(--panel-ink-3);
+  font-size: var(--panel-text-cap);
+  line-height: 1.5;
+}
+
+.basalte-note p {
+  margin: 0;
+}
+
+.basalte-note p + p {
+  margin-top: var(--panel-space-2);
+}
+
 .basalte-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--panel-space-1);
+  gap: var(--panel-space-2);
   padding: var(--panel-space-5) var(--panel-space-4);
   border-radius: var(--panel-radius-md);
   background: var(--panel-sunken);
   color: var(--panel-ink-3);
   font-size: var(--panel-text-cap);
   text-align: center;
+}
+
+.basalte-empty strong {
+  color: var(--panel-ink);
+  font-size: var(--panel-text-body);
+  font-weight: 600;
 }
 
 .basalte-signin {
@@ -480,14 +543,82 @@ body {
    « compact-xs » vingt-deux. La règle est ici plutôt qu’en prop sur chaque
    appel : une taille choisie pour la densité d’un bureau ne doit pas décider de
    ce qu’un doigt peut atteindre. */
+/* Sous 75 rem, les trois colonnes s’empilent. L’ordre change alors : ce qu’on
+   règle et ce qu’on lit sont voisins, et l’aperçu passe en dernier — il faisait
+   sinon vingt-quatre rem entre la liste des sections et leurs réglages. */
+@media (max-width: 75rem) {
+  .basalte-rail {
+    order: 1;
+  }
+
+  .basalte-inspector {
+    order: 2;
+  }
+
+  .basalte-stage {
+    order: 3;
+  }
+
+  .basalte-rail,
+  .basalte-inspector {
+    overflow: visible;
+  }
+}
+
+/* La barre du haut ne tient pas six onglets, une marque, une langue et deux
+   commandes sur une seule ligne : il lui faut environ mille deux cent
+   cinquante pixels, et un portable courant en a mille deux cent quatre-vingts.
+   Le repli part donc de quatre-vingts rem, et non du point tactile — entre les
+   deux, la marque se coupait en deux et les premiers onglets disparaissaient
+   sous les derniers.
+
+   Les onglets prennent leur ligne, et défilent : un menu replié aurait été un
+   troisième niveau de navigation, que `docs/panel.md` interdit. */
+@media (max-width: 80rem) {
+  .basalte-topbar {
+    flex-wrap: wrap;
+    gap: var(--panel-space-4);
+    height: auto;
+    padding-top: var(--panel-space-2);
+  }
+
+  .basalte-topbar > .basalte-tabs-holder {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .basalte-tabs {
+    flex-wrap: nowrap;
+    gap: var(--panel-space-5);
+  }
+
+  .basalte-tab {
+    flex-shrink: 0;
+    height: var(--panel-control-touch);
+  }
+}
+
 @media (max-width: 60rem) {
   .mantine-Button-root,
   .mantine-ActionIcon-root,
   .mantine-CloseButton-root,
   .mantine-Accordion-control,
-  .mantine-SegmentedControl-label,
   .mantine-Input-input {
     min-height: var(--panel-control-touch);
+  }
+
+  /* La bascule mesure sa pastille sur la boîte d’un libellé : grandir le seul
+     libellé la laissait décalée. La racine monte avec lui. */
+  .mantine-SegmentedControl-root,
+  .mantine-SegmentedControl-label {
+    min-height: var(--panel-control-touch);
+  }
+
+  .mantine-SegmentedControl-label {
+    display: flex;
+    align-items: center;
   }
 
   .basalte-topbar {
@@ -497,6 +628,28 @@ body {
 
   .basalte-main {
     padding: var(--panel-space-2) var(--panel-space-4) var(--panel-space-4);
+  }
+
+  /* L’en-tête s’empile. En rang, la colonne des commandes gardait sa largeur
+     et laissait au titre et à sa ligne d’état de quoi écrire un mot par
+     ligne. */
+  .basalte-head {
+    flex-direction: column;
+    gap: var(--panel-space-3);
+  }
+
+  .basalte-head__actions {
+    width: 100%;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  .basalte-head__buttons {
+    justify-content: space-between;
+  }
+
+  .basalte-head__hint {
+    text-align: left;
   }
 
   .basalte-section-row {

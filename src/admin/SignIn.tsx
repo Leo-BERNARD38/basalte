@@ -32,8 +32,12 @@ function digitsOf(input: string): string {
   return input.replace(/\D/g, '').slice(0, DIGITS)
 }
 
+/**
+ * Une durée en minutes, arrondie au plus près. Au plafond, dix minutes de
+ * validité s’annonçaient onze : le temps de l’aller-retour suffit à dépasser.
+ */
 function minutesUntil(moment: number, now: number): number {
-  return Math.max(1, Math.ceil((moment - now) / 60_000))
+  return Math.max(1, Math.round((moment - now) / 60_000))
 }
 
 export function SignIn({
@@ -172,7 +176,9 @@ export function SignIn({
               </Title>
             </div>
 
-            {notice !== '' && problem === '' && <Alert>{notice}</Alert>}
+            {notice !== '' && problem === '' && step === 'password' && (
+              <Alert>{notice}</Alert>
+            )}
 
             {problem !== '' && (
               <Alert color="red" title="Connexion refusée">

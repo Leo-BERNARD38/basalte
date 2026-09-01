@@ -50,7 +50,11 @@ export type SaveResult =
       readonly page: DraftPage
       readonly commit: boolean
     }
-  | { readonly kind: 'refused'; readonly problems: readonly string[] }
+  | {
+      readonly kind: 'refused'
+      readonly problems: readonly string[]
+      readonly issues: readonly ContentIssue[]
+    }
 
 export type Commit = (
   files: readonly string[],
@@ -108,7 +112,11 @@ export async function savePage(
   })
 
   if (result.page === undefined) {
-    return { kind: 'refused', problems: problemsOf(result.issues) }
+    return {
+      kind: 'refused',
+      problems: problemsOf(result.issues),
+      issues: blockingIssues(result.issues),
+    }
   }
 
   const written = {
@@ -129,9 +137,18 @@ export async function savePage(
 }
 
 export function problemsOf(issues: readonly ContentIssue[]): readonly string[] {
-  return issues
-    .filter((issue) => issue.severity === 'error')
-    .map((issue) => renderIssue(issue))
+  return blockingIssues(issues).map((issue) => renderIssue(issue))
+}
+
+/**
+ * Ce qui empêche d’enregistrer, tel quel. Le panel s’en sert pour poser
+ * l’erreur sous le champ qui la cause : le serveur connaît déjà la section, le
+ * champ et la langue, et les aplatir en phrases perdait ce qu’il sait.
+ */
+export function blockingIssues(
+  issues: readonly ContentIssue[],
+): readonly ContentIssue[] {
+  return issues.filter((issue) => issue.severity === 'error')
 }
 
 function draftOf(name: string, page: PageDraft, schemas: Schemas): DraftPage {

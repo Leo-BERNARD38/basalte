@@ -81,6 +81,26 @@ export function panelPairs(): readonly Pair[] {
     ratio: MINIMUM_RATIO,
   })
 
+  pairs.push({
+    front: 'accent.red',
+    frontValue: tokens.accent.red,
+    back: 'redWash',
+    backValue: tokens.redWash,
+    what: 'la marque d’une ligne fautive',
+    ratio: MINIMUM_RATIO,
+  })
+
+  for (const [name, value] of Object.entries(tokens.ink)) {
+    pairs.push({
+      front: `ink.${name}`,
+      frontValue: value,
+      back: 'redWash',
+      backValue: tokens.redWash,
+      what: `le texte d’encre ${name} sur une ligne fautive`,
+      ratio: MINIMUM_RATIO,
+    })
+  }
+
   for (const [name, value] of Object.entries(tokens.accent)) {
     if (name === 'blueMark') continue
 

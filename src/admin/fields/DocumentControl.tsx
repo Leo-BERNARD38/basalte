@@ -5,13 +5,15 @@ import { Button, Group, Input, Paper, Text } from '@mantine/core'
 
 import { documentWeight } from '../../media/resolve.js'
 import { useEditing } from '../editing.js'
-import { hint, type ControlProps } from './Field.js'
+import { hint, useFieldError, type ControlProps } from './Field.js'
 
 export function DocumentControl({
   description,
   value,
+  issues,
   onChange,
 }: ControlProps) {
+  const error = useFieldError(issues)
   const editing = useEditing()
   const key = typeof value === 'string' ? value : ''
   const entry = editing.documents.find((item) => item.key === key)
@@ -27,6 +29,7 @@ export function DocumentControl({
       label={description.label}
       description={hint(description)}
       required={description.required}
+      error={error}
     >
       <Paper p="xs" mt={4}>
         <Group wrap="nowrap" align="center">

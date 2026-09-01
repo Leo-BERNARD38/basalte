@@ -6,20 +6,29 @@
 // qui rend le site, et reçoit la grammaire déclarée par le champ : le client
 // voit ce que la page affichera, et aucune balise ne peut venir du texte saisi
 // (invariant 1).
+//
+// Le compteur vit sous le champ, à droite, et non dans la phrase d’aide : il y
+// était collé au même gris, si bien qu’une aide et une mesure se lisaient comme
+// une seule ligne. Il ne se colore qu’en approchant de la borne — une valeur
+// qui ne bouge pas n’a rien à signaler.
 
-import { Textarea, TextInput } from '@mantine/core'
+import { Group, Text, Textarea, TextInput } from '@mantine/core'
 
 import { renderRichtext } from '../../fields/richtext.js'
 import { translated, withLanguage } from '../draft.js'
 import { useEditing } from '../editing.js'
-import { hint, type ControlProps } from './Field.js'
+import { hint, useFieldError, type ControlProps } from './Field.js'
 
 const ROWS = 4
 
+/** La marge sous laquelle le compteur se met à prévenir. */
+const CLOSE = 0.9
+
 const INLINE = '**gras**, *italique*, [lien](https://exemple.fr)'
 
-export function Prose({ description, value, onChange }: ControlProps) {
+export function Prose({ description, value, issues, onChange }: ControlProps) {
   const editing = useEditing()
+  const error = useFieldError(issues)
 
   const text = description.i18n
     ? translated(value, editing.language)
@@ -35,18 +44,44 @@ export function Prose({ description, value, onChange }: ControlProps) {
 
   const shared = {
     label: description.label,
-    description: hint(description, text.length),
+    description: hint(description),
     required: description.required,
+    error,
     value: text,
     ...(description.max === undefined ? {} : { maxLength: description.max }),
     onChange: (event: { currentTarget: { value: string } }) =>
       change(event.currentTarget.value),
   }
 
-  if (description.kind === 'text') return <TextInput {...shared} />
+  const counter =
+    description.max === undefined ? undefined : (
+      <Group justify="flex-end" mt={4}>
+        <Text
+          size="xs"
+          c={text.length >= description.max * CLOSE ? 'orange' : 'dimmed'}
+        >
+          {text.length} / {description.max}
+          {text.length >= description.max ? ' — c’est le maximum' : ''}
+        </Text>
+      </Group>
+    )
+
+  if (description.kind === 'text') {
+    return (
+      <div>
+        <TextInput {...shared} />
+        {counter}
+      </div>
+    )
+  }
 
   if (description.kind === 'textarea') {
-    return <Textarea {...shared} autosize minRows={description.rows ?? ROWS} />
+    return (
+      <div>
+        <Textarea {...shared} autosize minRows={description.rows ?? ROWS} />
+        {counter}
+      </div>
+    )
   }
 
   const placeholder = [
@@ -58,6 +93,7 @@ export function Prose({ description, value, onChange }: ControlProps) {
   return (
     <div>
       <Textarea {...shared} autosize minRows={ROWS} placeholder={placeholder} />
+      {counter}
       {text.trim() !== '' && (
         <div
           className="basalte-markdown"

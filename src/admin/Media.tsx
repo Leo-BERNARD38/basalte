@@ -60,7 +60,7 @@ export function MediaGrid({
   }
 
   return (
-    <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
+    <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5, xl: 6 }} spacing="sm">
       {media.map((entry) => (
         <UnstyledButton
           key={entry.key}
@@ -74,7 +74,7 @@ export function MediaGrid({
           <Image
             src={thumbnail(entry)}
             alt={translated(entry.alt, editing.language)}
-            h={120}
+            h={150}
             fit="cover"
             radius="sm"
           />

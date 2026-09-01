@@ -27,6 +27,7 @@ import {
 import { useEffect, useState } from 'react'
 
 import { asideOf, asidesOf, isAside } from './asides.js'
+import type { ContentIssue } from '../content/report.js'
 import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
@@ -87,6 +88,7 @@ export default function Panel({ site }: { readonly site: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [savedAt, setSavedAt] = useState<number | undefined>(undefined)
   const [problems, setProblems] = useState<readonly string[]>([])
+  const [issues, setIssues] = useState<readonly ContentIssue[]>([])
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
   const [documentPicker, setDocumentPicker] = useState<Picker | undefined>(
@@ -98,11 +100,20 @@ export default function Panel({ site }: { readonly site: string }) {
   const [publication, setPublication] = useState<PublishState>(IDLE)
   const [closed, setClosed] = useState('')
 
+  // La section qu’une ligne du résumé désigne. Elle voyage par l’état plutôt
+  // que par un appel : c’est l’écran d’édition qui sait ouvrir une section, et
+  // la même charge sert quand le client clique une ligne écrite hier.
+  const [wanted, setWanted] = useState<ContentIssue | undefined>(undefined)
+
   // Une session fermée emporte sa raison jusqu’à l’écran de connexion : sans
   // elle, le client retrouve un formulaire vierge et croit s’être déconnecté.
+  //
+  // Rien à dire quand aucune session n’était ouverte : la toute première visite
+  // reçoit le même refus, et « Votre session n’est plus ouverte » y annoncerait
+  // la fin de quelque chose qui n’a jamais commencé.
   const dropSession = (message: string) => {
     setPayload(undefined)
-    setClosed(message)
+    setClosed(payload === undefined ? '' : message)
   }
 
   // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
@@ -127,6 +138,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
     setPayload(data)
     setProblems([])
+    setIssues([])
     setPublication(data.publication)
     setLanguage(
       (current) =>
@@ -141,12 +153,14 @@ export default function Panel({ site }: { readonly site: string }) {
     setOpenedPost(post.slug)
     setPostDraft({ hidden: post.hidden, fields: post.fields })
     setProblems([])
+    setIssues([])
   }
 
   const open = (page: DraftPage) => {
     setSelected(page.name)
     setDraft({ meta: page.meta, blocks: page.blocks })
     setProblems([])
+    setIssues([])
   }
 
   // Une entrée qui n’est pas une page s’ouvre comme une page, et le brouillon
@@ -161,6 +175,7 @@ export default function Panel({ site }: { readonly site: string }) {
     setSelected(aside.entry)
     setDraft({ meta: {}, blocks: aside.sections })
     setProblems([])
+    setIssues([])
   }
 
   /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
@@ -319,6 +334,7 @@ export default function Panel({ site }: { readonly site: string }) {
       setProblems(
         answer.problems.length > 0 ? answer.problems : [answer.message],
       )
+      setIssues(answer.issues)
 
       if (answer.signedOut) dropSession(answer.message)
 
@@ -326,6 +342,7 @@ export default function Panel({ site }: { readonly site: string }) {
     }
 
     setProblems([])
+    setIssues([])
     setSavedAt(Date.now())
     await load(selected, editingJournal ? openedPost : undefined)
 
@@ -345,6 +362,7 @@ export default function Panel({ site }: { readonly site: string }) {
       setProblems(
         answer.problems.length > 0 ? answer.problems : [answer.message],
       )
+      setIssues(answer.issues)
 
       if (answer.signedOut) dropSession(answer.message)
 
@@ -514,6 +532,8 @@ export default function Panel({ site }: { readonly site: string }) {
           busy={busy}
           savedAt={savedAt}
           problems={problems}
+          issues={issues}
+          onIssue={setWanted}
           publication={publication}
           onSave={() => void save()}
           onPublish={() => void goOnline()}
@@ -526,6 +546,8 @@ export default function Panel({ site }: { readonly site: string }) {
               draft={draft}
               savedAt={savedAt}
               dirty={dirty}
+              issues={issues}
+              wanted={wanted}
               onSelect={select}
               onDraft={setDraft}
             />
@@ -541,6 +563,7 @@ export default function Panel({ site }: { readonly site: string }) {
               busy={busy}
               onSelect={selectPost}
               onDraft={setPostDraft}
+              issues={issues}
               onCreate={(title) => void compose(title)}
               onDelete={(slug) => void remove(slug)}
             />

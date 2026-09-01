@@ -185,14 +185,23 @@ export function Account({
             </Text>
           ) : (
             <Table>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Navigateur</Table.Th>
+                  <Table.Th>Adresse</Table.Th>
+                  <Table.Th>Reconnu jusqu’au</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
               <Table.Tbody>
                 {session.devices.map((device) => (
                   <Table.Tr key={`${device.createdAt}-${device.ip}`}>
-                    <Table.Td>{device.agent || 'Navigateur inconnu'}</Table.Td>
-                    <Table.Td>{device.ip || 'adresse inconnue'}</Table.Td>
                     <Table.Td>
-                      jusqu’au {MOMENT.format(device.expiresAt)}
+                      <Text size="sm" lineClamp={1} title={device.agent}>
+                        {device.agent || 'Navigateur inconnu'}
+                      </Text>
                     </Table.Td>
+                    <Table.Td>{device.ip || 'adresse inconnue'}</Table.Td>
+                    <Table.Td>{MOMENT.format(device.expiresAt)}</Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -221,6 +230,13 @@ export function Account({
             </Text>
           ) : (
             <Table>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Quand</Table.Th>
+                  <Table.Th>Quoi</Table.Th>
+                  <Table.Th>Adresse</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
               <Table.Tbody>
                 {session.journal.map((entry) => (
                   <Table.Tr key={`${entry.at}-${entry.label}`}>

@@ -38,6 +38,8 @@ export const tokens = {
     orange: '#c2410c',
     red: '#b42318',
   },
+  /** Le lavis rouge d’une ligne fautive : un fond, jamais une encre. */
+  redWash: '#fdeeec',
   /** Le voile du recadrage : le seul noir du panel, et il n’est pas une encre. */
   scrim: 'rgb(0 0 0 / 45%)',
   radius: {

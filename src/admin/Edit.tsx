@@ -21,7 +21,6 @@
 import {
   ActionIcon,
   Anchor,
-  Button,
   Group,
   Paper,
   SegmentedControl,
@@ -33,11 +32,12 @@ import {
 import { useState } from 'react'
 
 import { asideOf, asidesOf } from './asides.js'
+import type { ContentIssue } from '../content/report.js'
 import { pageLabel } from '../content/naming.js'
 import type { PanelPayload } from '../server/panel.js'
 import { move, type Draft, type Values } from './draft.js'
-import { previewAddress, useEditing } from './editing.js'
-import { FieldSet } from './fields/Field.js'
+import { editedLanguage, previewAddress, useEditing } from './editing.js'
+import { FieldSet, type FieldIssue } from './fields/Field.js'
 import { External } from './External.js'
 import { Grip } from './Grip.js'
 import { HiddenMark } from './HiddenMark.js'
@@ -53,6 +53,8 @@ export function Edit({
   draft,
   savedAt,
   dirty,
+  issues,
+  wanted,
   onSelect,
   onDraft,
 }: {
@@ -61,6 +63,9 @@ export function Edit({
   readonly draft: Draft
   readonly savedAt: number | undefined
   readonly dirty: boolean
+  readonly issues: readonly ContentIssue[]
+  /** L’incident qu’une ligne du résumé vient de désigner. */
+  readonly wanted: ContentIssue | undefined
   readonly onSelect: (name: string) => void
   readonly onDraft: (draft: Draft) => void
 }) {
@@ -68,6 +73,21 @@ export function Edit({
   const [focus, setFocus] = useState<Focus>({ kind: 'meta' })
   const [opened, setOpened] = useState<string>(selected)
   const [viewport, setViewport] = useState<string>('desktop')
+  const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
+
+  // Une ligne du résumé ouvre la section qu’elle nomme : c’est le geste que le
+  // client faisait à la main, en relisant la liste pour retrouver laquelle.
+  if (followed !== wanted) {
+    setFollowed(wanted)
+
+    if (wanted !== undefined) {
+      setFocus(
+        wanted.section === undefined
+          ? { kind: 'meta' }
+          : { kind: 'block', id: wanted.section.id },
+      )
+    }
+  }
 
   // Le chrome et la fiche d’entreprise s’ouvrent ici comme des pages : ils
   // portent des sections, sans route ni métadonnées.
@@ -85,6 +105,16 @@ export function Edit({
         : { kind: 'block', id: aside.sections[0]?.id ?? '' },
     )
   }
+  // Ce qui bloque, rangé par section : la liste le marque, et le panneau le
+  // passe au champ.
+  const wrong = new Set(
+    issues
+      .map((issue) => issue.section?.id)
+      .filter((id): id is string => id !== undefined),
+  )
+  const metaIssues = issuesOf(issues, undefined)
+  const spoken = editedLanguage(editing)
+
   const page = payload.pages.find((entry) => entry.name === selected)
 
   if (!fixed && page === undefined) {
@@ -133,6 +163,25 @@ export function Edit({
             onChange={(value) => value !== null && onSelect(value)}
           />
 
+          {!fixed && (
+            <div
+              className="basalte-section-row"
+              data-current={active.kind === 'meta'}
+              data-wrong={metaIssues.length > 0}
+            >
+              <button
+                type="button"
+                className="basalte-section-row__label"
+                aria-current={active.kind === 'meta'}
+                onClick={() => setFocus({ kind: 'meta' })}
+              >
+                <span className="basalte-section-row__text">
+                  Informations de la page
+                </span>
+              </button>
+            </div>
+          )}
+
           <Group justify="space-between" align="center" px={12}>
             <span className="basalte-eyebrow">
               {fixed ? 'Emplacements' : 'Sections'}
@@ -157,6 +206,7 @@ export function Edit({
                     className="basalte-section-row"
                     data-fixed="true"
                     data-current={current}
+                    data-wrong={wrong.has(section.id)}
                   >
                     <button
                       type="button"
@@ -194,6 +244,7 @@ export function Edit({
                           className="basalte-section-row"
                           data-current={current}
                           data-hidden={hidden}
+                          data-wrong={wrong.has(section.id)}
                         >
                           <button
                             type="button"
@@ -228,44 +279,39 @@ export function Edit({
 
           {!fixed && draft.blocks.length === 0 && (
             <div className="basalte-empty">
-              Cette page n’a pas encore de section, et le panel n’en ajoute pas.
+              <strong>Aucune section</strong>
+              <span>
+                Cette page est vide, et le panel n’ajoute pas de section.
+              </span>
             </div>
           )}
 
-          <Text size="sm" c="dimmed" px={12}>
-            {aside?.note ??
-              'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
-          </Text>
-
-          {!fixed && (
-            <Text size="sm" c="dimmed" px={12}>
-              Vous modifiez, réordonnez et masquez les sections. Ajouter une
-              section ou une page{' '}
-              {payload.support === '' ? (
-                'ne se fait pas depuis le panel.'
-              ) : (
-                <>
-                  se demande à{' '}
-                  <Anchor href={`mailto:${payload.support}`}>
-                    {payload.support}
-                  </Anchor>
-                  .
-                </>
-              )}
-            </Text>
-          )}
-
-          {!fixed && (
-            <Button
-              variant={focus.kind === 'meta' ? 'light' : 'subtle'}
-              color={focus.kind === 'meta' ? 'brand' : 'gray'}
-              size="sm"
-              mt="auto"
-              onClick={() => setFocus({ kind: 'meta' })}
-            >
-              Informations de la page
-            </Button>
-          )}
+          {/* Les phrases que D134 pose là où la limite se rencontre, réunies
+              en une note : trois blocs gris empilés dans une colonne de deux
+              cent quarante pixels se lisaient comme du bruit. */}
+          <div className="basalte-note">
+            <p>
+              {aside?.note ??
+                'Une section masquée reste dans la liste : c’est le seul endroit d’où la rallumer.'}
+            </p>
+            {!fixed && (
+              <p>
+                Vous modifiez, réordonnez et masquez les sections. Ajouter une
+                section ou une page{' '}
+                {payload.support === '' ? (
+                  'ne se fait pas depuis le panel.'
+                ) : (
+                  <>
+                    se demande à{' '}
+                    <Anchor href={`mailto:${payload.support}`} inherit>
+                      {payload.support}
+                    </Anchor>
+                    .
+                  </>
+                )}
+              </p>
+            )}
+          </div>
         </Stack>
       </Paper>
 
@@ -313,6 +359,12 @@ export function Edit({
 
       <Paper className="basalte-inspector" p="md">
         <Stack gap="md">
+          {spoken !== undefined && (
+            <Text size="xs" c="dimmed">
+              {spoken}
+            </Text>
+          )}
+
           {active.kind === 'meta' ? (
             <>
               <div>
@@ -324,18 +376,21 @@ export function Edit({
               <FieldSet
                 descriptions={payload.meta}
                 values={draft.meta as Values}
+                issues={metaIssues}
                 onChange={(meta) => onDraft({ ...draft, meta })}
               />
             </>
           ) : focused === undefined ? (
             <div className="basalte-empty">
-              Cette section n’existe plus dans la page.
+              <strong>Section introuvable</strong>
+              <span>Elle n’est plus dans la page.</span>
             </div>
           ) : (
             <Section
               section={focused}
               type={types.find((entry) => entry.name === focused.type)}
               hideable={!fixed}
+              issues={issuesOf(issues, focused.id)}
               onChange={(next) =>
                 onDraft({
                   ...draft,
@@ -350,6 +405,23 @@ export function Edit({
       </Paper>
     </div>
   )
+}
+
+/**
+ * Les incidents d’une section, leur chemin nu : le serveur le donne relatif aux
+ * champs de la section, et c’est exactement ce qu’un `FieldSet` attend.
+ */
+export function issuesOf(
+  issues: readonly ContentIssue[],
+  section: string | undefined,
+): readonly FieldIssue[] {
+  return issues
+    .filter((issue) => issue.section?.id === section)
+    .map((issue) => ({
+      path: issue.path ?? [],
+      ...(issue.language === undefined ? {} : { language: issue.language }),
+      message: issue.message,
+    }))
 }
 
 function labelOf(

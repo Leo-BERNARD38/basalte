@@ -3,6 +3,7 @@
 // reste à corriger. Aucun écran n’a donc à interpréter un code HTTP.
 
 import type { AudienceReport } from '../analytics/report.js'
+import type { ContentIssue } from '../content/report.js'
 import type { PublishState } from '../publish/publish.js'
 import type { BusinessDraft } from '../server/business.js'
 import type { ChromeDraft } from '../server/chrome.js'
@@ -19,6 +20,8 @@ export type Answer<T> =
       readonly ok: false
       readonly message: string
       readonly problems: readonly string[]
+      /** Ce qui bloque, entier : le panel pose chacun sous son champ. */
+      readonly issues: readonly ContentIssue[]
       readonly signedOut: boolean
       /** Le moment à partir duquel une nouvelle tentative est acceptée. */
       readonly retryAt?: number
@@ -253,7 +256,13 @@ async function receive<T>(pending: Promise<Response>): Promise<Answer<T>> {
   try {
     response = await pending
   } catch {
-    return { ok: false, message: OFFLINE, problems: [], signedOut: false }
+    return {
+      ok: false,
+      message: OFFLINE,
+      problems: [],
+      issues: [],
+      signedOut: false,
+    }
   }
 
   let payload: Record<string, unknown> = {}
@@ -276,6 +285,9 @@ async function receive<T>(pending: Promise<Response>): Promise<Answer<T>> {
         : `La demande a échoué (${response.status}).`,
     problems: Array.isArray(payload['problems'])
       ? (payload['problems'] as string[])
+      : [],
+    issues: Array.isArray(payload['issues'])
+      ? (payload['issues'] as ContentIssue[])
       : [],
     signedOut: response.status === 401,
     ...(typeof payload['retryAt'] === 'number'

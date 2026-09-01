@@ -298,6 +298,7 @@ export const cssVariables: CSSVariablesResolver = () => ({
     '--panel-green': tokens.accent.green,
     '--panel-orange': tokens.accent.orange,
     '--panel-red': tokens.accent.red,
+    '--panel-red-wash': tokens.redWash,
     '--panel-radius-xs': tokens.radius.xs,
     '--panel-radius-sm': tokens.radius.sm,
     '--panel-radius-md': tokens.radius.md,

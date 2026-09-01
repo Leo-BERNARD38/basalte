@@ -25,12 +25,19 @@ import { useEditing } from '../editing.js'
 import { Chevron } from '../Chevron.js'
 import { Grip } from '../Grip.js'
 import { SortableItem, SortableList } from '../Sortable.js'
-import { FieldSet, type ControlProps } from './Field.js'
+import { below, FieldSet, useFieldError, type ControlProps } from './Field.js'
 
-export function ListControl({ description, value, onChange }: ControlProps) {
+export function ListControl({
+  description,
+  value,
+  issues,
+  onChange,
+}: ControlProps) {
   const editing = useEditing()
+  const error = useFieldError(issues.filter((issue) => issue.path.length === 0))
   const [open, setOpen] = useState<number | null>(null)
   const [asked, setAsked] = useState<number | null>(null)
+  const [flagged, setFlagged] = useState<number | undefined>(undefined)
   const name = useId()
   const fields = description.fields ?? []
   const items = Array.isArray(value) ? (value as Values[]) : []
@@ -46,6 +53,22 @@ export function ListControl({ description, value, onChange }: ControlProps) {
     setOpen(indexAfterRemoval(open, index))
   }
 
+  // Ce qui bloque désigne un rang : l’élément se marque replié, et le premier
+  // fautif s’ouvre — le client n’a pas à déplier trente lignes pour le trouver.
+  const ranks = issues
+    .map((issue) => issue.path[0])
+    .filter((segment): segment is number => typeof segment === 'number')
+  const wrong = new Set(ranks)
+  const first = ranks.toSorted((left, right) => left - right)[0]
+
+  // Une seule fois par verdict : rouvrir à chaque rendu reprendrait la main sur
+  // l’élément que le client vient de replier.
+  if (flagged !== first) {
+    setFlagged(first)
+
+    if (first !== undefined) setOpen(first)
+  }
+
   const named = (index: number) =>
     labelOfItem(description.itemLabel, items[index] ?? {}, editing.language) ||
     `l’élément ${index + 1}`
@@ -55,6 +78,7 @@ export function ListControl({ description, value, onChange }: ControlProps) {
       label={description.label}
       description={description.help}
       required={description.required}
+      error={error}
     >
       <Group justify="flex-end" mb="xs">
         <Text size="xs" c="dimmed">
@@ -93,6 +117,7 @@ export function ListControl({ description, value, onChange }: ControlProps) {
                     <button
                       type="button"
                       className="basalte-item"
+                      data-wrong={wrong.has(index)}
                       aria-expanded={open === index}
                       aria-controls={`${name}-${index}`}
                       onClick={() => setOpen(open === index ? null : index)}
@@ -123,6 +148,7 @@ export function ListControl({ description, value, onChange }: ControlProps) {
                       <FieldSet
                         descriptions={fields}
                         values={item}
+                        issues={below(issues, index)}
                         onChange={(next) =>
                           onChange(replace(items, index, next as Values))
                         }

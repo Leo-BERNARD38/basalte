@@ -28,16 +28,20 @@ describe('le plancher de contraste du panel', () => {
     const pairs = panelPairs()
 
     for (const level of Object.keys(tokens.ink)) {
-      const backs = pairs
-        .filter((pair) => pair.front === `ink.${level}`)
-        .map((pair) => pair.back)
+      const backs = new Set(
+        pairs
+          .filter((pair) => pair.front === `ink.${level}`)
+          .map((pair) => pair.back),
+      )
 
-      expect(backs.toSorted()).toEqual([
+      for (const surface of [
         'surface.bg',
         'surface.card',
         'surface.hover',
         'surface.sunken',
-      ])
+      ]) {
+        expect(backs.has(surface)).toBe(true)
+      }
     }
   })
 

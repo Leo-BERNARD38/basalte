@@ -4,7 +4,11 @@
 // Trois informations y sont lisibles en permanence : reste-t-il quelque chose
 // à enregistrer, quand la dernière modification a-t-elle été enregistrée, et
 // quelque chose est-il cassé. Elles vivent sous le titre, à côté des deux
-// boutons, pour qu’un seul regard suffise.
+// boutons, pour qu’un seul regard suffise — sur une ligne, dans un ordre fixe.
+//
+// Le titre nomme ce qui est ouvert ; l’œilleton qui le surmonte nomme l’écran.
+// Il disait l’un ou l’autre : sur « Édition », le nom de la page remplaçait
+// celui de l’écran, et rien ne rappelait où l’on était.
 //
 // Une quatrième les accompagne, et c’est une phrase : deux boutons côte à côte
 // n’expliquent pas d’eux-mêmes que l’un garde et que l’autre montre. C’est la
@@ -17,9 +21,21 @@
 // enregistrer, éteint. Un avertissement sur lequel on ne peut pas agir vaut
 // moins que pas d’avertissement.
 
-import { Alert, Badge, Button, Group, Select, Tabs, Text } from '@mantine/core'
-import type { ReactNode } from 'react'
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Group,
+  Select,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+} from '@mantine/core'
+import { useState, type ReactNode } from 'react'
 
+import type { ContentIssue } from '../content/report.js'
 import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
@@ -61,6 +77,9 @@ export function screensFor(
   })
 }
 
+/** Ce qu’un bandeau montre avant qu’on lui demande le reste. */
+const SHOWN = 3
+
 const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
 
 const ONLINE = new Intl.DateTimeFormat('fr-FR', {
@@ -79,6 +98,8 @@ export function Shell({
   busy,
   savedAt,
   problems,
+  issues,
+  onIssue,
   publication,
   onSave,
   onPublish,
@@ -95,15 +116,22 @@ export function Shell({
   readonly busy: boolean
   readonly savedAt: number | undefined
   readonly problems: readonly string[]
+  /** Ce qui bloque, avec la section et le champ que le serveur a nommés. */
+  readonly issues: readonly ContentIssue[]
+  readonly onIssue: (issue: ContentIssue) => void
   readonly publication: PublishState
   readonly onSave: () => void
   readonly onPublish: () => void
   readonly onSignOut: () => void
   readonly children: ReactNode
 }) {
+  const [all, setAll] = useState(false)
   const several = payload.site.languages.length > 1
   const busyOnline = publication.running || publication.queued
   const last = publication.last
+  const blocking = payload.problems.some(
+    (problem) => problem.severity === 'error',
+  )
 
   return (
     <div className="basalte-shell">
@@ -114,6 +142,7 @@ export function Shell({
         </span>
 
         <Tabs
+          className="basalte-tabs-holder"
           value={screen}
           onChange={(value) => onScreen((value ?? 'edit') as Screen)}
         >
@@ -157,7 +186,7 @@ export function Shell({
               onChange={(value) => onLanguage(value ?? language)}
             />
           )}
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" visibleFrom="md">
             {payload.account}
           </Text>
           <Button
@@ -175,16 +204,14 @@ export function Shell({
       <main className="basalte-main">
         <div className="basalte-head">
           <div className="basalte-head__facts">
+            <span className="basalte-eyebrow">
+              {SCREENS.find((entry) => entry.value === screen)?.label}
+            </span>
+
             <div className="basalte-head__title">
-              <Text
-                component="h1"
-                fz="var(--panel-text-display)"
-                fw={700}
-                lh={1.05}
-                m={0}
-              >
+              <Title order={2} component="h1" m={0}>
                 {heading}
-              </Text>
+              </Title>
               {dirty ? (
                 <Badge color="orange">Modifications non enregistrées</Badge>
               ) : (
@@ -192,21 +219,21 @@ export function Shell({
               )}
             </div>
 
-            <Group gap="xs">
-              {savedAt !== undefined && (
-                <Text size="sm" c="dimmed">
-                  dernier enregistrement à {MOMENT.format(savedAt)}
-                </Text>
-              )}
-              <Text size="sm" c="dimmed">
-                {onlineLabel(publication)}
-              </Text>
-              {!payload.tracked && (
-                <Text size="sm" c="dimmed">
-                  sans historique — ce dossier n’est pas un dépôt git
-                </Text>
-              )}
-            </Group>
+            {/* Une ligne, dans un ordre fixe : trois textes gris accolés se
+                lisaient comme une phrase, et aucun ne se retrouvait. */}
+            <Text size="sm" c="dimmed">
+              {[
+                savedAt === undefined
+                  ? undefined
+                  : `dernier enregistrement à ${MOMENT.format(savedAt)}`,
+                onlineLabel(publication),
+                payload.tracked
+                  ? undefined
+                  : 'sans historique — ce dossier n’est pas un dépôt git',
+              ]
+                .filter((part) => part !== undefined)
+                .join(' · ')}
+            </Text>
           </div>
 
           <div className="basalte-head__actions">
@@ -228,20 +255,46 @@ export function Shell({
                 Mettre en ligne
               </Button>
             </div>
-            <Text size="xs" c="dimmed" ta="right">
+            <Text size="xs" c="dimmed" className="basalte-head__hint">
               Enregistrer garde votre travail. Mettre en ligne le montre aux
               visiteurs.
             </Text>
           </div>
         </div>
 
+        {/* L’état du site, replié à trois lignes. Un site multilingue en
+            préparation en porte une par page : déplié, le bandeau prenait le
+            tiers de l’écran, tous les jours, pour un avertissement. */}
         {payload.problems.length > 0 && (
-          <Alert color="orange" title="À corriger">
-            {payload.problems.map((problem, rank) => (
-              <Text key={`${rank}-${problem.message}`} size="sm">
-                {problem.message}
-              </Text>
-            ))}
+          <Alert
+            color={blocking ? 'red' : 'orange'}
+            title={
+              blocking
+                ? 'À corriger avant la prochaine mise en ligne'
+                : `${payload.problems.length} point${payload.problems.length > 1 ? 's' : ''} à regarder`
+            }
+          >
+            <Stack gap={2} align="flex-start">
+              {(all ? payload.problems : payload.problems.slice(0, SHOWN)).map(
+                (problem, rank) => (
+                  <Text key={`${rank}-${problem.message}`} size="sm">
+                    {problem.message}
+                  </Text>
+                ),
+              )}
+              {payload.problems.length > SHOWN && (
+                <Anchor
+                  component="button"
+                  type="button"
+                  size="sm"
+                  onClick={() => setAll(!all)}
+                >
+                  {all
+                    ? 'Replier'
+                    : `Voir les ${payload.problems.length - SHOWN} autres`}
+                </Anchor>
+              )}
+            </Stack>
           </Alert>
         )}
 
@@ -254,7 +307,30 @@ export function Shell({
           </Alert>
         )}
 
-        {problems.length > 0 && (
+        {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait quelle
+            section et quel champ, et une liste de phrases faisait relire
+            l’écran à la main pour retrouver lequel (D166). */}
+        {issues.length > 0 && (
+          <Alert color="red" title="Rien n’a été enregistré">
+            <Stack gap={2} align="flex-start">
+              {issues.map((issue, rank) => (
+                <Anchor
+                  key={`${rank}-${issue.message}`}
+                  component="button"
+                  type="button"
+                  size="sm"
+                  ta="left"
+                  onClick={() => onIssue(issue)}
+                >
+                  {where(issue)}
+                  {issue.message}
+                </Anchor>
+              ))}
+            </Stack>
+          </Alert>
+        )}
+
+        {issues.length === 0 && problems.length > 0 && (
           <Alert color="red" title="Rien n’a été enregistré">
             {problems.map((problem, rank) => (
               <Text key={`${rank}-${problem}`} size="sm">
@@ -268,6 +344,15 @@ export function Shell({
       </main>
     </div>
   )
+}
+
+/** Ce que la ligne d’un incident nomme avant son message. */
+function where(issue: ContentIssue): string {
+  const parts = [issue.section?.label, issue.field].filter(
+    (part): part is string => part !== undefined,
+  )
+
+  return parts.length === 0 ? '' : `${parts.join(' › ')} : `
 }
 
 // Une seule ligne, toujours au même endroit : c’est là que le client vient

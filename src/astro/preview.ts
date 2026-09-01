@@ -71,7 +71,17 @@ export async function resolvePreview(
 
   // L’aperçu montre aussi les billets : ce sont des pages dont le socle a écrit
   // la structure, et le panel doit pouvoir les relire avant qu’ils paraissent.
-  const served = allPages({ site: schemas.site, pages, posts: journal.posts })
+  //
+  // Un brouillon s’y relit démasqué. `pageOfPost` reporte le `hidden` du billet
+  // sur l’unique section de la page compilée : masqué, elle n’a plus rien de
+  // visible, et l’aperçu montrait un en-tête et un pied séparés par du vide —
+  // au moment précis où l’on écrit le billet. Le masque décide de ce qui part
+  // en ligne, pas de ce que son auteur peut relire.
+  const served = allPages({
+    site: schemas.site,
+    pages,
+    posts: journal.posts.map((post) => ({ ...post, hidden: {} })),
+  })
 
   const target = matchSlug(
     slug,

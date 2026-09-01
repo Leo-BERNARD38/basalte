@@ -12,18 +12,20 @@ import type { PageBlock } from '../content/page.js'
 import type { PanelBlockType } from '../server/panel.js'
 import type { Values } from './draft.js'
 import { languageLabel, useEditing } from './editing.js'
-import { FieldSet } from './fields/Field.js'
+import { FieldSet, type FieldIssue } from './fields/Field.js'
 
 export function Section({
   section,
   type,
   hideable = true,
+  issues,
   onChange,
 }: {
   readonly section: PageBlock
   readonly type: PanelBlockType | undefined
   /** L’en-tête et le pied de page sont sur toutes les pages : ils ne se masquent pas. */
   readonly hideable?: boolean
+  readonly issues: readonly FieldIssue[]
   readonly onChange: (section: PageBlock) => void
 }) {
   const editing = useEditing()
@@ -81,6 +83,7 @@ export function Section({
         <FieldSet
           descriptions={type.fields}
           values={section.props as Values}
+          issues={issues}
           onChange={(props) => onChange({ ...section, props })}
         />
       )}

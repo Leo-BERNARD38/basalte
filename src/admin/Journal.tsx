@@ -26,11 +26,13 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
+import type { ContentIssue } from '../content/report.js'
 import { formatDate, today } from '../fields/date.js'
 import type { DraftPost } from '../server/posts.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Values } from './draft.js'
-import { previewAddress, useEditing } from './editing.js'
+import { editedLanguage, previewAddress, useEditing } from './editing.js'
+import { issuesOf } from './Edit.js'
 import { FieldSet } from './fields/Field.js'
 import { HiddenMark } from './HiddenMark.js'
 
@@ -46,6 +48,7 @@ export function Journal({
   savedAt,
   dirty,
   busy,
+  issues,
   onSelect,
   onDraft,
   onCreate,
@@ -57,6 +60,7 @@ export function Journal({
   readonly savedAt: number | undefined
   readonly dirty: boolean
   readonly busy: boolean
+  readonly issues: readonly ContentIssue[]
   readonly onSelect: (slug: string) => void
   readonly onDraft: (draft: PostValues) => void
   readonly onCreate: (title: string) => void
@@ -111,7 +115,6 @@ export function Journal({
                 <div
                   key={post.slug}
                   className="basalte-section-row"
-                  data-fixed="true"
                   data-current={post.slug === selected}
                   data-hidden={hidden}
                 >
@@ -121,11 +124,13 @@ export function Journal({
                     aria-current={post.slug === selected}
                     onClick={() => onSelect(post.slug)}
                   >
-                    <span className="basalte-section-row__text">
-                      {post.title}
-                    </span>
-                    <span className="basalte-post-date">
-                      {formatDate(post.date, editing.language)}
+                    <span className="basalte-section-row__stack">
+                      <span className="basalte-section-row__text">
+                        {post.title}
+                      </span>
+                      <span className="basalte-post-date">
+                        {formatDate(post.date, editing.language)}
+                      </span>
                     </span>
                     {hidden && <HiddenMark />}
                   </button>
@@ -136,14 +141,20 @@ export function Journal({
 
           {posts.length === 0 && (
             <div className="basalte-empty">
-              Aucun billet pour l’instant. « Nouveau billet » en écrit un.
+              <strong>Aucun billet</strong>
+              <span>Le premier s’écrit maintenant.</span>
+              <Button size="xs" onClick={() => setWriting(true)}>
+                Nouveau billet
+              </Button>
             </div>
           )}
 
-          <Text size="sm" c="dimmed" px={12}>
-            Un billet masqué reste ici et ne part pas en ligne. C’est ce qui
-            permet de l’écrire en plusieurs fois.
-          </Text>
+          <div className="basalte-note">
+            <p>
+              Un billet masqué reste ici et ne part pas en ligne. C’est ce qui
+              permet de l’écrire en plusieurs fois.
+            </p>
+          </div>
         </Stack>
       </Paper>
 
@@ -165,7 +176,8 @@ export function Journal({
 
         {open === undefined ? (
           <div className="basalte-empty">
-            Choisissez un billet à gauche, ou écrivez-en un.
+            <strong>Aucun billet ouvert</strong>
+            <span>Choisissez-en un à gauche, ou écrivez-en un.</span>
           </div>
         ) : (
           <>
@@ -189,7 +201,10 @@ export function Journal({
 
       <Paper className="basalte-inspector" p="md">
         {open === undefined ? (
-          <div className="basalte-empty">Aucun billet ouvert.</div>
+          <div className="basalte-empty">
+            <strong>Rien à modifier</strong>
+            <span>Le billet ouvert apparaîtra ici.</span>
+          </div>
         ) : (
           <Stack gap="md">
             <div>
@@ -197,15 +212,20 @@ export function Journal({
               <Text size="sm" c="dimmed">
                 {open.route}
               </Text>
+              {editedLanguage(editing) !== undefined && (
+                <Text size="xs" c="dimmed" mt={4}>
+                  {editedLanguage(editing)}
+                </Text>
+              )}
             </div>
 
             <Switch
               checked={!hidden}
-              label={hidden ? 'Masqué' : 'En ligne'}
+              label="Visible sur le site"
               description={
                 hidden
-                  ? 'Ce billet ne partira pas en ligne à la prochaine mise en ligne.'
-                  : 'Ce billet partira en ligne à la prochaine mise en ligne.'
+                  ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
+                  : 'Ce billet partira à la prochaine mise en ligne.'
               }
               onChange={(event) =>
                 onDraft({
@@ -221,6 +241,7 @@ export function Journal({
             <FieldSet
               descriptions={journal.fields}
               values={draft.fields}
+              issues={issuesOf(issues, undefined)}
               onChange={(fields) => onDraft({ ...draft, fields })}
             />
 
