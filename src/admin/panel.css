@@ -128,6 +128,15 @@
 
 /* ---- Le socle ---- */
 
+/* Une largeur est ce qu’on mesure à l’écran, rembourrage et filet compris.
+   Sans cette règle, un champ à cent pour cent dépasse sa colonne de la somme
+   des deux, et le débordement ne se voit pas — rien ne le rogne. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background: var(--panel-surface-canvas);
@@ -241,6 +250,11 @@ body {
 
 .basalte-spacer {
   margin-left: auto;
+}
+
+.basalte-stack > .basalte-spacer {
+  margin-top: auto;
+  margin-left: 0;
 }
 
 /* ---- La typographie ---- */
@@ -513,17 +527,6 @@ textarea.basalte-input {
   pointer-events: none;
 }
 
-/* Le texte hérité du bureau : un pointillé dit qu’il n’est pas saisi ici. */
-.basalte-inherited {
-  padding: var(--panel-space-md);
-  border: 1px dashed var(--panel-line-strong);
-  border-radius: var(--panel-radius-field);
-  background: var(--panel-surface-raised);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-body);
-  line-height: 1.55;
-}
-
 /* ---- La ligne de liste ---- */
 
 /* L’objet le plus vu du panel. Elle garde l’arête, comme le champ : c’est une
@@ -535,13 +538,26 @@ textarea.basalte-input {
   width: 100%;
   min-height: var(--panel-control-row);
   padding: var(--panel-space-xs) var(--panel-space-md);
-  border: 0;
   border-radius: var(--panel-radius-field);
   background: transparent;
   color: var(--panel-ink-2);
-  font-family: inherit;
   font-size: var(--panel-text-body);
   font-weight: 450;
+}
+
+/* Ce qui se presse dans une ligne. La poignée est sa sœur, pas sa fille : on
+   ne met pas un élément qu’on atteint au clavier dans un autre. */
+.basalte-row__label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: var(--panel-space-md);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-align: left;
   cursor: pointer;
 }
@@ -617,6 +633,15 @@ textarea.basalte-input {
 
 .basalte-handle:active {
   cursor: grabbing;
+}
+
+/* Au repos, la poignée est un dessin inerte, et c’est à ce titre qu’elle est
+   tenue hors du plancher du graphique (D177). Dès qu’on la vise, elle porte
+   l’encre 3 et se lit — c’est ce qui rend l’exclusion tenable. */
+.basalte-row:hover .basalte-handle,
+.basalte-handle:hover,
+.basalte-handle:focus-visible {
+  color: var(--panel-ink-3);
 }
 
 /* ---- Les marques ---- */
@@ -945,6 +970,8 @@ textarea.basalte-input {
   padding: var(--panel-space-xl);
 }
 
+/* Le menu défile plutôt que de sortir de l’écran : la bibliothèque d’un site
+   porte une quinzaine de types, et le dernier doit rester atteignable. */
 .basalte-menu {
   position: absolute;
   z-index: 60;
@@ -954,6 +981,8 @@ textarea.basalte-input {
   flex-direction: column;
   gap: var(--panel-space-hair);
   width: var(--panel-width-menu);
+  max-height: 60vh;
+  overflow-y: auto;
   margin-top: var(--panel-space-md);
   padding: var(--panel-space-sm);
   border: 1px solid var(--panel-line-strong);
@@ -1078,8 +1107,9 @@ textarea.basalte-input {
 /* La langue affichée et le compte : deux méta posées sur le plan sombre, où
    aucun gris clair ne tiendrait sur du blanc. */
 .basalte-topbar__lang {
+  appearance: none;
   height: var(--panel-control-sm);
-  padding: 0 var(--panel-space-md);
+  padding: 0 var(--panel-space-lg);
   border: 0;
   border-radius: var(--panel-radius-pill);
   background: var(--panel-veil-chip);
@@ -1560,6 +1590,13 @@ textarea.basalte-input {
   align-items: center;
   justify-content: center;
   padding: var(--panel-space-xxxl);
+}
+
+/* La carte tient la largeur d’une colonne de formulaire : sans elle, elle se
+   réduit à son contenu et les deux champs se resserrent au milieu du vide. */
+.basalte-signin > .basalte-card {
+  width: var(--panel-width-form);
+  max-width: 100%;
 }
 
 .basalte-signin__mark {

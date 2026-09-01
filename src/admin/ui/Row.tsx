@@ -14,6 +14,13 @@ type RowProps = Omit<ComponentProps<'button'>, 'type'> & {
   readonly dragging?: boolean | undefined
   /** La forme pleine, quand la ligne vit dans un menu et non dans une colonne. */
   readonly pill?: boolean | undefined
+  /**
+   * La poignée de déplacement. Elle se pose à côté du bouton, jamais dedans :
+   * dnd-kit la rend focalisable, et un élément qu’on atteint au clavier ne peut
+   * pas vivre à l’intérieur d’un autre — c’est ce qui rend le réordonnancement
+   * au clavier praticable.
+   */
+  readonly handle?: ReactNode | undefined
   readonly children: ReactNode
 }
 
@@ -23,23 +30,25 @@ export function Row({
   wrong,
   dragging,
   pill,
+  handle,
   className,
   children,
   ...rest
 }: RowProps) {
   return (
-    <button
-      type="button"
+    <div
       className={joined('basalte-row', className)}
       data-current={current === true ? 'true' : undefined}
       data-hidden={hidden === true ? 'true' : undefined}
       data-wrong={wrong === true ? 'true' : undefined}
       data-dragging={dragging === true ? 'true' : undefined}
       data-pill={pill === true ? 'true' : undefined}
-      {...rest}
     >
-      {children}
-    </button>
+      {handle}
+      <button type="button" className="basalte-row__label" {...rest}>
+        {children}
+      </button>
+    </div>
   )
 }
 

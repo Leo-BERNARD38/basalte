@@ -349,18 +349,21 @@ export function Edit({
                             current={current}
                             hidden={hidden}
                             wrong={wrong.has(section.id)}
+                            handle={
+                              <button
+                                type="button"
+                                className="basalte-handle"
+                                ref={handle.ref}
+                                aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
+                                {...handle.props}
+                              >
+                                <Grip />
+                              </button>
+                            }
                             onClick={() =>
                               setFocus({ kind: 'block', id: section.id })
                             }
                           >
-                            <RowGlyph
-                              ref={handle.ref}
-                              className="basalte-handle"
-                              aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
-                              {...handle.props}
-                            >
-                              <Grip />
-                            </RowGlyph>
                             <RowText>{labelOf(types, section.type)}</RowText>
                             {hidden && (
                               <Mark hatched>
