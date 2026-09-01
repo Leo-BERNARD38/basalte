@@ -1,10 +1,13 @@
 // Un champ document ne porte qu’une clé de la médiathèque. Le client voit le
 // nom du fichier et son poids, jamais l’empreinte qui le nomme sur le disque.
 
-import { Button, Group, Input, Paper, Text } from '@mantine/core'
-
 import { documentWeight } from '../../media/resolve.js'
 import { useEditing } from '../editing.js'
+import { Button } from '../ui/Button.js'
+import { Field } from '../ui/Field.js'
+import { Group, Spacer } from '../ui/Layout.js'
+import { Card } from '../ui/Surface.js'
+import { Mono, Text } from '../ui/Text.js'
 import { hint, useFieldError, type ControlProps } from './Field.js'
 
 export function DocumentControl({
@@ -25,40 +28,37 @@ export function DocumentControl({
   }
 
   return (
-    <Input.Wrapper
+    <Field
       label={description.label}
-      description={hint(description)}
-      required={description.required}
+      hint={hint(description)}
       error={error}
+      required={description.required}
     >
-      <Paper p="xs" mt={4}>
-        <Group wrap="nowrap" align="center">
-          {entry === undefined ? (
-            <Text size="sm" c="dimmed" style={{ flex: 1 }}>
-              Aucun document
-            </Text>
-          ) : (
-            <Text size="sm" style={{ flex: 1 }} lineClamp={2}>
-              {entry.name} — {documentWeight(entry.bytes)}
-            </Text>
-          )}
-          <Group gap="xs" wrap="nowrap">
-            <Button variant="default" size="xs" onClick={choose}>
+      {(bound) => (
+        <Card nested pad="sm" {...bound}>
+          <Group gap="sm">
+            {entry === undefined ? (
+              <Text tone="meta" size="small">
+                Aucun document
+              </Text>
+            ) : (
+              <>
+                <Text size="small">{entry.name}</Text>
+                <Mono>{documentWeight(entry.bytes)}</Mono>
+              </>
+            )}
+            <Spacer />
+            <Button size="xs" onClick={choose}>
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button
-                variant="subtle"
-                color="red"
-                size="xs"
-                onClick={() => onChange('')}
-              >
+              <Button tone="danger" size="xs" onClick={() => onChange('')}>
                 Retirer
               </Button>
             )}
           </Group>
-        </Group>
-      </Paper>
-    </Input.Wrapper>
+        </Card>
+      )}
+    </Field>
   )
 }

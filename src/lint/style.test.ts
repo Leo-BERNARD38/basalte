@@ -101,13 +101,20 @@ describe('hardcodedStyle, sur la feuille du panel', () => {
       'var(--panel-space-… )',
     )
     expect(panel('.a {\n  color: #fff;\n}')[0]?.message).toContain(
-      'var(--panel-ink)',
+      'var(--panel-ink-1)',
     )
   })
 
-  it('laisse passer une famille que le panel ne porte pas', () => {
+  // La police est la seule famille que la feuille du panel ne contrôle pas :
+  // un « @font-face » nomme forcément la sienne en clair.
+  it('laisse passer la seule famille que le panel ne porte pas', () => {
     expect(panel('.a {\n  font-family: Menlo;\n}')).toEqual([])
-    expect(panel('.a {\n  max-width: 42rem;\n}')).toEqual([])
+  })
+
+  it('contrôle la largeur, que la feuille porte désormais', () => {
+    expect(panel('.a {\n  max-width: 42rem;\n}').map((e) => e.rule)).toEqual([
+      'style/width',
+    ])
   })
 
   it('ignore une déclaration écrite dans un commentaire', () => {

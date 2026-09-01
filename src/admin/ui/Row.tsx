@@ -1,0 +1,83 @@
+// La ligne de liste : l’objet le plus vu du panel. Elle garde l’arête, comme
+// le champ — c’est une colonne qu’on parcourt du regard, pas un objet qu’on
+// presse. Ce qu’on est en train de modifier porte l’aplat d’accent, et l’encre
+// y reste noire : c’est ce qui le distingue d’une couleur d’action.
+
+import type { ComponentProps, ReactNode } from 'react'
+
+import { joined } from './Layout.js'
+
+type RowProps = Omit<ComponentProps<'button'>, 'type'> & {
+  readonly current?: boolean | undefined
+  readonly hidden?: boolean | undefined
+  readonly wrong?: boolean | undefined
+  readonly dragging?: boolean | undefined
+  /** La forme pleine, quand la ligne vit dans un menu et non dans une colonne. */
+  readonly pill?: boolean | undefined
+  readonly children: ReactNode
+}
+
+export function Row({
+  current,
+  hidden,
+  wrong,
+  dragging,
+  pill,
+  className,
+  children,
+  ...rest
+}: RowProps) {
+  return (
+    <button
+      type="button"
+      className={joined('basalte-row', className)}
+      data-current={current === true ? 'true' : undefined}
+      data-hidden={hidden === true ? 'true' : undefined}
+      data-wrong={wrong === true ? 'true' : undefined}
+      data-dragging={dragging === true ? 'true' : undefined}
+      data-pill={pill === true ? 'true' : undefined}
+      {...rest}
+    >
+      {children}
+    </button>
+  )
+}
+
+/** Le libellé d’une ligne : il occupe la place et se coupe, jamais l’inverse. */
+export function RowText({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'span'>) {
+  return (
+    <span className={joined('basalte-row__text', className)} {...rest}>
+      {children}
+    </span>
+  )
+}
+
+/** Deux lignes empilées, quand une date accompagne un titre. */
+export function RowStack({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'span'>) {
+  return (
+    <span className={joined('basalte-row__stack', className)} {...rest}>
+      {children}
+    </span>
+  )
+}
+
+/** Le glyphe d’une ligne — poignée, coche. Un dessin, jamais du texte. */
+export function RowGlyph({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'span'>) {
+  return (
+    <span className={joined('basalte-row__glyph', className)} {...rest}>
+      {children}
+    </span>
+  )
+}

@@ -91,14 +91,15 @@ export const SITE: StyleSystem = {
 }
 
 /**
- * Les tokens du panel, dans sa feuille. Ni police ni largeur : la première
- * vient du thème Mantine, la seconde des composants — `panel.css` ne dessine
- * que la mise en page.
+ * Les tokens du panel, dans sa feuille. Elle porte désormais tout ce que le
+ * panel dessine, largeurs comprises. La police en est la seule famille non
+ * contrôlée : un `@font-face` nomme forcément la sienne en clair, et la règle
+ * refuserait la déclaration même qui la rend disponible.
  */
 export const PANEL: StyleSystem = {
   prefix: 'panel-',
-  colour: '--panel-ink',
-  families: new Set(['space', 'text', 'radius']),
+  colour: '--panel-ink-1',
+  families: new Set(['space', 'text', 'radius', 'width']),
   whole: true,
 }
 

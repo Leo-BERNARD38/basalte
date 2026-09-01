@@ -5,82 +5,75 @@
 // téléchargé. Le nom du fichier est donc tout ce que le client voit, et c’est
 // aussi tout ce que le manifeste retient.
 
-import {
-  Alert,
-  Button,
-  FileButton,
-  Group,
-  Modal,
-  Paper,
-  Stack,
-  Text,
-  Title,
-  UnstyledButton,
-} from '@mantine/core'
-import { useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 
 import { documentUrl, documentWeight, DOCUMENT_TYPE } from '../media/resolve.js'
 import type { DocumentSummary } from '../server/documents.js'
 import { deleteDocument, uploadDocument } from './api.js'
+import { Places, type Place } from './places.js'
+import { Mark } from './ui/Badge.js'
+import { Button } from './ui/Button.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Row, RowText } from './ui/Row.js'
+import { Card, Empty } from './ui/Surface.js'
+import { Mono, Text, Title } from './ui/Text.js'
 
 export function DocumentList({
   documents,
   selected,
+  empty,
   onSelect,
 }: {
   readonly documents: readonly DocumentSummary[]
   readonly selected: string
+  readonly empty: ReactNode
   readonly onSelect: (key: string) => void
 }) {
-  if (documents.length === 0) {
-    return (
-      <Text c="dimmed" size="sm">
-        Aucun document déposé.
-      </Text>
-    )
-  }
+  if (documents.length === 0) return <>{empty}</>
 
   return (
     <Stack gap="xs">
       {documents.map((entry) => (
-        <UnstyledButton
+        <Row
           key={entry.key}
+          current={entry.key === selected}
           onClick={() => onSelect(entry.key)}
-          className={
-            entry.key === selected
-              ? 'basalte-tile basalte-tile-selected'
-              : 'basalte-tile'
-          }
-          p="xs"
         >
-          <Text size="sm">{entry.name}</Text>
-          <Text size="xs" c="dimmed">
-            {documentWeight(entry.bytes)} · {usageLabel(entry.usage)}
+          <RowText>{entry.name}</RowText>
+          {entry.usage === 0 && <Mark>jamais utilisé</Mark>}
+          <Text tone="meta" size="eyebrow">
+            {documentWeight(entry.bytes)}
           </Text>
-        </UnstyledButton>
+        </Row>
       ))}
     </Stack>
   )
 }
 
 function usageLabel(usage: number): string {
-  if (usage === 0) return 'non employé'
-  if (usage === 1) return 'employé une fois'
+  if (usage === 0) return 'jamais utilisé'
+  if (usage === 1) return 'utilisé une fois'
 
-  return `employé ${usage} fois`
+  return `utilisé ${usage} fois`
 }
 
 export function DocumentUploadButton({
+  label = 'Ajouter un document',
+  tone = 'ink',
   onDone,
   onError,
 }: {
+  readonly label?: string | undefined
+  readonly tone?: 'ink' | 'line' | undefined
   readonly onDone: (document: DocumentSummary) => void
   readonly onError: (message: string) => void
 }) {
+  const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
 
-  const send = async (file: File | null) => {
-    if (file === null) return
+  const send = async (file: File | undefined) => {
+    if (file === undefined) return
 
     setBusy(true)
 
@@ -93,25 +86,51 @@ export function DocumentUploadButton({
   }
 
   return (
-    <FileButton accept={DOCUMENT_TYPE} onChange={(file) => void send(file)}>
-      {(props) => (
-        <Button {...props} variant="default" loading={busy}>
-          Ajouter un document
-        </Button>
-      )}
-    </FileButton>
+    <>
+      {/* Le champ de fichier reste caché : c’est le bouton qui porte l’allure
+          du panel, et un champ de fichier ne s’habille pas. */}
+      <input
+        ref={input}
+        type="file"
+        accept={DOCUMENT_TYPE}
+        hidden
+        onChange={(event) => {
+          void send(event.target.files?.[0])
+          event.target.value = ''
+        }}
+      />
+      <Button tone={tone} busy={busy} onClick={() => input.current?.click()}>
+        {label}
+      </Button>
+    </>
   )
 }
 
+/**
+ * Les deux colonnes de l’onglet « Documents » : la liste, et ce que le
+ * document choisi porte. Elles se posent dans la grille de l’écran, qui tient
+ * déjà la liste des images et leur panneau.
+ */
 export function DocumentPanel({
   documents,
+  selected,
+  searching,
+  places,
+  onSelect,
+  onOpen,
   onChanged,
+  onError,
 }: {
   readonly documents: readonly DocumentSummary[]
+  readonly selected: string
+  /** Une liste vide ne dit pas la même chose selon qu’on cherche ou non. */
+  readonly searching: boolean
+  readonly places: readonly Place[]
+  readonly onSelect: (key: string) => void
+  readonly onOpen: (place: Place) => void
   readonly onChanged: () => void
+  readonly onError: (message: string) => void
 }) {
-  const [problem, setProblem] = useState('')
-  const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
   const [asked, setAsked] = useState(false)
 
@@ -128,100 +147,108 @@ export function DocumentPanel({
     setBusy(false)
 
     if (answer.ok) {
-      setSelected('')
+      onSelect('')
       onChanged()
       return
     }
 
-    setProblem(answer.message)
+    onError(answer.message)
   }
 
   return (
-    <Paper p="md">
-      <Stack gap="sm">
-        <Group justify="space-between" align="center">
-          <Title order={3}>Documents</Title>
-          <DocumentUploadButton
-            onDone={(added) => {
-              setProblem('')
-              setSelected(added.key)
-              onChanged()
-            }}
-            onError={setProblem}
+    <>
+      <DocumentList
+        documents={documents}
+        selected={selected}
+        empty={
+          searching ? (
+            <Empty
+              title="Aucun document ne répond à cette recherche"
+              note="La recherche porte sur le nom du fichier."
+            />
+          ) : (
+            <Empty
+              title="Aucun document pour l’instant"
+              note="Ajoutez-en un : les sections qui proposent un téléchargement pourront y mener."
+            />
+          )
+        }
+        onSelect={onSelect}
+      />
+
+      <div className="basalte-rail">
+        {entry === undefined ? (
+          <Empty
+            title="Aucun document choisi"
+            note="Cliquez une ligne : son poids, les pages qui y mènent et sa suppression s’ouvrent ici."
           />
-        </Group>
+        ) : (
+          <Card>
+            <Stack>
+              <Title rank="card">{entry.name}</Title>
 
-        {problem !== '' && (
-          <Alert
-            color="red"
-            title="La demande a été refusée"
-            withCloseButton
-            onClose={() => setProblem('')}
-          >
-            {problem}
-          </Alert>
-        )}
+              <Mono>
+                {documentWeight(entry.bytes)} · {usageLabel(entry.usage)}
+              </Mono>
 
-        <DocumentList
-          documents={documents}
-          selected={selected}
-          onSelect={setSelected}
-        />
-
-        {entry !== undefined && (
-          <Paper p="md">
-            <Group justify="space-between" align="center">
-              <Button
-                component="a"
-                href={documentUrl(entry.key)}
-                variant="default"
-                size="xs"
-              >
-                Télécharger
-              </Button>
-              <Stack gap={2} align="flex-end">
-                <Button
-                  variant="subtle"
-                  color="red"
-                  size="xs"
-                  loading={busy}
-                  disabled={entry.usage > 0}
-                  onClick={() => setAsked(true)}
+              <Group>
+                <a
+                  className="basalte-link"
+                  href={documentUrl(entry.key)}
+                  download={entry.name}
                 >
-                  Supprimer
-                </Button>
+                  Télécharger ce document
+                </a>
+              </Group>
+
+              <Places
+                title="Utilisé dans"
+                places={places}
+                none="Aucune page n’y mène pour l’instant."
+                onOpen={onOpen}
+              />
+
+              <Stack gap="xs">
+                <Group>
+                  <Button
+                    tone="danger"
+                    busy={busy}
+                    disabled={entry.usage > 0}
+                    onClick={() => setAsked(true)}
+                  >
+                    Supprimer ce document
+                  </Button>
+                </Group>
                 {entry.usage > 0 && (
-                  <Text size="xs" c="dimmed">
-                    Employé par une section : retirez-le d’abord.
+                  <Text tone="meta" size="small">
+                    Une section y mène : retirez-le d’abord de la page.
                   </Text>
                 )}
               </Stack>
-            </Group>
-          </Paper>
-        )}
-      </Stack>
+            </Stack>
 
-      <Modal
-        opened={asked}
-        onClose={() => setAsked(false)}
-        title="Supprimer ce document"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            « {entry?.name} » sera effacé du dépôt. Les liens qui y menaient ne
-            mèneront plus nulle part.
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setAsked(false)}>
-              Le garder
-            </Button>
-            <Button color="red" onClick={() => void drop()}>
-              Supprimer
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Paper>
+            <Modal
+              opened={asked}
+              title="Supprimer ce document"
+              onClose={() => setAsked(false)}
+              foot={
+                <Group>
+                  <Spacer />
+                  <Button onClick={() => setAsked(false)}>Le garder</Button>
+                  <Button tone="danger" onClick={() => void drop()}>
+                    Supprimer
+                  </Button>
+                </Group>
+              }
+            >
+              <Text tone="muted">
+                « {entry.name} » sera effacé du dépôt. Les liens qui y menaient
+                ne mèneront plus nulle part.
+              </Text>
+            </Modal>
+          </Card>
+        )}
+      </div>
+    </>
   )
 }

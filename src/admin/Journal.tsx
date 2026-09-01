@@ -10,31 +10,52 @@
 //
 // L’écran ne ressemble pas à « Édition », et c’est le fond de la chose : un
 // billet n’a ni sections à choisir, ni ordre à régler. On ouvre, on écrit, on
-// enregistre.
+// enregistre. Trois colonnes le disent : les billets, celui qu’on écrit, et ce
+// qu’il donnera.
 
-import {
-  Button,
-  Group,
-  Modal,
-  Paper,
-  SegmentedControl,
-  Stack,
-  Switch,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core'
 import { useState } from 'react'
 
-import type { ContentIssue } from '../content/report.js'
 import { formatDate, today } from '../fields/date.js'
-import type { DraftPost } from '../server/posts.js'
+import type { ContentIssue } from '../content/report.js'
 import type { PanelPayload } from '../server/panel.js'
+import type { DraftPost } from '../server/posts.js'
 import type { Values } from './draft.js'
 import { editedLanguage, previewAddress, useEditing } from './editing.js'
 import { issuesOf } from './Edit.js'
 import { FieldSet } from './fields/Field.js'
-import { HiddenMark } from './HiddenMark.js'
+import { Mark } from './ui/Badge.js'
+import { Button } from './ui/Button.js'
+import { Field, TextField } from './ui/Field.js'
+import { Desktop, HiddenMark, Mobile, Plus } from './ui/icons.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Modal } from './ui/Overlay.js'
+import { Row, RowStack } from './ui/Row.js'
+import { Card, Empty } from './ui/Surface.js'
+import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
+import { Segmented, Switch } from './ui/Toggle.js'
+
+type Viewport = 'desktop' | 'mobile'
+
+const SUPPORTS = [
+  {
+    value: 'desktop' as const,
+    label: (
+      <>
+        <Desktop />
+        Bureau
+      </>
+    ),
+  },
+  {
+    value: 'mobile' as const,
+    label: (
+      <>
+        <Mobile />
+        Mobile
+      </>
+    ),
+  },
+]
 
 export type PostValues = {
   readonly hidden: Readonly<Record<string, boolean>>
@@ -67,7 +88,7 @@ export function Journal({
   readonly onDelete: (slug: string) => void
 }) {
   const editing = useEditing()
-  const [viewport, setViewport] = useState<string>('desktop')
+  const [viewport, setViewport] = useState<Viewport>('desktop')
   const [writing, setWriting] = useState(false)
   const [title, setTitle] = useState('')
   const [removing, setRemoving] = useState<DraftPost | undefined>(undefined)
@@ -75,7 +96,7 @@ export function Journal({
   const journal = payload.journal
 
   if (journal === undefined) {
-    return <Text c="dimmed">Ce site n’a pas de journal.</Text>
+    return <Text tone="muted">Ce site n’a pas de journal.</Text>
   }
 
   const posts = journal.posts
@@ -93,89 +114,136 @@ export function Journal({
   }
 
   return (
-    <div className="basalte-edit">
-      <Paper className="basalte-rail" p="md">
-        <Stack gap="sm">
-          <Button variant="light" size="sm" onClick={() => setWriting(true)}>
+    <div className="basalte-journal">
+      <Card pad="sm">
+        <Stack gap="md">
+          <Button tone="ink" block onClick={() => setWriting(true)}>
+            <Plus />
             Nouveau billet
           </Button>
 
-          <Group justify="space-between" align="center" px={12}>
-            <span className="basalte-eyebrow">Billets</span>
-            <Text size="sm" fw={700} c="dimmed">
-              {posts.length}
-            </Text>
+          <Group gap="md" align="baseline" className="basalte-rail__head">
+            <Title rank="card">Billets</Title>
+            <Spacer />
+            <Mono className="basalte-row__note">{posts.length}</Mono>
           </Group>
 
-          <Stack gap={2}>
+          <Stack gap="hair">
             {posts.map((post) => {
-              const hidden = post.hidden[editing.language] === true
+              const away = post.hidden[editing.language] === true
 
               return (
-                <div
+                <Row
                   key={post.slug}
-                  className="basalte-section-row"
-                  data-current={post.slug === selected}
-                  data-hidden={hidden}
+                  current={post.slug === selected}
+                  hidden={away}
+                  onClick={() => onSelect(post.slug)}
                 >
-                  <button
-                    type="button"
-                    className="basalte-section-row__label"
-                    aria-current={post.slug === selected}
-                    onClick={() => onSelect(post.slug)}
-                  >
-                    <span className="basalte-section-row__stack">
-                      <span className="basalte-section-row__text">
-                        {post.title}
-                      </span>
-                      <span className="basalte-post-date">
-                        {formatDate(post.date, editing.language)}
-                      </span>
-                    </span>
-                    {hidden && <HiddenMark />}
-                  </button>
-                </div>
+                  <RowStack>
+                    <span>{post.title}</span>
+                    <Mono className="basalte-row__note">
+                      {formatDate(post.date, editing.language)}
+                    </Mono>
+                  </RowStack>
+                  {away && (
+                    <Mark hatched>
+                      <HiddenMark size={12} />
+                      brouillon
+                    </Mark>
+                  )}
+                </Row>
               )
             })}
           </Stack>
 
           {posts.length === 0 && (
-            <div className="basalte-empty">
-              <strong>Aucun billet</strong>
-              <span>Le premier s’écrit maintenant.</span>
-              <Button size="xs" onClick={() => setWriting(true)}>
+            <Empty title="Aucun billet" note="Le premier s’écrit maintenant.">
+              <Button size="sm" onClick={() => setWriting(true)}>
                 Nouveau billet
               </Button>
-            </div>
+            </Empty>
           )}
         </Stack>
-      </Paper>
+      </Card>
+
+      <Card>
+        {open === undefined ? (
+          <Empty
+            title="Rien à modifier"
+            note="Choisissez un billet à gauche, ou écrivez-en un."
+          />
+        ) : (
+          <Stack gap="xl">
+            <Group gap="md" align="start">
+              <Stack gap="xs">
+                <Eyebrow>
+                  {[open.route, editedLanguage(editing)]
+                    .filter((part) => part !== undefined)
+                    .join(' · ')}
+                </Eyebrow>
+                <Title rank="card">{open.title}</Title>
+              </Stack>
+              <Spacer />
+              <Switch
+                on={!hidden}
+                label="Le billet paraît sur le site"
+                onChange={() =>
+                  onDraft({
+                    ...draft,
+                    hidden: { ...draft.hidden, [editing.language]: !hidden },
+                  })
+                }
+              />
+            </Group>
+
+            <Text tone="meta" size="small">
+              {hidden
+                ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
+                : 'Ce billet partira à la prochaine mise en ligne.'}
+            </Text>
+
+            <FieldSet
+              descriptions={journal.fields}
+              values={draft.fields}
+              issues={issuesOf(issues, undefined)}
+              onChange={(fields) => onDraft({ ...draft, fields })}
+            />
+
+            <Group>
+              <Button
+                tone="danger"
+                disabled={busy}
+                onClick={() => setRemoving(open)}
+              >
+                Supprimer ce billet
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Card>
 
       <div className="basalte-stage">
-        <div className="basalte-stage__head">
-          <Title order={2}>Aperçu</Title>
-          <SegmentedControl
-            size="xs"
-            radius="xl"
-            ml="auto"
+        <Group gap="md">
+          <Eyebrow>aperçu du billet</Eyebrow>
+          <Spacer />
+          <Segmented
+            tone="ink"
+            label="Le support regardé"
             value={viewport}
+            items={SUPPORTS}
             onChange={setViewport}
-            data={[
-              { value: 'desktop', label: 'Bureau' },
-              { value: 'mobile', label: 'Mobile' },
-            ]}
           />
-        </div>
+        </Group>
 
         {open === undefined ? (
-          <div className="basalte-empty">
-            <strong>Aucun billet ouvert</strong>
-            <span>Choisissez-en un à gauche, ou écrivez-en un.</span>
-          </div>
+          <Empty
+            title="Aucun billet ouvert"
+            note="Choisissez-en un à gauche, ou écrivez-en un."
+          />
         ) : (
           <>
             {dirty && (
-              <Text size="sm" c="dimmed">
+              <Text tone="meta" size="small">
                 L’aperçu montre le dernier enregistrement. Enregistrez pour le
                 voir se mettre à jour.
               </Text>
@@ -192,112 +260,52 @@ export function Journal({
         )}
       </div>
 
-      <Paper className="basalte-inspector" p="md">
-        {open === undefined ? (
-          <div className="basalte-empty">
-            <strong>Rien à modifier</strong>
-            <span>Le billet ouvert apparaîtra ici.</span>
-          </div>
-        ) : (
-          <Stack gap="sm">
-            <div>
-              <Title order={2}>{open.title}</Title>
-              <Text size="sm" c="dimmed">
-                {open.route}
-              </Text>
-              {editedLanguage(editing) !== undefined && (
-                <Text size="xs" c="dimmed" mt={4}>
-                  {editedLanguage(editing)}
-                </Text>
-              )}
-            </div>
-
-            <Switch
-              checked={!hidden}
-              label="Visible sur le site"
-              description={
-                hidden
-                  ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
-                  : 'Ce billet partira à la prochaine mise en ligne.'
-              }
-              onChange={(event) =>
-                onDraft({
-                  ...draft,
-                  hidden: {
-                    ...draft.hidden,
-                    [editing.language]: !event.currentTarget.checked,
-                  },
-                })
-              }
-            />
-
-            <FieldSet
-              descriptions={journal.fields}
-              values={draft.fields}
-              issues={issuesOf(issues, undefined)}
-              onChange={(fields) => onDraft({ ...draft, fields })}
-            />
-
-            <Button
-              variant="subtle"
-              color="red"
-              size="sm"
-              disabled={busy}
-              onClick={() => setRemoving(open)}
-            >
-              Supprimer ce billet
-            </Button>
-          </Stack>
-        )}
-      </Paper>
-
       <Modal
         opened={writing}
-        onClose={() => setWriting(false)}
         title="Nouveau billet"
-        centered
+        onClose={() => setWriting(false)}
+        foot={
+          <>
+            <Spacer />
+            <Button onClick={() => setWriting(false)}>Annuler</Button>
+            <Button tone="ink" disabled={title.trim() === ''} onClick={compose}>
+              Écrire
+            </Button>
+          </>
+        }
       >
-        <Stack gap="md">
-          <TextInput
+        <Stack gap="lg">
+          <Field
             label="Titre"
-            description="Il fait l’adresse du billet, et ne changera plus ensuite."
-            value={title}
-            data-autofocus
-            onChange={(event) => setTitle(event.currentTarget.value)}
-            onKeyDown={(event) => event.key === 'Enter' && compose()}
-          />
-          <Text size="sm" c="dimmed">
+            hint="Il fait l’adresse du billet, et ne changera plus ensuite."
+          >
+            {(bound) => (
+              <TextField
+                {...bound}
+                autoFocus
+                value={title}
+                onChange={(event) => setTitle(event.currentTarget.value)}
+                onKeyDown={(event) => event.key === 'Enter' && compose()}
+              />
+            )}
+          </Field>
+          <Text tone="muted">
             Le billet est créé masqué, daté du {formatDate(today(), 'fr')}. Vous
             le mettez en ligne quand il est prêt.
           </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setWriting(false)}>
-              Annuler
-            </Button>
-            <Button disabled={title.trim() === ''} onClick={compose}>
-              Écrire
-            </Button>
-          </Group>
         </Stack>
       </Modal>
 
       <Modal
         opened={removing !== undefined}
-        onClose={() => setRemoving(undefined)}
         title="Supprimer ce billet"
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            « {removing?.title} » sera retiré du site et du dépôt. Son adresse
-            ne mènera plus nulle part.
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setRemoving(undefined)}>
-              Le garder
-            </Button>
+        onClose={() => setRemoving(undefined)}
+        foot={
+          <>
+            <Spacer />
+            <Button onClick={() => setRemoving(undefined)}>Le garder</Button>
             <Button
-              color="red"
+              tone="danger"
               onClick={() => {
                 const slug = removing?.slug
 
@@ -308,8 +316,13 @@ export function Journal({
             >
               Supprimer
             </Button>
-          </Group>
-        </Stack>
+          </>
+        }
+      >
+        <Text>
+          « {removing?.title} » sera retiré du site et du dépôt. Son adresse ne
+          mènera plus nulle part.
+        </Text>
       </Modal>
     </div>
   )

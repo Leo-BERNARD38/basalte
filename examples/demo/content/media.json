@@ -1,4 +1,126 @@
 {
+  "1ca4ea60cdcd7513": {
+    "format": "webp",
+    "width": 900,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Une toile de lin écrue",
+      "en": "Une toile de lin écrue"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "2352aee654820f36": {
+    "format": "webp",
+    "width": 1600,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      1200,
+      1600
+    ],
+    "alt": {
+      "fr": "L’atelier en fin de journée",
+      "en": "L’atelier en fin de journée"
+    },
+    "focal": {
+      "x": 55,
+      "y": 45
+    }
+  },
+  "27ad48f7397e420e": {
+    "format": "webp",
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Un portail à deux vantaux, en mélèze",
+      "en": "Un portail à deux vantaux, en mélèze"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "2cc51e02a3eef7ce": {
+    "format": "webp",
+    "width": 900,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Un détail de chêne huilé",
+      "en": "Un détail de chêne huilé"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "2d32f0524ae72544": {
+    "format": "webp",
+    "width": 900,
+    "height": 1200,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Le menuisier dans son atelier",
+      "en": "Le menuisier dans son atelier"
+    },
+    "focal": {
+      "x": 50,
+      "y": 35
+    }
+  },
+  "2d544cf1e7d16574": {
+    "format": "webp",
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Une cuisine en frêne, avec un plan de pierre",
+      "en": "Une cuisine en frêne, avec un plan de pierre"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "2e08df87f1ab4bcb": {
+    "format": "webp",
+    "width": 600,
+    "height": 200,
+    "widths": [
+      480,
+      600
+    ],
+    "alt": {
+      "fr": "ATELIER NOÉ",
+      "en": ""
+    }
+  },
   "317469df38a6a6c9": {
     "format": "webp",
     "width": 1600,
@@ -18,6 +140,24 @@
       "y": 40
     }
   },
+  "31e71d8bd3c6d35c": {
+    "format": "webp",
+    "width": 1200,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Des fenêtres à petits bois",
+      "en": "Des fenêtres à petits bois"
+    },
+    "focal": {
+      "x": 50,
+      "y": 45
+    }
+  },
   "34dd7a2858aed0c1": {
     "format": "webp",
     "width": 1600,
@@ -35,6 +175,73 @@
     "focal": {
       "x": 60,
       "y": 55
+    }
+  },
+  "391ddacd6643339a": {
+    "format": "webp",
+    "width": 900,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Un mur de béton brut",
+      "en": "Un mur de béton brut"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "687de8f6b2c655b1": {
+    "format": "webp",
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Un escalier à limon central, en chêne massif",
+      "en": "Un escalier à limon central, en chêne massif"
+    },
+    "focal": {
+      "x": 50,
+      "y": 45
+    }
+  },
+  "93648f435871d2ff": {
+    "format": "webp",
+    "width": 900,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "L’ardoise d’un toit",
+      "en": "L’ardoise d’un toit"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
+  "9568a4a237805833": {
+    "format": "webp",
+    "width": 640,
+    "height": 200,
+    "widths": [
+      480,
+      640
+    ],
+    "alt": {
+      "fr": "CHÊNE ET CIE",
+      "en": ""
     }
   },
   "ac12e6f2b5e4e49f": {
@@ -57,6 +264,33 @@
       "y": 32
     }
   },
+  "ba93dd32cbe07aad": {
+    "format": "webp",
+    "width": 700,
+    "height": 200,
+    "widths": [
+      480,
+      700
+    ],
+    "alt": {
+      "fr": "MAISONS RIVET",
+      "en": ""
+    }
+  },
+  "cb5ed3b571c1fad2": {
+    "format": "webp",
+    "width": 900,
+    "height": 900,
+    "widths": [
+      480,
+      768,
+      900
+    ],
+    "alt": {
+      "fr": "Portrait de Sofiane Meddah",
+      "en": ""
+    }
+  },
   "ceff58179486d4a3": {
     "format": "webp",
     "width": 1600,
@@ -76,6 +310,42 @@
       "y": 45
     }
   },
+  "d24bd12466581fa4": {
+    "format": "webp",
+    "width": 1200,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Un établi et ses copeaux",
+      "en": "Un établi et ses copeaux"
+    },
+    "focal": {
+      "x": 45,
+      "y": 55
+    }
+  },
+  "f137186d808e0723": {
+    "format": "webp",
+    "width": 1200,
+    "height": 675,
+    "widths": [
+      480,
+      768,
+      1200
+    ],
+    "alt": {
+      "fr": "Des volets battants en mélèze",
+      "en": "Des volets battants en mélèze"
+    },
+    "focal": {
+      "x": 50,
+      "y": 50
+    }
+  },
   "f7521f178c237da9": {
     "format": "webp",
     "width": 900,
@@ -87,59 +357,6 @@
     ],
     "alt": {
       "fr": "Portrait de Camille Duvallon",
-      "en": ""
-    }
-  },
-  "cb5ed3b571c1fad2": {
-    "format": "webp",
-    "width": 900,
-    "height": 900,
-    "widths": [
-      480,
-      768,
-      900
-    ],
-    "alt": {
-      "fr": "Portrait de Sofiane Meddah",
-      "en": ""
-    }
-  },
-  "9568a4a237805833": {
-    "format": "webp",
-    "width": 640,
-    "height": 200,
-    "widths": [
-      480,
-      640
-    ],
-    "alt": {
-      "fr": "CHÊNE ET CIE",
-      "en": ""
-    }
-  },
-  "ba93dd32cbe07aad": {
-    "format": "webp",
-    "width": 700,
-    "height": 200,
-    "widths": [
-      480,
-      700
-    ],
-    "alt": {
-      "fr": "MAISONS RIVET",
-      "en": ""
-    }
-  },
-  "2e08df87f1ab4bcb": {
-    "format": "webp",
-    "width": 600,
-    "height": 200,
-    "widths": [
-      480,
-      600
-    ],
-    "alt": {
-      "fr": "ATELIER NOÉ",
       "en": ""
     }
   }

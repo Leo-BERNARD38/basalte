@@ -24,7 +24,7 @@ describe('le plancher de contraste du panel', () => {
     expect(panelContrast('src/admin/tokens.ts')).toEqual([])
   })
 
-  it('couvre chaque niveau d’encre sur chacun des quatre plans', () => {
+  it('couvre chaque niveau d’encre sur chacun des trois plans clairs', () => {
     const pairs = panelPairs()
 
     for (const level of Object.keys(tokens.ink)) {
@@ -35,31 +35,52 @@ describe('le plancher de contraste du panel', () => {
       )
 
       for (const surface of [
-        'surface.bg',
+        'surface.canvas',
         'surface.card',
-        'surface.hover',
-        'surface.sunken',
+        'surface.raised',
       ]) {
         expect(backs.has(surface)).toBe(true)
       }
     }
   })
 
-  it('lit le trait dessiné au seuil du graphique, l’encre à celui du texte', () => {
+  it('lit aussi l’encre posée sur la barre noire', () => {
+    const backs = new Set(
+      panelPairs()
+        .filter((pair) => pair.front.startsWith('onInk.'))
+        .map((pair) => pair.back),
+    )
+
+    expect(backs).toEqual(new Set(['surface.ink']))
+  })
+
+  it('lit ce qui porte une valeur au seuil du graphique, le texte au sien', () => {
     const pairs = panelPairs()
-    const line = pairs.find((pair) => pair.front === 'line')
+    const bar = pairs.find((pair) => pair.front === 'mute.chart')
     const ink = pairs.find((pair) => pair.front === 'ink.1')
 
-    expect(line?.ratio).toBe(GRAPHIC_RATIO)
+    expect(bar?.ratio).toBe(GRAPHIC_RATIO)
     expect(ink?.ratio).toBe(MINIMUM_RATIO)
   })
 
+  it('tient dehors ce qui sépare ou décore, et le tient nommément', () => {
+    const fronts = new Set(panelPairs().map((pair) => pair.front))
+
+    // Le filet, la poignée au repos et le glyphe inerte ne portent aucune
+    // information : les mesurer obligerait à les assombrir jusqu’à ce qu’ils
+    // se lisent comme du contenu.
+    expect(fronts.has('line')).toBe(false)
+    expect(fronts.has('mute.draw')).toBe(false)
+    expect(fronts.has('accent.glyph')).toBe(false)
+  })
+
   it('refuserait une encre trop claire — la règle mord', () => {
-    // La valeur qui était écrite avant D164, sur le plan le plus sombre.
-    expect(contrast('#9ea3af', tokens.surface.sunken)).toBeLessThan(
+    // Les deux valeurs qui étaient écrites avant D164, sur le plan le plus
+    // sombre que le panel porte aujourd’hui.
+    expect(contrast('#9ea3af', tokens.surface.canvas)).toBeLessThan(
       MINIMUM_RATIO,
     )
-    expect(contrast('#71757f', tokens.surface.sunken)).toBeLessThan(
+    expect(contrast('#71757f', tokens.surface.canvas)).toBeLessThan(
       MINIMUM_RATIO,
     )
   })

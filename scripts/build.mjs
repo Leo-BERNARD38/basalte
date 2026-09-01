@@ -12,7 +12,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const source = path.join(root, 'src')
 const output = path.join(root, 'dist')
 
-const ASSET_EXTENSIONS = new Set(['.astro', '.css', '.d.ts'])
+// `tsc` ne recopie que ce qu’il compile. Les polices du panel voyagent donc
+// avec sa feuille — un `@font-face` qui ne trouve pas son fichier dans le
+// paquet installé retombe en silence sur la pile système — et les images de
+// départ d’un site neuf avec le module qui les ingère.
+const ASSET_EXTENSIONS = new Set([
+  '.astro',
+  '.css',
+  '.d.ts',
+  '.woff2',
+  '.webp',
+  '.txt',
+])
 
 async function* walk(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

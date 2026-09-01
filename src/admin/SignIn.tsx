@@ -9,23 +9,19 @@
 // se montre plutôt que de se perdre : combien d’essais restent, et à partir de
 // quand une nouvelle tentative sera acceptée.
 
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Group,
-  Paper,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core'
 import { useEffect, useRef, useState } from 'react'
 
 import { signIn, submitCode } from './api.js'
+import { Button } from './ui/Button.js'
+import { Field, TextField } from './ui/Field.js'
+import { Group, Stack } from './ui/Layout.js'
+import { Banner, Card } from './ui/Surface.js'
+import { Text, Title } from './ui/Text.js'
+import { Switch } from './ui/Toggle.js'
 
 const DIGITS = 6
+
+const TRUSTED = 'Se souvenir de cet appareil pendant 30 jours'
 
 /** Le code tel que le serveur l’attend : rien que des chiffres, six au plus. */
 function digitsOf(input: string): string {
@@ -143,7 +139,12 @@ export function SignIn({
     setExpiresAt(undefined)
   }
 
+  // Aucun bouton du panel n’est de type « submit » : c’est le bouton lui-même
+  // et la touche entrée qui valent envoi, et ni l’un ni l’autre ne relance ce
+  // qui est déjà parti.
   const submit = () => {
+    if (busy || locked) return
+
     void (step === 'password' ? start() : finish(code))
   }
 
@@ -159,113 +160,138 @@ export function SignIn({
 
   return (
     <div className="basalte-signin">
-      <Paper p="xl" maw="var(--panel-measure-form)" w="100%" shadow="lg">
+      <Card pad="lg">
         <form
-          onSubmit={(event) => {
+          onSubmit={(event) => event.preventDefault()}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return
+
             event.preventDefault()
             submit()
           }}
         >
-          <Stack gap="md">
-            <div>
-              <Text size="sm" c="dimmed">
-                {site}
-              </Text>
-              <Title order={2} component="h1">
-                Administration
-              </Title>
-            </div>
+          <Stack gap="xl">
+            <Stack gap="md">
+              <Group gap="md">
+                <span className="basalte-signin__mark" />
+                <Text>{site}</Text>
+              </Group>
+              <Title>Administration</Title>
+            </Stack>
 
             {notice !== '' && problem === '' && step === 'password' && (
-              <Alert>{notice}</Alert>
+              <Banner>{notice}</Banner>
             )}
 
             {problem !== '' && (
-              <Alert color="red" title="Connexion refusée">
-                <Stack gap={4}>
-                  <Text size="sm">{problem}</Text>
+              <Banner tone="refused">
+                <Stack gap="xs">
+                  <strong>Connexion refusée</strong>
+                  <Text tone="muted">{problem}</Text>
                   {remaining !== undefined && (
-                    <Text size="sm">
+                    <Text tone="muted">
                       Il reste {remaining} essai{remaining > 1 ? 's' : ''}.
                     </Text>
                   )}
                   {locked && retryAt !== undefined && (
-                    <Text size="sm">
+                    <Text tone="muted">
                       Réessayez dans {minutesUntil(retryAt, now)} minute
                       {minutesUntil(retryAt, now) > 1 ? 's' : ''}.
                     </Text>
                   )}
                 </Stack>
-              </Alert>
+              </Banner>
             )}
 
             {step === 'password' ? (
               <>
-                <TextInput
-                  ref={field}
-                  label="Adresse email"
-                  type="email"
-                  autoComplete="username"
-                  required
-                  disabled={busy}
-                  value={email}
-                  onChange={(event) => setEmail(event.currentTarget.value)}
-                />
-                <PasswordInput
-                  label="Mot de passe"
-                  autoComplete="current-password"
-                  required
-                  disabled={busy}
-                  value={password}
-                  onChange={(event) => setPassword(event.currentTarget.value)}
-                />
+                <Field label="Adresse email" required>
+                  {(bound) => (
+                    <TextField
+                      {...bound}
+                      ref={field}
+                      type="email"
+                      autoComplete="username"
+                      required
+                      disabled={busy}
+                      value={email}
+                      onChange={(event) => setEmail(event.currentTarget.value)}
+                    />
+                  )}
+                </Field>
+                <Field label="Mot de passe" required>
+                  {(bound) => (
+                    <TextField
+                      {...bound}
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      disabled={busy}
+                      value={password}
+                      onChange={(event) =>
+                        setPassword(event.currentTarget.value)
+                      }
+                    />
+                  )}
+                </Field>
               </>
             ) : (
               <>
-                <Text size="sm">
+                <Text tone="muted">
                   Un code à six chiffres vient de partir vers {email}.
                   {expiresAt !== undefined &&
                     ` Il est valable ${minutesUntil(expiresAt, now)} minutes.`}
                 </Text>
-                <TextInput
-                  ref={field}
-                  label="Code reçu par email"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={DIGITS}
-                  required
-                  disabled={busy}
-                  value={code}
-                  onChange={(event) => change(event.currentTarget.value)}
-                />
-                <Checkbox
-                  label="Se souvenir de cet appareil pendant 30 jours"
-                  checked={remember}
-                  disabled={busy}
-                  onChange={(event) => setRemember(event.currentTarget.checked)}
-                />
+                <Field label="Code reçu par email" required>
+                  {(bound) => (
+                    <TextField
+                      {...bound}
+                      ref={field}
+                      mono
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={DIGITS}
+                      required
+                      disabled={busy}
+                      value={code}
+                      onChange={(event) => change(event.currentTarget.value)}
+                    />
+                  )}
+                </Field>
+                <Group gap="md">
+                  <Switch
+                    on={remember}
+                    label={TRUSTED}
+                    disabled={busy}
+                    onChange={() => setRemember(!remember)}
+                  />
+                  <Text tone="muted" size="small">
+                    {TRUSTED}
+                  </Text>
+                </Group>
               </>
             )}
 
-            <Button type="submit" loading={busy} disabled={locked} fullWidth>
+            <Button
+              tone="ink"
+              block
+              busy={busy}
+              disabled={locked}
+              onClick={submit}
+            >
               {step === 'password' ? 'Continuer' : 'Se connecter'}
             </Button>
 
             {step === 'code' && (
-              <Group justify="center">
-                <Button
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  onClick={restart}
-                >
+              <Group>
+                <Button tone="bare" size="sm" block onClick={restart}>
                   Reprendre avec une autre adresse
                 </Button>
               </Group>
             )}
           </Stack>
         </form>
-      </Paper>
+      </Card>
     </div>
   )
 }

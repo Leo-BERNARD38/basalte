@@ -76,6 +76,57 @@ déclencheur se produit.
 
 ---
 
+## Phase 18 — La direction artistique du panel
+
+**Pourquoi.** Le panel n'a jamais eu de direction artistique à lui : il porte
+celle de Mantine, corrigée au fil des phases. `src/admin/theme.ts` le dit sans
+détour — il verse les tokens dans cinq gammes de dix pas que la bibliothèque
+attend, puis reprend treize composants un par un pour défaire ses défauts. Le
+résultat se voit dans `src/admin/tokens.ts` : un fond `#eaeef4` bleuté, quatre
+surfaces à moins de dix pour cent l'une de l'autre, et une règle — aucune
+bordure (D97) — qui produit exactement le gris-sur-gris qu'elle voulait
+éviter. Une maquette complète existe désormais, arbitrée écran par écran, et
+elle renverse plusieurs décisions plutôt que de les affiner.
+
+**Ce qu'elle produit.** Un panel qui tient sa propre allure sans bibliothèque
+d'interface : une couche de tokens neutre, ses composants écrits dans le
+dépôt, et les sept écrans redessinés. Un site neuf démarre avec de vraies
+images plutôt qu'une médiathèque vide.
+
+**Enjeux.** Sortir Mantine retire aussi ce qu'il portait sans qu'on le voie :
+`Input.Wrapper` tient à lui seul l'affichage des erreurs de validation sous
+leur champ (D166), et `Popover`, `Modal` et `Select` portent le piège du
+focus et le clavier. Les réécrire mal donne un panel qui a l'air juste et qui
+ne s'utilise plus au clavier. Le plancher de contraste est l'autre point dur :
+la maquette emploie un gris de dessin très clair pour la poignée au repos, que
+`panelContrast` refuse aujourd'hui au seuil du graphique — il faut décider si
+ce seuil vaut pour ce qui ne porte aucune information, sans quoi la tentation
+est de remonter la valeur et de perdre l'allure.
+
+**Déjà tranché.** Le panel reste une île React unique montée en `client:only`
+(invariant 6) et n'atteint aucun module de `src/server/`. Il vouvoie (D165),
+emploie le vocabulaire du client (D25), garde son aide sous le « ? » (D169),
+ses six écrans au plus (D63, D154), ses deux niveaux de navigation, son unique
+barre d'enregistrement, ses éléments de liste repliés un à la fois (D163), et
+ne valide rien lui-même (D58). Il n'emprunte toujours rien aux tokens du site
+(D65) : c'est la moitié de cette décision qui survit, et elle survit plus
+fortement. Les blocs de `src/blocks` ne sont pas touchés.
+
+**À décider dans la phase.** Ce que devient le seuil du graphique pour un trait
+qui ne porte pas d'information. Jusqu'où va le retrait du recadrage, puisque le
+point focal le remplace : la fenêtre seule, ou la route, le module et leurs
+tests avec elle. Comment des images de départ arrivent dans un dépôt neuf,
+alors que les fichiers générés par `basalte init` sont des chaînes. Et si la
+création d'une page par le client, que la maquette dessine, appartient à cette
+phase ou à une autre — elle touche les adresses, le menu et le sitemap, que le
+*Hors périmètre* de ce document lui refuse encore.
+
+**Finie quand.** `npm run verify` passe, et les six onglets du panel servi par
+`npm run demo:dev` sont ceux de la maquette — barre noire à pastilles, filets
+d'un pixel, action noire, accent pétrole, Geist. Plus aucun `@mantine` dans
+`src/admin`, ni dans `package.json`. Un `basalte init` produit un site dont la
+médiathèque n'est pas vide.
+
 ## Tests
 
 Ce qui est couvert, et par quel moyen. Écrits en même temps que le code qu'ils

@@ -15,11 +15,12 @@ export const prerender = false
          que React s’exécute, et sa feuille arrive avec lui. Sans ces deux
          lignes, la première image du panel est une page blanche puis un fond
          gris. Elles ne dupliquent pas un token — elles portent la seule valeur
-         qui existe avant que la couche de tokens soit chargée. -->
+         qui existe avant que la couche de tokens soit chargée, et c’est le
+         canvas de `src/admin/tokens.ts`. -->
     <style>
       body {
         margin: 0;
-        background: #f3f5f9;
+        background: #f5f5f5;
       }
     </style>
   </head>

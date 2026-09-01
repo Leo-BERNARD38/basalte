@@ -17,6 +17,7 @@ import {
   type SiteAnswers,
   type SiteProfile,
 } from '../client/files.js'
+import { installStarterMedia } from '../client/media.js'
 import { runNpm } from '../client/npm.js'
 import {
   attachRemote,
@@ -96,7 +97,17 @@ export async function init(
   await mkdir(root, { recursive: true })
   await writeSite(root, files)
 
+  // Les images de départ ne peuvent pas passer par `writeSite`, qui écrit du
+  // texte : elles sont ingérées, comme un téléversement le ferait.
+  const media = await installStarterMedia(root, answers.languages)
+
   lines.push(line('ok', `${files.length} fichier(s) écrits dans « ${slug} »`))
+  lines.push(
+    line(
+      'ok',
+      `${Object.keys(media).length} images de départ dans la médiathèque`,
+    ),
+  )
   lines.push(
     line(
       'ok',

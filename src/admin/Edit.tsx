@@ -1,50 +1,76 @@
-// L’écran d’édition : les sections à gauche, la page au centre, le panneau de
-// la section choisie à droite. C’est l’écran par défaut, celui que le client
-// ouvre chaque semaine.
+// L’écran d’édition : l’aperçu à gauche, la page et ses réglages à droite.
+// C’est l’écran par défaut, celui que le client ouvre chaque semaine.
 //
-// L’aperçu n’est plus un bouton mais le centre de l’écran : le client voit la
-// page pendant qu’il la modifie. Il montre le dernier enregistrement — c’est
-// ce que le dépôt contient, et donc ce qui partira en ligne ; l’en-tête le dit
-// tant que des modifications ne sont pas enregistrées.
+// L’aperçu n’est pas une carte : un trait d’encre le pose comme un document,
+// et c’est le seul filet noir du panel. Il montre le dernier enregistrement —
+// c’est ce que le dépôt contient, et donc ce qui partira en ligne.
+//
+// Ce qui commande l’aperçu flotte au-dessus de lui, dans une barre posée sur le
+// canvas : le support regardé, la page ouverte, et son adresse. Chaque élément
+// est là où on le cherche — le sélecteur de page à côté du lien qui l’ouvre,
+// et non dans l’en-tête, qui dit l’écran et non la page.
 //
 // La bascule bureau / mobile ne fait pas que redimensionner le cadre : elle
-// demande le rendu du support à l’aperçu, qui les sert tous les deux. Sur un
-// site à un seul rendu elle ne change donc que la largeur, ce qui est déjà ce
-// qu’elle faisait — et c’est ce qui la laisse inchangée aux yeux du client
-// (D25).
+// demande le rendu du support à l’aperçu, qui les sert tous les deux (D25).
 //
-// La liste porte aussi ce que le client ne peut pas faire (D3), et à qui le
-// demander. Le dire là où la limite se rencontre vaut mieux qu’un écran d’aide
-// qui n’existera pas (D63) : c’est en cherchant « ajouter une section » qu’on a
-// besoin de la réponse.
+// Une section se masque par langue, jamais par support (D107) : la liste ne
+// porte donc qu’une marque de masquage, et le support ne s’y règle pas.
 
-import {
-  ActionIcon,
-  Group,
-  Paper,
-  SegmentedControl,
-  Select,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core'
 import { useState } from 'react'
 
-import { asideOf, asidesOf } from './asides.js'
-import type { ContentIssue } from '../content/report.js'
 import { pageLabel } from '../content/naming.js'
-import type { PanelPayload } from '../server/panel.js'
-import { move, type Draft, type Values } from './draft.js'
+import type { ContentIssue } from '../content/report.js'
+import type { PanelBlockType, PanelPayload } from '../server/panel.js'
+import { asideOf, asidesOf } from './asides.js'
+import { emptyValues, move, type Draft, type Values } from './draft.js'
 import { editedLanguage, previewAddress, useEditing } from './editing.js'
 import { FieldSet, type FieldIssue } from './fields/Field.js'
-import { External } from './External.js'
-import { Grip } from './Grip.js'
-import { HiddenMark } from './HiddenMark.js'
 import { Section } from './Section.js'
 import { SortableItem, SortableList } from './Sortable.js'
+import { Mark } from './ui/Badge.js'
+import { Button } from './ui/Button.js'
+import {
+  Check,
+  Chevron,
+  Desktop,
+  External,
+  Grip,
+  HiddenMark,
+  Mobile,
+  Plus,
+} from './ui/icons.js'
+import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Anchor, Menu } from './ui/Overlay.js'
+import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
+import { Card, Empty, Float } from './ui/Surface.js'
+import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
+import { Segmented } from './ui/Toggle.js'
 
 type Focus =
   { readonly kind: 'meta' } | { readonly kind: 'block'; readonly id: string }
+
+type Viewport = 'desktop' | 'mobile'
+
+const SUPPORTS = [
+  {
+    value: 'desktop' as const,
+    label: (
+      <>
+        <Desktop />
+        Bureau
+      </>
+    ),
+  },
+  {
+    value: 'mobile' as const,
+    label: (
+      <>
+        <Mobile />
+        Mobile
+      </>
+    ),
+  },
+]
 
 export function Edit({
   payload,
@@ -71,8 +97,10 @@ export function Edit({
   const editing = useEditing()
   const [focus, setFocus] = useState<Focus>({ kind: 'meta' })
   const [opened, setOpened] = useState<string>(selected)
-  const [viewport, setViewport] = useState<string>('desktop')
+  const [viewport, setViewport] = useState<Viewport>('desktop')
   const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
+  const [pages, setPages] = useState(false)
+  const [adding, setAdding] = useState(false)
 
   // Une ligne du résumé ouvre la section qu’elle nomme : c’est le geste que le
   // client faisait à la main, en relisant la liste pour retrouver laquelle.
@@ -93,9 +121,9 @@ export function Edit({
   const aside = asideOf(payload, selected)
   const fixed = aside !== undefined
 
-  // Le panneau de droite suit la page ouverte : sans cette remise à zéro,
-  // passer d’une page au chrome laisserait un identifiant de section que la
-  // nouvelle liste ne porte pas, et le panneau dirait qu’elle a disparu.
+  // Le panneau suit la page ouverte : sans cette remise à zéro, passer d’une
+  // page au chrome laisserait un identifiant que la nouvelle liste ne porte
+  // pas, et le panneau dirait que la section a disparu.
   if (opened !== selected) {
     setOpened(selected)
     setFocus(
@@ -104,6 +132,7 @@ export function Edit({
         : { kind: 'block', id: aside.sections[0]?.id ?? '' },
     )
   }
+
   // Ce qui bloque, rangé par section : la liste le marque, et le panneau le
   // passe au champ.
   const wrong = new Set(
@@ -113,16 +142,16 @@ export function Edit({
   )
   const metaIssues = issuesOf(issues, undefined)
   const spoken = editedLanguage(editing)
-
   const page = payload.pages.find((entry) => entry.name === selected)
 
   if (!fixed && page === undefined) {
-    return <Text c="dimmed">Ce site n’a aucune page.</Text>
+    return <Text tone="muted">Ce site n’a aucune page.</Text>
   }
 
   // Le chrome se règle en regardant l’accueil : c’est là qu’il se voit en
   // entier, et le client n’a pas à savoir qu’il est sur toutes les pages.
   const previewed = page?.route ?? '/'
+  const address = previewAddress(previewed, editing, viewport)
 
   // La bibliothèque des sections d’une page, ou les emplacements d’une entrée
   // fixe : dans les deux cas, un descripteur par type.
@@ -140,181 +169,111 @@ export function Edit({
       ? draft.blocks.find((entry) => entry.id === active.id)
       : undefined
 
+  function addSection(type: PanelBlockType): void {
+    const languages = payload.site.languages.map((entry) => entry.code)
+    const born = {
+      id: crypto.randomUUID(),
+      type: type.name,
+      hidden: {},
+      props: emptyValues(type.fields, languages),
+    }
+
+    setAdding(false)
+    setFocus({ kind: 'block', id: born.id })
+    onDraft({ ...draft, blocks: [...draft.blocks, born] })
+  }
+
   return (
     <div className="basalte-edit">
-      <Paper className="basalte-rail" p="md">
-        <Stack gap="sm">
-          <Select
-            size="sm"
-            label="Page"
-            data={[
-              ...payload.pages.map((entry) => ({
-                value: entry.name,
-                label: pageLabel(entry.name),
-              })),
-              ...asidesOf(payload).map((entry) => ({
-                value: entry.entry,
-                label: entry.title,
-              })),
-            ]}
-            value={selected}
-            allowDeselect={false}
-            onChange={(value) => value !== null && onSelect(value)}
+      <div className="basalte-stage">
+        <Float className="basalte-stage__bar">
+          <Segmented
+            tone="ink"
+            label="Le support regardé"
+            value={viewport}
+            items={SUPPORTS}
+            onChange={setViewport}
           />
 
-          {!fixed && (
-            <div
-              className="basalte-section-row"
-              data-current={active.kind === 'meta'}
-              data-wrong={metaIssues.length > 0}
-            >
+          <Spacer />
+
+          <Group gap="md">
+            <Anchor>
               <button
                 type="button"
-                className="basalte-section-row__label"
-                aria-current={active.kind === 'meta'}
-                onClick={() => setFocus({ kind: 'meta' })}
+                className="basalte-picker"
+                aria-expanded={pages}
+                onClick={() => setPages(!pages)}
               >
-                <span className="basalte-section-row__text">
-                  Informations de la page
-                </span>
+                {fixed ? (aside?.title ?? '') : pageLabel(selected)}
+                <Chevron />
               </button>
-            </div>
-          )}
 
-          <Group justify="space-between" align="center" px={12}>
-            <span className="basalte-eyebrow">
-              {fixed ? 'Emplacements' : 'Sections'}
-            </span>
-            <Text size="sm" fw={700} c="dimmed">
-              {draft.blocks.length}
-            </Text>
-          </Group>
+              <Menu
+                opened={pages}
+                label="Vos pages"
+                onClose={() => setPages(false)}
+              >
+                <Eyebrow className="basalte-menu__note">
+                  vos pages · cliquez pour la modifier
+                </Eyebrow>
 
-          {fixed ? (
-            // Ni poignée, ni œil barré : une entrée fixe ne se réordonne pas,
-            // et elle ne se masque pas — une section se masque par langue,
-            // jamais par support ni par page (D107).
-            <Stack gap={2}>
-              {draft.blocks.map((section) => {
-                const current =
-                  active.kind === 'block' && active.id === section.id
-
-                return (
-                  <div
-                    key={section.id}
-                    className="basalte-section-row"
-                    data-fixed="true"
-                    data-current={current}
-                    data-wrong={wrong.has(section.id)}
+                {payload.pages.map((entry) => (
+                  <Row
+                    key={entry.name}
+                    pill
+                    current={entry.name === selected}
+                    onClick={() => {
+                      onSelect(entry.name)
+                      setPages(false)
+                    }}
                   >
-                    <button
-                      type="button"
-                      className="basalte-section-row__label"
-                      aria-current={current}
-                      onClick={() =>
-                        setFocus({ kind: 'block', id: section.id })
-                      }
-                    >
-                      <span className="basalte-section-row__text">
-                        {labelOf(types, section.type)}
-                      </span>
-                    </button>
-                  </div>
-                )
-              })}
-            </Stack>
-          ) : (
-            <SortableList
-              ids={draft.blocks.map((section) => section.id)}
-              onMove={(from, to) =>
-                onDraft({ ...draft, blocks: move(draft.blocks, from, to) })
-              }
+                    <RowGlyph>{entry.name === selected && <Check />}</RowGlyph>
+                    <RowStack>
+                      <span>{pageLabel(entry.name)}</span>
+                      <Mono className="basalte-row__note">{entry.route}</Mono>
+                    </RowStack>
+                    <Mono className="basalte-row__note">
+                      {entry.blocks.length} sections
+                    </Mono>
+                  </Row>
+                ))}
+
+                <span className="basalte-menu__rule" />
+
+                {asidesOf(payload).map((entry) => (
+                  <Row
+                    key={entry.entry}
+                    pill
+                    current={entry.entry === selected}
+                    onClick={() => {
+                      onSelect(entry.entry)
+                      setPages(false)
+                    }}
+                  >
+                    <RowGlyph>{entry.entry === selected && <Check />}</RowGlyph>
+                    <RowText>{entry.title}</RowText>
+                  </Row>
+                ))}
+              </Menu>
+            </Anchor>
+
+            <span className="basalte-rule" />
+
+            <a
+              className="basalte-preview-link"
+              href={address}
+              target="_blank"
+              rel="noopener"
             >
-              <Stack gap={2}>
-                {draft.blocks.map((section) => {
-                  const hidden = section.hidden[editing.language] === true
-                  const current =
-                    active.kind === 'block' && active.id === section.id
-
-                  return (
-                    <SortableItem key={section.id} id={section.id}>
-                      {(handle) => (
-                        <div
-                          className="basalte-section-row"
-                          data-current={current}
-                          data-hidden={hidden}
-                          data-wrong={wrong.has(section.id)}
-                        >
-                          <button
-                            type="button"
-                            className="basalte-handle"
-                            ref={handle.ref}
-                            aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
-                            {...handle.props}
-                          >
-                            <Grip />
-                          </button>
-                          <button
-                            type="button"
-                            className="basalte-section-row__label"
-                            aria-current={current}
-                            onClick={() =>
-                              setFocus({ kind: 'block', id: section.id })
-                            }
-                          >
-                            <span className="basalte-section-row__text">
-                              {labelOf(types, section.type)}
-                            </span>
-                            {hidden && <HiddenMark />}
-                          </button>
-                        </div>
-                      )}
-                    </SortableItem>
-                  )
-                })}
-              </Stack>
-            </SortableList>
-          )}
-
-          {!fixed && draft.blocks.length === 0 && (
-            <div className="basalte-empty">
-              <strong>Aucune section</strong>
-              <span>
-                Cette page est vide, et le panel n’ajoute pas de section.
-              </span>
-            </div>
-          )}
-        </Stack>
-      </Paper>
-
-      <div className="basalte-stage">
-        <div className="basalte-stage__head">
-          <Title order={2}>Aperçu</Title>
-          <SegmentedControl
-            size="xs"
-            radius="xl"
-            ml="auto"
-            value={viewport}
-            onChange={setViewport}
-            data={[
-              { value: 'desktop', label: 'Bureau' },
-              { value: 'mobile', label: 'Mobile' },
-            ]}
-          />
-          <ActionIcon
-            component="a"
-            href={previewAddress(previewed, editing, viewport)}
-            target="_blank"
-            rel="noopener"
-            size="lg"
-            aria-label="Ouvrir l’aperçu dans un onglet"
-          >
-            <External />
-          </ActionIcon>
-        </div>
+              <Mono>{previewed}</Mono>
+              <External />
+            </a>
+          </Group>
+        </Float>
 
         {dirty && (
-          <Text size="sm" c="dimmed">
+          <Text tone="meta" size="small">
             L’aperçu montre le dernier enregistrement. Enregistrez pour le voir
             se mettre à jour.
           </Text>
@@ -325,56 +284,196 @@ export function Edit({
           className="basalte-stage__frame"
           data-viewport={viewport}
           title="Aperçu de la page"
-          src={previewAddress(previewed, editing, viewport)}
+          src={address}
         />
       </div>
 
-      <Paper className="basalte-inspector" p="md">
-        <Stack gap="sm">
-          {spoken !== undefined && (
-            <Text size="xs" c="dimmed">
-              {spoken}
-            </Text>
-          )}
+      <div className="basalte-rail">
+        <Card pad="sm">
+          <Stack gap="md">
+            <Group gap="md" align="baseline" className="basalte-rail__head">
+              <Title rank="card">
+                {fixed ? 'Emplacements' : 'Sections de cette page'}
+              </Title>
+              <Spacer />
+              <Mono className="basalte-row__note">
+                {draft.blocks.length} section
+                {draft.blocks.length > 1 ? 's' : ''}
+              </Mono>
+            </Group>
 
-          {active.kind === 'meta' ? (
-            <>
-              <div>
-                <Title order={2}>Informations de la page</Title>
-                <Text size="sm" c="dimmed">
-                  {previewed}
-                </Text>
-              </div>
-              <FieldSet
-                descriptions={payload.meta}
-                values={draft.meta as Values}
-                issues={metaIssues}
-                onChange={(meta) => onDraft({ ...draft, meta })}
+            <Stack gap="hair">
+              {!fixed && (
+                <Row
+                  current={active.kind === 'meta'}
+                  wrong={metaIssues.length > 0}
+                  onClick={() => setFocus({ kind: 'meta' })}
+                >
+                  <RowGlyph />
+                  <RowText>Informations de la page</RowText>
+                </Row>
+              )}
+
+              {fixed ? (
+                // Ni poignée, ni œil barré : une entrée fixe ne se réordonne
+                // pas, et elle ne se masque pas.
+                draft.blocks.map((section) => (
+                  <Row
+                    key={section.id}
+                    current={
+                      active.kind === 'block' && active.id === section.id
+                    }
+                    wrong={wrong.has(section.id)}
+                    onClick={() => setFocus({ kind: 'block', id: section.id })}
+                  >
+                    <RowGlyph />
+                    <RowText>{labelOf(types, section.type)}</RowText>
+                  </Row>
+                ))
+              ) : (
+                <SortableList
+                  ids={draft.blocks.map((section) => section.id)}
+                  onMove={(from, to) =>
+                    onDraft({ ...draft, blocks: move(draft.blocks, from, to) })
+                  }
+                >
+                  {draft.blocks.map((section) => {
+                    const hidden = section.hidden[editing.language] === true
+                    const current =
+                      active.kind === 'block' && active.id === section.id
+
+                    return (
+                      <SortableItem key={section.id} id={section.id}>
+                        {(handle) => (
+                          <Row
+                            current={current}
+                            hidden={hidden}
+                            wrong={wrong.has(section.id)}
+                            onClick={() =>
+                              setFocus({ kind: 'block', id: section.id })
+                            }
+                          >
+                            <RowGlyph
+                              ref={handle.ref}
+                              className="basalte-handle"
+                              aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
+                              {...handle.props}
+                            >
+                              <Grip />
+                            </RowGlyph>
+                            <RowText>{labelOf(types, section.type)}</RowText>
+                            {hidden && (
+                              <Mark hatched>
+                                <HiddenMark size={12} />
+                                masquée
+                              </Mark>
+                            )}
+                          </Row>
+                        )}
+                      </SortableItem>
+                    )
+                  })}
+                </SortableList>
+              )}
+            </Stack>
+
+            {!fixed && draft.blocks.length === 0 && (
+              <Empty
+                title="Aucune section"
+                note="Cette page est vide. Ajoutez-en une pour commencer."
               />
-            </>
-          ) : focused === undefined ? (
-            <div className="basalte-empty">
-              <strong>Section introuvable</strong>
-              <span>Elle n’est plus dans la page.</span>
-            </div>
-          ) : (
-            <Section
-              section={focused}
-              type={types.find((entry) => entry.name === focused.type)}
-              hideable={!fixed}
-              issues={issuesOf(issues, focused.id)}
-              onChange={(next) =>
-                onDraft({
-                  ...draft,
-                  blocks: draft.blocks.map((current) =>
-                    current.id === next.id ? next : current,
-                  ),
-                })
-              }
-            />
-          )}
-        </Stack>
-      </Paper>
+            )}
+
+            {!fixed && (
+              <Anchor>
+                <Button
+                  block
+                  aria-expanded={adding}
+                  onClick={() => setAdding(!adding)}
+                >
+                  <Plus />
+                  Ajouter une section
+                </Button>
+
+                <Menu
+                  opened={adding}
+                  align="left"
+                  label="Les sections que vous pouvez ajouter"
+                  onClose={() => setAdding(false)}
+                >
+                  <Eyebrow className="basalte-menu__note">
+                    ce que vous pouvez poser sur cette page
+                  </Eyebrow>
+                  {types.map((type) => (
+                    <Row key={type.name} pill onClick={() => addSection(type)}>
+                      <RowStack>
+                        <span>{type.label}</span>
+                        {type.help !== undefined && (
+                          <Text tone="meta" size="eyebrow">
+                            {type.help}
+                          </Text>
+                        )}
+                      </RowStack>
+                    </Row>
+                  ))}
+                </Menu>
+              </Anchor>
+            )}
+          </Stack>
+        </Card>
+
+        <Card>
+          <Stack gap="xl">
+            {spoken !== undefined && <Eyebrow>{spoken}</Eyebrow>}
+
+            {active.kind === 'meta' ? (
+              <Stack gap="xl">
+                <Stack gap="xs">
+                  <Eyebrow>{previewed}</Eyebrow>
+                  <Title rank="card">Informations de la page</Title>
+                </Stack>
+                <FieldSet
+                  descriptions={payload.meta}
+                  values={draft.meta as Values}
+                  issues={metaIssues}
+                  onChange={(meta) => onDraft({ ...draft, meta })}
+                />
+              </Stack>
+            ) : focused === undefined ? (
+              <Empty
+                title="Section introuvable"
+                note="Elle n’est plus dans la page."
+              />
+            ) : (
+              <Section
+                section={focused}
+                type={types.find((entry) => entry.name === focused.type)}
+                hideable={!fixed}
+                issues={issuesOf(issues, focused.id)}
+                onRemove={
+                  fixed
+                    ? undefined
+                    : () =>
+                        onDraft({
+                          ...draft,
+                          blocks: draft.blocks.filter(
+                            (entry) => entry.id !== focused.id,
+                          ),
+                        })
+                }
+                onChange={(next) =>
+                  onDraft({
+                    ...draft,
+                    blocks: draft.blocks.map((current) =>
+                      current.id === next.id ? next : current,
+                    ),
+                  })
+                }
+              />
+            )}
+          </Stack>
+        </Card>
+      </div>
     </div>
   )
 }
