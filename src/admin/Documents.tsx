@@ -6,12 +6,15 @@
 // aussi tout ce que le manifeste retient.
 
 import {
+  Alert,
   Button,
   FileButton,
   Group,
+  Modal,
   Paper,
   Stack,
   Text,
+  Title,
   UnstyledButton,
 } from '@mantine/core'
 import { useState } from 'react'
@@ -92,7 +95,7 @@ export function DocumentUploadButton({
   return (
     <FileButton accept={DOCUMENT_TYPE} onChange={(file) => void send(file)}>
       {(props) => (
-        <Button {...props} loading={busy}>
+        <Button {...props} variant="default" loading={busy}>
           Ajouter un document
         </Button>
       )}
@@ -110,12 +113,14 @@ export function DocumentPanel({
   const [problem, setProblem] = useState('')
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
+  const [asked, setAsked] = useState(false)
 
   const entry = documents.find((item) => item.key === selected)
 
   const drop = async () => {
     if (entry === undefined) return
 
+    setAsked(false)
     setBusy(true)
 
     const answer = await deleteDocument(entry.key)
@@ -132,59 +137,91 @@ export function DocumentPanel({
   }
 
   return (
-    <Stack gap="sm">
-      <Group justify="space-between" align="center">
-        <Text fw={600}>Documents</Text>
-        <DocumentUploadButton
-          onDone={(added) => {
-            setProblem('')
-            setSelected(added.key)
-            onChanged()
-          }}
-          onError={setProblem}
+    <Paper p="md">
+      <Stack gap="sm">
+        <Group justify="space-between" align="center">
+          <Title order={3}>Documents</Title>
+          <DocumentUploadButton
+            onDone={(added) => {
+              setProblem('')
+              setSelected(added.key)
+              onChanged()
+            }}
+            onError={setProblem}
+          />
+        </Group>
+
+        {problem !== '' && (
+          <Alert
+            color="red"
+            title="La demande a été refusée"
+            withCloseButton
+            onClose={() => setProblem('')}
+          >
+            {problem}
+          </Alert>
+        )}
+
+        <DocumentList
+          documents={documents}
+          selected={selected}
+          onSelect={setSelected}
         />
-      </Group>
 
-      <Text size="xs" c="dimmed">
-        Un document se télécharge, il ne s’affiche jamais dans une page.
-      </Text>
+        {entry !== undefined && (
+          <Paper p="md">
+            <Group justify="space-between" align="center">
+              <Button
+                component="a"
+                href={documentUrl(entry.key)}
+                variant="default"
+                size="xs"
+              >
+                Télécharger
+              </Button>
+              <Stack gap={2} align="flex-end">
+                <Button
+                  variant="subtle"
+                  color="red"
+                  size="xs"
+                  loading={busy}
+                  disabled={entry.usage > 0}
+                  onClick={() => setAsked(true)}
+                >
+                  Supprimer
+                </Button>
+                {entry.usage > 0 && (
+                  <Text size="xs" c="dimmed">
+                    Employé par une section : retirez-le d’abord.
+                  </Text>
+                )}
+              </Stack>
+            </Group>
+          </Paper>
+        )}
+      </Stack>
 
-      {problem !== '' && (
-        <Text size="sm" c="red">
-          {problem}
-        </Text>
-      )}
-
-      <DocumentList
-        documents={documents}
-        selected={selected}
-        onSelect={setSelected}
-      />
-
-      {entry !== undefined && (
-        <Paper p="md">
-          <Group justify="space-between" align="center">
-            <Button
-              component="a"
-              href={documentUrl(entry.key)}
-              variant="default"
-              size="xs"
-            >
-              Télécharger
+      <Modal
+        opened={asked}
+        onClose={() => setAsked(false)}
+        title="Supprimer ce document"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            « {entry?.name} » sera effacé du dépôt. Les liens qui y menaient ne
+            mèneront plus nulle part.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setAsked(false)}>
+              Le garder
             </Button>
-            <Button
-              variant="subtle"
-              color="red"
-              size="xs"
-              loading={busy}
-              disabled={entry.usage > 0}
-              onClick={() => void drop()}
-            >
-              {entry.usage > 0 ? 'Employé par une section' : 'Supprimer'}
+            <Button color="red" onClick={() => void drop()}>
+              Supprimer
             </Button>
           </Group>
-        </Paper>
-      )}
-    </Stack>
+        </Stack>
+      </Modal>
+    </Paper>
   )
 }

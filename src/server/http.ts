@@ -115,6 +115,22 @@ export function refuseMethod(): Response {
   return json({ ok: false, message: 'Méthode refusée.' }, 405)
 }
 
+/**
+ * Le refus d’une session close. Il porte une phrase : sans elle, le panel
+ * renvoyait sur un formulaire de connexion vierge, et le client ne pouvait pas
+ * distinguer une séance expirée d’une déconnexion qu’il n’avait pas demandée.
+ *
+ * Elle ne dit pas « expirée » : `SameSite=Strict` produit le même refus quand
+ * on arrive depuis un lien externe (`cookies.ts`), et la session revient à la
+ * navigation suivante.
+ */
 export function refuseAnonymous(): Response {
-  return json({ ok: false, signedIn: false }, 401)
+  return json(
+    {
+      ok: false,
+      signedIn: false,
+      message: 'Votre session n’est plus ouverte. Reconnectez-vous.',
+    },
+    401,
+  )
 }

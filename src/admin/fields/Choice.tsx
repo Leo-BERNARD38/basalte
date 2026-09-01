@@ -8,17 +8,20 @@
 
 import { Select, TextInput } from '@mantine/core'
 
-import { hint, type ControlProps } from './Field.js'
+import { hint, useFieldError, type ControlProps } from './Field.js'
 
 const EXTERNAL = 'https://exemple.fr'
 const INTERNAL = '/contact, https://…, mailto:…'
 
-export function Link({ description, value, onChange }: ControlProps) {
+export function Link({ description, value, issues, onChange }: ControlProps) {
+  const error = useFieldError(issues)
+
   return (
     <TextInput
       label={description.label}
       description={hint(description)}
       required={description.required}
+      error={error}
       placeholder={description.external === true ? EXTERNAL : INTERNAL}
       value={typeof value === 'string' ? value : ''}
       onChange={(event) => onChange(event.currentTarget.value)}
@@ -26,25 +29,31 @@ export function Link({ description, value, onChange }: ControlProps) {
   )
 }
 
-export function Moment({ description, value, onChange }: ControlProps) {
+export function Moment({ description, value, issues, onChange }: ControlProps) {
+  const error = useFieldError(issues)
+
   return (
     <TextInput
       type="date"
       label={description.label}
       description={hint(description)}
       required={description.required}
+      error={error}
       value={typeof value === 'string' ? value : ''}
       onChange={(event) => onChange(event.currentTarget.value)}
     />
   )
 }
 
-export function Choice({ description, value, onChange }: ControlProps) {
+export function Choice({ description, value, issues, onChange }: ControlProps) {
+  const error = useFieldError(issues)
+
   return (
     <Select
       label={description.label}
       description={hint(description)}
       required={description.required}
+      error={error}
       data={(description.options ?? []).map((option) => ({
         value: option.value,
         label: option.label,

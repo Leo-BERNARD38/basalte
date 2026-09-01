@@ -15,7 +15,14 @@ export type ContentIssue = {
     readonly id: string
     readonly label: string
   }
+  /** Le chemin lisible : les libellés, tels qu’un message les cite. */
   readonly field?: string
+  /**
+   * Le chemin machine, tel que le panel le suit jusqu’au champ fautif. `field`
+   * ne sert qu’à écrire une phrase : deux champs peuvent porter le même
+   * libellé, et un rang d’élément n’a pas de nom.
+   */
+  readonly path?: readonly (string | number)[]
   readonly language?: string
   readonly message: string
 }
@@ -29,16 +36,35 @@ export function languageName(code: string): string {
 export function describeIssue(
   issue: core.$ZodIssue,
   fields: Fields,
-): { readonly field?: string; readonly language?: string; message: string } {
+): {
+  readonly field?: string
+  readonly path?: readonly (string | number)[]
+  readonly language?: string
+  message: string
+} {
   const located = locate(issue.path, fields)
+  const path = machinePath(issue.path)
 
   return {
     ...(located.labels.length === 0
       ? {}
       : { field: located.labels.join(' › ') }),
+    ...(path.length === 0 ? {} : { path }),
     ...(located.language === undefined ? {} : { language: located.language }),
     message: messageFor(issue, located.field, located.language !== undefined),
   }
+}
+
+/**
+ * Le chemin réduit à ce qui traverse le JSON : Zod le donne en `PropertyKey`,
+ * et un symbole n’arriverait jamais jusqu’au navigateur.
+ */
+function machinePath(
+  path: readonly PropertyKey[],
+): readonly (string | number)[] {
+  return path
+    .filter((segment) => typeof segment !== 'symbol')
+    .map((segment) => (typeof segment === 'number' ? segment : String(segment)))
 }
 
 export function renderIssue(issue: ContentIssue): string {

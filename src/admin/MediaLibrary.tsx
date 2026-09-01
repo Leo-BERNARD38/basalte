@@ -9,13 +9,14 @@ import {
   Alert,
   Button,
   Group,
+  Modal,
   Paper,
   Stack,
   Text,
   TextInput,
   Title,
 } from '@mantine/core'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import type { DocumentSummary } from '../server/documents.js'
 import type { MediaSummary } from '../server/library.js'
@@ -25,6 +26,13 @@ import { useEditing } from './editing.js'
 import { MediaGrid, preview, UploadButton } from './Media.js'
 
 const CENTRE = 50
+
+/** Le pas d’une flèche, en pourcentage de l’image. */
+const STEP = 2
+
+function clamp(value: number): number {
+  return Math.min(Math.max(value, 0), 100)
+}
 
 export function MediaLibrary({
   media,
@@ -43,29 +51,33 @@ export function MediaLibrary({
 
   return (
     <Stack gap="md">
-      <Group justify="flex-end" align="center">
-        <UploadButton
-          onDone={(added) => {
-            setProblem('')
-            setSelected(added.key)
-            onChanged()
-          }}
-          onError={setProblem}
-        />
-      </Group>
-
       {problem !== '' && (
         <Alert
           color="red"
-
-          onClose={() => setProblem('')}
+          title="La demande a été refusée"
           withCloseButton
+          onClose={() => setProblem('')}
         >
           {problem}
         </Alert>
       )}
 
-      <MediaGrid media={media} selected={selected} onSelect={setSelected} />
+      <Paper p="md">
+        <Stack gap="sm">
+          <Group justify="space-between" align="center">
+            <Title order={3}>Images</Title>
+            <UploadButton
+              onDone={(added) => {
+                setProblem('')
+                setSelected(added.key)
+                onChanged()
+              }}
+              onError={setProblem}
+            />
+          </Group>
+          <MediaGrid media={media} selected={selected} onSelect={setSelected} />
+        </Stack>
+      </Paper>
 
       {entry !== undefined && (
         <MediaDetail
@@ -104,9 +116,12 @@ function MediaDetail({
   readonly onDeleted: () => void
   readonly onError: (message: string) => void
 }) {
+  const name = useId()
   const [alt, setAlt] = useState<Record<string, string>>({ ...entry.alt })
   const [focal, setFocal] = useState(entry.focal ?? { x: CENTRE, y: CENTRE })
   const [busy, setBusy] = useState(false)
+  const [asked, setAsked] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const save = async () => {
     setBusy(true)
@@ -115,11 +130,18 @@ function MediaDetail({
 
     setBusy(false)
 
-    if (answer.ok) onChanged()
-    else onError(answer.message)
+    if (answer.ok) {
+      setSaved(true)
+      onChanged()
+
+      return
+    }
+
+    onError(answer.message)
   }
 
   const drop = async () => {
+    setAsked(false)
     setBusy(true)
 
     const answer = await deleteMedia(entry.key)
@@ -130,29 +152,57 @@ function MediaDetail({
     else onError(answer.message)
   }
 
-  const aim = (event: React.MouseEvent<HTMLImageElement>) => {
+  const aim = (event: React.MouseEvent<HTMLElement>) => {
     const box = event.currentTarget.getBoundingClientRect()
 
+    setSaved(false)
     setFocal({
-      x: Math.round(((event.clientX - box.left) / box.width) * 100),
-      y: Math.round(((event.clientY - box.top) / box.height) * 100),
+      x: clamp(Math.round(((event.clientX - box.left) / box.width) * 100)),
+      y: clamp(Math.round(((event.clientY - box.top) / box.height) * 100)),
     })
+  }
+
+  // Le point se déplace aussi aux flèches, comme le cadre de recadrage : une
+  // image qu’on ne cadre qu’à la souris laisse dehors qui ne s’en sert pas.
+  const nudge = (event: React.KeyboardEvent) => {
+    const moves: Readonly<Record<string, { x: number; y: number }>> = {
+      ArrowLeft: { x: focal.x - STEP, y: focal.y },
+      ArrowRight: { x: focal.x + STEP, y: focal.y },
+      ArrowUp: { x: focal.x, y: focal.y - STEP },
+      ArrowDown: { x: focal.x, y: focal.y + STEP },
+    }
+
+    const next = moves[event.key]
+
+    if (next === undefined) return
+
+    event.preventDefault()
+    setSaved(false)
+    setFocal({ x: clamp(next.x), y: clamp(next.y) })
   }
 
   return (
     <Paper p="md">
       <Stack gap="md">
-        <Title order={4}>Cette image</Title>
+        <Title order={3}>Cette image</Title>
 
-        <div className="basalte-focal">
-          <img src={preview(entry)} alt="" onClick={aim} />
+        <button
+          type="button"
+          className="basalte-focal"
+          aria-label="Point de l’image que le cadrage garde visible"
+          aria-describedby={`${name}-focal`}
+          onClick={aim}
+          onKeyDown={nudge}
+        >
+          <img src={preview(entry)} alt="" draggable={false} />
           <span style={{ left: `${focal.x}%`, top: `${focal.y}%` }} />
-        </div>
+        </button>
 
-        <Text size="xs" c="dimmed">
-          Clique sur le sujet de l’image : c’est ce point que le cadrage garde
-          toujours visible. {entry.width} × {entry.height} pixels,{' '}
-          {entry.widths.length} largeurs produites.
+        <Text id={`${name}-focal`} size="xs" c="dimmed">
+          Cliquez sur le sujet de l’image, ou déplacez le point aux flèches :
+          c’est lui que le cadrage garde toujours visible. Il est à {focal.x} %
+          depuis la gauche et {focal.y} % depuis le haut. {entry.width} ×{' '}
+          {entry.height} pixels, {entry.widths.length} largeurs produites.
         </Text>
 
         {languages.map((language) => (
@@ -164,26 +214,63 @@ function MediaDetail({
                 : 'Description'
             }
             value={alt[language.code] ?? ''}
-            onChange={(event) =>
+            onChange={(event) => {
+              setSaved(false)
               setAlt({ ...alt, [language.code]: event.currentTarget.value })
-            }
+            }}
           />
         ))}
 
-        <Group justify="space-between">
-          <Button
-            variant="subtle"
-            color="red"
-            loading={busy}
-            disabled={entry.usage > 0}
-            onClick={drop}
-          >
-            {entry.usage > 0 ? 'Employée par une section' : 'Supprimer'}
-          </Button>
-          <Button loading={busy} onClick={save}>
-            Enregistrer l’image
-          </Button>
+        <Group justify="space-between" align="center">
+          <Stack gap={2}>
+            <Button
+              variant="subtle"
+              color="red"
+              loading={busy}
+              disabled={entry.usage > 0}
+              onClick={() => setAsked(true)}
+            >
+              Supprimer
+            </Button>
+            {entry.usage > 0 && (
+              <Text size="xs" c="dimmed">
+                Employée par une section : retirez-la d’abord.
+              </Text>
+            )}
+          </Stack>
+          <Group gap="sm" align="center">
+            {saved && (
+              <Text size="sm" c="dimmed">
+                Enregistrée
+              </Text>
+            )}
+            <Button loading={busy} disabled={saved} onClick={save}>
+              Enregistrer l’image
+            </Button>
+          </Group>
         </Group>
+
+        <Modal
+          opened={asked}
+          onClose={() => setAsked(false)}
+          title="Supprimer cette image"
+          centered
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              Le fichier et toutes ses largeurs seront effacés du dépôt. Rien ne
+              les garde ailleurs.
+            </Text>
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setAsked(false)}>
+                La garder
+              </Button>
+              <Button color="red" onClick={() => void drop()}>
+                Supprimer
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
       </Stack>
     </Paper>
   )

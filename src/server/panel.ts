@@ -16,7 +16,11 @@ import type { PublishState } from '../publish/publish.js'
 import { META_FIELDS } from '../content/page.js'
 import { validateFiles } from '../content/project.js'
 import { readContent } from '../content/read.js'
-import { languageName, renderIssue } from '../content/report.js'
+import {
+  languageName,
+  renderIssue,
+  type ContentIssue,
+} from '../content/report.js'
 import { describeFields, type FieldDescription } from '../fields/describe.js'
 import {
   BUSINESS_ENTRY,
@@ -374,7 +378,7 @@ async function addPost(
   )
 
   return result.kind === 'refused'
-    ? refusal(result.problems)
+    ? refusal(result)
     : json({ ok: true, post: result.post, commit: result.commit })
 }
 
@@ -423,17 +427,25 @@ async function post(
   )
 
   return result.kind === 'refused'
-    ? refusal(result.problems)
+    ? refusal(result)
     : json({ ok: true, post: result.post, commit: result.commit })
 }
 
-/** La réponse d’un enregistrement refusé, dans la forme que le panel attend. */
-function refusal(problems: readonly string[]): Response {
+/**
+ * La réponse d’un enregistrement refusé, dans la forme que le panel attend :
+ * les phrases pour le résumé, et les incidents entiers pour que l’erreur se
+ * pose sous le champ qui la cause plutôt que dans une liste à relire.
+ */
+function refusal(result: {
+  readonly problems: readonly string[]
+  readonly issues: readonly ContentIssue[]
+}): Response {
   return json(
     {
       ok: false,
       message: 'Il reste quelque chose à corriger.',
-      problems,
+      problems: result.problems,
+      issues: result.issues,
     },
     422,
   )
@@ -559,7 +571,7 @@ async function writeChrome(
     commit,
   )
 
-  if (result.kind === 'refused') return refusal(result.problems)
+  if (result.kind === 'refused') return refusal(result)
 
   return json({ ok: true, chrome: result.chrome, commit: result.commit })
 }
@@ -587,7 +599,7 @@ async function writeBusiness(
     commit,
   )
 
-  if (result.kind === 'refused') return refusal(result.problems)
+  if (result.kind === 'refused') return refusal(result)
 
   return json({ ok: true, business: result.business, commit: result.commit })
 }
@@ -621,7 +633,7 @@ async function save(
 
   const result = await savePage(panel.root, schemas, name, body.data, commit)
 
-  if (result.kind === 'refused') return refusal(result.problems)
+  if (result.kind === 'refused') return refusal(result)
 
   return json({ ok: true, page: result.page, commit: result.commit })
 }

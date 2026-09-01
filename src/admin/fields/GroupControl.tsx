@@ -6,13 +6,19 @@ import { Fieldset, Stack } from '@mantine/core'
 import type { Values } from '../draft.js'
 import { FieldSet, type ControlProps } from './Field.js'
 
-export function GroupControl({ description, value, onChange }: ControlProps) {
+export function GroupControl({
+  description,
+  value,
+  issues,
+  onChange,
+}: ControlProps) {
   return (
     <Fieldset legend={description.label} variant="filled">
       <Stack gap="sm">
         <FieldSet
           descriptions={description.fields ?? []}
           values={(value ?? {}) as Values}
+          issues={issues}
           onChange={onChange}
         />
       </Stack>

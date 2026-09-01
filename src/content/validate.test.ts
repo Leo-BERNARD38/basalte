@@ -30,7 +30,22 @@ const hero = block({
   },
 })
 
-const registry = { hero, brochure }
+const faq = block({
+  name: 'faq',
+  label: 'Questions fréquentes',
+  fields: {
+    items: f.list({
+      label: 'Questions',
+      itemLabel: 'question',
+      of: {
+        question: f.text({ label: 'Question', i18n: true, required: true }),
+        answer: f.textarea({ label: 'Réponse', i18n: true }),
+      },
+    }),
+  },
+})
+
+const registry = { hero, brochure, faq }
 const media = {
   a3f2c1d4b5e6f708: {
     format: 'webp',
@@ -136,6 +151,57 @@ describe('validatePage', () => {
       'index › Description (français) : doit être rempli',
     )
     expect(result.page).toBeUndefined()
+  })
+
+  it('rend le rang de l’élément fautif dans une liste', () => {
+    const result = run(
+      page({
+        blocks: [
+          {
+            id: 'q1',
+            type: 'faq',
+            props: {
+              items: [
+                { question: { fr: 'Où ?' }, answer: { fr: 'Ici.' } },
+                { question: { fr: '' }, answer: { fr: 'Là.' } },
+              ],
+            },
+          },
+        ],
+      }),
+    )
+
+    expect(result.issues[0]?.path).toEqual(['items', 1, 'question', 'fr'])
+    expect(result.issues[0]?.section?.id).toBe('q1')
+  })
+
+  it('rend le chemin d’un champ logé dans un groupe', () => {
+    const result = run(
+      page({
+        blocks: [
+          {
+            id: 'b1a2',
+            type: 'hero',
+            props: {
+              title: { fr: 'Bonjour' },
+              cta: { label: { fr: 'Voir' }, href: 'pas une adresse' },
+            },
+          },
+        ],
+      }),
+    )
+
+    expect(result.issues[0]?.path).toEqual(['cta', 'href'])
+  })
+
+  // Le chemin machine, celui que le panel suit jusqu’au champ fautif (D166) :
+  // « field » ne sert qu’à écrire une phrase, et deux champs peuvent porter le
+  // même libellé.
+  it('rend le chemin du champ fautif, sa langue comprise', () => {
+    const result = run(page({ meta: { title: { fr: 'Accueil' } } }))
+
+    expect(result.issues[0]?.path).toEqual(['description', 'fr'])
+    expect(result.issues[0]?.language).toBe('fr')
   })
 
   it('n’exige pas la description d’une langue en préparation', () => {

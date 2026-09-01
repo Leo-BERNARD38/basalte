@@ -17,10 +17,16 @@ quelqu'un de corriger un texte.
 
 | Règle | Ce qui est refusé |
 |---|---|
-| aucune valeur de style en dur | une couleur, un espacement, une taille, une police ou un rayon écrits en clair dans le `<style>` d'un bloc |
+| aucune valeur de style en dur | une couleur, un espacement, une taille, une police ou un rayon écrits en clair dans le `<style>` d'un bloc — ou dans `src/admin/panel.css`, sur la couche de tokens du panel (D164) |
 | un bloc ne valide rien à la main | un `.refine()`, un `throw`, un import de Zod dans un `schema.ts` de bloc |
 | pas de fourre-tout | un fichier ou un dossier nommé `utils`, `helpers`, `common`, `misc`, `shared`, `divers` |
-| le plancher du design | une paire de tokens dont le contraste tombe sous 4,5:1 |
+| le plancher du design | une paire de tokens dont le contraste tombe sous 4,5:1 — côté site, et côté panel sur les paires qu'il superpose vraiment |
+
+Les deux systèmes de tokens sont contrôlés par le même code, sur des périmètres
+différents : celui du site vit dans le `<style>` d'un bloc et nomme ses familles
+sans préfixe, celui du panel occupe une feuille entière et préfixe les siennes
+(D65). Un système ne porte pas forcément toutes les familles — le panel n'a ni
+police ni largeur —, et une propriété d'une famille absente échappe au contrôle.
 
 Deux choses sont **signalées sans être refusées**, pour la même raison :
 aucune machine ne peut décider à la place de l'auteur si elles sont méritées.
@@ -33,7 +39,7 @@ aucune machine ne peut décider à la place de l'auteur si elles sont méritées
 
 Ce qui n'est **pas** vérifié reste à la relecture : qu'un bloc soit lisible à
 375 px, que le focus clavier soit visible, que le texte alternatif dise quelque
-chose. Une règle qu'un contrôle ne sait pas juger n'est pas affaiblie par son
+chose, que le panel tienne sur un portable. Une règle qu'un contrôle ne sait pas juger n'est pas affaiblie par son
 absence ici — elle est simplement encore à la charge de celui qui écrit.
 
 Trois exceptions sont dans le contrôle lui-même, parce qu'aucun token ne les
@@ -167,6 +173,16 @@ Un commit de fond porte un **corps**, en prose française, sans puces : ce qui
 manquait, ce que le changement fait, pourquoi celle-là et pas une autre. C'est
 ce corps qui rend `decisions.md` tenable — il porte le détail dont la décision
 ne garde que la ligne.
+
+## La voix
+
+Tout ce qui s'affiche devant un client **vouvoie** (D165) : le panel, ses
+messages d'erreur, les phrases du serveur qu'il relaie. Six chaînes tutoyaient,
+dont « Réessaie dans un instant » — la plus vue de toutes —, et une voix qui
+change d'un écran à l'autre se lit comme deux personnes qui parlent.
+
+Le tutoiement reste ce qu'il était : la voix des messages de la ligne de
+commande et des skills, adressés à qui écrit le site, pas à qui l'habite.
 
 ## Apostrophes
 

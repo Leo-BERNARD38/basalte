@@ -199,8 +199,8 @@ export function CropDialog({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Place le cadre sur ce qui doit rester visible. L’image d’origine est
-          conservée : tu peux recommencer quand tu veux.
+          Placez le cadre sur ce qui doit rester visible. L’image d’origine est
+          conservée : vous pouvez recommencer quand vous voulez.
         </Text>
 
         {origin !== undefined && (

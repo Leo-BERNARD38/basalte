@@ -1,11 +1,14 @@
-// La règle que rien ne faisait respecter : aucune valeur de style en dur dans
-// un bloc. Couleurs, espacements, typographies et rayons passent par un token,
-// et un besoin non couvert est un token à ajouter au socle — jamais un
+// La règle que rien ne faisait respecter : aucune valeur de style en dur.
+// Couleurs, espacements, typographies et rayons passent par un token, et un
+// besoin non couvert est un token à ajouter au socle — jamais un
 // « padding: 27px » isolé (docs/design.md).
 //
-// Le contrôle ne lit que le `<style>` du composant. Ce qui est écrit dans le
-// frontmatter est du TypeScript, et ce qui est dans le corps est du HTML :
-// seule la feuille de style porte les valeurs que la règle vise.
+// Deux systèmes de tokens vivent dans ce dépôt, et la règle vaut pour les deux
+// (D164). Celui du site s'écrit dans le `<style>` d'un bloc : le frontmatter
+// est du TypeScript et le corps du HTML, seule la feuille porte les valeurs que
+// la règle vise. Celui du panel occupe une feuille entière et préfixe ses noms
+// (D65) — il ne porte ni police ni largeur, et une propriété d'une famille
+// qu'un système ne porte pas n'est pas contrôlée chez lui.
 //
 // Il tolère ce qu’aucun token ne peut porter : zéro, les proportions, les
 // pourcentages, les unités de fenêtre, et les conditions de media query — une
@@ -64,13 +67,49 @@ const COLOUR_PROPERTY =
 const NEUTRAL =
   /^(?:0|auto|none|inherit|initial|unset|currentcolor|transparent)$/i
 
+/**
+ * Le système de tokens dans lequel une feuille se lit : où les valeurs vivent,
+ * quelles familles ce système porte, et sous quel nom une correction se dit.
+ */
+export type StyleSystem = {
+  /** Le préfixe des noms de tokens, tel qu’une correction les écrit. */
+  readonly prefix: string
+  /** Un token de couleur du système, cité en exemple. */
+  readonly colour: string
+  /** Les familles portées. Une propriété d’une autre échappe au contrôle. */
+  readonly families: ReadonlySet<string>
+  /** La feuille entière, ou le seul `<style>` d’un composant. */
+  readonly whole: boolean
+}
+
+/** Les tokens de direction artistique, dans le `<style>` d’un bloc. */
+export const SITE: StyleSystem = {
+  prefix: '',
+  colour: '--color-accent',
+  families: new Set(['space', 'text', 'font', 'radius', 'width']),
+  whole: false,
+}
+
+/**
+ * Les tokens du panel, dans sa feuille. Ni police ni largeur : la première
+ * vient du thème Mantine, la seconde des composants — `panel.css` ne dessine
+ * que la mise en page.
+ */
+export const PANEL: StyleSystem = {
+  prefix: 'panel-',
+  colour: '--panel-ink',
+  families: new Set(['space', 'text', 'radius']),
+  whole: true,
+}
+
 export function hardcodedStyle(
   file: string,
   source: string,
+  system: StyleSystem = SITE,
 ): readonly Finding[] {
   const findings: Finding[] = []
 
-  for (const [index, text] of styleLines(source).entries()) {
+  for (const [index, text] of styleLines(source, system.whole).entries()) {
     const declaration = declarationOf(text)
 
     if (declaration === undefined) continue
@@ -84,7 +123,7 @@ export function hardcodedStyle(
           file,
           line: index + 1,
           rule: 'style/color',
-          message: `« ${property}: ${value} » écrit une couleur en dur — emploie un token, « var(--color-accent) ».`,
+          message: `« ${property}: ${value} » écrit une couleur en dur — emploie un token, « var(${system.colour}) ».`,
           severity: 'error',
         }),
       )
@@ -94,7 +133,7 @@ export function hardcodedStyle(
 
     const family = TOKENISED[property]
 
-    if (family === undefined) continue
+    if (family === undefined || !system.families.has(family)) continue
     if (!literal(property, rest)) continue
 
     findings.push(
@@ -102,7 +141,7 @@ export function hardcodedStyle(
         file,
         line: index + 1,
         rule: `style/${family}`,
-        message: `« ${property}: ${value} » écrit une valeur en dur — emploie un token, « var(--${family}-… ) ».`,
+        message: `« ${property}: ${value} » écrit une valeur en dur — emploie un token, « var(--${system.prefix}${family}-… ) ».`,
         severity: 'error',
       }),
     )
@@ -112,14 +151,19 @@ export function hardcodedStyle(
 }
 
 /**
- * Le fichier entier, vidé de tout ce qui n’est pas dans un `<style>`. Les
+ * Le fichier vidé de tout ce qui n’est pas du style, commentaires compris. Les
  * lignes gardent leur rang : une remarque doit désigner la ligne que l’on
- * ouvre, pas celle d’un extrait.
+ * ouvre, pas celle d’un extrait. Une feuille entière n’a rien à retrancher —
+ * tout y est du style.
  */
-function styleLines(source: string): readonly string[] {
+function styleLines(source: string, whole: boolean): readonly string[] {
+  const lines = withoutComments(source).split(/\r?\n/)
+
+  if (whole) return lines
+
   let inside = false
 
-  return source.split(/\r?\n/).map((text) => {
+  return lines.map((text) => {
     const opens = /<style[\s>]/i.test(text)
     const closes = /<\/style>/i.test(text)
     const kept = inside && !opens && !closes ? text : ''
@@ -129,6 +173,17 @@ function styleLines(source: string): readonly string[] {
 
     return kept
   })
+}
+
+/**
+ * Les commentaires blanchis, leurs retours à la ligne gardés. Une phrase de
+ * prose porte des deux-points et des points-virgules : sans cela, celle qui
+ * s’ouvre par un mot suivi d’un deux-points passerait pour une déclaration.
+ */
+function withoutComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, (comment) =>
+    comment.replace(/[^\n]/g, ' '),
+  )
 }
 
 function declarationOf(

@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 
 import type { AudienceReport, Counted } from '../analytics/report.js'
 import { readAudience } from './api.js'
+import { Waiting } from './Waiting.js'
 
 const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
@@ -21,7 +22,11 @@ const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
 
 const PERIOD = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
 
-export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
+export function Stats({
+  onSignedOut,
+}: {
+  readonly onSignedOut: (message: string) => void
+}) {
   const [audience, setAudience] = useState<AudienceReport | undefined>(
     undefined,
   )
@@ -32,7 +37,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
       const answer = await readAudience()
 
       if (answer.ok) setAudience(answer.data.audience)
-      else if (answer.signedOut) onSignedOut()
+      else if (answer.signedOut) onSignedOut(answer.message)
       else setProblem(answer.message)
     }
 
@@ -40,15 +45,19 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
   }, [])
 
   if (problem !== '') {
-    return <Alert color="red">{problem}</Alert>
+    return (
+      <Alert color="red" title="Le rapport n’a pas pu être lu">
+        {problem}
+      </Alert>
+    )
   }
 
-  if (audience === undefined) return null
+  if (audience === undefined) return <Waiting what="Lecture des journaux…" />
 
   if (!audience.readable) {
     return (
-      <Stack gap="md" maw={860}>
-        <Alert color="orange">
+      <Stack gap="md" maw="var(--panel-measure-page)">
+        <Alert color="orange" title="Aucune mesure disponible">
           Les journaux d’accès ne sont pas lisibles depuis le panel. Le site
           continue de fonctionner : seule cette page est vide.
         </Alert>
@@ -59,7 +68,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
   const peak = Math.max(1, ...audience.days.map((day) => day.visits))
 
   return (
-    <Stack gap="md" maw={860}>
+    <Stack gap="md" maw="var(--panel-measure-page)">
       <Text size="sm" c="dimmed">
         Du {PERIOD.format(audience.from)} au {PERIOD.format(audience.to)}
       </Text>
@@ -72,7 +81,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
 
       <Paper p="md">
         <Stack gap="xs">
-          <Title order={4}>Jour par jour</Title>
+          <Title order={3}>Jour par jour</Title>
           {audience.days.length === 0 ? (
             <Text size="sm" c="dimmed">
               Aucune visite sur la période.
@@ -110,13 +119,6 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
           rows={audience.referrers}
         />
       </Group>
-
-      <Text size="xs" c="dimmed">
-        Ce rapport est un ordre de grandeur. Il ne pose aucun cookie et ne suit
-        personne : deux personnes derrière la même connexion comptent pour une,
-        et les robots sont écartés sur leur signature, qui n’est jamais
-        complète.
-      </Text>
     </Stack>
   )
 }
@@ -133,7 +135,7 @@ function Figure({
       <Text size="sm" c="dimmed">
         {label}
       </Text>
-      <Text fz={32} fw={700}>
+      <Text fz="var(--panel-text-display)" fw={700} lh={1.1}>
         {value}
       </Text>
     </Paper>
@@ -152,7 +154,7 @@ function Ranking({
   return (
     <Paper p="md">
       <Stack gap="xs">
-        <Title order={4}>{title}</Title>
+        <Title order={3}>{title}</Title>
         {rows.length === 0 ? (
           <Text size="sm" c="dimmed">
             {empty}

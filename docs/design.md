@@ -13,8 +13,9 @@ un token. Sans cette règle, la DA cesse d'être pilotable depuis
 `site.config.ts` et chaque bloc dérive de son côté — le même défaut que les
 valeurs magiques dans du code.
 
-Elle est vérifiable : `basalte check` refuse une couleur ou une longueur
-littérale dans le CSS d'un bloc.
+Elle est vérifiable : `basalte lint` refuse une couleur ou une longueur
+littérale dans le `<style>` d'un bloc (D135), et le même contrôle tient la
+feuille du panel sur sa propre couche de tokens (D164).
 
 ## Les tokens
 

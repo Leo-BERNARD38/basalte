@@ -10,9 +10,26 @@ export const prerender = false
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>{site.name}</title>
+    <title>Administration — {site.name}</title>
+    <!-- Le panel est une island `client:only` : le corps est vide jusqu’à ce
+         que React s’exécute, et sa feuille arrive avec lui. Sans ces deux
+         lignes, la première image du panel est une page blanche puis un fond
+         gris. Elles ne dupliquent pas un token — elles portent la seule valeur
+         qui existe avant que la couche de tokens soit chargée. -->
+    <style>
+      body {
+        margin: 0;
+        background: #f3f5f9;
+      }
+    </style>
   </head>
   <body>
     <Panel client:only="react" site={site.name} />
+    <noscript>
+      <p style="font: 16px/1.5 system-ui; margin: 2rem;">
+        L’administration a besoin de JavaScript pour s’afficher. Le site public,
+        lui, fonctionne sans.
+      </p>
+    </noscript>
   </body>
 </html>

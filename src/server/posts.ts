@@ -41,7 +41,8 @@ import {
   readPostFiles,
   validatePost,
 } from '../journal/read.js'
-import { problemsOf, type Commit } from './pages.js'
+import type { ContentIssue } from '../content/report.js'
+import { blockingIssues, problemsOf, type Commit } from './pages.js'
 
 /** Ce que le panel affiche d’un billet dans sa liste et dans son formulaire. */
 export type DraftPost = {
@@ -66,7 +67,11 @@ export type PostSave =
       readonly post: DraftPost
       readonly commit: boolean
     }
-  | { readonly kind: 'refused'; readonly problems: readonly string[] }
+  | {
+      readonly kind: 'refused'
+      readonly problems: readonly string[]
+      readonly issues: readonly ContentIssue[]
+    }
 
 /**
  * Les billets tels qu’ils sont sur le disque, du plus récent au plus ancien.
@@ -115,7 +120,11 @@ export async function savePost(
   })
 
   if (result.post === undefined) {
-    return { kind: 'refused', problems: problemsOf(result.issues) }
+    return {
+      kind: 'refused',
+      problems: problemsOf(result.issues),
+      issues: blockingIssues(result.issues),
+    }
   }
 
   const written = {
@@ -169,6 +178,7 @@ export async function createPost(
       problems: [
         'Un billet a besoin d’un titre : c’est lui qui fait son adresse.',
       ],
+      issues: [],
     }
   }
 
@@ -181,8 +191,9 @@ export async function createPost(
     return {
       kind: 'refused',
       problems: [
-        'Trop de billets portent déjà ce titre : donne-lui un autre intitulé.',
+        'Trop de billets portent déjà ce titre : donnez-lui un autre intitulé.',
       ],
+      issues: [],
     }
   }
 

@@ -27,6 +27,7 @@ import {
 import { useEffect, useState } from 'react'
 
 import { asideOf, asidesOf, isAside } from './asides.js'
+import type { ContentIssue } from '../content/report.js'
 import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
@@ -42,6 +43,7 @@ import {
   readPublication,
   savePage,
   savePost,
+  signOut,
 } from './api.js'
 import { sameDraft, type Draft } from './draft.js'
 import { Edit } from './Edit.js'
@@ -64,10 +66,11 @@ const IDLE: PublishState = { running: false, queued: false }
 // l’état plutôt que de tenir une requête ouverte pendant ce temps.
 const POLL = 1500
 
-/** Ce que le client s’apprête à ouvrir, quand un brouillon l’en empêche. */
+/** Ce que le client s’apprête à faire, quand un brouillon l’en empêche. */
 type Asked =
   | { readonly kind: 'page'; readonly name: string }
   | { readonly kind: 'post'; readonly slug: string }
+  | { readonly kind: 'sign-out' }
 
 type Picker = {
   readonly current: string
@@ -85,6 +88,7 @@ export default function Panel({ site }: { readonly site: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [savedAt, setSavedAt] = useState<number | undefined>(undefined)
   const [problems, setProblems] = useState<readonly string[]>([])
+  const [issues, setIssues] = useState<readonly ContentIssue[]>([])
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState<Picker | undefined>(undefined)
   const [documentPicker, setDocumentPicker] = useState<Picker | undefined>(
@@ -94,6 +98,23 @@ export default function Panel({ site }: { readonly site: string }) {
   const [postDraft, setPostDraft] = useState<PostValues>(NO_POST)
   const [asked, setAsked] = useState<Asked | undefined>(undefined)
   const [publication, setPublication] = useState<PublishState>(IDLE)
+  const [closed, setClosed] = useState('')
+
+  // La section qu’une ligne du résumé désigne. Elle voyage par l’état plutôt
+  // que par un appel : c’est l’écran d’édition qui sait ouvrir une section, et
+  // la même charge sert quand le client clique une ligne écrite hier.
+  const [wanted, setWanted] = useState<ContentIssue | undefined>(undefined)
+
+  // Une session fermée emporte sa raison jusqu’à l’écran de connexion : sans
+  // elle, le client retrouve un formulaire vierge et croit s’être déconnecté.
+  //
+  // Rien à dire quand aucune session n’était ouverte : la toute première visite
+  // reçoit le même refus, et « Votre session n’est plus ouverte » y annoncerait
+  // la fin de quelque chose qui n’a jamais commencé.
+  const dropSession = (message: string) => {
+    setPayload(undefined)
+    setClosed(payload === undefined ? '' : message)
+  }
 
   // Relit tout ce que le serveur sait du site, en laissant le brouillon où il
   // est.
@@ -107,7 +128,7 @@ export default function Panel({ site }: { readonly site: string }) {
     setReady(true)
 
     if (!answer.ok) {
-      if (answer.signedOut) setPayload(undefined)
+      if (answer.signedOut) dropSession(answer.message)
       else setProblems([answer.message])
 
       return undefined
@@ -117,6 +138,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
     setPayload(data)
     setProblems([])
+    setIssues([])
     setPublication(data.publication)
     setLanguage(
       (current) =>
@@ -131,12 +153,14 @@ export default function Panel({ site }: { readonly site: string }) {
     setOpenedPost(post.slug)
     setPostDraft({ hidden: post.hidden, fields: post.fields })
     setProblems([])
+    setIssues([])
   }
 
   const open = (page: DraftPage) => {
     setSelected(page.name)
     setDraft({ meta: page.meta, blocks: page.blocks })
     setProblems([])
+    setIssues([])
   }
 
   // Une entrée qui n’est pas une page s’ouvre comme une page, et le brouillon
@@ -151,6 +175,7 @@ export default function Panel({ site }: { readonly site: string }) {
     setSelected(aside.entry)
     setDraft({ meta: {}, blocks: aside.sections })
     setProblems([])
+    setIssues([])
   }
 
   /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
@@ -260,7 +285,7 @@ export default function Panel({ site }: { readonly site: string }) {
   if (!ready) {
     return (
       <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-        <Center h="100vh">
+        <Center h="100dvh">
           <Loader />
         </Center>
       </MantineProvider>
@@ -270,7 +295,14 @@ export default function Panel({ site }: { readonly site: string }) {
   if (payload === undefined) {
     return (
       <MantineProvider theme={theme} cssVariablesResolver={cssVariables}>
-        <SignIn site={site} onSignedIn={() => void load()} />
+        <SignIn
+          site={site}
+          notice={closed}
+          onSignedIn={() => {
+            setClosed('')
+            void load()
+          }}
+        />
       </MantineProvider>
     )
   }
@@ -302,13 +334,15 @@ export default function Panel({ site }: { readonly site: string }) {
       setProblems(
         answer.problems.length > 0 ? answer.problems : [answer.message],
       )
+      setIssues(answer.issues)
 
-      if (answer.signedOut) setPayload(undefined)
+      if (answer.signedOut) dropSession(answer.message)
 
       return false
     }
 
     setProblems([])
+    setIssues([])
     setSavedAt(Date.now())
     await load(selected, editingJournal ? openedPost : undefined)
 
@@ -328,8 +362,9 @@ export default function Panel({ site }: { readonly site: string }) {
       setProblems(
         answer.problems.length > 0 ? answer.problems : [answer.message],
       )
+      setIssues(answer.issues)
 
-      if (answer.signedOut) setPayload(undefined)
+      if (answer.signedOut) dropSession(answer.message)
 
       return
     }
@@ -348,7 +383,7 @@ export default function Panel({ site }: { readonly site: string }) {
     if (!answer.ok) {
       setProblems([answer.message])
 
-      if (answer.signedOut) setPayload(undefined)
+      if (answer.signedOut) dropSession(answer.message)
 
       return
     }
@@ -389,6 +424,18 @@ export default function Panel({ site }: { readonly site: string }) {
     else reveal(next)
   }
 
+  // Enregistrer, puis faire ce qui était demandé — et ne rien faire si
+  // l’enregistrement est refusé : les erreurs sont alors sous les yeux.
+  const keepThenGo = async () => {
+    const next = asked
+
+    if (!(await save())) return
+
+    setAsked(undefined)
+
+    if (next !== undefined) reveal(next)
+  }
+
   const abandon = () => {
     const next = asked
 
@@ -398,6 +445,12 @@ export default function Panel({ site }: { readonly site: string }) {
   }
 
   function reveal(next: Asked): void {
+    if (next.kind === 'sign-out') {
+      void leave()
+
+      return
+    }
+
     if (next.kind === 'post') {
       const post = known.journal?.posts.find(
         (entry) => entry.slug === next.slug,
@@ -416,6 +469,19 @@ export default function Panel({ site }: { readonly site: string }) {
     const opened = known.pages.find((entry) => entry.name === next.name)
 
     if (opened !== undefined) open(opened)
+  }
+
+  // La déconnexion attend sa réponse : la donner pour acquise laissait le
+  // client devant l’écran de connexion pendant que sa session vivait encore.
+  const leave = async () => {
+    setBusy(true)
+
+    const answer = await signOut()
+
+    setBusy(false)
+
+    if (answer.ok || answer.signedOut) dropSession('')
+    else setProblems([answer.message])
   }
 
   const editing: Editing = {
@@ -466,10 +532,12 @@ export default function Panel({ site }: { readonly site: string }) {
           busy={busy}
           savedAt={savedAt}
           problems={problems}
+          issues={issues}
+          onIssue={setWanted}
           publication={publication}
           onSave={() => void save()}
           onPublish={() => void goOnline()}
-          onSignedOut={() => setPayload(undefined)}
+          onSignOut={() => ask({ kind: 'sign-out' })}
         >
           {shown === 'edit' && (
             <Edit
@@ -478,6 +546,8 @@ export default function Panel({ site }: { readonly site: string }) {
               draft={draft}
               savedAt={savedAt}
               dirty={dirty}
+              issues={issues}
+              wanted={wanted}
               onSelect={select}
               onDraft={setDraft}
             />
@@ -493,6 +563,7 @@ export default function Panel({ site }: { readonly site: string }) {
               busy={busy}
               onSelect={selectPost}
               onDraft={setPostDraft}
+              issues={issues}
               onCreate={(title) => void compose(title)}
               onDelete={(slug) => void remove(slug)}
             />
@@ -508,23 +579,15 @@ export default function Panel({ site }: { readonly site: string }) {
 
           {shown === 'messages' && (
             <Messages
-              retention={known.retention}
               notified={known.notified}
               onChanged={() => void refresh()}
-              onSignedOut={() => setPayload(undefined)}
+              onSignedOut={dropSession}
             />
           )}
 
-          {shown === 'stats' && (
-            <Stats onSignedOut={() => setPayload(undefined)} />
-          )}
+          {shown === 'stats' && <Stats onSignedOut={dropSession} />}
 
-          {shown === 'account' && (
-            <Account
-              support={known.support}
-              onSignedOut={() => setPayload(undefined)}
-            />
-          )}
+          {shown === 'account' && <Account onSignedOut={dropSession} />}
         </Shell>
 
         <MediaPicker
@@ -546,6 +609,9 @@ export default function Panel({ site }: { readonly site: string }) {
           onChoose={answerDocumentPicker}
         />
 
+        {/* Trois issues, et la première est celle que l’on veut presque
+            toujours : garder son travail, puis continuer. Deux boutons dont
+            aucun n’enregistrait obligeaient à fermer, enregistrer, rouvrir. */}
         <Modal
           opened={asked !== undefined}
           onClose={() => setAsked(undefined)}
@@ -553,19 +619,36 @@ export default function Panel({ site }: { readonly site: string }) {
           centered
         >
           <Stack gap="md">
-            <Text size="sm">
-              {asked?.kind === 'post'
-                ? 'Ce billet porte des modifications qui ne sont pas enregistrées. En ouvrir un autre maintenant les perd.'
-                : 'Cette page porte des modifications qui ne sont pas enregistrées. Ouvrir une autre page maintenant les perd.'}
-            </Text>
-            <Group justify="flex-end">
-              <Button variant="default" onClick={() => setAsked(undefined)}>
-                Rester ici
+            <Text size="sm">{warning(asked)}</Text>
+            <Stack gap="xs">
+              <Button
+                loading={busy}
+                onClick={() => {
+                  void keepThenGo()
+                }}
+              >
+                {asked?.kind === 'sign-out'
+                  ? 'Enregistrer puis se déconnecter'
+                  : 'Enregistrer puis ouvrir'}
               </Button>
-              <Button color="red" onClick={abandon}>
-                Abandonner les modifications
-              </Button>
-            </Group>
+              <Group justify="space-between">
+                <Button
+                  variant="subtle"
+                  color="red"
+                  size="sm"
+                  onClick={abandon}
+                >
+                  Abandonner les modifications
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setAsked(undefined)}
+                >
+                  Rester ici
+                </Button>
+              </Group>
+            </Stack>
           </Stack>
         </Modal>
       </EditingContext.Provider>
@@ -582,6 +665,16 @@ function heading(screen: Screen, opened: string | undefined): string {
     SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
 
   return screen === 'edit' || screen === 'journal' ? (opened ?? label) : label
+}
+
+function warning(asked: Asked | undefined): string {
+  if (asked?.kind === 'sign-out') {
+    return 'Des modifications ne sont pas enregistrées. Vous déconnecter maintenant les perd.'
+  }
+
+  return asked?.kind === 'post'
+    ? 'Ce billet porte des modifications qui ne sont pas enregistrées. En ouvrir un autre maintenant les perd.'
+    : 'Cette page porte des modifications qui ne sont pas enregistrées. Ouvrir une autre page maintenant les perd.'
 }
 
 function readScreen(): Screen {

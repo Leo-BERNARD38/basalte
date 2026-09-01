@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react'
 
 import type { LeadSummary } from '../server/panel.js'
 import { deleteLead, markLeadRead, readLeads } from './api.js'
+import { Waiting } from './Waiting.js'
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'long',
@@ -31,15 +32,13 @@ const MOMENT = new Intl.DateTimeFormat('fr-FR', {
 })
 
 export function Messages({
-  retention,
   notified,
   onChanged,
   onSignedOut,
 }: {
-  readonly retention: number
   readonly notified: boolean
   readonly onChanged: () => void
-  readonly onSignedOut: () => void
+  readonly onSignedOut: (message: string) => void
 }) {
   const [leads, setLeads] = useState<readonly LeadSummary[] | undefined>(
     undefined,
@@ -56,7 +55,7 @@ export function Messages({
       return
     }
 
-    if (answer.signedOut) onSignedOut()
+    if (answer.signedOut) onSignedOut(answer.message)
     else setProblem(answer.message)
   }
 
@@ -83,12 +82,16 @@ export function Messages({
   }
 
   return (
-    <Stack gap="md" maw={860}>
-      <Text size="sm" c="dimmed">
-        Conservés {retention} mois, puis effacés.
-      </Text>
+    <Stack gap="md" maw="var(--panel-measure-page)">
+      {problem !== '' && (
+        <Alert color="red" title="Les messages n’ont pas pu être lus">
+          {problem}
+        </Alert>
+      )}
 
-      {problem !== '' && <Alert color="red">{problem}</Alert>}
+      {leads === undefined && problem === '' && (
+        <Waiting what="Lecture des messages…" />
+      )}
 
       {leads !== undefined && leads.length === 0 && (
         <Text size="sm" c="dimmed">

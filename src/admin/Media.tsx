@@ -60,7 +60,7 @@ export function MediaGrid({
   }
 
   return (
-    <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
+    <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5, xl: 6 }} spacing="sm">
       {media.map((entry) => (
         <UnstyledButton
           key={entry.key}
@@ -74,7 +74,7 @@ export function MediaGrid({
           <Image
             src={thumbnail(entry)}
             alt={translated(entry.alt, editing.language)}
-            h={120}
+            h={150}
             fit="cover"
             radius="sm"
           />
@@ -162,7 +162,11 @@ export function UploadButton({
         accept="image/jpeg,image/png,image/webp,image/avif,image/tiff"
         onChange={pick}
       >
-        {(props) => <Button {...props}>Ajouter une image</Button>}
+        {(props) => (
+          <Button {...props} variant="light">
+            Ajouter une image
+          </Button>
+        )}
       </FileButton>
 
       <Modal
@@ -183,8 +187,8 @@ export function UploadButton({
           )}
 
           <Text size="sm" c="dimmed">
-            Décris ce que montre l’image : c’est ce que lisent les personnes qui
-            ne la voient pas, et ce que comprend Google.
+            Décrivez ce que montre l’image : c’est ce que lisent les personnes
+            qui ne la voient pas, et ce que comprend Google.
           </Text>
 
           {online.map((language) => (

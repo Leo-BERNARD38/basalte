@@ -20,7 +20,8 @@ import type { Schemas } from '../content/project.js'
 import { writeJsonFile } from '../content/write.js'
 import { translationProgress, type Progress } from '../fields/progress.js'
 import type { Commit } from './pages.js'
-import { problemsOf } from './pages.js'
+import type { ContentIssue } from '../content/report.js'
+import { blockingIssues, problemsOf } from './pages.js'
 
 export type ChromeDraft = {
   /** Les deux emplacements, dans l’ordre où ils s’affichent. */
@@ -34,7 +35,11 @@ export type ChromeSave =
       readonly chrome: ChromeDraft
       readonly commit: boolean
     }
-  | { readonly kind: 'refused'; readonly problems: readonly string[] }
+  | {
+      readonly kind: 'refused'
+      readonly problems: readonly string[]
+      readonly issues: readonly ContentIssue[]
+    }
 
 export async function readChromeDraft(
   root: string,
@@ -69,7 +74,13 @@ export async function saveChrome(
 
   const problems = problemsOf(result.issues)
 
-  if (problems.length > 0) return { kind: 'refused', problems }
+  if (problems.length > 0) {
+    return {
+      kind: 'refused',
+      problems,
+      issues: blockingIssues(result.issues),
+    }
+  }
 
   const written = { $format: CONTENT_FORMAT, ...result.chrome }
 

@@ -1,5 +1,10 @@
 // Le réordonnancement, écrit une fois et employé deux fois : les sections
 // d’une page, et les éléments d’une liste répétable.
+//
+// Les annonces sont écrites : dnd-kit livre les siennes en anglais, et un panel
+// entièrement français ne peut pas parler anglais à qui l’écoute. Elles disent
+// un rang sur un total — c’est ce que le déplacement change, et le libellé de
+// la ligne est déjà lu par ailleurs.
 
 import {
   closestCenter,
@@ -39,6 +44,39 @@ export function SortableList({
     }),
   )
 
+  const rank = (id: unknown) => ids.indexOf(String(id)) + 1
+
+  const accessibility = {
+    screenReaderInstructions: {
+      draggable:
+        'Appuyez sur Espace pour saisir cette ligne, les flèches pour la déplacer, Espace pour la poser, Échap pour annuler.',
+    },
+    announcements: {
+      onDragStart: ({
+        active,
+      }: {
+        readonly active: { readonly id: unknown }
+      }) => `Ligne ${rank(active.id)} sur ${ids.length} saisie.`,
+      onDragOver: ({
+        over,
+      }: {
+        readonly over: { readonly id: unknown } | null
+      }) =>
+        over === null
+          ? 'Hors de la liste.'
+          : `Position ${rank(over.id)} sur ${ids.length}.`,
+      onDragEnd: ({
+        over,
+      }: {
+        readonly over: { readonly id: unknown } | null
+      }) =>
+        over === null
+          ? 'Déplacement annulé, la ligne revient à sa place.'
+          : `Ligne posée en position ${rank(over.id)} sur ${ids.length}.`,
+      onDragCancel: () => 'Déplacement annulé, la ligne revient à sa place.',
+    },
+  }
+
   const end = (event: DragEndEvent) => {
     const over = event.over
 
@@ -49,6 +87,7 @@ export function SortableList({
 
   return (
     <DndContext
+      accessibility={accessibility}
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={end}
