@@ -10,6 +10,12 @@
 // n’expliquent pas d’eux-mêmes que l’un garde et que l’autre montre. C’est la
 // question que le client pose le plus souvent, et elle se règle ici plutôt que
 // dans un écran d’aide qui n’existera pas (D63).
+//
+// « Enregistrer » suit le badge, et rien d’autre : il était grisé partout
+// ailleurs que sur « Édition », si bien qu’un billet modifié affichait
+// « Modifications non enregistrées » à côté du seul bouton capable de les
+// enregistrer, éteint. Un avertissement sur lequel on ne peut pas agir vaut
+// moins que pas d’avertissement.
 
 import { Alert, Badge, Button, Group, Select, Tabs, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
@@ -17,7 +23,6 @@ import type { ReactNode } from 'react'
 import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
-import { signOut } from './api.js'
 
 export type Screen =
   'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
@@ -77,7 +82,7 @@ export function Shell({
   publication,
   onSave,
   onPublish,
-  onSignedOut,
+  onSignOut,
   children,
 }: {
   readonly payload: PanelPayload
@@ -93,7 +98,7 @@ export function Shell({
   readonly publication: PublishState
   readonly onSave: () => void
   readonly onPublish: () => void
-  readonly onSignedOut: () => void
+  readonly onSignOut: () => void
   readonly children: ReactNode
 }) {
   const several = payload.site.languages.length > 1
@@ -159,10 +164,8 @@ export function Shell({
             variant="subtle"
             color="gray"
             size="sm"
-            onClick={async () => {
-              await signOut()
-              onSignedOut()
-            }}
+            loading={busy}
+            onClick={onSignOut}
           >
             Se déconnecter
           </Button>
@@ -210,7 +213,7 @@ export function Shell({
             <div className="basalte-head__buttons">
               <Button
                 variant="default"
-                disabled={screen !== 'edit' || !dirty}
+                disabled={!dirty}
                 loading={busy}
                 onClick={onSave}
               >

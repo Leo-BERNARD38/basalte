@@ -34,6 +34,20 @@ export function MediaPicker({
   const [selected, setSelected] = useState(current)
   const [problem, setProblem] = useState('')
   const [cropping, setCropping] = useState(false)
+  const [shown, setShown] = useState(opened)
+
+  // La fenêtre reste montée, seule sa visibilité change : sans cette remise à
+  // zéro, l’état initial ne se rejouait jamais et le sélecteur ouvert depuis un
+  // second champ proposait l’image choisie pour le premier.
+  if (shown !== opened) {
+    setShown(opened)
+
+    if (opened) {
+      setSelected(current)
+      setProblem('')
+      setCropping(false)
+    }
+  }
 
   const entry = media.find((item) => item.key === selected)
   const fits =
@@ -56,7 +70,16 @@ export function MediaPicker({
         centered
       >
         <Stack gap="md">
-          {problem !== '' && <Alert color="red">{problem}</Alert>}
+          {problem !== '' && (
+            <Alert
+              color="red"
+              title="La demande a été refusée"
+              withCloseButton
+              onClose={() => setProblem('')}
+            >
+              {problem}
+            </Alert>
+          )}
 
           {ratio !== undefined && (
             <Text size="sm" c="dimmed">
@@ -68,9 +91,9 @@ export function MediaPicker({
           <MediaGrid media={media} selected={selected} onSelect={setSelected} />
 
           {entry !== undefined && !fits && (
-            <Alert color="yellow">
+            <Alert color="orange" title="Format inattendu">
               Cette image est en {entry.width}×{entry.height} : elle n’est pas
-              au format attendu. Recadre-la pour l’employer ici.
+              au format attendu. Recadrez-la pour l’employer ici.
             </Alert>
           )}
 

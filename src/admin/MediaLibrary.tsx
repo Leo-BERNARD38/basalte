@@ -9,6 +9,7 @@ import {
   Alert,
   Button,
   Group,
+  Modal,
   Paper,
   Stack,
   Text,
@@ -64,9 +65,9 @@ export function MediaLibrary({
       {problem !== '' && (
         <Alert
           color="red"
-
-          onClose={() => setProblem('')}
+          title="La demande a été refusée"
           withCloseButton
+          onClose={() => setProblem('')}
         >
           {problem}
         </Alert>
@@ -115,6 +116,8 @@ function MediaDetail({
   const [alt, setAlt] = useState<Record<string, string>>({ ...entry.alt })
   const [focal, setFocal] = useState(entry.focal ?? { x: CENTRE, y: CENTRE })
   const [busy, setBusy] = useState(false)
+  const [asked, setAsked] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const save = async () => {
     setBusy(true)
@@ -123,11 +126,18 @@ function MediaDetail({
 
     setBusy(false)
 
-    if (answer.ok) onChanged()
-    else onError(answer.message)
+    if (answer.ok) {
+      setSaved(true)
+      onChanged()
+
+      return
+    }
+
+    onError(answer.message)
   }
 
   const drop = async () => {
+    setAsked(false)
     setBusy(true)
 
     const answer = await deleteMedia(entry.key)
@@ -141,6 +151,7 @@ function MediaDetail({
   const aim = (event: React.MouseEvent<HTMLElement>) => {
     const box = event.currentTarget.getBoundingClientRect()
 
+    setSaved(false)
     setFocal({
       x: clamp(Math.round(((event.clientX - box.left) / box.width) * 100)),
       y: clamp(Math.round(((event.clientY - box.top) / box.height) * 100)),
@@ -162,6 +173,7 @@ function MediaDetail({
     if (next === undefined) return
 
     event.preventDefault()
+    setSaved(false)
     setFocal({ x: clamp(next.x), y: clamp(next.y) })
   }
 
@@ -198,26 +210,63 @@ function MediaDetail({
                 : 'Description'
             }
             value={alt[language.code] ?? ''}
-            onChange={(event) =>
+            onChange={(event) => {
+              setSaved(false)
               setAlt({ ...alt, [language.code]: event.currentTarget.value })
-            }
+            }}
           />
         ))}
 
-        <Group justify="space-between">
-          <Button
-            variant="subtle"
-            color="red"
-            loading={busy}
-            disabled={entry.usage > 0}
-            onClick={drop}
-          >
-            {entry.usage > 0 ? 'Employée par une section' : 'Supprimer'}
-          </Button>
-          <Button loading={busy} onClick={save}>
-            Enregistrer l’image
-          </Button>
+        <Group justify="space-between" align="center">
+          <Stack gap={2}>
+            <Button
+              variant="subtle"
+              color="red"
+              loading={busy}
+              disabled={entry.usage > 0}
+              onClick={() => setAsked(true)}
+            >
+              Supprimer
+            </Button>
+            {entry.usage > 0 && (
+              <Text size="xs" c="dimmed">
+                Employée par une section : retirez-la d’abord.
+              </Text>
+            )}
+          </Stack>
+          <Group gap="sm" align="center">
+            {saved && (
+              <Text size="sm" c="dimmed">
+                Enregistrée
+              </Text>
+            )}
+            <Button loading={busy} disabled={saved} onClick={save}>
+              Enregistrer l’image
+            </Button>
+          </Group>
         </Group>
+
+        <Modal
+          opened={asked}
+          onClose={() => setAsked(false)}
+          title="Supprimer cette image"
+          centered
+        >
+          <Stack gap="md">
+            <Text size="sm">
+              Le fichier et toutes ses largeurs seront effacés du dépôt. Rien ne
+              les garde ailleurs.
+            </Text>
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setAsked(false)}>
+                La garder
+              </Button>
+              <Button color="red" onClick={() => void drop()}>
+                Supprimer
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
       </Stack>
     </Paper>
   )

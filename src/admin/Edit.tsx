@@ -145,22 +145,32 @@ export function Edit({
             // et elle ne se masque pas — une section se masque par langue,
             // jamais par support ni par page (D107).
             <Stack gap={2}>
-              {draft.blocks.map((section) => (
-                <button
-                  key={section.id}
-                  type="button"
-                  className="basalte-section-row"
-                  data-fixed="true"
-                  aria-current={
-                    active.kind === 'block' && active.id === section.id
-                  }
-                  onClick={() => setFocus({ kind: 'block', id: section.id })}
-                >
-                  <span className="basalte-section-row__label">
-                    {labelOf(types, section.type)}
-                  </span>
-                </button>
-              ))}
+              {draft.blocks.map((section) => {
+                const current =
+                  active.kind === 'block' && active.id === section.id
+
+                return (
+                  <div
+                    key={section.id}
+                    className="basalte-section-row"
+                    data-fixed="true"
+                    data-current={current}
+                  >
+                    <button
+                      type="button"
+                      className="basalte-section-row__label"
+                      aria-current={current}
+                      onClick={() =>
+                        setFocus({ kind: 'block', id: section.id })
+                      }
+                    >
+                      <span className="basalte-section-row__text">
+                        {labelOf(types, section.type)}
+                      </span>
+                    </button>
+                  </div>
+                )
+              })}
             </Stack>
           ) : (
             <SortableList
@@ -172,34 +182,40 @@ export function Edit({
               <Stack gap={2}>
                 {draft.blocks.map((section) => {
                   const hidden = section.hidden[editing.language] === true
+                  const current =
+                    active.kind === 'block' && active.id === section.id
 
                   return (
                     <SortableItem key={section.id} id={section.id}>
                       {(handle) => (
-                        <button
-                          type="button"
+                        <div
                           className="basalte-section-row"
-                          aria-current={
-                            active.kind === 'block' && active.id === section.id
-                          }
+                          data-current={current}
                           data-hidden={hidden}
-                          onClick={() =>
-                            setFocus({ kind: 'block', id: section.id })
-                          }
                         >
-                          <span
+                          <button
+                            type="button"
                             className="basalte-handle"
                             ref={handle.ref}
-                            aria-label="Déplacer cette section"
+                            aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
                             {...handle.props}
                           >
                             <Grip />
-                          </span>
-                          <span className="basalte-section-row__label">
-                            {labelOf(types, section.type)}
-                          </span>
-                          {hidden && <HiddenMark />}
-                        </button>
+                          </button>
+                          <button
+                            type="button"
+                            className="basalte-section-row__label"
+                            aria-current={current}
+                            onClick={() =>
+                              setFocus({ kind: 'block', id: section.id })
+                            }
+                          >
+                            <span className="basalte-section-row__text">
+                              {labelOf(types, section.type)}
+                            </span>
+                            {hidden && <HiddenMark />}
+                          </button>
+                        </div>
                       )}
                     </SortableItem>
                   )

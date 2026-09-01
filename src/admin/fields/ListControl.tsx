@@ -8,10 +8,11 @@
 // L’ouverture suit l’élément quand la liste se réordonne, jamais son rang.
 
 import { useId, useState } from 'react'
-import { Button, Group, Paper, Stack, Text } from '@mantine/core'
+import { Button, Group, Modal, Paper, Stack, Text } from '@mantine/core'
 
 import {
   emptyValues,
+  hasContent,
   indexAfterRemoval,
   labelOfItem,
   move,
@@ -29,6 +30,7 @@ import { FieldSet, type ControlProps } from './Field.js'
 export function ListControl({ description, value, onChange }: ControlProps) {
   const editing = useEditing()
   const [open, setOpen] = useState<number | null>(null)
+  const [asked, setAsked] = useState<number | null>(null)
   const name = useId()
   const fields = description.fields ?? []
   const items = Array.isArray(value) ? (value as Values[]) : []
@@ -37,6 +39,16 @@ export function ListControl({ description, value, onChange }: ControlProps) {
   const full = description.max !== undefined && items.length >= description.max
   const scarce =
     description.min !== undefined && items.length <= description.min
+
+  const drop = (index: number) => {
+    setAsked(null)
+    onChange(remove(items, index))
+    setOpen(indexAfterRemoval(open, index))
+  }
+
+  const named = (index: number) =>
+    labelOfItem(description.itemLabel, items[index] ?? {}, editing.language) ||
+    `l’élément ${index + 1}`
 
   return (
     <Stack gap="xs">
@@ -103,12 +115,11 @@ export function ListControl({ description, value, onChange }: ControlProps) {
                     <Button
                       variant="subtle"
                       color="red"
-                      size="compact-xs"
+                      size="xs"
                       disabled={scarce}
-                      onClick={() => {
-                        onChange(remove(items, index))
-                        setOpen(indexAfterRemoval(open, index))
-                      }}
+                      onClick={() =>
+                        hasContent(item) ? setAsked(index) : drop(index)
+                      }
                     >
                       Retirer
                     </Button>
@@ -131,6 +142,30 @@ export function ListControl({ description, value, onChange }: ControlProps) {
         </Stack>
       </SortableList>
 
+      {/* Un élément rempli ne disparaît pas d’un clic : c’est le seul geste du
+          panel qui détruit ce que le client a écrit sans rien enregistrer. */}
+      <Modal
+        opened={asked !== null}
+        onClose={() => setAsked(null)}
+        title="Retirer cet élément"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            {asked === null ? '' : `« ${named(asked)} »`} sera retiré de la
+            liste. L’enregistrement suivant le fera disparaître du site.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setAsked(null)}>
+              Le garder
+            </Button>
+            <Button color="red" onClick={() => asked !== null && drop(asked)}>
+              Retirer
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
       <Group gap="sm">
         <Button
           variant="default"
@@ -146,6 +181,12 @@ export function ListControl({ description, value, onChange }: ControlProps) {
         {full && (
           <Text size="xs" c="dimmed">
             La mise en page de ce bloc n’en porte pas davantage.
+          </Text>
+        )}
+        {scarce && (
+          <Text size="xs" c="dimmed">
+            Ce bloc en demande au moins {description.min} : « Retirer » attendra
+            qu’il y en ait un de plus.
           </Text>
         )}
       </Group>

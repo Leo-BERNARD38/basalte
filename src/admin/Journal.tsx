@@ -103,24 +103,34 @@ export function Journal({
           </Group>
 
           <Stack gap={2}>
-            {posts.map((post) => (
-              <button
-                key={post.slug}
-                type="button"
-                className="basalte-section-row"
-                aria-current={post.slug === selected}
-                data-hidden={post.hidden[editing.language] === true}
-                onClick={() => onSelect(post.slug)}
-              >
-                <span className="basalte-section-row__label">
-                  {post.title}
-                  <span className="basalte-post-date">
-                    {formatDate(post.date, editing.language)}
-                  </span>
-                </span>
-                {post.hidden[editing.language] === true && <HiddenMark />}
-              </button>
-            ))}
+            {posts.map((post) => {
+              const hidden = post.hidden[editing.language] === true
+
+              return (
+                <div
+                  key={post.slug}
+                  className="basalte-section-row"
+                  data-fixed="true"
+                  data-current={post.slug === selected}
+                  data-hidden={hidden}
+                >
+                  <button
+                    type="button"
+                    className="basalte-section-row__label"
+                    aria-current={post.slug === selected}
+                    onClick={() => onSelect(post.slug)}
+                  >
+                    <span className="basalte-section-row__text">
+                      {post.title}
+                    </span>
+                    <span className="basalte-post-date">
+                      {formatDate(post.date, editing.language)}
+                    </span>
+                    {hidden && <HiddenMark />}
+                  </button>
+                </div>
+              )
+            })}
           </Stack>
 
           {posts.length === 0 && (

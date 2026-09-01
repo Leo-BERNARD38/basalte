@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 
 import type { AudienceReport, Counted } from '../analytics/report.js'
 import { readAudience } from './api.js'
+import { Waiting } from './Waiting.js'
 
 const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
@@ -21,7 +22,11 @@ const DAY_LABEL = new Intl.DateTimeFormat('fr-FR', {
 
 const PERIOD = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
 
-export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
+export function Stats({
+  onSignedOut,
+}: {
+  readonly onSignedOut: (message: string) => void
+}) {
   const [audience, setAudience] = useState<AudienceReport | undefined>(
     undefined,
   )
@@ -32,7 +37,7 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
       const answer = await readAudience()
 
       if (answer.ok) setAudience(answer.data.audience)
-      else if (answer.signedOut) onSignedOut()
+      else if (answer.signedOut) onSignedOut(answer.message)
       else setProblem(answer.message)
     }
 
@@ -40,15 +45,19 @@ export function Stats({ onSignedOut }: { readonly onSignedOut: () => void }) {
   }, [])
 
   if (problem !== '') {
-    return <Alert color="red">{problem}</Alert>
+    return (
+      <Alert color="red" title="Le rapport n’a pas pu être lu">
+        {problem}
+      </Alert>
+    )
   }
 
-  if (audience === undefined) return null
+  if (audience === undefined) return <Waiting what="Lecture des journaux…" />
 
   if (!audience.readable) {
     return (
       <Stack gap="md" maw={860}>
-        <Alert color="orange">
+        <Alert color="orange" title="Aucune mesure disponible">
           Les journaux d’accès ne sont pas lisibles depuis le panel. Le site
           continue de fonctionner : seule cette page est vide.
         </Alert>

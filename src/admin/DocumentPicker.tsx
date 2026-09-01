@@ -24,6 +24,17 @@ export function DocumentPicker({
 }) {
   const [selected, setSelected] = useState(current)
   const [problem, setProblem] = useState('')
+  const [shown, setShown] = useState(opened)
+
+  // Même remise à zéro que pour les images : la fenêtre ne se démonte pas.
+  if (shown !== opened) {
+    setShown(opened)
+
+    if (opened) {
+      setSelected(current)
+      setProblem('')
+    }
+  }
 
   return (
     <Modal
@@ -34,7 +45,16 @@ export function DocumentPicker({
       centered
     >
       <Stack gap="md">
-        {problem !== '' && <Alert color="red">{problem}</Alert>}
+        {problem !== '' && (
+          <Alert
+            color="red"
+            title="La demande a été refusée"
+            withCloseButton
+            onClose={() => setProblem('')}
+          >
+            {problem}
+          </Alert>
+        )}
 
         <DocumentList
           documents={documents}

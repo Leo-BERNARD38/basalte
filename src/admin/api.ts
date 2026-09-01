@@ -20,9 +20,17 @@ export type Answer<T> =
       readonly message: string
       readonly problems: readonly string[]
       readonly signedOut: boolean
+      /** Le moment à partir duquel une nouvelle tentative est acceptée. */
+      readonly retryAt?: number
+      /** Les essais qu’il reste, quand le serveur les compte. */
+      readonly remaining?: number
     }
 
-export type SignInStep = { readonly step: 'code' | 'panel' }
+export type SignInStep = {
+  readonly step: 'code' | 'panel'
+  /** Le moment où le code cesse de valoir, quand une étape en envoie un. */
+  readonly expiresAt?: number
+}
 
 export type SessionInfo = {
   readonly email: string
@@ -40,7 +48,17 @@ export type SessionInfo = {
   }[]
 }
 
-const OFFLINE = 'Le serveur ne répond pas. Réessaie dans un instant.'
+const OFFLINE = 'Le serveur ne répond pas. Réessayez dans un instant.'
+
+/**
+ * Le délai au-delà duquel une requête est tenue pour perdue. Sans lui, un
+ * serveur qui accepte la connexion sans jamais répondre laisse le bouton
+ * tourner indéfiniment, et le client n’a plus qu’à recharger la page.
+ *
+ * Il est large : un téléversement d’image passe par un ré-encodage sharp, et
+ * une mise en ligne rend la main avant de construire.
+ */
+const DEADLINE = 30_000
 
 export function loadPanel(): Promise<Answer<PanelPayload>> {
   return send('GET', '/api/panel')
@@ -218,6 +236,7 @@ async function send<T>(
   return receive(
     fetch(url, {
       method,
+      signal: AbortSignal.timeout(DEADLINE),
       ...(body === undefined
         ? {}
         : {
@@ -259,5 +278,11 @@ async function receive<T>(pending: Promise<Response>): Promise<Answer<T>> {
       ? (payload['problems'] as string[])
       : [],
     signedOut: response.status === 401,
+    ...(typeof payload['retryAt'] === 'number'
+      ? { retryAt: payload['retryAt'] }
+      : {}),
+    ...(typeof payload['remaining'] === 'number'
+      ? { remaining: payload['remaining'] }
+      : {}),
   }
 }

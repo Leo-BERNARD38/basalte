@@ -6,9 +6,11 @@
 // aussi tout ce que le manifeste retient.
 
 import {
+  Alert,
   Button,
   FileButton,
   Group,
+  Modal,
   Paper,
   Stack,
   Text,
@@ -110,12 +112,14 @@ export function DocumentPanel({
   const [problem, setProblem] = useState('')
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
+  const [asked, setAsked] = useState(false)
 
   const entry = documents.find((item) => item.key === selected)
 
   const drop = async () => {
     if (entry === undefined) return
 
+    setAsked(false)
     setBusy(true)
 
     const answer = await deleteDocument(entry.key)
@@ -150,9 +154,14 @@ export function DocumentPanel({
       </Text>
 
       {problem !== '' && (
-        <Text size="sm" c="red">
+        <Alert
+          color="red"
+          title="La demande a été refusée"
+          withCloseButton
+          onClose={() => setProblem('')}
+        >
           {problem}
-        </Text>
+        </Alert>
       )}
 
       <DocumentList
@@ -172,19 +181,48 @@ export function DocumentPanel({
             >
               Télécharger
             </Button>
-            <Button
-              variant="subtle"
-              color="red"
-              size="xs"
-              loading={busy}
-              disabled={entry.usage > 0}
-              onClick={() => void drop()}
-            >
-              {entry.usage > 0 ? 'Employé par une section' : 'Supprimer'}
-            </Button>
+            <Stack gap={2} align="flex-end">
+              <Button
+                variant="subtle"
+                color="red"
+                size="xs"
+                loading={busy}
+                disabled={entry.usage > 0}
+                onClick={() => setAsked(true)}
+              >
+                Supprimer
+              </Button>
+              {entry.usage > 0 && (
+                <Text size="xs" c="dimmed">
+                  Employé par une section : retirez-le d’abord.
+                </Text>
+              )}
+            </Stack>
           </Group>
         </Paper>
       )}
+
+      <Modal
+        opened={asked}
+        onClose={() => setAsked(false)}
+        title="Supprimer ce document"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            « {entry?.name} » sera effacé du dépôt. Les liens qui y menaient ne
+            mèneront plus nulle part.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setAsked(false)}>
+              Le garder
+            </Button>
+            <Button color="red" onClick={() => void drop()}>
+              Supprimer
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   )
 }

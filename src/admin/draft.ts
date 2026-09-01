@@ -102,6 +102,23 @@ export function indexAfterRemoval(
 }
 
 /**
+ * Un élément porte-t-il quelque chose ? Retirer une ligne qu’on vient d’ajouter
+ * ne demande rien ; retirer un paragraphe écrit hier se confirme. La question
+ * se pose sur la valeur, pas sur son rang : un élément vide reste vide dans
+ * toutes les langues.
+ */
+export function hasContent(value: unknown): boolean {
+  if (typeof value === 'string') return value.trim() !== ''
+  if (Array.isArray(value)) return value.some(hasContent)
+
+  if (typeof value === 'object' && value !== null) {
+    return Object.values(value).some(hasContent)
+  }
+
+  return value !== undefined && value !== null
+}
+
+/**
  * Le nom d’un élément de liste, tel qu’il se lit replié : le champ que le bloc
  * a désigné en `itemLabel`. À défaut, rien — c’est l’appelant qui retombe sur
  * le rang, seul à le connaître.
