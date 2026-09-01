@@ -207,32 +207,37 @@ relevé du tout (D137).
 
 ## Le cadrage des images
 
-Un `f.image({ ratio })` était une intention que rien ne tenait. Il est
-maintenant obtenu, et le client garde la main sur ce qui reste dans le cadre.
+Un `f.image({ ratio })` est une intention, et c'est le **point focal** qui la
+tient (D178). Le client ne découpe rien : il désigne le sujet, une fois, dans la
+médiathèque.
 
-**Recadrer est une ingestion** (D117). La sortie repasse par la fonction qui
-traite un téléversement : mêmes largeurs, même WebP, même nom dérivé de
-l'empreinte, mêmes garanties (invariant 3). L'originale reste dans la
-médiathèque, et l'entrée dérivée note d'où elle vient et quel cadre a été
-retenu. Trois conséquences :
+**Le point focal est le seul réglage d'image.** Il se pose en pourcentage sur
+l'originale, et `resolveImage` le rend en `object-position`. Un emplacement en
+`object-fit: cover` cadre donc autour de ce point, quelle que soit la forme
+qu'il demande — un bandeau en 16/9 et une vignette en 4/3 se servent du même,
+et le corriger ne réencode rien. **Sans point défini, c'est le centre** :
+`50% 50%`, ce qu'un navigateur ferait de toute façon, et ce qui convient à la
+plupart des photos.
 
-- on peut recommencer, et recadrer un recadrage repart de l'originale : aucune
-  chaîne de découpes ne s'accumule, aucune passe d'encodage ne s'ajoute ;
-- une même photo sert deux fois à deux formats — deux cadres, deux clés ;
-- le contenu ne porte toujours qu'une chaîne, donc **aucune migration**.
-
-Le cadre entre dans l'empreinte : refaire le même recadrage rend la même clé.
+C'est ce qui remplace le recadrage. Découper donnait le format et figeait une
+forme : la même photo servant deux emplacements demandait deux découpes, donc
+deux clés, et corriger le cadrage demandait de recommencer. Le point focal sert
+tous les emplacements à la fois, et il se déplace.
 
 **Le format attendu n'est connu que du champ.** La médiathèque ne déclare aucun
-ratio ; c'est l'emplacement qui le fait, et c'est donc depuis le champ que le
-recadrage s'ouvre. `basalte check` rattrape ce qu'un contenu écrit à la main
-laisserait passer, en avertissant sans bloquer : la page s'affiche, et forcer sa
-correction avant tout enregistrement bloquerait un site qui fonctionne.
+ratio ; c'est l'emplacement qui le fait. Une image d'une autre forme n'est plus
+refusée — elle est cadrée. `basalte check` avertit sans bloquer : la page
+s'affiche, et forcer une correction avant tout enregistrement bloquerait un site
+qui fonctionne. Le ratio reste une valeur, et non une valeur par support (D119).
 
-**Le point focal reste** (D118). Le recadrage donne le format ; le point focal
-dit où est le sujet à l'intérieur de ce format, et c'est encore lui qui
-travaille quand le CSS re-cadre d'un support à l'autre. Le ratio, lui, reste une
-valeur et non une valeur par support (D119).
+**Un bloc qui recadre pose le point focal.** Les sept blocs du socle qui rendent
+une image en `cover` écrivent son `object-position` ; `logos` ne le fait pas, et
+n'a pas à le faire — il est en `contain`, un logo ne se recadre pas. Rien ne
+l'impose encore à un bloc nouveau : c'est une ligne de `roadmap.md`.
+
+Les recadrages faits avant D178 restent des médias comme les autres. Leur
+filiation continue d'être lue, et supprimer l'originale dont un dérivé est en
+ligne reste refusé.
 
 ## Le journal
 
