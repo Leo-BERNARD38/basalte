@@ -32,6 +32,18 @@ describe('contrastFindings', () => {
     expect(found[0]?.message).toContain(String(MINIMUM_RATIO))
   })
 
+  it('tient les trois plans, et pas seulement le fond', () => {
+    const tokens = resolveTokens({
+      color: { surface: '#8f8f97', contrast: '#8a8a92' },
+    })
+    const messages = contrastFindings('site.config.ts', tokens).map(
+      (entry) => entry.message,
+    )
+
+    expect(messages).toContainEqual(expect.stringContaining('color.surface'))
+    expect(messages).toContainEqual(expect.stringContaining('color.contrastFg'))
+  })
+
   it('attrape un texte secondaire trop pâle', () => {
     const tokens = resolveTokens({ color: { muted: '#d8d8d8' } })
 

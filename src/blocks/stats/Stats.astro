@@ -33,44 +33,57 @@ const title = pick(props.title, language)
 
 <style>
   .stats {
-    padding: var(--space-7) var(--space-5);
-    border-top: 1px solid var(--color-border);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-surface);
   }
 
   .stats__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
   }
 
   .stats__title {
-    margin: 0 0 var(--space-6);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    margin-block: 0;
+    text-align: center;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .stats__list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-6) var(--space-5);
+    gap: var(--space-7) var(--space-5);
     margin: 0;
+    text-align: center;
   }
 
   .stats__value {
     font-family: var(--font-title);
-    font-size: var(--text-3xl);
-    line-height: 1.1;
+    font-size: clamp(var(--text-3xl), 8vw, var(--text-4xl));
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
   }
 
   .stats__label {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-3) 0 0;
     color: var(--color-muted);
     font-size: var(--text-sm);
+    line-height: 1.4;
   }
 
   @media (min-width: 48rem) {
     .stats__list {
-      grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
     }
   }
 </style>

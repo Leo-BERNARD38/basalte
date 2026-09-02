@@ -1,0 +1,183 @@
+{
+  "$format": 1,
+  "meta": {
+    "title": {
+      "fr": "Comment ça marche — Basalte",
+      "en": ""
+    },
+    "description": {
+      "fr": "Ce que vous éditez vous-même, ce qui est fait pour vous, et ce qu’il reste à demander. Le fonctionnement d’un site Basalte, en clair.",
+      "en": ""
+    }
+  },
+  "blocks": [
+    {
+      "id": "intro",
+      "type": "richtext",
+      "props": {
+        "title": {
+          "fr": "Un site, deux moitiés",
+          "en": ""
+        },
+        "body": {
+          "fr": "Un site Basalte se sépare en deux : ce qui **se voit** — vos textes, vos photos, l’ordre de vos sections — et ce qui **le fait tenir** — la mise en page, la vitesse, le référencement, la sécurité.\n\nLa première moitié est à vous, et vous n’avez besoin de personne pour la changer. La seconde est notre travail, et elle se met à jour sans jamais toucher à ce que vous avez écrit.\n\nC’est la seule frontière à retenir. Tout le reste en découle.",
+          "en": ""
+        }
+      }
+    },
+    {
+      "id": "ce-que-vous-faites",
+      "type": "features",
+      "props": {
+        "title": {
+          "fr": "Ce que vous faites vous-même",
+          "en": ""
+        },
+        "items": [
+          {
+            "title": {
+              "fr": "Changer un texte",
+              "en": ""
+            },
+            "body": {
+              "fr": "Chaque section est un formulaire. Vous écrivez, vous enregistrez, vous relisez l’aperçu — puis vous mettez en ligne.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Remplacer une photo",
+              "en": ""
+            },
+            "body": {
+              "fr": "Vous déposez l’image, elle est préparée toute seule. Le texte qui la décrit est demandé sur place : il est obligatoire.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Réordonner ou masquer",
+              "en": ""
+            },
+            "body": {
+              "fr": "Une section se déplace à la souris et se masque sans être perdue. Vous pouvez en ajouter une depuis la bibliothèque.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Écrire une actualité",
+              "en": ""
+            },
+            "body": {
+              "fr": "Un billet se rédige, se garde en brouillon, puis paraît. Il entre tout seul dans le plan du site et dans le flux.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Lire vos messages",
+              "en": ""
+            },
+            "body": {
+              "fr": "Les messages du formulaire arrivent dans votre boîte et restent consultables dans le panneau, avec la page d’où ils viennent.",
+              "en": ""
+            }
+          },
+          {
+            "title": {
+              "fr": "Voir votre audience",
+              "en": ""
+            },
+            "body": {
+              "fr": "Les pages les plus lues et d’où viennent les visites, comptées dans les journaux du serveur — sans un seul traceur.",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "apercu",
+      "type": "gallery",
+      "props": {
+        "title": {
+          "fr": "Le panneau d’édition",
+          "en": ""
+        },
+        "images": [
+          {
+            "image": "d5cbe71ce2aea315",
+            "caption": {
+              "fr": "Les sections d’une page, et leur ordre",
+              "en": ""
+            }
+          },
+          {
+            "image": "f1518577181a1ac1",
+            "caption": {
+              "fr": "La médiathèque, et le point focal d’une photo",
+              "en": ""
+            }
+          },
+          {
+            "image": "5e35291831644868",
+            "caption": {
+              "fr": "Les messages reçus par le formulaire",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "qui",
+      "type": "team",
+      "props": {
+        "title": {
+          "fr": "À qui vous parlez",
+          "en": ""
+        },
+        "intro": {
+          "fr": "Pas d’assistance à numéro. La personne qui écrit votre site est celle qui répond quand vous appelez.",
+          "en": ""
+        },
+        "items": [
+          {
+            "image": "",
+            "name": "Léo Bernard",
+            "role": {
+              "fr": "Conception et développement",
+              "en": ""
+            },
+            "body": {
+              "fr": "Écrit le socle et les sites qu’il porte. C’est lui qui prend vos retours, et lui qui les applique.",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "relance",
+      "type": "cta",
+      "props": {
+        "title": {
+          "fr": "Une question avant de commencer ?",
+          "en": ""
+        },
+        "body": {
+          "fr": "Écrivez-nous. Une réponse claire vaut mieux qu’un devis pressé.",
+          "en": ""
+        },
+        "cta": {
+          "label": {
+            "fr": "Nous écrire",
+            "en": ""
+          },
+          "href": "/contact"
+        }
+      }
+    }
+  ]
+}

@@ -4,14 +4,16 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les dix-huit phases sont faites — le socle rend, authentifie, édite,
+**État :** les dix-neuf phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
 cadre ses images, joint son client, constate ce qu'un site contient, se publie
 lui-même, porte les sections que la plupart des sites demandent, tient un
 journal que le client alimente lui-même, laisse ses listes s'allonger sans
 rendre son panel illisible, tient son panel au plancher qu'il exige de ses
-blocs — vérifié, non plus annoncé — et porte enfin une direction artistique
-qui lui appartient, sans bibliothèque d'interface. Un site se crée, se met en
+blocs — vérifié, non plus annoncé —, porte une direction artistique qui lui
+appartient sans bibliothèque d'interface, et habille enfin ses pages comme il
+habille son panel : trois plans de couleur, un rythme et un axe communs à tous
+ses blocs, et une landing complète pour le prouver. Un site se crée, se met en
 production et se monte de version en une commande chacune ; une version du
 socle se publie en une commande aussi. Ce que chaque phase a mis en place est
 relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
@@ -105,7 +107,8 @@ src/
 │                   quand le bloc porte une variante bureau
 ├── chrome/         en-tête et pied de page : deux emplacements bâtis comme
 │   └── <nom>/      des blocs, qu'un dépôt client remplace dossier pour dossier
-├── astro/          intégration : routes du site, du panel, aperçu, API
+├── astro/          intégration : routes du site, du panel, aperçu, API ;
+│                   base.css, le plancher commun et le bouton, tenus par lint
 ├── admin/          panel : island React unique
 │   ├── tokens.ts   les valeurs du système, dans un module sans import
 │   ├── panel.css   les mêmes en variables --panel-*, et tout le dessin
@@ -134,7 +137,7 @@ src/
 └── cli/            init, check, inventory, content, lint, update, deploy,
                     doctor, migrate, admin:login, update-all
 notes/              une note de version par tag, livrée dans le paquet
-examples/demo/      site de démonstration, banc de test
+examples/demo/      la landing de Basalte : démonstration et banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
 .claude/            l'amorçage d'une session sur le web (D125), et les skills
@@ -167,9 +170,13 @@ Détail dans `docs/conventions.md`. L'essentiel :
 - **Aucune valeur de style en dur dans un bloc.** Couleurs, espacements et
   typographies passent par un token — `docs/design.md`. Un besoin non couvert
   est un token à ajouter, jamais un `padding: 27px` isolé. `basalte lint` le
-  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Le
-  panel a sa propre couche de tokens, `src/admin/tokens.ts` (D95), contrôlée
-  par le même `lint` (D164). Un filet d'un pixel y sépare deux plans, et
+  refuse, à l'endroit fautif : la règle n'est plus une phrase à retenir. Une
+  valeur qui varie avec l'écran se compose de **deux tokens dans un `clamp`**,
+  jamais d'une media query par bloc (D184) ; le plan d'une section — fond,
+  retrait, ou inversé — vient de son **type**, jamais d'un champ (D185) ; et le
+  bouton vit une seule fois, dans `src/astro/base.css`, que `lint` contrôle
+  comme un bloc (D186). Le panel a sa propre couche de tokens,
+  `src/admin/tokens.ts` (D95), contrôlée par le même `lint` (D164). Un filet d'un pixel y sépare deux plans, et
   l'ombre ne reste qu'à ce qui flotte (D172) ; l'action est noire, et l'accent
   ne dit jamais « fais » (D174) ; la forme pleine est le défaut, sauf pour le
   champ, la ligne de liste et la surface (D173). Ce qui s'affiche devant un

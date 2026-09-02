@@ -2,6 +2,12 @@
 // liste est fermée : une famille ou un nom absents d’ici sont refusés, ce qui
 // est ce qui rend tenable l’interdiction des valeurs de style en dur dans un
 // bloc (docs/design.md).
+//
+// Les couleurs portent trois plans, et c’est ce qui donne son rythme à une page
+// : « bg » le fond, « surface » le retrait qui sépare deux sections sans un
+// trait, « contrast » le plan sombre. Le troisième existe pour lui-même, sans
+// quoi un bandeau inversé détourne l’accent — et un site qui veut ce bandeau
+// noir n’a plus d’accent nulle part.
 
 const DEFAULTS = {
   color: {
@@ -12,6 +18,9 @@ const DEFAULTS = {
     accentFg: '#ffffff',
     border: '#e2e5ea',
     danger: '#b42318',
+    surface: '#f4f4f6',
+    contrast: '#101014',
+    contrastFg: '#ffffff',
   },
   font: {
     title: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
@@ -25,6 +34,8 @@ const DEFAULTS = {
     xl: '1.375rem',
     '2xl': '1.875rem',
     '3xl': '2.5rem',
+    '4xl': '3.25rem',
+    '5xl': '4rem',
   },
   space: {
     1: '0.25rem',
@@ -35,10 +46,14 @@ const DEFAULTS = {
     6: '2rem',
     7: '3rem',
     8: '4.5rem',
+    9: '6rem',
+    10: '8rem',
   },
   radius: {
     sm: '0.25rem',
     md: '0.5rem',
+    lg: '1rem',
+    xl: '1.75rem',
   },
   width: {
     content: '42rem',

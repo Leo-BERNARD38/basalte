@@ -90,7 +90,7 @@ const sections = years.map((year) => ({
 
     {
       moreLabel !== '' && props.more.href !== '' && (
-        <a class="journal__more" href={props.more.href}>
+        <a class="button button--quiet journal__more" href={props.more.href}>
           {moreLabel}
         </a>
       )
@@ -100,35 +100,58 @@ const sections = years.map((year) => ({
 
 <style>
   .journal {
-    padding: var(--space-7) var(--space-5);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .journal__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
     max-width: var(--width-wide);
     margin-inline: auto;
+    width: 100%;
   }
 
   .journal__title {
-    margin: 0 0 var(--space-6);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    margin-block: 0;
+    text-align: center;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .journal__more {
+    align-self: center;
   }
 
   .journal__empty {
     margin: 0;
+    text-align: center;
     color: var(--color-muted);
   }
 
-  .journal__group + .journal__group {
-    margin-top: var(--space-7);
+  .journal__group {
+    width: 100%;
   }
 
   .journal__year {
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-5);
+    text-align: center;
     color: var(--color-muted);
     font-family: var(--font-title);
-    font-size: var(--text-lg);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .journal__group + .journal__group {
+    margin-top: var(--space-8);
   }
 
   .journal__list {
@@ -140,18 +163,20 @@ const sections = years.map((year) => ({
   }
 
   .journal__link {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-2);
+    height: 100%;
     color: inherit;
     text-decoration: none;
   }
 
   .journal__cover {
     width: 100%;
+    margin-bottom: var(--space-2);
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-2);
+    border-radius: var(--radius-lg);
   }
 
   .journal__date {
@@ -161,8 +186,11 @@ const sections = years.map((year) => ({
 
   .journal__headline {
     font-family: var(--font-title);
-    font-size: var(--text-xl);
-    line-height: 1.25;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    transition: color 0.15s ease;
   }
 
   .journal__link:hover .journal__headline {
@@ -171,23 +199,24 @@ const sections = years.map((year) => ({
 
   .journal__excerpt {
     color: var(--color-muted);
-  }
-
-  .journal__more {
-    display: inline-block;
-    margin-top: var(--space-6);
-    color: var(--color-accent);
+    line-height: 1.55;
   }
 
   @media (min-width: 40rem) {
     .journal__list {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (min-width: 62rem) {
     .journal__list {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .journal__headline {
+      transition: none;
     }
   }
 </style>

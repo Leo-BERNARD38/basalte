@@ -2,17 +2,17 @@
   "$format": 1,
   "meta": {
     "title": {
-      "fr": "Atelier Démonstration",
+      "fr": "Basalte — votre site, que vous modifiez",
       "en": ""
     },
     "description": {
-      "fr": "Le banc d’essai du socle : un contenu en JSON, des blocs, et pas une ligne de JavaScript servie.",
+      "fr": "Un site vitrine rapide, sans abonnement à une plateforme. Vous changez vos textes et vos photos vous-même, depuis un panneau simple.",
       "en": ""
     }
   },
   "blocks": [
     {
-      "id": "h1",
+      "id": "hero",
       "type": "hero",
       "props": {
         "title": {
@@ -20,13 +20,13 @@
           "en": ""
         },
         "subtitle": {
-          "fr": "Les textes, les images, l’ordre des sections. Servi en HTML pur, sans base de données ni script.",
+          "fr": "Un site vitrine rapide et sobre, à vous. Vous changez les textes, les photos et l’ordre des sections quand vous voulez, sans appeler personne et sans rien casser.",
           "en": ""
         },
-        "image": "ac12e6f2b5e4e49f",
+        "image": "3a7abcf466070d5b",
         "cta": {
           "label": {
-            "fr": "Nous écrire",
+            "fr": "Parlons de votre site",
             "en": ""
           },
           "href": "/contact"
@@ -34,107 +34,280 @@
       }
     },
     {
-      "id": "r1",
-      "type": "richtext",
+      "id": "clients",
+      "type": "logos",
       "props": {
         "title": {
-          "fr": "Ce que ce bloc démontre",
+          "fr": "Ils ont leur site sous Basalte",
+          "en": ""
+        },
+        "items": [
+          {
+            "image": "2e08df87f1ab4bcb",
+            "href": ""
+          },
+          {
+            "image": "9568a4a237805833",
+            "href": ""
+          },
+          {
+            "image": "ba93dd32cbe07aad",
+            "href": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "ecrire",
+      "type": "showcase",
+      "props": {
+        "title": {
+          "fr": "Vous écrivez, vous voyez",
           "en": ""
         },
         "body": {
-          "fr": "Ce paragraphe passe par un **Markdown restreint**. Le gras, l’*italique* et les [liens](https://exemple.fr) sont rendus ; tout le reste est échappé.\n\nÉcrire <script>alert(1)</script> dans le panel n’a donc aucun effet : le texte s’affiche tel quel.",
+          "fr": "Le panneau d’édition ne montre que vos textes et vos photos, champ par champ. Vous corrigez une phrase, vous ajoutez une section, vous la déplacez — et vous regardez le résultat avant que quiconque le voie.",
           "en": ""
+        },
+        "points": [
+          {
+            "label": {
+              "fr": "Un aperçu du brouillon, avant la mise en ligne",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Les sections se réordonnent à la souris",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Rien ne part en ligne tant que vous ne le dites pas",
+              "en": ""
+            }
+          }
+        ],
+        "image": "d5cbe71ce2aea315",
+        "side": "right",
+        "cta": {
+          "label": {
+            "fr": "Voir comment ça marche",
+            "en": ""
+          },
+          "href": "/fonctionnement"
         }
       }
     },
     {
-      "id": "f1",
-      "type": "features",
+      "id": "photos",
+      "type": "showcase",
       "props": {
         "title": {
-          "fr": "Trois choses qui ne bougeront pas",
+          "fr": "Vos photos, préparées pour vous",
+          "en": ""
+        },
+        "body": {
+          "fr": "Vous déposez la photo telle qu’elle sort de votre téléphone. Elle est redimensionnée en cinq largeurs, allégée, et débarrassée des données de localisation qu’un appareil y glisse.",
+          "en": ""
+        },
+        "points": [
+          {
+            "label": {
+              "fr": "Cinq largeurs produites au dépôt, jamais au chargement",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Les coordonnées GPS de la photo sont retirées",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Vous choisissez le point qui doit rester visible",
+              "en": ""
+            }
+          }
+        ],
+        "image": "f1518577181a1ac1",
+        "side": "left",
+        "cta": {
+          "label": {
+            "fr": "",
+            "en": ""
+          },
+          "href": ""
+        }
+      }
+    },
+    {
+      "id": "ligne",
+      "type": "showcase",
+      "props": {
+        "title": {
+          "fr": "Une mise en ligne ne casse rien",
+          "en": ""
+        },
+        "body": {
+          "fr": "Le site est reconstruit à côté du vôtre, vérifié, puis échangé d’un seul geste. S’il manque quelque chose, la version en place ne bouge pas : vous ne pouvez pas mettre votre site hors service.",
+          "en": ""
+        },
+        "points": [
+          {
+            "label": {
+              "fr": "Le contenu est vérifié avant d’être publié",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "L’ancienne version reste servie jusqu’au dernier instant",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Chaque modification est datée et conservée",
+              "en": ""
+            }
+          }
+        ],
+        "image": "7b3e8dd542690224",
+        "side": "right",
+        "cta": {
+          "label": {
+            "fr": "",
+            "en": ""
+          },
+          "href": ""
+        }
+      }
+    },
+    {
+      "id": "garanties",
+      "type": "bento",
+      "props": {
+        "title": {
+          "fr": "Ce qui ne bougera pas",
+          "en": ""
+        },
+        "intro": {
+          "fr": "Ce ne sont pas des options : c’est ce que le socle refuse de faire autrement, sur tous les sites qu’il porte.",
           "en": ""
         },
         "items": [
           {
             "title": {
-              "fr": "Aucun JavaScript par défaut",
+              "fr": "Aucun script sur vos pages",
               "en": ""
             },
             "body": {
-              "fr": "Une page ne charge un script que si un bloc le demande explicitement.",
+              "fr": "Une page de votre site ne charge aucun JavaScript. Elle s’affiche à l’instant où elle arrive, même sur un téléphone au bord du réseau.",
               "en": ""
-            }
+            },
+            "image": "",
+            "size": "large"
           },
           {
             "title": {
-              "fr": "Les images sont préparées d’avance",
+              "fr": "Pas de traceur, pas de bandeau",
               "en": ""
             },
             "body": {
-              "fr": "Cinq largeurs en WebP produites au dépôt de l’image, jamais au moment de la publication.",
+              "fr": "L’audience se mesure dans les journaux du serveur. Aucun cookie à annoncer, aucune régie tierce.",
               "en": ""
-            }
+            },
+            "image": "",
+            "size": "normal"
           },
           {
             "title": {
-              "fr": "Une publication ratée ne casse rien",
+              "fr": "Vos textes vous appartiennent",
               "en": ""
             },
             "body": {
-              "fr": "Le contenu est validé contre son schéma avant que quoi que ce soit ne parte en ligne.",
+              "fr": "Ils vivent en fichiers dans votre dépôt, lisibles sans nous. Rien n’est enfermé dans une base.",
               "en": ""
-            }
+            },
+            "image": "",
+            "size": "normal"
+          },
+          {
+            "title": {
+              "fr": "Pas d’abonnement à une plateforme",
+              "en": ""
+            },
+            "body": {
+              "fr": "Vous payez un hébergement, pas un droit d’accès à votre propre site. Le jour où vous partez, il part avec vous.",
+              "en": ""
+            },
+            "image": "",
+            "size": "normal"
+          },
+          {
+            "title": {
+              "fr": "Vos messages arrivent chez vous",
+              "en": ""
+            },
+            "body": {
+              "fr": "Le formulaire écrit dans votre boîte mail et garde une copie. Rien ne transite par un service tiers.",
+              "en": ""
+            },
+            "image": "",
+            "size": "normal"
           }
         ]
       }
     },
     {
-      "id": "s1",
+      "id": "chiffres",
       "type": "stats",
       "props": {
         "title": {
-          "fr": "En quelques chiffres",
+          "fr": "Ce que ça donne, mesuré",
           "en": ""
         },
         "items": [
           {
             "value": {
-              "fr": "18 ans",
+              "fr": "0 Ko",
               "en": ""
             },
             "label": {
-              "fr": "d’atelier, au même endroit",
+              "fr": "de JavaScript sur une page publique",
               "en": ""
             }
           },
           {
             "value": {
-              "fr": "+340",
+              "fr": "5",
               "en": ""
             },
             "label": {
-              "fr": "pièces livrées",
+              "fr": "largeurs produites pour chaque photo",
               "en": ""
             }
           },
           {
             "value": {
-              "fr": "3 sem.",
+              "fr": "1",
               "en": ""
             },
             "label": {
-              "fr": "de délai moyen",
+              "fr": "commande pour mettre le site à jour",
               "en": ""
             }
           },
           {
             "value": {
-              "fr": "100 %",
+              "fr": "30 j",
               "en": ""
             },
             "label": {
-              "fr": "de bois européen",
+              "fr": "avant qu’on vous redemande un code",
               "en": ""
             }
           }
@@ -142,7 +315,127 @@
       }
     },
     {
-      "id": "e1",
+      "id": "compare",
+      "type": "comparison",
+      "props": {
+        "title": {
+          "fr": "Basalte, ou une plateforme",
+          "en": ""
+        },
+        "intro": {
+          "fr": "Les deux font un site. La différence se voit surtout le jour où vous voulez partir, ou le jour où quelqu’un mesure la vitesse.",
+          "en": ""
+        },
+        "left": {
+          "name": {
+            "fr": "Basalte",
+            "en": ""
+          },
+          "note": {
+            "fr": "votre dépôt, votre serveur",
+            "en": ""
+          }
+        },
+        "right": {
+          "name": {
+            "fr": "Une plateforme",
+            "en": ""
+          },
+          "note": {
+            "fr": "un compte chez elle",
+            "en": ""
+          }
+        },
+        "rows": [
+          {
+            "label": {
+              "fr": "Où vivent vos textes",
+              "en": ""
+            },
+            "left": {
+              "fr": "Chez vous, en clair",
+              "en": ""
+            },
+            "right": {
+              "fr": "Dans leur base",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Scripts chargés",
+              "en": ""
+            },
+            "left": {
+              "fr": "Aucun",
+              "en": ""
+            },
+            "right": {
+              "fr": "Souvent plus d’un mégaoctet",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Bandeau de cookies",
+              "en": ""
+            },
+            "left": {
+              "fr": "Aucun à poser",
+              "en": ""
+            },
+            "right": {
+              "fr": "Presque toujours",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Si vous arrêtez",
+              "en": ""
+            },
+            "left": {
+              "fr": "Le site vous suit",
+              "en": ""
+            },
+            "right": {
+              "fr": "Il s’éteint",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Ce que vous payez",
+              "en": ""
+            },
+            "left": {
+              "fr": "Un hébergement",
+              "en": ""
+            },
+            "right": {
+              "fr": "Un abonnement mensuel",
+              "en": ""
+            }
+          },
+          {
+            "label": {
+              "fr": "Qui peut modifier",
+              "en": ""
+            },
+            "left": {
+              "fr": "Vous, sans nous",
+              "en": ""
+            },
+            "right": {
+              "fr": "Vous, chez eux",
+              "en": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "etapes",
       "type": "steps",
       "props": {
         "title": {
@@ -150,47 +443,47 @@
           "en": ""
         },
         "intro": {
-          "fr": "Quatre rendez-vous, du premier croquis à la pose. Aucun n’est facturé avant le devis signé.",
+          "fr": "Quatre rendez-vous, du premier échange à la mise en ligne. Rien n’est facturé avant que le devis soit signé.",
           "en": ""
         },
         "items": [
           {
             "title": {
-              "fr": "On se voit",
+              "fr": "On se parle",
               "en": ""
             },
             "body": {
-              "fr": "Sur place, pour prendre les mesures et comprendre l’usage de la pièce.",
+              "fr": "Une heure pour comprendre ce que vous vendez, à qui, et ce que votre site doit obtenir.",
               "en": ""
             }
           },
           {
             "title": {
-              "fr": "Vous recevez un devis",
+              "fr": "Vous recevez une maquette",
               "en": ""
             },
             "body": {
-              "fr": "Un dessin, un prix, un délai. Valable trente jours.",
+              "fr": "Les couleurs, les caractères et les sections de votre page d’accueil. Vous dites ce qui ne va pas.",
               "en": ""
             }
           },
           {
             "title": {
-              "fr": "On fabrique",
+              "fr": "On installe",
               "en": ""
             },
             "body": {
-              "fr": "À l’atelier, avec des photos à chaque étape si vous le souhaitez.",
+              "fr": "Le site part sur un serveur à vous, avec son certificat et ses sauvegardes. Vous recevez vos accès.",
               "en": ""
             }
           },
           {
             "title": {
-              "fr": "On pose",
+              "fr": "Vous prenez la main",
               "en": ""
             },
             "body": {
-              "fr": "En une journée le plus souvent, et l’atelier repart avec ses chutes.",
+              "fr": "Une heure ensemble sur le panneau d’édition, et vous n’avez plus besoin de nous pour changer une phrase.",
               "en": ""
             }
           }
@@ -198,62 +491,40 @@
       }
     },
     {
-      "id": "g1",
-      "type": "gallery",
+      "id": "mot",
+      "type": "temoignage",
       "props": {
-        "title": {
-          "fr": "Trois images, neuf fichiers, zéro travail au build",
+        "quote": {
+          "fr": "Je change mes textes moi-même, et le site reste aussi rapide qu’au premier jour.",
           "en": ""
         },
-        "images": [
-          {
-            "image": "317469df38a6a6c9",
-            "caption": {
-              "fr": "L’établi",
-              "en": ""
-            }
-          },
-          {
-            "image": "34dd7a2858aed0c1",
-            "caption": {
-              "fr": "Les outils",
-              "en": ""
-            }
-          },
-          {
-            "image": "ceff58179486d4a3",
-            "caption": {
-              "fr": "La pièce finie",
-              "en": ""
-            }
-          }
-        ]
+        "author": "Camille Duvallon"
       }
     },
     {
-      "id": "av1",
+      "id": "avis",
       "type": "testimonials",
       "props": {
         "title": {
-          "fr": "Ce qu’en disent nos clients",
+          "fr": "Ce qu’en disent les propriétaires",
           "en": ""
         },
         "items": [
           {
             "quote": {
-              "fr": "La bibliothèque épouse un mur qui n’a pas un angle droit. Personne ne le voit, et c’est bien le but.",
+              "fr": "J’ai mis à jour mes horaires depuis mon téléphone, un dimanche soir. C’était en ligne dans la minute.",
               "en": ""
             },
             "author": "Camille Duvallon",
             "role": {
-              "fr": "Grenoble",
+              "fr": "Atelier Noé, Grenoble",
               "en": ""
             },
             "image": "f7521f178c237da9"
           },
           {
             "quote": {
-              "fr": "Devis tenu au jour près, chantier laissé propre. Je n’ai pas eu à repasser derrière.",
+              "fr": "Mes clients me disent que le site s’ouvre tout de suite. C’est la première fois qu’on me le dit.",
               "en": ""
             },
             "author": "Sofiane Meddah",
@@ -265,12 +536,12 @@
           },
           {
             "quote": {
-              "fr": "Je change mes textes moi-même, et le site reste aussi rapide qu’au premier jour.",
+              "fr": "Plus d’abonnement, plus de bandeau de cookies, et un site qui m’appartient vraiment.",
               "en": ""
             },
             "author": "Léa Fontaine",
             "role": {
-              "fr": "Saint-Égrève",
+              "fr": "Maisons Rivet, Saint-Égrève",
               "en": ""
             },
             "image": ""
@@ -279,42 +550,98 @@
       }
     },
     {
-      "id": "t1",
-      "type": "temoignage",
-      "props": {
-        "quote": {
-          "fr": "Je change mes textes moi-même, et le site reste aussi rapide qu’au premier jour.",
-          "en": ""
-        },
-        "author": "Camille Duvallon"
-      }
-    },
-    {
-      "id": "l1",
-      "type": "logos",
+      "id": "tarifs",
+      "type": "pricing",
       "props": {
         "title": {
-          "fr": "Ils nous ont fait confiance",
+          "fr": "Ce que ça coûte",
+          "en": ""
+        },
+        "intro": {
+          "fr": "Un prix de départ, puis l’hébergement. Aucun pourcentage, aucune option à débloquer.",
           "en": ""
         },
         "items": [
           {
-            "image": "9568a4a237805833",
-            "href": ""
+            "name": {
+              "fr": "Une page",
+              "en": ""
+            },
+            "price": {
+              "fr": "à partir de 1 400 €",
+              "en": ""
+            },
+            "note": {
+              "fr": "livré en trois semaines",
+              "en": ""
+            },
+            "body": {
+              "fr": "Une page d’accueil, un formulaire de contact et vos mentions légales.\n\n- la maquette et son écriture\n- le panneau d’édition\n- la mise en ligne et vos accès",
+              "en": ""
+            },
+            "cta": {
+              "label": {
+                "fr": "Demander un devis",
+                "en": ""
+              },
+              "href": "/contact"
+            }
           },
           {
-            "image": "ba93dd32cbe07aad",
-            "href": "https://exemple.fr"
+            "name": {
+              "fr": "Le site complet",
+              "en": ""
+            },
+            "price": {
+              "fr": "à partir de 2 600 €",
+              "en": ""
+            },
+            "note": {
+              "fr": "livré en six semaines",
+              "en": ""
+            },
+            "body": {
+              "fr": "Tout ce qui précède, plus les pages dont votre métier a besoin.\n\n- jusqu’à cinq pages\n- vos actualités, que vous écrivez\n- vos documents en téléchargement",
+              "en": ""
+            },
+            "cta": {
+              "label": {
+                "fr": "Demander un devis",
+                "en": ""
+              },
+              "href": "/contact"
+            }
           },
           {
-            "image": "2e08df87f1ab4bcb",
-            "href": ""
+            "name": {
+              "fr": "L’hébergement",
+              "en": ""
+            },
+            "price": {
+              "fr": "35 € par mois",
+              "en": ""
+            },
+            "note": {
+              "fr": "sans engagement",
+              "en": ""
+            },
+            "body": {
+              "fr": "Le serveur, le nom de domaine et les mises à jour du socle.\n\n- sauvegardes quotidiennes\n- certificat renouvelé tout seul\n- une heure de retouches par trimestre",
+              "en": ""
+            },
+            "cta": {
+              "label": {
+                "fr": "Demander un devis",
+                "en": ""
+              },
+              "href": "/contact"
+            }
           }
         ]
       }
     },
     {
-      "id": "q1",
+      "id": "questions",
       "type": "faq",
       "props": {
         "title": {
@@ -324,11 +651,11 @@
         "items": [
           {
             "question": {
-              "fr": "Puis-je modifier moi-même les textes ?",
+              "fr": "Faut-il savoir se servir d’un ordinateur ?",
               "en": ""
             },
             "answer": {
-              "fr": "Oui. Chaque section s’édite depuis le panel, et **rien n’est en ligne** tant que vous n’avez pas cliqué sur « Mettre en ligne ».",
+              "fr": "Savoir écrire un email suffit. Le panneau ne montre que des champs — un titre, un texte, une photo — et il **enregistre** sans rien mettre en ligne tant que vous ne l’avez pas demandé.",
               "en": ""
             }
           },
@@ -338,307 +665,67 @@
               "en": ""
             },
             "answer": {
-              "fr": "Un enregistrement invalide est refusé avant d’être écrit, et chaque version reste en place tant que la suivante n’est pas construite.",
+              "fr": "Vous ne pouvez pas. Le contenu est vérifié avant chaque mise en ligne, et la version en place reste servie jusqu’à ce que la nouvelle soit prête. Chaque enregistrement est conservé.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Ce bloc charge-t-il du JavaScript ?",
+              "fr": "Puis-je ajouter des pages moi-même ?",
               "en": ""
             },
             "answer": {
-              "fr": "Non. Le dépliage est celui de `details`, natif :\n\n- le clavier l’ouvre\n- les lecteurs d’écran l’annoncent\n- la recherche de la page y trouve le texte replié",
+              "fr": "Vous ajoutez des **sections** à une page qui existe, et vous les réordonnez. Une page nouvelle engage son adresse, le menu et le référencement : elle se demande, et elle est ajoutée dans la journée.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Combien de questions puis-je mettre ici ?",
+              "fr": "Le site est-il à moi ?",
               "en": ""
             },
             "answer": {
-              "fr": "Autant que vous voulez. Cette liste n’a plus de borne haute : la mise en page les empile, et le panel les replie une à une.",
+              "fr": "Oui, entièrement : le nom de domaine, le serveur et les fichiers. Si vous arrêtez l’hébergement, tout vous est remis, lisible sans aucun outil de notre part.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Pourquoi certaines listes sont-elles encore bornées ?",
+              "fr": "Combien de temps pour une mise en ligne ?",
               "en": ""
             },
             "answer": {
-              "fr": "Une seule l’est : le menu de l’en-tête. C’est une rangée qui ne se replie pas — au-delà de six liens, elle déborde et la page défile en travers.",
+              "fr": "Une minute environ. Vous cliquez sur « Mettre en ligne », et vous rafraîchissez votre site.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Puis-je ajouter une page ?",
+              "fr": "Et pour le référencement ?",
               "en": ""
             },
             "answer": {
-              "fr": "Non, et c’est volontaire. Les pages, leurs adresses et le plan du site sont fixés à la livraison ; vous en changez le contenu, jamais la structure.",
+              "fr": "Les balises, le plan du site et les données structurées sont produits tout seuls. Ce qui reste — écrire des titres qui décrivent vos pages — se voit à l’enregistrement : le panneau nomme les pages à reprendre.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Puis-je réordonner les sections ?",
+              "fr": "Faut-il un bandeau de cookies ?",
               "en": ""
             },
             "answer": {
-              "fr": "Oui, à la poignée, à la souris comme au clavier. Une section se masque aussi sans être supprimée.",
+              "fr": "Non. Votre site ne dépose aucun cookie et ne charge aucun traceur. La mesure d’audience se fait dans les journaux du serveur, sans rien suivre personne à personne.",
               "en": ""
             }
           },
           {
             "question": {
-              "fr": "Combien de temps met une mise en ligne ?",
+              "fr": "Puis-je écrire en plusieurs langues ?",
               "en": ""
             },
             "answer": {
-              "fr": "Le temps de reconstruire le site, quelques secondes. L’ancienne version continue d’être servie jusqu’à la dernière.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Que se passe-t-il si je ferme l’onglet en cours d’édition ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Le brouillon est perdu, mais rien n’est cassé : la version en ligne n’a pas bougé.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Mes visiteurs voient-ils mes brouillons ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Jamais. Un billet en brouillon n’a d’adresse dans aucune langue, et une section masquée n’est pas construite.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Comment j’ajoute une photo ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Depuis la médiathèque du panel. L’image est ré-encodée, ses données de prise de vue retirées, et ses différentes largeurs produites à ce moment-là.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Pourquoi mon image est-elle recadrée ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Chaque emplacement attend une forme. Le panel vous montre le cadre retenu et vous laisse le déplacer, sans jamais toucher à l’originale.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je téléverser une image au format SVG ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Non. Un SVG est un document exécutable : il est refusé au téléversement, sans exception.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Quelle taille d’image dois-je préparer ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "La plus grande dont vous disposez. Le socle en tire les tailles plus petites ; l’inverse n’est pas possible.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Une page peut-elle devenir trop lourde ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Oui, et la construction le dit : au-delà de deux mégaoctets téléchargés à l’ouverture, un avertissement nomme la page. Il n’empêche pas de publier.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je mettre un PDF en téléchargement ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Oui, si le site le déclare. Le fichier est servi en pièce jointe, jamais affiché dans la page.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Les images ralentissent-elles le site ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Le navigateur ne télécharge que la largeur dont il a besoin. C’est le nombre d’images d’une même page qui compte, pas leur taille de départ.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Le site fonctionne-t-il sans JavaScript ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Entièrement. Le site public n’en embarque aucun par défaut ; un bloc qui en a besoin le déclare, et lui seul le charge.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Le site est-il lisible sur téléphone ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Il est d’abord dessiné pour le téléphone. Le rendu large est une variante, qui ne montre rien que le téléphone ne montre pas.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Est-ce que le site est accessible ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Les contrastes, les cibles tactiles et le focus au clavier ont un plancher que le socle vérifie. Le reste dépend de ce que vous écrivez — un texte alternatif utile, par exemple.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Comment les messages du formulaire me parviennent-ils ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Par email, et ils restent dans le panel. Les deux canaux sont indépendants : si l’email échoue, le message est là quand même.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je changer l’adresse qui reçoit les messages ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Oui, c’est un réglage du site. Il ne demande pas de nouvelle mise en ligne du contenu.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Que deviennent les coordonnées de mes visiteurs ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Elles restent sur votre machine. Aucun traceur, aucune régie, aucun script tiers n’est chargé.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Comment je sais combien de personnes visitent le site ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Par les journaux d’accès du serveur, lus après coup. Rien n’est déposé dans le navigateur de vos visiteurs.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Le site apparaît-il dans Google ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Chaque page porte son titre, sa description, son adresse canonique et sa carte de partage. Le plan du site est produit à chaque mise en ligne.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Pourquoi la construction me signale-t-elle un titre en double ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Deux pages qui portent le même titre se font concurrence dans les résultats. Ce n’est pas une erreur, c’est un constat — à vous de voir.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je traduire le site ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Oui. Les langues vivent dans les champs eux-mêmes ; une langue en préparation ne se publie pas tant qu’elle est incomplète.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Une langue incomplète bloque-t-elle la mise en ligne ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Seulement si elle est en ligne. Tant qu’elle est en préparation, ses trous sont tolérés.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je écrire des articles ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Oui, dans le journal. Un billet s’écrit en plusieurs fois : tant qu’il est en brouillon, ses champs peuvent rester vides.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Puis-je programmer la parution d’un article ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Non. Un site construit à l’avance n’a pas d’horloge : un billet daté de demain n’apparaîtrait qu’à la construction suivante.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Qui possède le site ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Vous. Le contenu, les images et l’historique sont dans votre dépôt, et le site tourne sur votre machine.",
-              "en": ""
-            }
-          },
-          {
-            "question": {
-              "fr": "Que se passe-t-il si je change d’hébergeur ?",
-              "en": ""
-            },
-            "answer": {
-              "fr": "Le site est du HTML posé sur un disque. Il se déplace tel quel, sans rien à reconfigurer côté contenu.",
+              "fr": "Oui. Une langue s’active d’abord en préparation : vous traduisez à votre rythme, et elle ne devient publique que lorsqu’elle est complète.",
               "en": ""
             }
           }
@@ -646,15 +733,15 @@
       }
     },
     {
-      "id": "c1",
+      "id": "relance",
       "type": "cta",
       "props": {
         "title": {
-          "fr": "Un projet en tête ?",
+          "fr": "Parlons de votre site",
           "en": ""
         },
         "body": {
-          "fr": "Décrivez-le en trois lignes : nous répondons sous deux jours ouvrés, devis compris.",
+          "fr": "Dites-nous ce que vous faites et ce que votre site devrait obtenir. Nous répondons sous deux jours ouvrés, avec un prix.",
           "en": ""
         },
         "cta": {
@@ -663,28 +750,6 @@
             "en": ""
           },
           "href": "/contact"
-        }
-      }
-    },
-    {
-      "id": "j0",
-      "type": "journal",
-      "props": {
-        "title": {
-          "fr": "Dernières actualités",
-          "en": ""
-        },
-        "limit": "3",
-        "empty": {
-          "fr": "",
-          "en": ""
-        },
-        "more": {
-          "label": {
-            "fr": "Toutes les actualités",
-            "en": ""
-          },
-          "href": "/actualites"
         }
       }
     }

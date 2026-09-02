@@ -26,11 +26,19 @@ const file = document(props.file)
   file !== undefined && (
     <section class="download">
       <div class="download__inner">
-        {title !== '' && <Title class="download__title">{title}</Title>}
-        {description !== '' && (
-          <p class="download__description">{description}</p>
+        {(title !== '' || description !== '') && (
+          <div class="download__head">
+            {title !== '' && <Title class="download__title">{title}</Title>}
+            {description !== '' && (
+              <p class="download__description">{description}</p>
+            )}
+          </div>
         )}
-        <a class="download__link" href={file.href} download={file.name}>
+        <a
+          class="button button--quiet download__link"
+          href={file.href}
+          download={file.name}
+        >
           {label === '' ? 'Télécharger' : label}
           <span class="download__weight">PDF · {file.weight}</span>
         </a>
@@ -41,41 +49,44 @@ const file = document(props.file)
 
 <style>
   .download {
-    padding: var(--space-7) var(--space-5);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
   }
 
   .download__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-5);
     max-width: var(--width-content);
     margin-inline: auto;
   }
 
+  .download__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+
   .download__title {
-    margin: 0 0 var(--space-3);
+    margin: 0;
     font-family: var(--font-title);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   .download__description {
-    margin: 0 0 var(--space-4);
+    margin: 0;
     color: var(--color-muted);
-  }
-
-  .download__link {
-    display: inline-flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-height: 44px;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    background: var(--color-accent);
-    color: var(--color-accent-fg);
-    font-family: var(--font-body);
-    text-decoration: none;
+    line-height: 1.55;
   }
 
   .download__weight {
-    font-size: var(--text-xs);
-    opacity: 0.85;
+    color: var(--color-muted);
+    font-size: var(--text-sm);
   }
 </style>

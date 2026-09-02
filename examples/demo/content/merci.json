@@ -1,7 +1,10 @@
 {
   "$format": 1,
   "meta": {
-    "title": { "fr": "Merci — Atelier Démonstration", "en": "" },
+    "title": {
+      "fr": "Merci — Basalte",
+      "en": ""
+    },
     "description": {
       "fr": "Votre message est bien arrivé.",
       "en": ""
@@ -12,9 +15,12 @@
       "id": "m1",
       "type": "richtext",
       "props": {
-        "title": { "fr": "Merci, votre message est bien arrivé", "en": "" },
+        "title": {
+          "fr": "Merci, votre message est bien arrivé",
+          "en": ""
+        },
         "body": {
-          "fr": "Nous revenons vers vous sous deux jours ouvrés.\n\nCette page a une adresse à elle : c’est ce qui rend un envoi mesurable, et c’est là qu’une régie publicitaire compte une conversion. Elle n’entre ni au menu, ni au sitemap, ni dans un index.\n\n[Revenir à l’accueil](/)",
+          "fr": "Nous revenons vers vous sous deux jours ouvrés, avec une réponse et un prix.\n\nCette page a une adresse à elle : c’est ce qui rend un envoi mesurable. Elle n’entre ni au menu, ni au plan du site, ni dans un index.\n\n[Revenir à l’accueil](/)",
           "en": ""
         }
       }

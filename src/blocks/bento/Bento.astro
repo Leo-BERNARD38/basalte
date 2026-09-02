@@ -1,0 +1,181 @@
+---
+// La grille de cartes. Elle démontre une mécanique qu’aucun autre bloc ne
+// montre : un élément de liste qui décide de la place qu’il prend, sans que
+// rien d’autre dans la page ait à le savoir.
+//
+// Une seule mise en page, qui gagne ses colonnes au large : le mobile empile,
+// le bureau range, et l’ordre du HTML ne change jamais — c’est une media query,
+// pas une variante (docs/design.md).
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, image, heading } = Astro.props
+
+const Title = heading
+const ItemTitle = heading === 'h1' ? 'h2' : 'h3'
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+
+const cards = props.items.map((item) => ({
+  title: pick(item.title, language),
+  body: pick(item.body, language),
+  large: item.size === 'large',
+  picture: image(
+    item.image,
+    item.size === 'large'
+      ? '(min-width: 48rem) 44rem, 92vw'
+      : '(min-width: 48rem) 22rem, 92vw',
+  ),
+}))
+---
+
+<section class="bento">
+  <div class="bento__inner">
+    {
+      (title !== '' || intro !== '') && (
+        <div class="bento__head">
+          {title !== '' && <Title class="bento__title">{title}</Title>}
+          {intro !== '' && <p class="bento__intro">{intro}</p>}
+        </div>
+      )
+    }
+    <ul class="bento__list">
+      {
+        cards.map((card) => (
+          <li class:list={['bento__item', card.large && 'bento__item--large']}>
+            {card.picture !== undefined && (
+              <img
+                class="bento__image"
+                src={card.picture.src}
+                srcset={card.picture.srcset}
+                sizes={card.picture.sizes}
+                width={card.picture.width}
+                height={card.picture.height}
+                alt={card.picture.alt}
+                style={`object-position:${card.picture.objectPosition}`}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            <div class="bento__text">
+              <ItemTitle class="bento__item-title">{card.title}</ItemTitle>
+              {card.body !== '' && <p class="bento__body">{card.body}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .bento {
+    padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+    padding-inline: var(--space-5);
+    background: var(--color-surface);
+  }
+
+  .bento__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 5vw, var(--space-8));
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .bento__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .bento__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .bento__intro {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: clamp(var(--text-base), 2.5vw, var(--text-lg));
+    line-height: 1.55;
+  }
+
+  .bento__list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bento__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    overflow: hidden;
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-bg);
+  }
+
+  /* L’image déborde le rembourrage de la carte pour en toucher les bords : la
+     marge négative est la seule façon de le dire sans un second élément. */
+  .bento__image {
+    width: calc(100% + var(--space-6) + var(--space-6));
+    max-width: none;
+    margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) 0;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .bento__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .bento__item-title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .bento__body {
+    margin: 0;
+    color: var(--color-muted);
+    line-height: 1.55;
+  }
+
+  @media (min-width: 48rem) {
+    .bento__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+
+    .bento__item--large {
+      grid-column: span 2;
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .bento__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

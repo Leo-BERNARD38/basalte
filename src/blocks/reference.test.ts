@@ -7,10 +7,13 @@ import { validatePage } from '../content/validate.js'
 import { renderRichtext } from '../fields/richtext.js'
 import { dayLabel } from '../seo/business.js'
 import { resolveLanguages } from '../site/languages.js'
+import bento from './bento/schema.js'
+import comparison from './comparison/schema.js'
 import contact from './contact/schema.js'
 import details from './contact-details/schema.js'
 import faq from './faq/schema.js'
 import logos from './logos/schema.js'
+import showcase from './showcase/schema.js'
 import richtext from './richtext/schema.js'
 import stats from './stats/schema.js'
 import steps from './steps/schema.js'
@@ -192,5 +195,121 @@ describe('bloc logos — ce qu’il ne redemande pas', () => {
 
   it('n’attend aucunes proportions : un logo n’a pas de forme commune', () => {
     expect(logos.fields.items.of.image.ratio).toBeUndefined()
+  })
+})
+
+describe('bloc showcase — le côté de l’image', () => {
+  it('propose deux côtés, la droite d’abord', () => {
+    expect(showcase.fields.side.options.map((option) => option.value)).toEqual([
+      'right',
+      'left',
+    ])
+  })
+
+  it('exige son image : sans elle, la section n’a plus de sujet', () => {
+    expect(showcase.fields.image.required).toBe(true)
+    expect(showcase.fields.image.ratio).toBe('4/3')
+  })
+
+  it('ne borne pas ses points en haut : la mise en page ne casse pas', () => {
+    expect(showcase.fields.points.max).toBeUndefined()
+  })
+})
+
+describe('bloc bento — la carte décide de sa place', () => {
+  it('porte la largeur sur l’élément, pas sur la section', () => {
+    expect(Object.keys(bento.fields.items.of)).toEqual([
+      'title',
+      'body',
+      'image',
+      'size',
+    ])
+    expect(
+      bento.fields.items.of.size.options.map((option) => option.value),
+    ).toEqual(['normal', 'large'])
+  })
+
+  it('demande trois cartes : à deux, ce n’est plus une grille', () => {
+    expect(bento.fields.items.min).toBe(3)
+  })
+})
+
+describe('bloc comparison — deux colonnes, alignées par construction', () => {
+  it('nomme ses colonnes une fois, et chaque ligne porte leurs deux valeurs', () => {
+    expect(Object.keys(comparison.fields.left.fields)).toEqual(['name', 'note'])
+    expect(Object.keys(comparison.fields.right.fields)).toEqual([
+      'name',
+      'note',
+    ])
+    expect(Object.keys(comparison.fields.rows.of)).toEqual([
+      'label',
+      'left',
+      'right',
+    ])
+  })
+
+  it('valide une comparaison écrite à la main', () => {
+    const { issues } = validatePage({
+      name: 'index',
+      source: {
+        $format: 1,
+        meta: { title: { fr: 'Basalte' }, description: { fr: 'Un mot.' } },
+        blocks: [
+          {
+            id: 'compare',
+            type: 'comparison',
+            props: {
+              left: { name: { fr: 'Basalte' }, note: { fr: 'votre dépôt' } },
+              right: { name: { fr: 'Une plateforme' }, note: { fr: '' } },
+              rows: [
+                {
+                  label: { fr: 'Le contenu' },
+                  left: { fr: 'chez vous' },
+                  right: { fr: 'chez eux' },
+                },
+                {
+                  label: { fr: 'Le coût' },
+                  left: { fr: 'un hébergement' },
+                  right: { fr: 'un abonnement' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      registry: { comparison },
+      languages,
+      media: {},
+      documents: {},
+    })
+
+    expect(issues).toEqual([])
+  })
+
+  it('refuse une comparaison à une seule ligne', () => {
+    const { issues } = validatePage({
+      name: 'index',
+      source: {
+        $format: 1,
+        meta: { title: { fr: 'Basalte' }, description: { fr: 'Un mot.' } },
+        blocks: [
+          {
+            id: 'compare',
+            type: 'comparison',
+            props: {
+              left: { name: { fr: 'Basalte' } },
+              right: { name: { fr: 'Une plateforme' } },
+              rows: [{ label: { fr: 'Le contenu' } }],
+            },
+          },
+        ],
+      },
+      registry: { comparison },
+      languages,
+      media: {},
+      documents: {},
+    })
+
+    expect(issues).not.toEqual([])
   })
 })

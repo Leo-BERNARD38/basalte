@@ -7,7 +7,7 @@ describe('resolveTokens', () => {
     const tokens = resolveTokens()
 
     expect(tokens.color.bg).toMatch(/^#/)
-    expect(Object.keys(tokens.space)).toHaveLength(8)
+    expect(Object.keys(tokens.space)).toHaveLength(10)
     expect(Object.keys(tokens.text)).toEqual([
       'xs',
       'sm',
@@ -16,6 +16,8 @@ describe('resolveTokens', () => {
       'xl',
       '2xl',
       '3xl',
+      '4xl',
+      '5xl',
     ])
   })
 
@@ -45,7 +47,11 @@ describe('tokensToCss', () => {
     const css = tokensToCss(resolveTokens())
 
     expect(css).toContain('--color-accent-fg:')
-    expect(css).toContain('--text-3xl:')
+    expect(css).toContain('--color-contrast-fg:')
+    expect(css).toContain('--color-surface:')
+    expect(css).toContain('--text-5xl:')
+    expect(css).toContain('--space-10:')
+    expect(css).toContain('--radius-xl:')
     expect(css).toContain('--space-1:')
     expect(css).toContain('--width-content:')
     expect(css).toContain('--font-title:')

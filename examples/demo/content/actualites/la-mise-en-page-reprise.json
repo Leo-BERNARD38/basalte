@@ -1,0 +1,23 @@
+{
+  "$format": 1,
+  "hidden": {
+    "fr": false
+  },
+  "fields": {
+    "title": {
+      "fr": "La mise en page reprise, de bout en bout",
+      "en": ""
+    },
+    "date": "2026-09-01",
+    "excerpt": {
+      "fr": "Plus d’air entre les sections, des titres qui grandissent avec l’écran, et une barre de navigation qui reste sous la main.",
+      "en": ""
+    },
+    "cover": "a66d2ae399f379ca",
+    "body": {
+      "fr": "Toutes les sections du socle ont été redessinées ensemble. Ce n’est pas une nouvelle fonction : c’est la même page, qui respire.\n\n## Ce qui a changé\n\n- Les titres **grandissent avec l’écran** au lieu de garder la même taille du téléphone au grand écran.\n- Les sections alternent entre le fond blanc et un gris très pâle : c’est ce qui les sépare, à la place du trait qu’il y avait avant.\n- La barre du haut **reste visible** quand on descend, sans masquer le texte : elle laisse passer ce qui défile dessous.\n- Les boutons ont tous le même dessin, partout.\n\n## Faut-il faire quelque chose ?\n\nNon. Vos textes, vos photos et l’ordre de vos sections sont intacts. La mise à jour se fait à distance, et votre site n’est pas interrompu.",
+      "en": ""
+    },
+    "gallery": []
+  }
+}

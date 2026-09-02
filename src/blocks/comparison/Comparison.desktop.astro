@@ -1,0 +1,189 @@
+---
+// La variante bureau du tableau comparatif : un vrai tableau.
+//
+// C’est une variante et non une media query : le mobile porte une légende puis
+// des cartes, le bureau un `<table>` dont les en-têtes nomment les colonnes une
+// seule fois. Deux structures pour le même contenu — la frontière que
+// `docs/design.md` trace entre les deux outils.
+//
+// Le contrat des deux rendus tient : le mobile redit le nom de chaque colonne à
+// chaque ligne, le bureau l’écrit une fois. Rien n’est ici qui ne soit là-bas
+// (`src/render/parity.ts`, D108).
+import { pick } from '../../fields/translate.js'
+import type { BlockProps } from '../define.js'
+import schema from './schema.js'
+
+type Props = BlockProps<(typeof schema)['fields']>
+
+const { props, language, heading } = Astro.props
+
+const Title = heading
+
+const title = pick(props.title, language)
+const intro = pick(props.intro, language)
+
+const left = {
+  name: pick(props.left.name, language),
+  note: pick(props.left.note, language),
+}
+const right = {
+  name: pick(props.right.name, language),
+  note: pick(props.right.note, language),
+}
+
+const rows = props.rows.map((row) => ({
+  label: pick(row.label, language),
+  left: pick(row.left, language),
+  right: pick(row.right, language),
+}))
+---
+
+<section class="comparison">
+  <div class="comparison__inner">
+    {
+      (title !== '' || intro !== '') && (
+        <div class="comparison__head">
+          {title !== '' && <Title class="comparison__title">{title}</Title>}
+          {intro !== '' && <p class="comparison__intro">{intro}</p>}
+        </div>
+      )
+    }
+
+    <div class="comparison__scroll">
+      <table class="comparison__table">
+        <thead>
+          <tr>
+            <td></td>
+            <th class="comparison__column--mine" scope="col">
+              <span class="comparison__column-name">{left.name}</span>
+              {
+                left.note !== '' && (
+                  <span class="comparison__column-note">{left.note}</span>
+                )
+              }
+            </th>
+            <th scope="col">
+              <span class="comparison__column-name">{right.name}</span>
+              {
+                right.note !== '' && (
+                  <span class="comparison__column-note">{right.note}</span>
+                )
+              }
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((row) => (
+              <tr>
+                <th class="comparison__label" scope="row">
+                  {row.label}
+                </th>
+                <td class="comparison__value--mine">{row.left}</td>
+                <td>{row.right}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comparison {
+    padding-block: var(--space-10);
+    padding-inline: var(--space-5);
+    background: var(--color-bg);
+  }
+
+  .comparison__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+    max-width: var(--width-wide);
+    margin-inline: auto;
+  }
+
+  .comparison__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .comparison__title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(var(--text-2xl), 3.5vw, var(--text-3xl));
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .comparison__intro {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--text-lg);
+    line-height: 1.55;
+  }
+
+  /* Un tableau ne se replie pas : passé une certaine largeur de texte il
+     défile, plutôt que d’étirer la page derrière lui. */
+  .comparison__scroll {
+    overflow-x: auto;
+  }
+
+  .comparison__table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .comparison__table th,
+  .comparison__table td {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+    font-weight: 400;
+    vertical-align: baseline;
+  }
+
+  .comparison__table thead th {
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .comparison__table thead .comparison__column--mine {
+    border-bottom-color: var(--color-accent);
+  }
+
+  .comparison__column-name {
+    display: block;
+    font-family: var(--font-title);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .comparison__column-note {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+  }
+
+  .comparison__label {
+    width: 34%;
+    font-weight: 600;
+  }
+
+  .comparison__table td {
+    color: var(--color-muted);
+  }
+
+  .comparison__table td.comparison__value--mine {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+</style>

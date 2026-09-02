@@ -2,17 +2,18 @@
   "$format": 1,
   "meta": {
     "title": {
-      "fr": "Mentions légales — Atelier Démonstration",
+      "fr": "Mentions légales — Basalte",
       "en": ""
     },
     "description": {
-      "fr": "Éditeur, hébergeur, données collectées : la page qui exerce les titres et les listes du Markdown restreint.",
+      "fr": "Éditeur, hébergement, données personnelles et cookies. Ce que ce site collecte, et ce qu’il n’en fait pas.",
       "en": ""
-    }
+    },
+    "image": "c995042cc72d5bb0"
   },
   "blocks": [
     {
-      "id": "l1",
+      "id": "mentions",
       "type": "richtext",
       "props": {
         "title": {
@@ -20,26 +21,26 @@
           "en": ""
         },
         "body": {
-          "fr": "Cette page est le banc d’essai de la grammaire enrichie : elle porte des titres et des listes, et rien d’autre que ce que la liste blanche autorise.\n\n## Éditeur du site\n\n- Atelier Démonstration, société fictive au capital de zéro euro\n- Siège social : nulle part, ce site ne sert qu’à tester le socle\n- SIREN 000 000 000, immatriculée nulle part\n\n## Directeur de la publication\n\nCamille Duvallon, en qualité de personnage de démonstration.\n\n## Ce que ce site collecte\n\nLe formulaire de contact enregistre un nom, une adresse email et un message. Ces données servent à répondre, et **à rien d’autre**. Elles sont effacées au bout de douze mois.\n\nLe site ne dépose aucun cookie et n’embarque aucun traceur.\n\n## Vos droits\n\n1. Demander l’accès aux données vous concernant\n2. En demander la rectification ou l’effacement\n3. Vous opposer à leur traitement\n\nÉcrire au [formulaire de contact](/contact) suffit.",
+          "fr": "## Éditeur\n\nBasalte — site de démonstration. Les informations de cette page sont un canevas : sur un site livré, elles portent la raison sociale, l’immatriculation et le directeur de la publication.\n\n## Hébergement\n\nLe site est hébergé sur un serveur dédié au client, en France. L’adresse de l’hébergeur figure ici sur un site livré.\n\n## Données personnelles\n\nLe formulaire de contact enregistre le nom, l’adresse email et le message que vous écrivez. Ces données servent à vous répondre, et à rien d’autre. Elles ne sont ni vendues, ni transmises à un tiers à des fins commerciales, et elles sont effacées au bout de douze mois.\n\nVous pouvez demander à les consulter, les corriger ou les faire effacer en écrivant à l’adresse de contact.\n\n## Cookies\n\nCe site ne dépose **aucun cookie** et ne charge aucun traceur. L’audience est mesurée dans les journaux du serveur, sans suivre personne d’une page à l’autre.\n\n## Propriété\n\nLes textes et les images de ce site appartiennent à son propriétaire. Le socle technique est publié sous son propre dépôt.",
           "en": ""
         }
       }
     },
     {
-      "id": "l2",
+      "id": "conditions",
       "type": "download",
       "props": {
         "title": {
-          "fr": "Nos conditions générales",
+          "fr": "Les conditions générales",
           "en": ""
         },
         "description": {
-          "fr": "Le seul fichier que ce site sert autrement qu’en HTML. Il se télécharge, il ne s’ouvre jamais dans la page.",
+          "fr": "Le document signé à la commande, tel qu’il vous a été remis. Il est servi en pièce jointe : votre navigateur le téléchargera plutôt que de l’ouvrir.",
           "en": ""
         },
         "file": "c91b89365fa64a90",
         "label": {
-          "fr": "",
+          "fr": "Télécharger le PDF",
           "en": ""
         }
       }

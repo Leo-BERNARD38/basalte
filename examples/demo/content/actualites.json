@@ -2,18 +2,18 @@
   "$format": 1,
   "meta": {
     "title": {
-      "fr": "Actualités de l’atelier",
+      "fr": "Actualités — Basalte",
       "en": ""
     },
     "description": {
-      "fr": "Ce qui se passe à l’atelier : nouvelles essences, chantiers livrés, portes ouvertes.",
+      "fr": "Ce qui change dans le socle et sur les sites qu’il porte : nouvelles sections, corrections, et ce que ça vous fait gagner.",
       "en": ""
     },
-    "image": ""
+    "image": "c995042cc72d5bb0"
   },
   "blocks": [
     {
-      "id": "j1",
+      "id": "liste",
       "type": "journal",
       "props": {
         "title": {
@@ -22,7 +22,7 @@
         },
         "limit": "",
         "empty": {
-          "fr": "Rien de neuf pour l’instant. Repassez bientôt.",
+          "fr": "Rien de neuf pour l’instant.",
           "en": ""
         },
         "more": {

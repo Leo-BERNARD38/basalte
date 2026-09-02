@@ -29,18 +29,86 @@ socle.
 
 | Famille | Tokens |
 |---|---|
-| Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` `--color-danger` |
+| Couleurs | `--color-bg` `--color-fg` `--color-muted` `--color-accent` `--color-accent-fg` `--color-border` `--color-danger` `--color-surface` `--color-contrast` `--color-contrast-fg` |
 | Typographies | `--font-title` `--font-body` |
-| Échelle de texte | `--text-xs` `--text-sm` `--text-base` `--text-lg` `--text-xl` `--text-2xl` `--text-3xl` |
-| Espacement | `--space-1` → `--space-8`, de 0,25 à 4,5 rem |
-| Rayons | `--radius-sm` `--radius-md` |
+| Échelle de texte | `--text-xs` → `--text-5xl`, de 0,8125 à 4 rem |
+| Espacement | `--space-1` → `--space-10`, de 0,25 à 8 rem |
+| Rayons | `--radius-sm` `--radius-md` `--radius-lg` `--radius-xl` |
 | Largeurs | `--width-content` `--width-wide` |
+
+**Les couleurs portent trois plans** (D182), et c'est d'eux que vient le rythme
+d'une page :
+
+| Plan | Ce qu'il est |
+|---|---|
+| `bg` / `fg` | le fond, et l'encre qui s'y pose |
+| `surface` | le retrait — ce qui sépare deux sections sans un trait |
+| `contrast` / `contrast-fg` | le plan sombre, rendu à lui-même |
+
+Le troisième existe pour lui-même : sans lui, un bandeau inversé détourne
+l'accent, et un site qui veut ce bandeau noir n'a plus d'accent nulle part.
+
+**Il n'y a pas de famille `shadow`**, et il n'y en aura pas tant que la règle du
+panel tient (D172) : un filet d'un pixel sépare deux plans, et l'ombre ne reste
+qu'à ce qui flotte. Le seul élément qui flotte est l'en-tête collant.
 
 Un besoin qui ne rentre pas dans cette liste est un token à ajouter au socle,
 jamais une valeur en dur dans un bloc.
 
 C'est ce qui fait que le même bloc `hero` a une allure radicalement différente
 d'un client à l'autre sans qu'une ligne de son code change.
+
+## Le vocabulaire de mise en page
+
+Trois règles, appliquées à tous les blocs du socle. Elles ne sont pas des
+préférences : elles sont ce qui fait qu'une page se lit comme une page, et non
+comme un empilement de sections correctes.
+
+### Une valeur qui varie se compose de deux tokens (D184)
+
+```css
+font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+padding-block: clamp(var(--space-7), 6vw, var(--space-9));
+```
+
+Deux tokens bornent, la fenêtre interpole. Un composant tient de 375 px à
+1440 px sans une seule media query, et la direction artistique reste pilotable —
+les deux bornes sont des tokens. `basalte lint` l'accepte parce qu'aucune
+longueur n'y est écrite : `vw` n'est l'unité d'aucun token.
+
+C'est **la** manière de faire respirer une section. Une media query reste pour
+ce qu'un `clamp` ne sait pas faire : changer un nombre de colonnes.
+
+### Le rythme, et pas de trait
+
+Toute section porte `padding-block: clamp(var(--space-7), 6vw, var(--space-9))`
+et `padding-inline: var(--space-5)`. Ce qui sépare deux sections est **l'air et
+le plan**, jamais un `border-top` — celui-ci avait fini par se répéter sur seize
+blocs, et trois grilles à la suite se lisaient comme une seule.
+
+### Le plan d'une section vient de son type (D185)
+
+Il n'est pas offert au client : un sélecteur « fond » sur chaque bloc serait
+autant d'occasions de casser la direction artistique, et D179 n'a ouvert que
+l'**ordre** des sections.
+
+| Plan | Blocs |
+|---|---|
+| `bg` | hero · showcase · features · steps · pricing · gallery · team · comparison · richtext · download · contact · journal · post |
+| `surface` | logos · stats · bento · testimonials · faq · contact-details |
+| `contrast` | cta |
+
+### L'axe, et le bouton
+
+L'en-tête d'une section — son titre et son introduction — est **centré** et
+borné à `--width-content` ; sa grille reste sur `--width-wide`. Toutes les
+sections d'une page partagent donc le même axe. Le texte de lecture, lui, n'est
+jamais centré.
+
+Le bouton ne s'écrit pas dans un bloc : il vit dans `src/astro/base.css` sous
+`.button`, `.button--quiet` (l'action seconde, un filet plutôt qu'un second
+aplat) et `.button--invert` (sur le plan sombre) — D186. `basalte lint` contrôle
+cette feuille comme il contrôle un bloc.
 
 ## Le banc de blocs
 
@@ -118,6 +186,13 @@ variante bureau, contrat des deux rendus — et deux qui leur sont propres.
 alternatif d'une image n'est pas du contenu indexé : un rendu qui n'afficherait
 que l'image perdrait ces mots-là, et le contrat des deux rendus ne le dirait
 pas — il ne signale que ce que le bureau porte *en trop*.
+
+**L'en-tête est collant** (D187). Son voile se compose de deux tokens —
+`color-mix(in srgb, var(--color-bg) 78%, transparent)` —, et il n'est posé que
+sous un `@supports (backdrop-filter: …)` : translucide sans flou, le texte de la
+page traverserait la barre. `src/astro/base.css` porte le `scroll-padding-top`
+qui va avec, sans quoi toute ancre — à commencer par les trois réponses `:target`
+du bloc `contact` — arriverait sous elle.
 
 **Le menu s'ouvre sans script.** C'est un `<details>` natif, et l'invariant 5
 tient donc sans même passer par l'opt-in. Sur un site à un rendu, la media
