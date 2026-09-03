@@ -13,6 +13,14 @@ import path from 'node:path'
 
 const PARTIAL = '.partial'
 
+// Sous `astro dev`, le serveur guette `content/` et recharge la page à chaque
+// fichier qui change — sauf ceux que le panel vient d’écrire lui-même : lui
+// sait déjà ce qu’il a enregistré, et recharger sous ses pieds l’interromprait.
+// Le registre vit sur `globalThis` : le panel et le guetteur sont deux
+// instances des mêmes modules dans le même processus.
+const WRITTEN = Symbol.for('basalte.written')
+const RECENT = 3_000
+
 /** Sérialise en JSON indenté et remplace le fichier d’un seul coup. */
 export async function writeJsonFile(
   file: string,
@@ -24,6 +32,7 @@ export async function writeJsonFile(
 
   try {
     await rename(staged, file)
+    ledger().set(path.resolve(file), Date.now())
   } catch (cause) {
     await rm(staged, { force: true })
 
@@ -31,4 +40,21 @@ export async function writeJsonFile(
       `« ${path.basename(file)} » n’a pas pu être remplacé : ${(cause as Error).message}`,
     )
   }
+}
+
+/** Vrai si le panel a écrit ce fichier à l’instant — une fois, puis oublié. */
+export function writtenByPanel(file: string, now = Date.now()): boolean {
+  const at = ledger().get(path.resolve(file))
+
+  if (at === undefined) return false
+
+  ledger().delete(path.resolve(file))
+
+  return now - at < RECENT
+}
+
+function ledger(): Map<string, number> {
+  const globals = globalThis as { [WRITTEN]?: Map<string, number> }
+
+  return (globals[WRITTEN] ??= new Map())
 }

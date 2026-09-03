@@ -1,9 +1,15 @@
 // Le panel, en développement, sur le site de démonstration.
 //
-// Trois choses que `astro dev` seul ne fait pas : construire `dist/` (le site
-// de démonstration importe le socle par son paquet), créer le compte éditeur
-// s’il n’existe pas — sans compte, `/admin` ne mène qu’à un écran de connexion
-// infranchissable — et dire où aller.
+// Trois choses que `astro dev` seul ne fait pas : construire `dist/` une fois
+// (la configuration d’Astro importe l’intégration par son paquet, et c’est ce
+// script qui a besoin de la base et des comptes compilés), créer le compte
+// éditeur s’il n’existe pas — sans compte, `/admin` ne mène qu’à un écran de
+// connexion infranchissable — et dire où aller.
+//
+// Une fois lancé, tout vient de `src/` : l’intégration compilée s’efface devant
+// ses sources sous `astro dev`, et un bloc, le panel, une feuille ou un contenu
+// modifiés se voient sans relancer. Seuls `site.config.ts` et l’intégration
+// elle-même demandent un redémarrage.
 //
 // Aucune clé d’email n’étant configurée, le canal retombe sur le fournisseur
 // « console » : le code à six chiffres s’affiche dans ce terminal, et rien ne
@@ -59,6 +65,9 @@ const lines = [
   created
     ? '  Compte créé. Le code à six chiffres s’affichera ici, sous la connexion.'
     : '  Compte déjà présent. Le code à six chiffres s’affichera ici, sous la connexion.',
+  '',
+  '  Tout se recharge à chaud depuis src/ : blocs, panel, feuilles, contenus.',
+  '  Seuls site.config.ts et src/astro/index.ts demandent de relancer.',
   '',
 ]
 
