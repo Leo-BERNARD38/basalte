@@ -94,17 +94,16 @@ function clientAddress(request: Request): string {
  * Un corps de formulaire est mis en mémoire en entier par `formData` : sa
  * taille se refuse donc avant la lecture. Ne rien annoncer est refusé de la
  * même façon — un navigateur annonce toujours la longueur d’un formulaire, et
- * l’omettre est le moyen de faire lire sans limite. `Number(null)` valant zéro,
- * l’en-tête absent se teste pour lui-même, jamais par sa conversion.
+ * l’omettre est le moyen de faire lire sans limite. `Number(null)` et
+ * `Number('')` valant zéro, l’en-tête absent ou vide se teste pour lui-même,
+ * jamais par sa conversion : seule une suite de chiffres est une taille.
  */
 export function withinLength(request: Request, limit: number): boolean {
   const announced = request.headers.get('content-length')
 
-  if (announced === null) return false
+  if (announced === null || !/^\d+$/.test(announced.trim())) return false
 
-  const bytes = Number(announced)
-
-  return Number.isInteger(bytes) && bytes >= 0 && bytes <= limit
+  return Number(announced) <= limit
 }
 
 export function badRequest(): Response {
