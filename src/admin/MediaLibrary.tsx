@@ -15,7 +15,7 @@
 // Les documents partagent cet écran plutôt qu’un sixième onglet (D63), et ne
 // s’y montrent que si le site les accepte.
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 import type { PanelPayload } from '../server/panel.js'
 import type { MediaSummary } from '../server/library.js'
@@ -57,6 +57,7 @@ export function MediaLibrary({
   readonly onChanged: () => void
 }) {
   const editing = useEditing()
+  const detail = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<View>('images')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState('')
@@ -96,7 +97,7 @@ export function MediaLibrary({
         </Banner>
       )}
 
-      <Group>
+      <Group wrap>
         {editing.capabilities.documents && (
           <Tabs
             value={view}
@@ -144,7 +145,7 @@ export function MediaLibrary({
         )}
       </Group>
 
-      <div className="basalte-edit">
+      <div className="basalte-library">
         {images ? (
           <>
             <MediaGrid
@@ -153,11 +154,6 @@ export function MediaLibrary({
               columns={6}
               flag={(item) =>
                 item.usage === 0 ? 'jamais utilisée' : undefined
-              }
-              slot={
-                <div className="basalte-slot">
-                  La prochaine image se rangera ici
-                </div>
               }
               empty={
                 asked === '' ? (
@@ -172,10 +168,21 @@ export function MediaLibrary({
                   />
                 )
               }
-              onSelect={setSelected}
+              onSelect={(key) => {
+                setSelected(key)
+                requestAnimationFrame(() =>
+                  detail.current?.scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth',
+                  }),
+                )
+              }}
             />
 
-            <div className="basalte-aside">
+            {/* Sur un écran étroit, le panneau se range sous la grille, et
+                la vignette choisie l’amène en vue : sans ce défilement, le
+                client cliquait et ne voyait rien changer. */}
+            <div className="basalte-aside" ref={detail}>
               {entry === undefined ? (
                 <Empty
                   title="Aucune image choisie"

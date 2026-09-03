@@ -481,3 +481,9 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   inline prime sur `:root[data-seed]` : un panel qui n'a pas la couleur de
   `site.config.ts` a peut-être une préférence rangée dans ce navigateur-là —
   « Compte » la montre, et « Couleur du site » l'efface.
+- **L'aperçu bureau est réduit par `transform: scale`, pas redimensionné**
+  (D213). Le cadre se pose à `--panel-width-desktop`, et sa hauteur vaut
+  `100cqh / échelle` : c'est ce qui fait qu'une fois réduit il remplit
+  exactement sa fenêtre. Toucher la largeur sans la hauteur laisse un vide en
+  bas du cadre, sans erreur ; et la fenêtre qui le porte doit garder
+  `container-type: size`, faute de quoi `cqh` vaut zéro et le cadre disparaît.

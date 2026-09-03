@@ -56,7 +56,7 @@ export function ImageControl({
           ) : (
             <button
               type="button"
-              className="basalte-tile"
+              className="basalte-tile basalte-tile--field"
               aria-label="Remplacer l’image"
               onClick={choose}
             >

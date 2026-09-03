@@ -44,3 +44,39 @@ export function pageLabel(name: string): string {
 
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
+
+/**
+ * Le titre d’une page tel que le panel le lit : le titre des moteurs de
+ * recherche, délesté du nom du site qui le termine. « Actualités — Basalte »
+ * se lit « Actualités » dans une liste de pages du site Basalte, où le nom du
+ * site se répéterait à chaque ligne. Un titre vide, ou réduit au nom du site,
+ * revient tel quel : c’est à l’appelant de lui trouver un nom de repli.
+ */
+export function pageHeading(title: string, site: string): string {
+  const plain = title.trim()
+  const name = site.trim()
+
+  if (name === '') return plain
+
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const stripped = plain
+    .replace(new RegExp(`\\s*[—–|·-]\\s*${escaped}\\s*$`, 'iu'), '')
+    .trim()
+
+  return stripped === '' ? plain : stripped
+}
+
+/**
+ * L’ordre d’une liste de pages devant le client : l’accueil d’abord, les pages
+ * de service en dernier, et entre les deux l’ordre reçu. Le disque les range
+ * par nom de fichier, ce qui plaçait l’accueil en quatrième position, sous son
+ * nom de fichier.
+ */
+export function inNavigationOrder<T extends { readonly name: string }>(
+  pages: readonly T[],
+): readonly T[] {
+  const rank = (name: string): number =>
+    name === HOME ? 0 : SERVICE.has(name) ? 2 : 1
+
+  return pages.toSorted((left, right) => rank(left.name) - rank(right.name))
+}

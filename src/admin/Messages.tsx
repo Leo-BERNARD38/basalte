@@ -140,32 +140,34 @@ export function Messages({
 
       {leads !== undefined && leads.length > 0 && (
         <div className="basalte-messages">
-          <Stack gap="hair">
-            {leads.map((lead) => (
-              <Row
-                key={lead.id}
-                current={lead.id === chosen}
-                onClick={() => void open(lead)}
-              >
-                <RowGlyph>
-                  {lead.readAt === undefined && (
-                    <span className="basalte-badge__dot" />
-                  )}
-                </RowGlyph>
-                <RowStack>
-                  <RowText>{lead.name}</RowText>
-                  <RowText>
-                    <Text tone="meta" role="label-md">
-                      {previewOf(lead)}
-                    </Text>
-                  </RowText>
-                </RowStack>
-                <Mono className="basalte-row__note">
-                  {stampOf(lead.at, now)}
-                </Mono>
-              </Row>
-            ))}
-          </Stack>
+          <Card pad="sm">
+            <Stack gap="hair">
+              {leads.map((lead) => (
+                <Row
+                  key={lead.id}
+                  current={lead.id === chosen}
+                  onClick={() => void open(lead)}
+                >
+                  <RowGlyph>
+                    {lead.readAt === undefined && (
+                      <span className="basalte-badge__dot" />
+                    )}
+                  </RowGlyph>
+                  <RowStack>
+                    <RowText>{lead.name}</RowText>
+                    <RowText>
+                      <Text tone="meta" role="label-md">
+                        {previewOf(lead)}
+                      </Text>
+                    </RowText>
+                  </RowStack>
+                  <Mono className="basalte-row__note">
+                    {stampOf(lead.at, now)}
+                  </Mono>
+                </Row>
+              ))}
+            </Stack>
+          </Card>
 
           {current === undefined ? (
             <Empty

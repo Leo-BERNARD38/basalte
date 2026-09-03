@@ -21,7 +21,6 @@ import { Spacer } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Text } from './ui/Text.js'
 import type { ContentIssue } from '../content/report.js'
-import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
@@ -52,6 +51,7 @@ import { DocumentPicker } from './DocumentPicker.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
 import { Messages } from './Messages.js'
+import { pageTitle } from './pages.js'
 import { screensFor, SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
 import { Stats } from './Stats.js'
@@ -588,12 +588,13 @@ export default function Panel({
           shown === 'journal'
             ? post?.title
             : (aside?.title ??
-                (page === undefined ? undefined : pageLabel(page.name))),
+                (page === undefined
+                  ? undefined
+                  : pageTitle(page, known.site.name))),
         )}
         onScreen={goTo}
         dirty={dirty}
         busy={busy}
-        savedAt={savedAt}
         problems={problems}
         refusal={refusal}
         issues={issues}

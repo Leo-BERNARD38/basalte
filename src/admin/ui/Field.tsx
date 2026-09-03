@@ -21,6 +21,14 @@ type FieldProps = {
    * le viser par `for`, qui ne désigne qu’un contrôle, et le nomme.
    */
   readonly group?: boolean | undefined
+  /**
+   * Ce que le pied du champ porte à droite de l’aide : un compteur. Sur la
+   * même ligne que l’aide, et non entre le contrôle et elle — posé entre les
+   * deux, il se lisait comme le début de la phrase d’aide.
+   */
+  readonly foot?: ReactNode | undefined
+  /** Ce qui suit le pied du champ : l’aperçu d’un texte mis en forme. */
+  readonly after?: ReactNode | undefined
   /** Reçoit ce qu’un contrôle doit porter pour que l’erreur le désigne. */
   readonly children: (bound: Bound) => ReactNode
 }
@@ -40,6 +48,8 @@ export function Field({
   error,
   required,
   group,
+  foot,
+  after,
   children,
 }: FieldProps) {
   const id = useId()
@@ -72,16 +82,23 @@ export function Field({
           </label>
         ))}
       {children(bound)}
-      {said !== undefined && (
-        <span
-          id={saidId}
-          className="basalte-text"
-          data-size="eyebrow"
-          data-tone={error === undefined ? 'meta' : 'refused'}
-        >
-          {said}
+      {(said !== undefined || foot !== undefined) && (
+        <span className="basalte-field__foot">
+          {said !== undefined && (
+            <span
+              id={saidId}
+              className="basalte-text"
+              data-tone={error === undefined ? 'meta' : 'refused'}
+            >
+              {said}
+            </span>
+          )}
+          {foot !== undefined && (
+            <span className="basalte-field__meta">{foot}</span>
+          )}
         </span>
       )}
+      {after}
     </div>
   )
 }

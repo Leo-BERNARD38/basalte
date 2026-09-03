@@ -9,7 +9,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
 import { IconButton } from './Button.js'
-import { Close } from './icons.js'
+import { Chevron, Close } from './icons.js'
 
 const FOCUSABLE =
   'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
@@ -196,7 +196,65 @@ export function Menu({ opened, onClose, align, label, children }: MenuProps) {
   )
 }
 
-/** Ce à quoi un menu s’accroche : il se pose sous lui, jamais sur la page. */
-export function Anchor({ children }: { readonly children: ReactNode }) {
-  return <span className="basalte-anchor">{children}</span>
+/**
+ * Ce à quoi un menu s’accroche : il se pose sous lui, jamais sur la page.
+ * Plein, il prend la largeur de sa colonne et le menu avec lui.
+ */
+export function Anchor({
+  fill,
+  children,
+}: {
+  readonly fill?: boolean | undefined
+  readonly children: ReactNode
+}) {
+  return (
+    <span
+      className="basalte-anchor"
+      data-fill={fill === true ? 'true' : undefined}
+    >
+      {children}
+    </span>
+  )
+}
+
+type SelectorProps = {
+  /** Ce que l’on choisit : « Page », « Langue ». */
+  readonly label: string
+  /** Ce qui est choisi. */
+  readonly value: ReactNode
+  /** Une marque à côté du choix : les hachures d’une langue en préparation. */
+  readonly mark?: ReactNode | undefined
+  readonly opened: boolean
+  readonly onToggle: () => void
+}
+
+/**
+ * Le bouton d’un choix parmi quelques-uns : ce qu’on choisit au-dessus, ce
+ * qui est choisi en dessous, et le chevron qui dit qu’un menu suit. Il a la
+ * forme d’un champ et non d’une puce, parce qu’il se tient dans une colonne
+ * de réglages, au-dessus de ce qu’il commande.
+ */
+export function Selector({
+  label,
+  value,
+  mark,
+  opened,
+  onToggle,
+}: SelectorProps) {
+  return (
+    <button
+      type="button"
+      className="basalte-selector"
+      aria-haspopup="true"
+      aria-expanded={opened}
+      onClick={onToggle}
+    >
+      <span className="basalte-selector__text">
+        <span className="basalte-selector__label">{label}</span>
+        <span className="basalte-selector__value">{value}</span>
+      </span>
+      {mark}
+      <Chevron />
+    </button>
+  )
 }

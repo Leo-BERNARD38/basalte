@@ -8,27 +8,24 @@
 // Cinq est le plafond d’une barre, et c’est ce qui a sorti « Compte » de la
 // liste — on y va une fois par mois, pas entre deux sections.
 //
-// Sous la barre d’application, un bandeau d’un bord à l’autre dit ce qui a
-// échoué au niveau du site. Il ne défile pas et n’appartient à aucun écran :
-// c’est la forme de l’annonce, réservée à ce qui ne s’attache à aucun champ.
-// Ce qui se corrige champ par champ reste dans la page, en liste cliquable
-// (D166). Ce qui vient de réussir se dit une fois, en bas, dans une snackbar
-// qui s’efface d’elle-même (D205).
+// La barre d’application dit trois choses, et chacune une seule fois : ce qui
+// est ouvert, par son titre ; l’état du site en ligne, par une marque à côté
+// du titre — en ligne depuis quand, jamais, en cours, ou échoué ; et s’il
+// reste quelque chose à enregistrer, par le bouton lui-même, qui lit
+// « Enregistré » tant qu’il n’y a rien à faire. Une ligne de contexte
+// concaténait ces états avec l’heure du dernier enregistrement et l’absence
+// d’historique git : trois natures d’information dans une phrase, dont deux
+// que le client ne demandait pas.
 //
-// Trois informations sont lisibles en permanence : reste-t-il quelque chose à
-// enregistrer, quand la dernière modification a-t-elle été enregistrée, et
-// quelque chose est-il cassé. Elles vivent au-dessus du titre et à côté de
-// lui, près des deux boutons, pour qu’un seul regard suffise.
+// Ce qui a échoué au niveau du site se dit en bandeau plein sous la barre,
+// sur les deux écrans qui mettent en ligne — c’est là qu’on y remédie ; les
+// autres écrans n’en portent que la marque. Ce qui se corrige champ par champ
+// reste dans la page, en liste cliquable (D166). Ce qui vient de réussir se
+// dit une fois, en bas, dans une snackbar qui s’efface d’elle-même (D205).
 //
-// Le titre nomme ce qui est ouvert ; la ligne qui le surmonte nomme l’écran.
-// Ce que les deux boutons font est à un clic, sous le « ? » de la barre, avec
-// tout ce que cet écran-là explique (D169). Il est à côté des actions et non
-// parmi elles : lire n’agit sur rien.
-//
-// « Enregistrer » et « Mettre en ligne » ne paraissent que sur les deux écrans
-// qui écrivent du contenu. Ailleurs ils ne veulent rien dire : une médiathèque
-// enregistre à chaque geste, et des messages ne se mettent pas en ligne. La
-// place, elle, ne bouge pas — la barre garde sa forme d’un écran à l’autre.
+// Le « ? » de la barre explique l’écran ouvert (D169). Il est à côté des
+// actions et non parmi elles : lire n’agit sur rien. Il se referme avec
+// l’écran qu’il expliquait.
 
 import type { ReactNode } from 'react'
 
@@ -42,6 +39,7 @@ import { Button } from './ui/Button.js'
 import { LinearProgress, Snackbar } from './ui/Feedback.js'
 import {
   AccountCircle,
+  Check,
   Edit as EditIcon,
   Logout,
   Mail,
@@ -122,8 +120,6 @@ const WRITES = new Set<Screen>(['edit', 'journal'])
  */
 const FILLS = new Set<Screen>(['edit', 'journal'])
 
-const MOMENT = new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' })
-
 const ONLINE = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
   timeStyle: 'short',
@@ -136,7 +132,6 @@ export function Shell({
   onScreen,
   dirty,
   busy,
-  savedAt,
   problems,
   refusal,
   issues,
@@ -155,7 +150,6 @@ export function Shell({
   readonly onScreen: (screen: Screen) => void
   readonly dirty: boolean
   readonly busy: boolean
-  readonly savedAt: number | undefined
   readonly problems: readonly string[]
   /** Ce que le refus annonce. Sans lui, il s’agit d’un enregistrement. */
   readonly refusal?: string | undefined
@@ -225,6 +219,12 @@ export function Shell({
     />
   )
 
+  // L’écran ne se nomme au-dessus du titre que lorsque le titre dit autre
+  // chose : une page, un billet. Sur « Médias », les deux lignes se répétaient.
+  const context = SCREENS.find(
+    (entry) => entry.value === screen && entry.label !== heading,
+  )?.label
+
   return (
     <div className="basalte-shell">
       {navigation('rail')}
@@ -232,61 +232,42 @@ export function Shell({
       <div className="basalte-shell__column">
         <TopAppBar
           context={
-            <Eyebrow>
-              {[
-                // L’écran ne se nomme au-dessus du titre que lorsqu’il en dit
-                // autre chose : sur « Compte », les deux lignes se répétaient.
-                SCREENS.find(
-                  (entry) => entry.value === screen && entry.label !== heading,
-                )?.label,
-                savedAt === undefined
-                  ? undefined
-                  : `enregistré à ${MOMENT.format(savedAt)}`,
-                onlineLabel(publication),
-                payload.tracked ? undefined : 'sans historique',
-              ]
-                .filter((part) => part !== undefined)
-                .join(' · ')}
-            </Eyebrow>
+            context === undefined ? undefined : <Eyebrow>{context}</Eyebrow>
           }
           title={
             <Group gap="md" wrap>
               <Title level={1} role="headline-sm">
                 {heading}
               </Title>
-              {writes &&
-                (dirty ? (
-                  <Badge dot="ink">Modifications non enregistrées</Badge>
-                ) : (
-                  <Badge dot="online" tone="muted">
-                    Enregistré
-                  </Badge>
-                ))}
+              <Publication publication={publication} />
             </Group>
           }
           actions={
+            writes ? (
+              <>
+                <Button
+                  variant="tonal"
+                  disabled={!dirty}
+                  busy={busy}
+                  icon={dirty ? undefined : <Check size={18} />}
+                  onClick={onSave}
+                >
+                  {dirty ? 'Enregistrer' : 'Enregistré'}
+                </Button>
+                <Button
+                  variant="filled"
+                  disabled={busy}
+                  busy={busyOnline}
+                  onClick={onPublish}
+                >
+                  Mettre en ligne
+                </Button>
+              </>
+            ) : undefined
+          }
+          tools={
             <>
-              {writes && (
-                <>
-                  <Button
-                    variant="tonal"
-                    disabled={!dirty}
-                    busy={busy}
-                    onClick={onSave}
-                  >
-                    Enregistrer
-                  </Button>
-                  <Button
-                    variant="filled"
-                    disabled={busy}
-                    busy={busyOnline}
-                    onClick={onPublish}
-                  >
-                    Mettre en ligne
-                  </Button>
-                </>
-              )}
-              <Help screen={screen} payload={payload} />
+              <Help key={screen} screen={screen} payload={payload} />
               <span className="basalte-appbar__account">{account}</span>
             </>
           }
@@ -295,10 +276,10 @@ export function Shell({
         {busyOnline && <LinearProgress label="Mise en ligne en cours" />}
 
         {/* Ce qui a échoué au niveau du site se dit en bandeau plein, d’un
-            bord à l’autre et sous la barre : ce n’est l’affaire d’aucun écran.
-            Ce qui se corrige champ par champ reste dans la page, où le clic
-            mène à l’endroit fautif. */}
-        {last?.outcome === 'failed' && !busyOnline && (
+            bord à l’autre et sous la barre, là où l’on peut relancer. Ce qui
+            se corrige champ par champ reste dans la page, où le clic mène à
+            l’endroit fautif. */}
+        {writes && last?.outcome === 'failed' && !busyOnline && (
           <Alert title="La dernière mise en ligne n’a pas abouti">
             {last.message}
           </Alert>
@@ -351,6 +332,32 @@ export function Shell({
   )
 }
 
+/**
+ * L’état du site en ligne, en une marque à côté du titre. C’est la même sur
+ * tous les écrans, et c’est là que le client vient vérifier que ce qu’il a
+ * écrit est bien sorti.
+ */
+function Publication({ publication }: { readonly publication: PublishState }) {
+  if (publication.running)
+    return <Badge dot="ink">Mise en ligne en cours…</Badge>
+  if (publication.queued)
+    return <Badge dot="ink">Mise en ligne en attente</Badge>
+
+  const last = publication.last
+
+  if (last === undefined) return <Badge tone="muted">Jamais mis en ligne</Badge>
+
+  return last.outcome === 'published' ? (
+    <Badge dot="online" tone="muted">
+      En ligne depuis le {ONLINE.format(last.at)}
+    </Badge>
+  ) : (
+    <Badge tone="refused">
+      Mise en ligne échouée le {ONLINE.format(last.at)}
+    </Badge>
+  )
+}
+
 /** Ce que la ligne d’un incident nomme avant son message. */
 function where(issue: ContentIssue): string {
   const parts = [issue.section?.label, issue.field].filter(
@@ -358,19 +365,4 @@ function where(issue: ContentIssue): string {
   )
 
   return parts.length === 0 ? '' : `${parts.join(' › ')} : `
-}
-
-// Une seule ligne, toujours au même endroit : c’est là que le client vient
-// vérifier que ce qu’il a écrit est bien sorti.
-function onlineLabel(publication: PublishState): string {
-  if (publication.running) return 'mise en ligne en cours…'
-  if (publication.queued) return 'mise en ligne en attente'
-
-  const last = publication.last
-
-  if (last === undefined) return 'jamais mis en ligne'
-
-  return last.outcome === 'published'
-    ? `en ligne depuis le ${ONLINE.format(last.at)}`
-    : `dernière tentative le ${ONLINE.format(last.at)}`
 }

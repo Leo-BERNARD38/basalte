@@ -12,6 +12,7 @@ import {
   remove,
   replace,
   sameDraft,
+  sectionSummary,
   translated,
   withLanguage,
 } from './draft.js'
@@ -182,5 +183,50 @@ describe('labelOfItem', () => {
   it('rend vide quand le bloc n’a désigné aucun champ, ou qu’il est vide', () => {
     expect(labelOfItem(undefined, { name: 'Camille' }, 'fr')).toBe('')
     expect(labelOfItem('name', {}, 'fr')).toBe('')
+  })
+})
+
+describe('sectionSummary', () => {
+  const fields = [
+    {
+      name: 'image',
+      kind: 'image',
+      label: 'Image',
+      required: false,
+      i18n: false,
+    },
+    {
+      name: 'title',
+      kind: 'text',
+      label: 'Titre',
+      required: false,
+      i18n: true,
+    },
+    {
+      name: 'body',
+      kind: 'richtext',
+      label: 'Texte',
+      required: false,
+      i18n: true,
+    },
+  ] as const
+
+  it('donne le premier texte court rempli, dans la langue écrite', () => {
+    expect(
+      sectionSummary(
+        fields,
+        { title: { fr: 'Ce que le socle porte', en: '' } },
+        'fr',
+      ),
+    ).toBe('Ce que le socle porte')
+    expect(
+      sectionSummary(fields, { title: { fr: '', en: 'Hello' } }, 'en'),
+    ).toBe('Hello')
+  })
+
+  it('reste vide sans texte court, ou dans une langue non écrite', () => {
+    expect(sectionSummary(fields, { body: { fr: 'Du texte' } }, 'fr')).toBe('')
+    expect(sectionSummary(fields, { title: { fr: '  ' } }, 'fr')).toBe('')
+    expect(sectionSummary(fields, { title: { fr: 'Titre' } }, 'en')).toBe('')
   })
 })

@@ -126,7 +126,13 @@ type TopAppBarProps = {
   readonly title: ReactNode
   /** La ligne de contexte, au-dessus du titre. */
   readonly context?: ReactNode | undefined
+  /** Ce qui agit sur l’état du site : enregistrer, mettre en ligne. */
   readonly actions?: ReactNode | undefined
+  /**
+   * Ce qui n’agit sur rien : l’aide, le compte. Sur un écran étroit, ils
+   * restent sur la ligne du titre quand les actions passent dessous.
+   */
+  readonly tools?: ReactNode | undefined
   readonly className?: string | undefined
 }
 
@@ -134,6 +140,7 @@ export function TopAppBar({
   title,
   context,
   actions,
+  tools,
   className,
 }: TopAppBarProps) {
   return (
@@ -144,6 +151,9 @@ export function TopAppBar({
       </div>
       {actions !== undefined && (
         <div className="basalte-appbar__actions">{actions}</div>
+      )}
+      {tools !== undefined && (
+        <div className="basalte-appbar__tools">{tools}</div>
       )}
     </header>
   )

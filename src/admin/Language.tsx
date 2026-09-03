@@ -1,17 +1,16 @@
-// Le choix de la langue écrite, posé dans la barre de l’aperçu, à côté du
-// choix de la page.
+// Le choix de la langue écrite, sous celui de la page, en tête de la colonne
+// qui dit ce qu’on modifie.
 //
-// Il vivait sur la barre noire, entre l’adresse du compte et « Se déconnecter »
-// : à cet endroit il se lisait comme un réglage de session, quand il décide en
-// réalité de ce qu’on est en train d’écrire. « Quelle page, dans quelle langue,
-// sur quel support » est une seule question, et elle se pose au-dessus de
-// l’aperçu qui y répond.
+// Il a vécu sur la barre noire, entre l’adresse du compte et « Se
+// déconnecter », où il se lisait comme un réglage de session ; puis dans la
+// barre de l’aperçu, où il disait ce que l’aperçu montre. Il décide en réalité
+// de ce qu’on est en train d’écrire : sa place est à côté de la page, dans la
+// colonne de structure, et l’aperçu suit.
 //
-// C’est le même objet que le sélecteur de page, et pas une liste du système :
-// deux boutons voisins qui décident de la même chose ne peuvent pas ouvrir
-// l’un le plan du panel, l’autre une fenêtre du navigateur. Le menu, ses
-// lignes et l’aplat qui désigne la ligne choisie sont donc ceux de partout
-// ailleurs.
+// C’est le même objet que le sélecteur de page : deux boutons voisins qui
+// décident de la même chose ne peuvent pas ouvrir l’un le plan du panel,
+// l’autre une liste du navigateur. Le menu, ses lignes et l’aplat qui désigne
+// la ligne choisie sont donc ceux de partout ailleurs.
 //
 // Une langue en préparation porte les hachures, comme un brouillon et une
 // section masquée : ce sont les trois mêmes choses — ce qui n’est pas encore
@@ -29,7 +28,7 @@ import type { PanelLanguage } from '../server/panel.js'
 import { useEditing } from './editing.js'
 import { Mark } from './ui/Badge.js'
 import { HiddenMark } from './ui/icons.js'
-import { Anchor, Menu } from './ui/Overlay.js'
+import { Anchor, Menu, Selector } from './ui/Overlay.js'
 import { Row, RowText } from './ui/Row.js'
 import { Eyebrow } from './ui/Text.js'
 
@@ -56,43 +55,40 @@ export function Language() {
   )
 
   return (
-    <span className="basalte-language">
-      <Anchor>
-        <button
-          type="button"
-          className="basalte-picker"
-          aria-expanded={opened}
-          onClick={() => setOpened(!opened)}
-        >
-          {chosen?.label ?? editing.language}
-          {draftMark(chosen)}
-        </button>
+    <Anchor fill>
+      <Selector
+        label="Langue"
+        value={chosen?.label ?? editing.language}
+        mark={draftMark(chosen)}
+        opened={opened}
+        onToggle={() => setOpened(!opened)}
+      />
 
-        <Menu
-          opened={opened}
-          label="Vos langues"
-          onClose={() => setOpened(false)}
-        >
-          <Eyebrow className="basalte-menu__note">
-            la langue que vous écrivez
-          </Eyebrow>
+      <Menu
+        opened={opened}
+        align="left"
+        label="Vos langues"
+        onClose={() => setOpened(false)}
+      >
+        <Eyebrow className="basalte-menu__note">
+          la langue que vous écrivez
+        </Eyebrow>
 
-          {editing.languages.map((entry) => (
-            <Row
-              key={entry.code}
-              pill
-              current={entry.code === editing.language}
-              onClick={() => {
-                editing.onLanguage(entry.code)
-                setOpened(false)
-              }}
-            >
-              <RowText>{entry.label}</RowText>
-              {draftMark(entry)}
-            </Row>
-          ))}
-        </Menu>
-      </Anchor>
-    </span>
+        {editing.languages.map((entry) => (
+          <Row
+            key={entry.code}
+            pill
+            current={entry.code === editing.language}
+            onClick={() => {
+              editing.onLanguage(entry.code)
+              setOpened(false)
+            }}
+          >
+            <RowText>{entry.label}</RowText>
+            {draftMark(entry)}
+          </Row>
+        ))}
+      </Menu>
+    </Anchor>
   )
 }

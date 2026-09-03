@@ -79,11 +79,19 @@ export function MediaGrid({
             aria-pressed={entry.key === selected}
             onClick={() => onSelect(entry.key)}
           >
+            {/* La vignette cadre sur le point focal, comme le site : une
+                image-texte recadrée au centre ne montrait que le milieu d’un
+                mot. */}
             <img
               className="basalte-tile__image"
               src={thumbnail(entry)}
               alt={
                 translated(entry.alt, editing.language) || 'Sans description'
+              }
+              style={
+                entry.focal === undefined || entry.focal === null
+                  ? undefined
+                  : { objectPosition: `${entry.focal.x}% ${entry.focal.y}%` }
               }
               draggable={false}
             />

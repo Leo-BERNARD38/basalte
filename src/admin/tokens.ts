@@ -185,24 +185,25 @@ export const tokens = {
   },
 
   /**
-   * Les tailles de l’échelle de type, resserrées d’un cran sur celles de
-   * Material (D209) : le panel est un outil de bureau, et les tailles d’une
-   * application tactile y font tout paraître écrasé. La graisse,
-   * l’interligne et l’approche de chaque style vivent dans la feuille : seule
-   * la taille est un token, parce que c’est elle que le lint contrôle.
+   * Les tailles de l’échelle de type : un cran sous celles de Material pour
+   * les grands styles, les siennes pour le corps et les étiquettes (D216). Le
+   * panel est un outil de bureau, mais un outil qu’on lit : le corps à
+   * treize pixels ne se lisait pas. La graisse, l’interligne et l’approche de
+   * chaque style vivent dans la feuille : seule la taille est un token, parce
+   * que c’est elle que le lint contrôle.
    */
   text: {
-    labelSm: '11px',
-    labelMd: '12px',
-    labelLg: '13px',
-    bodySm: '12px',
-    bodyMd: '13px',
-    bodyLg: '14px',
-    titleSm: '13px',
-    titleMd: '15px',
-    titleLg: '17px',
-    headlineSm: '20px',
-    headlineMd: '24px',
+    labelSm: '12px',
+    labelMd: '13px',
+    labelLg: '14px',
+    bodySm: '13px',
+    bodyMd: '14px',
+    bodyLg: '15px',
+    titleSm: '14px',
+    titleMd: '16px',
+    titleLg: '18px',
+    headlineSm: '22px',
+    headlineMd: '26px',
     displaySm: '30px',
     displayMd: '36px',
     displayLg: '45px',
@@ -230,11 +231,20 @@ export const tokens = {
   width: {
     form: '400px',
     page: '860px',
-    aside: '360px',
+    /** La colonne de structure : la page, sa langue, ses sections. */
+    structure: '248px',
+    /** La colonne où l’on écrit, et le panneau d’une médiathèque. */
+    aside: '400px',
     menu: '300px',
     modal: '960px',
     snackbar: '560px',
     phone: '414px',
+    /**
+     * La largeur à laquelle le rendu bureau est demandé, avant réduction :
+     * celle d’un petit écran de bureau, où la mise en page est déjà celle du
+     * bureau — plus large, la réduction rendait le texte illisible pour rien.
+     */
+    desktop: '1024px',
     shell: '1600px',
   },
 } as const

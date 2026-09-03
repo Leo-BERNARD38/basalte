@@ -44,17 +44,17 @@ function writeTo(support: string): ReactNode {
 }
 
 /**
- * Ce que le panel ajoute, et ce qu’il n’ajoute pas. Le client pose une page et
- * une section quand il le veut (D179) ; une sorte de section qui n’existe pas
- * encore reste un travail de développement, et c’est là que l’adresse sert.
+ * Ce que le panel ajoute, et ce qu’il n’ajoute pas. Le client pose une section
+ * quand il le veut (D179) ; une page, ou une sorte de section qui n’existe pas
+ * encore, reste un travail de développement, et c’est là que l’adresse sert.
  */
 function addingNote(support: string): Note {
   return {
     heading: 'Ajouter une section ou une page',
     body: (
       <>
-        « Ajouter une section » est sous la liste, « Ajouter une page » dans le
-        sélecteur de page. Une sorte de section qui n’existe pas dans la liste{' '}
+        « Ajouter une section » est sous la liste des sections. Une page de
+        plus, ou une sorte de section qui n’est pas dans la liste,{' '}
         {writeTo(support)}
       </>
     ),

@@ -7,16 +7,15 @@
 // voit ce que la page affichera, et aucune balise ne peut venir du texte saisi
 // (invariant 1).
 //
-// Le compteur vit sous le champ, à droite, et non dans la phrase d’aide : il y
-// était collé au même gris, si bien qu’une aide et une mesure se lisaient comme
-// une seule ligne. Il ne se colore qu’en approchant de la borne — une valeur
-// qui ne bouge pas n’a rien à signaler.
+// Le compteur vit au bout de la ligne d’aide, à droite, et non entre le champ
+// et elle : posé entre les deux, il se lisait comme le début de la phrase
+// d’aide. Il ne se colore qu’en approchant de la borne — une valeur qui ne
+// bouge pas n’a rien à signaler.
 
 import { renderRichtext } from '../../fields/richtext.js'
 import { translated, withLanguage } from '../draft.js'
 import { useEditing } from '../editing.js'
 import { Field, TextArea, TextField, type Bound } from '../ui/Field.js'
-import { Group, Spacer } from '../ui/Layout.js'
 import { Text } from '../ui/Text.js'
 import { hint, useFieldError, type ControlProps } from './Field.js'
 
@@ -73,42 +72,37 @@ export function Prose({ description, value, issues, onChange }: ControlProps) {
       />
     )
 
+  const counter =
+    description.max === undefined ? undefined : (
+      <Text
+        role="label-md"
+        tone={text.length >= description.max * CLOSE ? 'strong' : 'meta'}
+      >
+        {text.length} / {description.max}
+        {text.length >= description.max ? ' — c’est le maximum' : ''}
+      </Text>
+    )
+
+  const preview =
+    description.kind === 'richtext' && text.trim() !== '' ? (
+      <div
+        className="basalte-markdown"
+        dangerouslySetInnerHTML={{
+          __html: renderRichtext(text, description),
+        }}
+      />
+    ) : undefined
+
   return (
     <Field
       label={description.label}
       hint={hint(description)}
       error={error}
       required={description.required}
+      foot={counter}
+      after={preview}
     >
-      {(bound) => (
-        <>
-          {control(bound)}
-
-          {description.max !== undefined && (
-            <Group gap="sm">
-              <Spacer />
-              <Text
-                role="label-md"
-                tone={
-                  text.length >= description.max * CLOSE ? 'strong' : 'meta'
-                }
-              >
-                {text.length} / {description.max}
-                {text.length >= description.max ? ' — c’est le maximum' : ''}
-              </Text>
-            </Group>
-          )}
-
-          {description.kind === 'richtext' && text.trim() !== '' && (
-            <div
-              className="basalte-markdown"
-              dangerouslySetInnerHTML={{
-                __html: renderRichtext(text, description),
-              }}
-            />
-          )}
-        </>
-      )}
+      {control}
     </Field>
   )
 }

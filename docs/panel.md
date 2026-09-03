@@ -274,10 +274,12 @@ inline (D207).
 
 ### Ce qui tient sur l'écran qu'on a
 
-Le panel suit les classes de fenêtre de Material. À partir de **1 200 px**, un
-écran à colonnes les garde : l'aperçu à gauche, les sections et leurs réglages
-à droite. En dessous, tout s'empile, et ce qu'on règle vient avant ce qu'on
-relit. À partir de **840 px**, la navigation est un rail à gauche, avec la
+Le panel suit les classes de fenêtre de Material. À partir de **1 200 px**,
+l'écran d'édition tient en trois colonnes (D212) : la structure — la page, la
+langue, les sections — à gauche, l'aperçu au centre, réduit à l'échelle de sa
+colonne (D213), et le formulaire à droite. En dessous, tout s'empile —
+structure, formulaire, puis aperçu : ce qu'on règle vient avant ce qu'on
+relit —, la structure sur deux colonnes tant que l'écran le permet. À partir de **840 px**, la navigation est un rail à gauche, avec la
 marque du site en tête et l'avatar du compte au pied ; en dessous, c'est une
 barre en bas de l'écran, et l'avatar rejoint la barre d'application (D204).
 Sous **600 px**, la barre d'application s'empile et tout ce qui se presse
@@ -454,13 +456,16 @@ ne valide toujours rien (D58) : il range un verdict qui vient du serveur.
 
 ### L'écran d'édition
 
-Trois colonnes, et l'aperçu au centre (D96) :
+Trois colonnes (D212), l'aperçu au centre :
 
 | Colonne | Ce qu'elle porte |
 |---|---|
-| gauche | la page ouverte, la liste de ses sections — sélection, réordonnancement, et la seule prise sur une section masquée |
-| centre | `GET /admin/preview/<slug>` dans un cadre, en bureau ou en mobile |
-| droite | le panneau de la section choisie, ou les informations de la page |
+| gauche | la structure : la page ouverte et la langue écrite, le titre et la description de la page, puis la liste des sections — chacune par son premier texte, sélection, réordonnancement, et la seule prise sur une section masquée |
+| centre | `GET /admin/preview/<slug>` dans un cadre, en bureau — rendu à 1 024 px et réduit à l'échelle (D213) — ou en mobile ; il défile jusqu'à la section choisie et la souligne (D217) |
+| droite | le formulaire de la section choisie, ou le titre et la description de la page |
+
+« Actualités » a la même forme : ses billets pour structure, le billet ouvert
+pour formulaire, et le même aperçu.
 
 **Une liste répétable se parcourt repliée** (D163). Chaque élément est une
 ligne qui porte le champ que le bloc a désigné en `itemLabel` — la question
