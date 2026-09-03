@@ -410,6 +410,12 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   avant : `withLineage` continue de compter l'emploi d'un dérivé au crédit de
   son originale, et c'est ce qui empêche d'effacer celle dont un dérivé est en
   ligne.
+- **Un emploi de média se compte sur un périmètre, jamais sur les seules pages.**
+  Le logo de l'en-tête, la fiche de l'entreprise et la couverture d'un billet
+  citent des images que `content/*.json` ne porte pas : compter depuis les
+  pages seules laissait le panel supprimer un logo en ligne, et le build
+  suivant échouait. Le panel et la CLI composent leur périmètre par
+  `usageScope` (`src/media/usage.ts`), qui sait ce que chacun peut oublier.
 - **Un billet n'est pas une page, et il ne faut surtout pas lui en faire une.**
   `pageOfPost` le compile en `Page` juste avant le rendu : c'est ce qui lui donne
   gratuitement le sitemap, les `hreflang`, la carte de partage, le plan de titres,

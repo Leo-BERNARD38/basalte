@@ -20,7 +20,12 @@ import { errorsOf, readProject, type Project } from '../content/project.js'
 import { allPages } from '../journal/page.js'
 import { renderIssue, type ContentIssue } from '../content/report.js'
 import { prepareMedia } from '../media/prepare.js'
-import { checkRatios, unusedMedia } from '../media/usage.js'
+import {
+  checkRatios,
+  unusedMedia,
+  usageScope,
+  type UsageScope,
+} from '../media/usage.js'
 import { findableIssues } from '../seo/findable.js'
 import { danglingRedirects, shadowedRedirects } from '../seo/redirects.js'
 import { astroBinary } from '../publish/build.js'
@@ -187,10 +192,22 @@ function redirectIssues(project: Project): readonly ContentIssue[] {
   ]
 }
 
+/** Tout ce qui, dans un dépôt lu, peut citer un média. */
+export function projectScope(project: Project): UsageScope {
+  return usageScope({
+    registry: project.registry,
+    chrome: project.chrome,
+    journal: project.journal,
+    pages: allPages(project).map((entry) => entry.page),
+    chromeValues: project.chromeContent,
+    business: project.business,
+  })
+}
+
 // Une image ou un document que plus aucune section ne cite reste dans le
 // dépôt. Le signaler suffit — c’est le panel qui sait supprimer proprement.
 function orphans(project: Project): readonly ContentIssue[] {
-  const pages = allPages(project).map((entry) => entry.page)
+  const scope = projectScope(project)
 
   const unused = (
     keys: readonly string[],
@@ -199,8 +216,7 @@ function orphans(project: Project): readonly ContentIssue[] {
   ): readonly ContentIssue[] =>
     unusedMedia({
       keys,
-      registry: { ...project.registry, ...project.journal },
-      pages,
+      ...scope,
       manifest: project.media,
       kind,
     }).map((key) => ({

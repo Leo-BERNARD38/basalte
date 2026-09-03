@@ -78,20 +78,22 @@ describe('describeDocuments', () => {
         aaaaaaaaaaaaaaaa: { name: 'employé.pdf', bytes: 10 },
         bbbbbbbbbbbbbbbb: { name: 'orphelin.pdf', bytes: 20 },
       },
-      [
-        {
-          meta: {},
-          blocks: [
-            {
-              id: 'd1',
-              type: 'brochure',
-              hidden: {},
-              props: { file: 'aaaaaaaaaaaaaaaa' },
-            },
-          ],
-        },
-      ],
-      { registry: { brochure } } as never,
+      {
+        registry: { brochure },
+        pages: [
+          {
+            meta: {},
+            blocks: [
+              {
+                id: 'd1',
+                type: 'brochure',
+                hidden: {},
+                props: { file: 'aaaaaaaaaaaaaaaa' },
+              },
+            ],
+          },
+        ],
+      },
     )
 
     expect(summaries.map((entry) => [entry.name, entry.usage])).toEqual([

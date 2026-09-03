@@ -7,6 +7,12 @@ import type { BlockRegistry } from '../blocks/define.js'
 import { META_FIELDS, type PageBlock } from '../content/page.js'
 import { walkValues } from '../fields/walk.js'
 import type { ContentIssue } from '../content/report.js'
+import { POST_SLOT } from '../journal/define.js'
+import {
+  BUSINESS_ENTRY,
+  BUSINESS_FIELDS,
+  BUSINESS_TITLE,
+} from '../seo/business.js'
 import type { MediaManifest } from './manifest.js'
 import { matchesRatio } from './ratio.js'
 
@@ -15,6 +21,61 @@ export type MediaUsage = ReadonlyMap<string, number>
 export type UsageSource = {
   readonly meta: unknown
   readonly blocks: readonly PageBlock[]
+}
+
+/** Ce sur quoi un emploi se compte : les schémas, et tout ce qui les remplit. */
+export type UsageScope = {
+  readonly registry: BlockRegistry
+  readonly pages: readonly UsageSource[]
+}
+
+/**
+ * Tout ce qui peut citer un média, et non les seules pages : le chrome, la
+ * fiche de l’entreprise et les billets en portent aussi. Le panel et la CLI
+ * composent leur périmètre ici, si bien qu’aucun des deux ne peut oublier un
+ * gisement que l’autre compte — et qu’un logo d’en-tête ne passe plus pour
+ * une image que rien n’emploie.
+ */
+export function usageScope(input: {
+  readonly registry: BlockRegistry
+  readonly chrome: BlockRegistry
+  readonly journal: BlockRegistry
+  readonly pages: readonly UsageSource[]
+  readonly chromeValues: Readonly<
+    Record<string, Readonly<Record<string, unknown>>>
+  >
+  readonly business: Readonly<Record<string, unknown>>
+  /** Les champs de chaque billet, quand `pages` ne les porte pas déjà compilés. */
+  readonly posts?: readonly Readonly<Record<string, unknown>>[]
+}): UsageScope {
+  const section = (
+    type: string,
+    props: Readonly<Record<string, unknown>>,
+  ): UsageSource => ({
+    meta: {},
+    blocks: [{ id: type, type, hidden: {}, props }],
+  })
+
+  return {
+    registry: {
+      ...input.registry,
+      ...input.chrome,
+      ...input.journal,
+      [BUSINESS_ENTRY]: {
+        name: BUSINESS_ENTRY,
+        label: BUSINESS_TITLE,
+        fields: BUSINESS_FIELDS,
+      },
+    },
+    pages: [
+      ...input.pages,
+      ...Object.entries(input.chromeValues).map(([slot, props]) =>
+        section(slot, props),
+      ),
+      section(BUSINESS_ENTRY, input.business),
+      ...(input.posts ?? []).map((fields) => section(POST_SLOT, fields)),
+    ],
+  }
 }
 
 export function countMediaUsage(
@@ -96,9 +157,9 @@ export type RatioSource = UsageSource & { readonly name: string }
 
 /**
  * Les images qui ne tiennent pas le format de leur emplacement. C’est ce qui
- * rend vivant un `ratio` déclaré : le panel empêche le cas de se produire, et
- * ceci le rattrape sur un contenu écrit à la main ou plus ancien que le
- * recadrage.
+ * rend vivant un `ratio` déclaré : le panel ne recadre pas (D178), c’est le
+ * point focal qui cadre l’image dans son emplacement, et ceci signale celle
+ * dont les proportions s’en éloignent trop.
  *
  * Un avertissement, jamais une erreur : la page s’affiche, et forcer sa
  * correction avant tout enregistrement bloquerait un site qui fonctionne.
@@ -129,7 +190,7 @@ export function checkRatios(
         page,
         ...(section === undefined ? {} : { section }),
         field: field.label ?? 'image',
-        message: `l’image « ${key} » est en ${entry.width}×${entry.height}, et cet emplacement attend des proportions ${field.ratio} : recadre-la depuis le panel`,
+        message: `l’image « ${key} » est en ${entry.width}×${entry.height}, et cet emplacement attend des proportions ${field.ratio} : règle son point focal dans l’onglet Médias, ou choisis une image en ${field.ratio}`,
       })
     })
   }
