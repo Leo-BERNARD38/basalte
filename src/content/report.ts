@@ -6,6 +6,7 @@ import type { core } from 'zod'
 
 import { TRANSLATION_MISSING } from '../fields/schema.js'
 import type { AnyField, Fields } from '../fields/types.js'
+import { CONTENT_FORMAT } from './page.js'
 
 export type ContentIssue = {
   readonly severity: 'error' | 'warning'
@@ -28,6 +29,45 @@ export type ContentIssue = {
 }
 
 const LANGUAGE_NAMES = new Intl.DisplayNames(['fr'], { type: 'language' })
+
+/**
+ * Les problèmes d’un fichier dont l’enveloppe elle-même ne passe pas : une
+ * page, le chrome, la fiche ou un billet le disent avec les mêmes mots.
+ */
+export function envelopeIssues(
+  page: string,
+  error: { readonly issues: readonly core.$ZodIssue[] },
+): readonly ContentIssue[] {
+  return error.issues.map((issue) => {
+    const field = issue.path.map(String).join(' › ')
+
+    return {
+      severity: 'error' as const,
+      page,
+      ...(field === '' ? {} : { field }),
+      message: `structure de fichier invalide (${issue.code})`,
+    }
+  })
+}
+
+/** Le format du fichier contre celui du socle : trop ancien, ou trop récent. */
+export function formatIssues(
+  page: string,
+  format: number,
+): readonly ContentIssue[] {
+  if (format === CONTENT_FORMAT) return []
+
+  return [
+    {
+      severity: 'error',
+      page,
+      message:
+        format < CONTENT_FORMAT
+          ? `format de contenu ${format}, le socle attend ${CONTENT_FORMAT} — lance « basalte migrate »`
+          : `format de contenu ${format}, écrit par un socle plus récent que celui installé`,
+    },
+  ]
+}
 
 export function languageName(code: string): string {
   return LANGUAGE_NAMES.of(code) ?? code

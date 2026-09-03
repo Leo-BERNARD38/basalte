@@ -10,6 +10,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { tryGit } from '../server/git.js'
+import { githubSlug } from './repository.js'
 
 export type Socle = {
   readonly name: string
@@ -72,15 +73,15 @@ export function socleRawUrl(
 }
 
 function slugOf(url: string): string {
-  const match = /github\.com[/:]([^/]+\/[^/]+?)(?:\.git)?$/.exec(url)
+  const slug = githubSlug(url)
 
-  if (match?.[1] === undefined) {
+  if (slug === undefined) {
     throw new Error(
       `« ${url} » ne nomme pas un dépôt GitHub : le socle s’installe depuis git (D5).`,
     )
   }
 
-  return match[1]
+  return slug
 }
 
 const VERSION = /^v(\d+)\.(\d+)\.(\d+)$/

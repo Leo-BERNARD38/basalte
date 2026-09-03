@@ -11,7 +11,7 @@
 
 import type { Level } from '../cli/args.js'
 import { APP_PORT, SERVED_ROOT } from '../client/docker.js'
-import type { Runner } from './runner.js'
+import { quote, type Runner } from './runner.js'
 
 export const SITE_PARENT = '/srv'
 export const KEY_FILE = '/root/.ssh/basalte_deploy'
@@ -87,7 +87,7 @@ async function deployKey(target: Deployment): Promise<StepResult> {
   const created = await target.run(
     [
       'mkdir -p /root/.ssh && chmod 700 /root/.ssh',
-      `test -f ${KEY_FILE} || ssh-keygen -q -t ed25519 -N '' -C 'basalte ${target.slug}' -f ${KEY_FILE}`,
+      `test -f ${KEY_FILE} || ssh-keygen -q -t ed25519 -N '' -C ${quote(`basalte ${target.slug}`)} -f ${KEY_FILE}`,
       "grep -q 'IdentityFile " +
         KEY_FILE +
         "' /root/.ssh/config 2>/dev/null || printf 'Host github.com\\n  IdentityFile " +
@@ -132,10 +132,10 @@ async function repository(target: Deployment): Promise<StepResult> {
     await target.run(
       [
         `mkdir -p ${SITE_PARENT}`,
-        `if [ -d ${directory}/.git ]; then`,
-        `  git -C ${directory} pull --ff-only`,
+        `if [ -d ${quote(directory)}/.git ]; then`,
+        `  git -C ${quote(directory)} pull --ff-only`,
         'else',
-        `  git clone ${target.remote} ${directory}`,
+        `  git clone ${quote(target.remote)} ${quote(directory)}`,
         'fi',
       ].join('\n'),
     ),
@@ -152,8 +152,8 @@ async function secrets(target: Deployment): Promise<StepResult> {
     await target.run(
       [
         'umask 077',
-        `cat > ${directory}/.env`,
-        `chmod 600 ${directory}/.env`,
+        `cat > ${quote(directory)}/.env`,
+        `chmod 600 ${quote(directory)}/.env`,
       ].join('\n'),
       target.env,
     ),
@@ -164,7 +164,7 @@ async function containers(target: Deployment): Promise<StepResult> {
   return report(
     'conteneurs',
     await target.run(
-      `cd ${siteDirectory(target.slug)} && docker compose up -d --build`,
+      `cd ${quote(siteDirectory(target.slug))} && docker compose up -d --build`,
     ),
   )
 }
@@ -182,7 +182,7 @@ async function online(target: Deployment): Promise<StepResult> {
 
   const ready = await target.run(
     [
-      `cd ${directory}`,
+      `cd ${quote(directory)}`,
       `i=0`,
       `while [ $i -lt ${READY_TRIES} ]; do`,
       `  docker compose exec -T app sh -c 'test -e ${SERVED_ROOT}/current' && exit 0`,
@@ -217,7 +217,7 @@ async function account(target: Deployment): Promise<StepResult> {
   }
 
   const created = await target.run(
-    `cd ${siteDirectory(target.slug)} && docker compose exec -T app npx basalte admin:login --user ${target.account} --create`,
+    `cd ${quote(siteDirectory(target.slug))} && docker compose exec -T app npx basalte admin:login --user ${quote(target.account)} --create`,
   )
 
   if (created.code === 0) {

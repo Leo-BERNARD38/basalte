@@ -219,6 +219,7 @@ export async function bench(settings: BenchOptions = {}): Promise<Bench> {
   const panel: Panel = {
     server: carrier.server,
     root,
+    site,
     ...(settings.dev === true ? { dev: true } : {}),
     schemas: async (): Promise<Schemas> => ({
       site,

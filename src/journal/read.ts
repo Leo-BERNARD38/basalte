@@ -12,9 +12,13 @@
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { CONTENT_DIR, CONTENT_FORMAT } from '../content/page.js'
+import { CONTENT_DIR } from '../content/page.js'
 import type { Schemas } from '../content/project.js'
-import type { ContentIssue } from '../content/report.js'
+import {
+  envelopeIssues,
+  formatIssues,
+  type ContentIssue,
+} from '../content/report.js'
 import { draftProgress, validateValues } from '../content/validate.js'
 import type { Languages } from '../site/languages.js'
 import type { DocumentManifest } from '../media/documents.js'
@@ -115,28 +119,11 @@ export function validatePost(input: ValidatePostInput): {
   const envelope = POST_ENVELOPE.safeParse(input.source)
 
   if (!envelope.success) {
-    return {
-      issues: envelope.error.issues.map((issue) => ({
-        severity: 'error' as const,
-        page: name,
-        message: `structure de fichier invalide (${issue.code})`,
-      })),
-    }
+    return { issues: envelopeIssues(name, envelope.error) }
   }
 
-  const issues: ContentIssue[] = []
   const found = envelope.data
-
-  if (found.$format !== CONTENT_FORMAT) {
-    issues.push({
-      severity: 'error',
-      page: name,
-      message:
-        found.$format < CONTENT_FORMAT
-          ? `format de contenu ${found.$format}, le socle attend ${CONTENT_FORMAT} — lance « basalte migrate »`
-          : `format de contenu ${found.$format}, écrit par un socle plus récent que celui installé`,
-    })
-  }
+  const issues: ContentIssue[] = [...formatIssues(name, found.$format)]
 
   // Un billet qu’aucune langue en ligne ne montre est un brouillon : il se
   // valide sans être complet. C’est la règle des langues en préparation (D18)

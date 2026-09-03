@@ -57,8 +57,22 @@ describe('séquence de mise en production', () => {
     expect(steps.every((step) => step.level !== 'error')).toBe(true)
     expect(seen.join('\n')).toContain('get.docker.com')
     expect(seen.join('\n')).toContain(
-      `git clone git@github.com:moi/atelier.git`,
+      `git clone 'git@github.com:moi/atelier.git' '/srv/atelier'`,
     )
+  })
+
+  it('cite chaque valeur qu’elle écrit dans le script distant', async () => {
+    const { run, seen } = machine()
+
+    await provision(
+      target({ run, slug: "l'atelier", account: "o'brien@atelier.fr" }),
+    )
+
+    const script = seen.join('\n')
+
+    expect(script).toContain(`-C 'basalte l'\\''atelier'`)
+    expect(script).toContain(`git -C '/srv/l'\\''atelier' pull --ff-only`)
+    expect(script).toContain(`--user 'o'\\''brien@atelier.fr' --create`)
   })
 
   it('n’installe Docker que s’il manque', async () => {
@@ -76,8 +90,8 @@ describe('séquence de mise en production', () => {
 
     const clone = seen.find((command) => command.includes('git clone'))
 
-    expect(clone).toContain(`test -d ${siteDirectory('atelier')}/.git`.slice(5))
-    expect(clone).toContain('git -C /srv/atelier pull --ff-only')
+    expect(clone).toContain(`-d ${quote(siteDirectory('atelier'))}/.git`)
+    expect(clone).toContain(`git -C '/srv/atelier' pull --ff-only`)
   })
 
   it('fait passer le .env par l’entrée standard, jamais par un fichier', async () => {

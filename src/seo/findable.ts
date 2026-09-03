@@ -16,7 +16,7 @@ import type { BlockRegistry } from '../blocks/define.js'
 import type { Page } from '../content/page.js'
 import { BUSINESS_NAME } from '../content/business.js'
 import { isServiceRoute } from '../content/naming.js'
-import type { ContentIssue } from '../content/report.js'
+import { languageName, type ContentIssue } from '../content/report.js'
 import { pick } from '../fields/translate.js'
 import type { Languages } from '../site/languages.js'
 import { hasAddress, hasBusiness, type BusinessFacts } from './business.js'
@@ -106,22 +106,34 @@ function duplicates(
  * remerciement, que le sitemap et le menu écartent déjà (D133).
  */
 function withoutShareImage(input: FindableInput): readonly ContentIssue[] {
-  return input.pages
-    .filter(
-      (entry) =>
-        !isServiceRoute(entry.route) &&
-        shareImageKey({
-          meta: entry.page.meta,
-          registry: input.registry,
-          sections: entry.page.blocks,
-        }) === '',
-    )
-    .map((entry) => ({
-      severity: 'warning' as const,
-      page: entry.name,
-      message:
-        'le lien de cette page se partage sans vignette : aucune image de partage, et aucune image dans ses sections',
-    }))
+  const issues: ContentIssue[] = []
+
+  // La carte est celle de la page construite : une section masquée dans une
+  // langue n’y est pas, et son image ne compte pas plus qu’elle.
+  for (const entry of input.pages) {
+    if (isServiceRoute(entry.route)) continue
+
+    for (const language of input.languages.online) {
+      const key = shareImageKey({
+        meta: entry.page.meta,
+        registry: input.registry,
+        sections: entry.page.blocks.filter(
+          (section) => section.hidden[language.code] !== true,
+        ),
+      })
+
+      if (key !== '') continue
+
+      issues.push({
+        severity: 'warning',
+        page: entry.name,
+        language: language.code,
+        message: `le lien de cette page se partage sans vignette${input.languages.online.length > 1 ? ` en ${languageName(language.code)}` : ''} : aucune image de partage, et aucune image dans ses sections`,
+      })
+    }
+  }
+
+  return issues
 }
 
 /**

@@ -17,7 +17,6 @@ import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
 import type { Languages } from '../site/languages.js'
 import {
-  CONTENT_FORMAT,
   ENVELOPE,
   META_FIELDS,
   type Page,
@@ -26,6 +25,8 @@ import {
 } from './page.js'
 import {
   describeIssue,
+  envelopeIssues,
+  formatIssues,
   languageName,
   locate,
   type ContentIssue,
@@ -50,36 +51,11 @@ export function validatePage(input: ValidateInput): PageValidation {
   const envelope = ENVELOPE.safeParse(input.source)
 
   if (!envelope.success) {
-    return {
-      issues: envelope.error.issues.map((issue) => {
-        const field = issue.path.map(String).join(' › ')
-
-        return {
-          severity: 'error' as const,
-          page: name,
-          ...(field === '' ? {} : { field }),
-          message: `structure de fichier invalide (${issue.code})`,
-        }
-      }),
-    }
+    return { issues: envelopeIssues(name, envelope.error) }
   }
 
   const page = envelope.data
-  const issues: ContentIssue[] = []
-
-  if (page.$format < CONTENT_FORMAT) {
-    issues.push({
-      severity: 'error',
-      page: name,
-      message: `format de contenu ${page.$format}, le socle attend ${CONTENT_FORMAT} — lance « basalte migrate »`,
-    })
-  } else if (page.$format > CONTENT_FORMAT) {
-    issues.push({
-      severity: 'error',
-      page: name,
-      message: `format de contenu ${page.$format}, écrit par un socle plus récent que celui installé`,
-    })
-  }
+  const issues: ContentIssue[] = [...formatIssues(name, page.$format)]
 
   const seen = new Set<string>()
 

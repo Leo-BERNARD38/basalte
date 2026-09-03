@@ -235,7 +235,7 @@ export type Destination = {
  * dépôt avant même le leurre lui donnerait un levier.
  */
 async function destination(panel: Panel, slug: string): Promise<Destination> {
-  const { languages } = (await panel.schemas()).site
+  const { languages } = panel.site
   const routes = await readRoutes(panel.root)
   const found = matchSlug(clean(slug), routes, languages)
   const language = found?.language ?? languages.default.code

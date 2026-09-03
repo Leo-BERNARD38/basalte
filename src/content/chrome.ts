@@ -27,7 +27,7 @@ import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
 import type { Languages } from '../site/languages.js'
 import { CONTENT_DIR, CONTENT_FORMAT } from './page.js'
-import type { ContentIssue } from './report.js'
+import { envelopeIssues, formatIssues, type ContentIssue } from './report.js'
 import { draftProgress, validateValues } from './validate.js'
 
 export const CHROME_FILE = 'chrome.json'
@@ -84,20 +84,13 @@ export function validateChrome(input: {
   if (!envelope.success) {
     return {
       chrome: empty(),
-      issues: envelope.error.issues.map((issue) => {
-        const field = issue.path.map(String).join(' › ')
-
-        return {
-          severity: 'error' as const,
-          page: CHROME_NAME,
-          ...(field === '' ? {} : { field }),
-          message: `structure de fichier invalide (${issue.code})`,
-        }
-      }),
+      issues: envelopeIssues(CHROME_NAME, envelope.error),
     }
   }
 
-  const issues: ContentIssue[] = [...formatIssues(envelope.data.$format)]
+  const issues: ContentIssue[] = [
+    ...formatIssues(CHROME_NAME, envelope.data.$format),
+  ]
   const progress: Progress[] = []
   const values: Record<string, Readonly<Record<string, unknown>>> = {}
 
@@ -136,21 +129,6 @@ export function validateChrome(input: {
   issues.push(...draftProgress(CHROME_NAME, progress, input.languages))
 
   return { chrome: values as ChromeContent, issues }
-}
-
-function formatIssues(format: number): readonly ContentIssue[] {
-  if (format === CONTENT_FORMAT) return []
-
-  return [
-    {
-      severity: 'error',
-      page: CHROME_NAME,
-      message:
-        format < CONTENT_FORMAT
-          ? `format de contenu ${format}, le socle attend ${CONTENT_FORMAT} — lance « basalte migrate »`
-          : `format de contenu ${format}, écrit par un socle plus récent que celui installé`,
-    },
-  ]
 }
 
 function empty(): ChromeContent {

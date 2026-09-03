@@ -67,6 +67,7 @@ function open(): Panel {
   return {
     server,
     root,
+    site,
     dev,
     schemas: async (): Promise<Schemas> => ({
       site,

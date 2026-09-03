@@ -23,6 +23,7 @@ const withDraft = resolveLanguages({
   fr: { default: true },
   en: { draft: true },
 })
+const bilingual = resolveLanguages({ fr: { default: true }, en: {} })
 
 const facts: BusinessFacts = {
   legalName: 'Atelier SARL',
@@ -46,6 +47,7 @@ function page(input: {
   readonly description?: Record<string, string>
   readonly image?: string
   readonly section?: string
+  readonly hidden?: Record<string, boolean>
 }): FindablePage {
   const built: Page = {
     $format: 1,
@@ -58,7 +60,7 @@ function page(input: {
       {
         id: 's1',
         type: 'hero',
-        hidden: {},
+        hidden: input.hidden ?? {},
         props: { title: { fr: 'Un titre' }, image: input.section ?? '' },
       },
     ],
@@ -144,6 +146,27 @@ describe('findableIssues — vignette de partage', () => {
 
   it('se contente d’une image portée par une section, sur laquelle la carte retombe', () => {
     expect(issuesOf([page({ name: 'index', section: 'aaa' })])).toEqual([])
+  })
+
+  it('ne compte pas l’image d’une section masquée, absente de la page construite', () => {
+    expect(
+      issuesOf([page({ name: 'index', section: 'aaa', hidden: { fr: true } })]),
+    ).toEqual([
+      'index : le lien de cette page se partage sans vignette : aucune image de partage, et aucune image dans ses sections',
+    ])
+  })
+
+  it('regarde chaque langue en ligne, et nomme celle qui manque', () => {
+    const found = findableIssues({
+      pages: [page({ name: 'index', section: 'aaa', hidden: { en: true } })],
+      registry,
+      languages: bilingual,
+      business: facts,
+    }).map(renderIssue)
+
+    expect(found).toEqual([
+      'index : le lien de cette page se partage sans vignette en anglais : aucune image de partage, et aucune image dans ses sections',
+    ])
   })
 
   it('exempte une page de service, que personne ne partage', () => {

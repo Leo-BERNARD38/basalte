@@ -24,6 +24,11 @@ export function githubToken(environment: Environment): string | undefined {
   return token === '' ? undefined : token
 }
 
+/** Le `owner/dépôt` d’une adresse GitHub, SSH ou HTTPS, ou rien si ce n’en est pas une. */
+export function githubSlug(url: string): string | undefined {
+  return /github\.com[/:]([^/\s]+\/[^/\s]+?)(?:\.git)?$/.exec(url.trim())?.[1]
+}
+
 export function remoteOf(slug: string): Remote {
   return {
     slug,

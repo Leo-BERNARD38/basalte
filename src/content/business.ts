@@ -27,7 +27,7 @@ import {
 import type { Languages } from '../site/languages.js'
 
 import { CONTENT_DIR, CONTENT_FORMAT } from './page.js'
-import type { ContentIssue } from './report.js'
+import { envelopeIssues, formatIssues, type ContentIssue } from './report.js'
 import { draftProgress, validateValues } from './validate.js'
 
 export const BUSINESS_FILE = 'business.json'
@@ -77,20 +77,13 @@ export function validateBusiness(input: {
   if (!envelope.success) {
     return {
       business: empty(input),
-      issues: envelope.error.issues.map((issue) => {
-        const field = issue.path.map(String).join(' › ')
-
-        return {
-          severity: 'error' as const,
-          page: BUSINESS_NAME,
-          ...(field === '' ? {} : { field }),
-          message: `structure de fichier invalide (${issue.code})`,
-        }
-      }),
+      issues: envelopeIssues(BUSINESS_NAME, envelope.error),
     }
   }
 
-  const issues: ContentIssue[] = [...formatIssues(envelope.data.$format)]
+  const issues: ContentIssue[] = [
+    ...formatIssues(BUSINESS_NAME, envelope.data.$format),
+  ]
   const progress: Progress[] = []
 
   const result = validateValues({
@@ -108,21 +101,6 @@ export function validateBusiness(input: {
   issues.push(...draftProgress(BUSINESS_NAME, progress, input.languages))
 
   return { business: result.values as BusinessFacts, issues }
-}
-
-function formatIssues(format: number): readonly ContentIssue[] {
-  if (format === CONTENT_FORMAT) return []
-
-  return [
-    {
-      severity: 'error',
-      page: BUSINESS_NAME,
-      message:
-        format < CONTENT_FORMAT
-          ? `format de contenu ${format}, le socle attend ${CONTENT_FORMAT} — lance « basalte migrate »`
-          : `format de contenu ${format}, écrit par un socle plus récent que celui installé`,
-    },
-  ]
 }
 
 // Une fiche illisible rend les champs remplis de leurs valeurs par défaut,
