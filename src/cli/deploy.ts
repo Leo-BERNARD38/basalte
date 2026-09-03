@@ -8,7 +8,12 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { addDeployKey, githubToken } from '../client/repository.js'
+import {
+  addDeployKey,
+  githubSlug,
+  githubToken,
+  remoteOf,
+} from '../client/repository.js'
 import {
   provision,
   type Deployment,
@@ -21,6 +26,7 @@ import { loadEnvironment } from '../server/open.js'
 import { loadSite } from '../site/load.js'
 import { fails, hasFlag, heading, line, optionValue, succeeds } from './args.js'
 import { doctor } from './doctor.js'
+import { isSlug } from './init.js'
 import type { Result } from './run.js'
 
 const ENV_FILE = '.env'
@@ -47,6 +53,17 @@ export async function deploy(
     ])
   }
 
+  const slug = path.basename(cwd)
+
+  // Le nom du dossier devient celui du dépôt sur la machine : il traverse un
+  // script shell, un chemin et un nom de conteneur, et seul un nom d’`init`
+  // y passe entier.
+  if (!isSlug(slug)) {
+    return fails([
+      `« ${slug} » ne peut pas nommer un site : lettres minuscules, chiffres et tirets seulement — renomme le dossier.`,
+    ])
+  }
+
   loadEnvironment(cwd)
 
   const recorded: string[] = []
@@ -55,7 +72,7 @@ export async function deploy(
   const account = optionValue(argv, '--user') ?? contactAddress(process.env)
 
   const target: Deployment = {
-    slug: path.basename(cwd),
+    slug,
     ...(origin === undefined ? {} : { remote: origin.ssh }),
     env: environment,
     ...(account === '' ? {} : { account }),
@@ -118,16 +135,9 @@ async function remoteUrl(
   cwd: string,
 ): Promise<{ readonly slug: string; readonly ssh: string } | undefined> {
   const found = await tryGit(cwd, ['remote', 'get-url', 'origin'])
+  const slug = found.kind === 'done' ? githubSlug(found.stdout) : undefined
 
-  if (found.kind === 'failed') return undefined
-
-  const match = /github\.com[/:]([^/]+\/[^/\s]+?)(?:\.git)?\s*$/.exec(
-    found.stdout,
-  )
-
-  if (match?.[1] === undefined) return undefined
-
-  return { slug: match[1], ssh: `git@github.com:${match[1]}.git` }
+  return slug === undefined ? undefined : remoteOf(slug)
 }
 
 function render(steps: readonly StepResult[]): readonly string[] {

@@ -44,6 +44,7 @@ import { readChromeDraft, saveChrome, type ChromeDraft } from './chrome.js'
 import type { Panel } from './context.js'
 import { commitFiles, isRepositoryRoot } from './git.js'
 import { authenticate } from './handlers.js'
+import { readUsageScope } from './usage.js'
 import {
   badRequest,
   guardOrigin,
@@ -267,9 +268,9 @@ export async function handlePanel(
     if (guard !== undefined) return guard
 
     const schemas = await panel.schemas()
-    const pages = await readDrafts(panel.root, schemas)
+    const scope = await readUsageScope(panel.root, schemas)
 
-    return deleteDocument(panel, route[1] ?? '', pages, schemas, commit)
+    return deleteDocument(panel, route[1] ?? '', scope, commit)
   }
 
   if (route[0] === 'posts' && route.length === 1) {
@@ -457,6 +458,7 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
   const files = await readContent(panel.root)
   const pages = draftsFrom(files, schemas)
   const { issues } = validateFiles(files, schemas)
+  const scope = await readUsageScope(panel.root, schemas)
 
   const payload: PanelPayload = {
     ok: true,
@@ -493,8 +495,8 @@ async function describePanel(panel: Panel, account: string): Promise<Response> {
       },
       draft: await readBusinessDraft(panel.root, schemas),
     },
-    media: describeMedia(schemas.media, pages, schemas),
-    documents: describeDocuments(schemas.documents, pages, schemas),
+    media: describeMedia(schemas.media, scope),
+    documents: describeDocuments(schemas.documents, scope),
     problems: issues.map((issue) => ({
       severity: issue.severity,
       page: issue.page,
@@ -741,9 +743,9 @@ async function media(
     if (guard !== undefined) return guard
 
     const schemas = await panel.schemas()
-    const pages = await readDrafts(panel.root, schemas)
+    const scope = await readUsageScope(panel.root, schemas)
 
-    return deleteMedia(panel, key, pages, schemas, commit)
+    return deleteMedia(panel, key, scope, commit)
   }
 
   return refuseMethod()

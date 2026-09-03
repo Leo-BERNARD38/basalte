@@ -87,7 +87,7 @@ export function resolveTokens(overrides: TokenOverrides = {}): Tokens {
     }
 
     for (const [name, value] of Object.entries(values ?? {})) {
-      if (!(name in target)) {
+      if (!Object.hasOwn(target, name)) {
         throw new Error(
           `« ${family}.${name} » n’est pas un token du socle. Un besoin non couvert s’ajoute au socle, jamais en valeur de style dans un bloc.`,
         )

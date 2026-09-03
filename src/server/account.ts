@@ -113,7 +113,7 @@ export async function changePassword(
 
   database
     .prepare(
-      'update account set password_hash = ?, password_changed_at = ? where id = ?',
+      'update account set password_hash = ?, password_changed_at = ?, failures = 0, locked_until = 0 where id = ?',
     )
     .run(await hashPassword(next), now, account.id)
 }

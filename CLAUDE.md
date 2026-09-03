@@ -29,10 +29,12 @@ entre dans le socle (D147, D148).
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
 formatage et lockfile. Une session sur le web n'a rien à faire : le hook de
 `.claude/` pose Node 24 et installe (D125).
-**Pour voir le panel :** `npm run demo:dev` — construit `dist/`, crée le compte
-de démonstration s'il manque, et sert le site et son panel sur
+**Pour voir le panel :** `npm run demo:dev` — construit `dist/` une fois, crée
+le compte de démonstration s'il manque, et sert le site et son panel sur
 `localhost:4321`. Sans clé d'email, le code à six chiffres s'affiche dans le
-terminal.
+terminal. Tout se recharge ensuite à chaud depuis `src/` : blocs, panel,
+feuilles et contenus (D190, D191). Seuls `site.config.ts` et l'intégration
+elle-même demandent de relancer.
 
 ## Où lire quoi
 
@@ -410,6 +412,24 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   avant : `withLineage` continue de compter l'emploi d'un dérivé au crédit de
   son originale, et c'est ce qui empêche d'effacer celle dont un dérivé est en
   ligne.
+- **La configuration d'Astro ne peut pas importer les sources du socle.** Elle
+  est lue par un chargeur de modules que Vite referme avant que les hooks ne
+  s'exécutent : tout `import()` fait ensuite depuis un module chargé par lui
+  échoue sur « module runner has been closed ». C'est pourquoi la démo importe
+  l'intégration compilée, et que c'est elle qui, sous `astro dev`, s'efface
+  devant `src/astro/index.ts` chargé nativement par Node — avec un hook de
+  résolution qui prend `x.ts` quand `x.js` n'existe pas (D190).
+- **Sous `astro dev`, Vite réévalue `src/astro/server.ts` à chaque bloc ou
+  contenu modifié**, parce que le module généré est dans son graphe. Ce qui
+  n'a de sens qu'une fois par processus — la base, le minuteur de purge, la
+  file de mise en ligne — vit sur `globalThis`, par dépôt ; sans cela chaque
+  rechargement rouvrait la base et posait un minuteur de plus.
+- **Un emploi de média se compte sur un périmètre, jamais sur les seules pages.**
+  Le logo de l'en-tête, la fiche de l'entreprise et la couverture d'un billet
+  citent des images que `content/*.json` ne porte pas : compter depuis les
+  pages seules laissait le panel supprimer un logo en ligne, et le build
+  suivant échouait. Le panel et la CLI composent leur périmètre par
+  `usageScope` (`src/media/usage.ts`), qui sait ce que chacun peut oublier.
 - **Un billet n'est pas une page, et il ne faut surtout pas lui en faire une.**
   `pageOfPost` le compile en `Page` juste avant le rendu : c'est ce qui lui donne
   gratuitement le sitemap, les `hreflang`, la carte de partage, le plan de titres,

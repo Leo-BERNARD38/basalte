@@ -22,6 +22,7 @@ import type { DatabaseSync } from 'node:sqlite'
 import { DAY } from './durations.js'
 import { purgeJournal } from './journal.js'
 import { purgeLeads } from './leads.js'
+import { pruneSessions } from './session.js'
 import { pruneThrottle } from './throttle.js'
 
 /** La durée de conservation par défaut, en mois (`services.md`). */
@@ -37,8 +38,19 @@ export type Purged = {
 
 export function purgeBefore(now: number, months: number): number {
   const date = new Date(now)
+  const day = date.getUTCDate()
 
+  // Le même jour du mois visé, ou son dernier jour quand il est plus court :
+  // reculer d’un mois depuis le 31 ne doit pas retomber au 3 du mois courant,
+  // ce qui effacerait trois jours avant la date promise.
+  date.setUTCDate(1)
   date.setUTCMonth(date.getUTCMonth() - months)
+
+  const last = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0),
+  ).getUTCDate()
+
+  date.setUTCDate(Math.min(day, last))
 
   return date.getTime()
 }
@@ -56,8 +68,18 @@ export function purgeNow(
   }
 
   pruneThrottle(database, now - THROTTLE_KEPT)
+  pruneSessions(database, now)
+  pruneCredentials(database, now)
 
   return purged
+}
+
+// Les tentatives, appareils et secours expirés portent la même adresse et le
+// même navigateur qu’une session : ils s’effacent avec elle.
+function pruneCredentials(database: DatabaseSync, now: number): void {
+  for (const table of ['login_attempt', 'device', 'rescue']) {
+    database.prepare(`delete from ${table} where expires_at < ?`).run(now)
+  }
 }
 
 /**

@@ -114,16 +114,31 @@ export function createPublisher(target: PublishTarget): Publisher {
     }
   }
 
+  // Une exception hors des étapes prévues — un binaire introuvable, un
+  // dossier refusé — est une mise en ligne refusée comme une autre : sans
+  // quoi la file resterait « en cours » jusqu’au redémarrage du processus.
   const pump = async (): Promise<void> => {
-    while (waiting !== undefined) {
-      const by = waiting
+    try {
+      while (waiting !== undefined) {
+        const by = waiting
 
-      waiting = undefined
+        waiting = undefined
 
-      await runOnce(target, by)
+        try {
+          await runOnce(target, by)
+        } catch (cause) {
+          await refuse(
+            target,
+            by,
+            target.now(),
+            'La mise en ligne',
+            cause instanceof Error ? cause.message : String(cause),
+          )
+        }
+      }
+    } finally {
+      running = undefined
     }
-
-    running = undefined
   }
 
   return {
@@ -163,7 +178,7 @@ async function runOnce(target: PublishTarget, by: Requester): Promise<void> {
   const started = target.now()
   const serving = siteRoot(target.root, target.environment)
 
-  const rebased = await rebaseOnRemote(target.root)
+  const rebased = await rebaseOnRemote(target.root, by.email)
 
   if (rebased.kind === 'failed') {
     await refuse(

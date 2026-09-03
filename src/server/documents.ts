@@ -24,7 +24,7 @@ import {
   type DocumentManifest,
 } from '../media/documents.js'
 import { documentFileName } from '../media/resolve.js'
-import { countMediaUsage, type UsageSource } from '../media/usage.js'
+import { countMediaUsage, type UsageScope } from '../media/usage.js'
 import type { Panel } from './context.js'
 import { badRequest, json, withinLength } from './http.js'
 import type { Commit } from './pages.js'
@@ -43,10 +43,9 @@ export type DocumentSummary = DocumentEntry & {
 
 export function describeDocuments(
   manifest: DocumentManifest,
-  pages: readonly UsageSource[],
-  schemas: Schemas,
+  scope: UsageScope,
 ): readonly DocumentSummary[] {
-  const usage = countMediaUsage(schemas.registry, pages, 'document')
+  const usage = countMediaUsage(scope.registry, scope.pages, 'document')
 
   return Object.entries(manifest)
     .map(([key, entry]) => ({ ...entry, key, usage: usage.get(key) ?? 0 }))
@@ -114,8 +113,7 @@ export async function uploadDocument(
 export async function deleteDocument(
   panel: Panel,
   key: string,
-  pages: readonly UsageSource[],
-  schemas: Schemas,
+  scope: UsageScope,
   commit: Commit,
 ): Promise<Response> {
   if (!KEY.test(key)) {
@@ -130,7 +128,7 @@ export async function deleteDocument(
   }
 
   const usage =
-    countMediaUsage(schemas.registry, pages, 'document').get(key) ?? 0
+    countMediaUsage(scope.registry, scope.pages, 'document').get(key) ?? 0
 
   if (usage > 0) {
     return json(

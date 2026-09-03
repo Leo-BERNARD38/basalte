@@ -44,15 +44,17 @@ export async function update(
         ])
   }
 
-  process.stdout.write(
-    [
-      ...heading('update'),
-      line('ok', `v${upgrade.from} → v${upgrade.to}`),
-      '',
-      ...notes(upgrade),
-      '',
-    ].join('\n'),
-  )
+  if (!asJson) {
+    process.stdout.write(
+      [
+        ...heading('update'),
+        line('ok', `v${upgrade.from} → v${upgrade.to}`),
+        '',
+        ...notes(upgrade),
+        '',
+      ].join('\n'),
+    )
+  }
 
   const steps = await applyUpgrade(cwd, upgrade, socle)
   const broken = steps.find((step) => !step.ok)

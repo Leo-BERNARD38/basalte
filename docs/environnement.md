@@ -41,7 +41,7 @@ Une session Claude Code sur le web n'a rien à faire de tout cela : le hook de
 | `npm run test:watch` | Vitest, en continu |
 | `npm run format` | applique Prettier |
 | `npm run setup` | branche `.githooks/` |
-| `npm run demo:dev` | sert le site de démonstration, panel compris |
+| `npm run demo:dev` | sert le site de démonstration, panel compris, à chaud depuis `src/` |
 | `npm run demo:build` | construit le site de démonstration, statique |
 | `npm run demo:panel` | construit son panel : sortie serveur, adaptateur Node |
 | `npm run demo:check` | typecheck des `.astro` et des `.tsx`, via `@astrojs/check` |
@@ -51,6 +51,23 @@ Node résout `@leobernard/basalte` par self-reference depuis n'importe quel
 sous-dossier du dépôt. Il ressemble donc trait pour trait à un dépôt client
 sans coûter l'installation complète qu'un workspace imposerait à chaque VPS —
 voir « Ce que npm fait vraiment » plus bas.
+
+`demo:dev` construit `dist/` une fois, parce que la configuration d'Astro
+importe l'intégration par son paquet et que le script a besoin de la base
+compilée pour créer le compte. Puis tout vient de `src/` : sous `astro dev`,
+l'intégration compilée s'efface devant ses sources (D190), et Vite recharge à
+chaud un bloc, le panel, une feuille ou un `.tsx` modifiés. Un fichier de
+`content/` qui change — enregistré par le panel, retouché à la main, arrivé par
+`git pull` — fait réécrire le module généré et l'invalide dans le graphe, sans
+redémarrer le serveur (D191) ; la page se recharge sauf quand c'est le panel qui
+vient d'écrire. Deux fichiers demandent encore de relancer : `site.config.ts`,
+qui décide des routes, et `src/astro/index.ts`, qui est l'intégration
+elle-même — et `dist/` doit être reconstruit pour le second.
+
+Astro 7 détecte un agent et lance alors le serveur en arrière-plan, en
+attendant un fichier de verrou qui n'arrive pas dans un conteneur : poser
+`ASTRO_DEV_BACKGROUND=1` le garde au premier plan. Un développeur dans son
+terminal n'a rien à faire.
 
 ## Versions épinglées
 

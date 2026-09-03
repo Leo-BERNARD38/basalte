@@ -204,6 +204,8 @@ describe('la purge', () => {
   it('compte en mois calendaires', () => {
     expect(purgeBefore(Date.UTC(2027, 0, 15), 12)).toBe(Date.UTC(2026, 0, 15))
     expect(purgeBefore(Date.UTC(2026, 5, 10), 1)).toBe(Date.UTC(2026, 4, 10))
+    expect(purgeBefore(Date.UTC(2026, 2, 31), 1)).toBe(Date.UTC(2026, 1, 28))
+    expect(purgeBefore(Date.UTC(2028, 1, 29), 12)).toBe(Date.UTC(2027, 1, 28))
   })
 })
 

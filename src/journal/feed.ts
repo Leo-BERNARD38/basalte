@@ -10,6 +10,7 @@
 // porte du texte que le client écrit, et `&` y est un caractère comme un autre.
 
 import { urlFor } from '../astro/routes.js'
+import { escapeXml } from '../seo/sitemap.js'
 import type { Languages } from '../site/languages.js'
 import type { Site } from '../site/define.js'
 import type { Journal } from './define.js'
@@ -118,13 +119,4 @@ function rfc822(date: string): string {
   const time = Date.parse(`${date}T00:00:00Z`)
 
   return Number.isNaN(time) ? '' : new Date(time).toUTCString()
-}
-
-function escapeXml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&apos;')
 }

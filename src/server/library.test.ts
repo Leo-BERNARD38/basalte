@@ -282,6 +282,25 @@ describe('DELETE /api/media/:clé', () => {
     await site.close()
   })
 
+  it('refuse de supprimer le logo de l’en-tête, que nulle page ne cite', async () => {
+    const site = await bench()
+    const saved = await site.call('PUT', '/api/chrome', {
+      blocks: [
+        { id: 'header', type: 'header', hidden: {}, props: { logo: IMAGE } },
+        { id: 'footer', type: 'footer', hidden: {}, props: { links: [] } },
+      ],
+    })
+
+    expect(saved.status).toBe(200)
+
+    const response = await site.call('DELETE', `/api/media/${IMAGE}`)
+
+    expect(response.status).toBe(409)
+    expect((await site.media())[IMAGE]).toBeDefined()
+
+    await site.close()
+  })
+
   it('supprime une image que rien n’emploie, fichiers compris', async () => {
     const site = await bench()
 

@@ -50,6 +50,11 @@ const VALUED = ['--name', '--domain', '--languages', '--profile', '--repo']
 
 const SLUG = /^[a-z0-9][a-z0-9-]*$/
 
+/** Le nom d’un site : ce qui nomme son dossier, son dépôt et sa machine. */
+export function isSlug(name: string): boolean {
+  return SLUG.test(name)
+}
+
 export async function init(
   argv: readonly string[],
   cwd: string,

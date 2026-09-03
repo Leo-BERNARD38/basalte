@@ -75,10 +75,7 @@ export async function commitFiles(
   if (await indexClean(root)) return false
 
   const committed = await tryGit(root, [
-    '-c',
-    `user.name=${AUTHOR}`,
-    '-c',
-    `user.email=${email}`,
+    ...identityOf(email),
     'commit',
     '--no-verify',
     '--message',
@@ -88,6 +85,15 @@ export async function commitFiles(
   ])
 
   return committed.kind === 'failed' ? abandon(committed.detail) : true
+}
+
+/**
+ * L’identité sous laquelle git écrit, passée à chaque commande qui crée un
+ * commit : la machine du client n’en configure aucune, et un rebasage en
+ * recrée autant qu’il en rejoue.
+ */
+export function identityOf(email: string): readonly string[] {
+  return ['-c', `user.name=${AUTHOR}`, '-c', `user.email=${email}`]
 }
 
 /** Vrai quand l’index ne porte aucune modification. */

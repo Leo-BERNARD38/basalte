@@ -370,6 +370,27 @@ describe('la taille du corps', () => {
 
     await site.close()
   })
+
+  it('refuse un envoi dont la taille annoncée est vide', async () => {
+    const site = await bench()
+
+    const response = await handleContact(
+      site.panel,
+      new Request(`${ORIGIN}/api/contact`, {
+        method: 'POST',
+        headers: {
+          origin: ORIGIN,
+          'content-type': 'application/x-www-form-urlencoded',
+          'content-length': '',
+        },
+        body: new URLSearchParams({ ...VALID, page: '/' }).toString(),
+      }),
+    )
+
+    expect(response?.status).toBe(413)
+
+    await site.close()
+  })
 })
 
 describe('la capacité « notifyLeads »', () => {

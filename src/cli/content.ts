@@ -26,6 +26,7 @@ import {
 import { pick } from '../fields/translate.js'
 import { postRoute, type Journal } from '../journal/define.js'
 import { unusedMedia } from '../media/usage.js'
+import { projectScope } from './check.js'
 import { hasAddress, hasBusiness } from '../seo/business.js'
 import { shareImageKey } from '../seo/meta.js'
 import type { Languages } from '../site/languages.js'
@@ -116,7 +117,6 @@ export async function content(
 export async function readView(cwd: string): Promise<ContentView> {
   const project = await readProject(cwd)
   const languages = project.site.languages
-  const pages = project.pages.map((entry) => entry.page)
 
   return {
     site: {
@@ -174,8 +174,7 @@ export async function readView(cwd: string): Promise<ContentView> {
       total: Object.keys(project.media).length,
       unused: unusedMedia({
         keys: Object.keys(project.media),
-        registry: project.registry,
-        pages,
+        ...projectScope(project),
         manifest: project.media,
         kind: 'image',
       }),
@@ -191,8 +190,7 @@ export async function readView(cwd: string): Promise<ContentView> {
       total: Object.keys(project.documents).length,
       unused: unusedMedia({
         keys: Object.keys(project.documents),
-        registry: project.registry,
-        pages,
+        ...projectScope(project),
         manifest: project.media,
         kind: 'document',
       }),

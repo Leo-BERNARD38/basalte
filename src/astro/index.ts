@@ -14,7 +14,9 @@
 // modules et ne traverse pas un module purement virtuel, dont les composants
 // de blocs perdraient leur CSS.
 
+import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { registerHooks } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -26,10 +28,10 @@ import type { ChromeContent } from '../chrome/define.js'
 import type { Post } from '../journal/define.js'
 import { feedPaths } from '../journal/feed.js'
 import { notFoundRoute, supportsOf } from '../render/supports.js'
-import { CHROME_FILE } from '../content/chrome.js'
 import { CONTENT_DIR } from '../content/page.js'
 import { errorsOf, readProject, type RenderedPage } from '../content/project.js'
 import { renderIssue } from '../content/report.js'
+import { writtenByPanel } from '../content/write.js'
 import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
 import type { BusinessFacts } from '../seo/business.js'
@@ -52,92 +54,147 @@ type VirtualPlugin = {
   resolveId(id: string): string | undefined
 }
 
+// Ce que le guetteur demande au serveur de Vite, et rien de plus : ses types ne
+// sont pas importés, un dépôt client ne les a pas sous la main.
+type DevServer = {
+  readonly watcher: {
+    add(target: string): unknown
+    on(event: string, listener: (file: string) => void): unknown
+  }
+  readonly moduleGraph: { onFileChange(file: string): void }
+  readonly hot: { send(payload: { readonly type: 'full-reload' }): void }
+}
+
+type ContentPlugin = {
+  readonly name: string
+  configureServer(server: DevServer): void
+}
+
 export default function basalte(): AstroIntegration {
   return {
     name: '@leobernard/basalte',
     hooks: {
-      'astro:config:setup': async ({
-        config,
-        command,
-        updateConfig,
-        injectRoute,
-        addMiddleware,
-        addWatchFile,
-        createCodegenDir,
-        logger,
-      }) => {
+      'astro:config:setup': async (setup) => {
+        const hot = await sourceIntegration(setup.command)
+
+        if (hot !== undefined) return hot.hooks['astro:config:setup']?.(setup)
+
+        const {
+          config,
+          command,
+          updateConfig,
+          injectRoute,
+          addMiddleware,
+          addWatchFile,
+          createCodegenDir,
+          logger,
+        } = setup
         const root = fileURLToPath(config.root)
         const panel = command === 'dev' || process.env[MODE] === PANEL
         const publicSite = command === 'dev' || !panel
+        const codegen = createCodegenDir()
 
-        const {
-          site,
-          sources,
-          chromeSources,
-          journalSources,
-          registry,
-          chrome,
-          chromeContent,
-          journal,
-          posts,
-          business,
-          pages,
-          media,
-          documents,
-          issues,
-        } = await readProject(root)
-        const errors = errorsOf(issues)
+        // Le projet est lu et le module généré écrit ici, puis à chaque fois
+        // que `content/` change sous `astro dev` : c’est ce qui fait qu’un
+        // enregistrement du panel ou un JSON retouché à la main se voient
+        // sans relancer le serveur.
+        const prepare = async (): Promise<{
+          readonly site: Site
+          readonly generated: string
+        }> => {
+          const {
+            site,
+            sources,
+            chromeSources,
+            journalSources,
+            registry,
+            chrome,
+            chromeContent,
+            journal,
+            posts,
+            business,
+            pages,
+            media,
+            documents,
+            issues,
+          } = await readProject(root)
+          const errors = errorsOf(issues)
 
-        for (const issue of issues) {
-          if (issue.severity !== 'error') logger.warn(renderIssue(issue))
-        }
-
-        // Une erreur de contenu arrête la construction du site public, jamais
-        // celle du panel : c’est lui qui sert à la corriger.
-        if (errors.length > 0) {
-          const report = errors
-            .map((issue) => `  - ${renderIssue(issue)}`)
-            .join('\n')
-
-          if (publicSite && command === 'build') {
-            throw new Error(
-              `Le contenu ne passe pas la validation :\n${report}`,
-            )
+          for (const issue of issues) {
+            if (issue.severity !== 'error') logger.warn(renderIssue(issue))
           }
 
-          logger.warn(`Le contenu ne passe pas la validation :\n${report}`)
+          // Une erreur de contenu arrête la construction du site public,
+          // jamais celle du panel : c’est lui qui sert à la corriger.
+          if (errors.length > 0) {
+            const report = errors
+              .map((issue) => `  - ${renderIssue(issue)}`)
+              .join('\n')
+
+            if (publicSite && command === 'build') {
+              throw new Error(
+                `Le contenu ne passe pas la validation :\n${report}`,
+              )
+            }
+
+            logger.warn(`Le contenu ne passe pas la validation :\n${report}`)
+          }
+
+          const used = new Set(
+            pages.flatMap((entry) =>
+              entry.page.blocks.map((section) => section.type),
+            ),
+          )
+
+          const generated = await generate(codegen, {
+            root,
+            site,
+            dev: command === 'dev',
+            registry,
+            chrome,
+            chromeContent,
+            chromeSources,
+            journal,
+            journalSources,
+            posts,
+            business,
+            pages,
+            media,
+            documents,
+            sources: panel
+              ? sources
+              : sources.filter((source) => used.has(source.name)),
+          })
+
+          return { site, generated }
         }
 
-        const used = new Set(
-          pages.flatMap((entry) =>
-            entry.page.blocks.map((section) => section.type),
-          ),
-        )
-
-        const generated = await generate(createCodegenDir(), {
-          root,
-          site,
-          dev: command === 'dev',
-          registry,
-          chrome,
-          chromeContent,
-          chromeSources,
-          journal,
-          journalSources,
-          posts,
-          business,
-          pages,
-          media,
-          documents,
-          sources: panel
-            ? sources
-            : sources.filter((source) => used.has(source.name)),
-        })
+        const { site, generated } = await prepare()
 
         updateConfig({
           vite: {
-            plugins: [virtualModule(generated)],
-            server: { fs: { allow: [fileURLToPath(own('../../'))] } },
+            plugins: [
+              virtualModule(generated),
+              ...(command === 'dev'
+                ? [
+                    contentWatcher({
+                      root,
+                      generated,
+                      regenerate: async () => {
+                        await prepare()
+                      },
+                      warn: (message) => logger.warn(message),
+                    }),
+                  ]
+                : []),
+            ],
+            resolve: { alias: [...sourceAliases()] },
+            server: {
+              fs: { allow: [fileURLToPath(own('../../'))] },
+              // Le module généré n’est réécrit que par le guetteur, qui sait
+              // quand recharger : Vite ne doit pas le voir changer lui-même.
+              watch: { ignored: [generated] },
+            },
           },
           // Les redirections déclarées deviennent des pages rendues au build,
           // jamais une règle du proxy : le `Caddyfile` n’est pas régénéré, et
@@ -197,25 +254,10 @@ export default function basalte(): AstroIntegration {
           })
         }
 
+        // La configuration du site, elle, redémarre le serveur : elle décide
+        // des routes, des langues et des redirections, que seul un nouveau
+        // départ peut rejouer.
         addWatchFile(path.join(root, CONFIG_FILE))
-        addWatchFile(path.join(root, CONTENT_DIR, CHROME_FILE))
-
-        for (const entry of pages) {
-          addWatchFile(path.join(root, CONTENT_DIR, `${entry.name}.json`))
-        }
-
-        if (site.journal !== undefined) {
-          for (const post of posts) {
-            addWatchFile(
-              path.join(
-                root,
-                CONTENT_DIR,
-                site.journal.base,
-                `${post.slug}.json`,
-              ),
-            )
-          }
-        }
       },
     },
   }
@@ -279,8 +321,173 @@ async function mountPanel(
 
 // L’entrée d’une route injectée est passée en URL de fichier : Astro la
 // convertit lui-même, là où un chemin Windows serait lu comme un schéma.
+//
+// Chargée depuis `src/` plutôt que depuis `dist/` — c’est ce que fait la
+// démonstration, pour que chaque fichier du socle se recharge à chaud —,
+// l’intégration désigne ses voisins par le nom du fichier compilé, qui
+// n’existe pas encore : c’est alors la source du même nom qui est prise.
 function own(relative: string): URL {
-  return new URL(relative, import.meta.url)
+  const compiled = new URL(relative, import.meta.url)
+
+  if (!relative.endsWith('.js') || existsSync(compiled)) return compiled
+
+  const source = new URL(relative.replace(/\.js$/, '.ts'), import.meta.url)
+
+  return existsSync(source) ? source : compiled
+}
+
+/** Vrai quand l’intégration tourne depuis ses sources, et non compilée. */
+function fromSources(): boolean {
+  return fileURLToPath(import.meta.url).endsWith('.ts')
+}
+
+/**
+ * Sous `astro dev`, dans le dépôt du socle lui-même, l’intégration compilée
+ * s’efface devant ses sources : c’est la même intégration, chargée depuis
+ * `src/`, qui monte le site et le panel. Tout ce qu’elle désigne — blocs,
+ * chrome, routes, island — vient alors des sources, et Vite les recharge à
+ * chaud sans reconstruire `dist/` ni relancer le serveur.
+ *
+ * Un dépôt client n’a pas de `src/` à côté de `dist/` — le paquet ne livre
+ * que `dist/` et `notes/` — et n’entre jamais ici. La configuration d’Astro
+ * ne peut pas importer les sources elle-même : elle est lue par un chargeur
+ * que Vite referme avant que les hooks ne s’exécutent.
+ */
+async function sourceIntegration(
+  command: Setup['command'],
+): Promise<AstroIntegration | undefined> {
+  if (command !== 'dev' || fromSources()) return undefined
+
+  const sources = new URL('../../src/', import.meta.url)
+  const entry = new URL('astro/index.ts', sources)
+
+  if (!existsSync(entry)) return undefined
+
+  resolveSources(sources)
+
+  const loaded = (await import(/* @vite-ignore */ entry.href)) as {
+    readonly default: () => AstroIntegration
+  }
+
+  return loaded.default()
+}
+
+const RELATIVE = /^\.\.?\//
+
+let sourcesResolved = false
+
+// Node efface les types d’un `.ts` à la volée, mais ne réécrit pas les
+// spécificateurs : un `./x.js` importé depuis `src/` désigne un fichier que
+// seule la compilation produit. Tant que le fichier compilé manque, c’est la
+// source du même nom qui est chargée — et elle seule, jamais `node_modules`.
+function resolveSources(sources: URL): void {
+  if (sourcesResolved) return
+
+  sourcesResolved = true
+
+  registerHooks({
+    resolve(specifier, context, next) {
+      const parent = context.parentURL
+
+      if (
+        parent !== undefined &&
+        parent.startsWith(sources.href) &&
+        RELATIVE.test(specifier) &&
+        specifier.endsWith('.js')
+      ) {
+        const compiled = new URL(specifier, parent)
+
+        if (!existsSync(compiled)) {
+          return {
+            url: compiled.href.replace(/\.js$/, '.ts'),
+            shortCircuit: true,
+          }
+        }
+      }
+
+      return next(specifier, context)
+    },
+  })
+}
+
+// Depuis les sources, le nom du paquet doit lui aussi mener aux sources :
+// sans quoi l’island du panel et les blocs du site viendraient de `dist/`,
+// et le serveur du panel existerait deux fois — une par copie des modules.
+function sourceAliases(): readonly { find: RegExp; replacement: string }[] {
+  if (!fromSources()) return []
+
+  return [
+    {
+      find: /^@leobernard\/basalte\/admin$/,
+      replacement: fileURLToPath(own('../admin/Panel.tsx')),
+    },
+    {
+      find: /^@leobernard\/basalte\/astro$/,
+      replacement: fileURLToPath(own('./index.ts')),
+    },
+    {
+      find: /^@leobernard\/basalte$/,
+      replacement: fileURLToPath(own('../index.ts')),
+    },
+  ]
+}
+
+// Le contenu change sans relancer : chaque fichier de `content/` qui bouge
+// fait réécrire le module généré, puis l’invalide dans le graphe de Vite. La
+// page se recharge quand le changement vient d’ailleurs que du panel — un JSON
+// retouché à la main, un `git pull` — et pas quand c’est lui qui enregistre.
+// Les changements d’un même instant sont regroupés : une sauvegarde en écrit
+// plusieurs, dont un manifeste.
+export function contentWatcher(input: {
+  readonly root: string
+  readonly generated: string
+  readonly regenerate: () => Promise<void>
+  readonly warn: (message: string) => void
+}): ContentPlugin {
+  const directory = path.join(input.root, CONTENT_DIR) + path.sep
+
+  return {
+    name: 'basalte:content',
+
+    configureServer(server) {
+      let pending: ReturnType<typeof setTimeout> | undefined
+      let reload = false
+
+      const refresh = async (): Promise<void> => {
+        const shouldReload = reload
+
+        reload = false
+
+        try {
+          await input.regenerate()
+        } catch (cause) {
+          input.warn(
+            `Le contenu n’a pas pu être relu : ${(cause as Error).message}`,
+          )
+
+          return
+        }
+
+        server.moduleGraph.onFileChange(input.generated)
+
+        if (shouldReload) server.hot.send({ type: 'full-reload' })
+      }
+
+      const changed = (file: string): void => {
+        if (!file.startsWith(directory) || !file.endsWith('.json')) return
+
+        reload ||= !writtenByPanel(file)
+
+        clearTimeout(pending)
+        pending = setTimeout(() => void refresh(), 150)
+      }
+
+      server.watcher.add(directory)
+      server.watcher.on('add', changed)
+      server.watcher.on('change', changed)
+      server.watcher.on('unlink', changed)
+    },
+  }
 }
 
 function virtualModule(generated: string): VirtualPlugin {

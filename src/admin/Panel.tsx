@@ -175,25 +175,37 @@ export default function Panel({ site }: { readonly site: string }) {
     setIssues([])
   }
 
-  /** Relit, puis ouvre une page : le brouillon vient alors du serveur. */
-  const load = async (page?: string, slug?: string) => {
+  /**
+   * Relit, puis ouvre une page et un billet : leurs brouillons viennent alors
+   * du serveur. Enregistrer l’un ne doit pas effacer ce que l’autre a de non
+   * enregistré : `keep` dit lequel garder tel qu’il est à l’écran.
+   */
+  const load = async (
+    page?: string,
+    slug?: string,
+    keep: 'page' | 'post' | 'none' = 'none',
+  ) => {
     const data = await refresh()
 
     if (data === undefined) return
 
     // Le billet ouvert se reprend du serveur au même titre que la page : c’est
     // ce qui fait que « enregistrer » repart de ce que le dépôt contient.
-    const posts = data.journal?.posts ?? []
-    const wantedPost = slug ?? openedPost
-    const post =
-      posts.find((entry) => entry.slug === wantedPost) ??
-      (wantedPost === '' ? posts[0] : undefined)
+    if (keep !== 'post') {
+      const posts = data.journal?.posts ?? []
+      const wantedPost = slug ?? openedPost
+      const post =
+        posts.find((entry) => entry.slug === wantedPost) ??
+        (wantedPost === '' ? posts[0] : undefined)
 
-    if (post !== undefined) openPost(post)
-    else {
-      setOpenedPost('')
-      setPostDraft(NO_POST)
+      if (post !== undefined) openPost(post)
+      else {
+        setOpenedPost('')
+        setPostDraft(NO_POST)
+      }
     }
+
+    if (keep === 'page') return
 
     const wanted = page ?? selected
 
@@ -261,23 +273,26 @@ export default function Panel({ site }: { readonly site: string }) {
     JSON.stringify(postDraft) !==
       JSON.stringify({ hidden: post.hidden, fields: post.fields })
 
+  const pageDirty = saved !== undefined && !sameDraft(draft, saved)
   const editingJournal = screen === 'journal'
-  const dirty = editingJournal
-    ? postDirty
-    : saved !== undefined && !sameDraft(draft, saved)
+  const dirty = editingJournal ? postDirty : pageDirty
+
+  // Ce que quitter le panel ferait perdre : les deux brouillons, pas
+  // seulement celui de l’écran ouvert.
+  const anyDirty = pageDirty || postDirty
 
   // Fermer l’onglet sur des modifications non enregistrées passe par la
   // confirmation du navigateur : le panel n’a pas d’autre prise sur ce
   // départ-là.
   useEffect(() => {
-    if (!dirty) return undefined
+    if (!anyDirty) return undefined
 
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
 
     window.addEventListener('beforeunload', warn)
 
     return () => window.removeEventListener('beforeunload', warn)
-  }, [dirty])
+  }, [anyDirty])
 
   if (!ready) {
     return (
@@ -338,7 +353,17 @@ export default function Panel({ site }: { readonly site: string }) {
     setProblems([])
     setIssues([])
     setSavedAt(Date.now())
-    await load(selected, editingJournal ? openedPost : undefined)
+    await load(
+      selected,
+      editingJournal ? openedPost : undefined,
+      editingJournal
+        ? pageDirty
+          ? 'page'
+          : 'none'
+        : postDirty
+          ? 'post'
+          : 'none',
+    )
 
     return true
   }
@@ -419,7 +444,7 @@ export default function Panel({ site }: { readonly site: string }) {
   // Le même garde-fou pour une page et pour un billet : rien ne fait perdre un
   // brouillon sans le dire.
   function ask(next: Asked): void {
-    if (dirty) setAsked(next)
+    if (next.kind === 'sign-out' ? anyDirty : dirty) setAsked(next)
     else reveal(next)
   }
 

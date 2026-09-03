@@ -9,6 +9,13 @@
 // Les schémas, eux, viennent du module généré au démarrage : le panel ne
 // reparcourt pas les blocs. Seul le manifeste des médias est relu à chaque
 // requête, parce que le panel lui-même l’écrit.
+//
+// Sous `astro dev`, Vite réévalue ce module chaque fois qu’un bloc ou un
+// contenu change — le module généré est dans son graphe. Ce qui n’a de sens
+// qu’une fois par processus — la base, le minuteur, la file — survit donc à la
+// réévaluation sur `globalThis`, par dépôt ; les schémas, eux, sont relus à
+// chaque fois, et c’est précisément ce qu’on veut. En production, le module
+// n’est évalué qu’une fois et le partage ne change rien.
 
 import {
   chromeRegistry,
@@ -36,6 +43,16 @@ import {
   type Notifier,
 } from '../server/webhook.js'
 
+type Shared = {
+  readonly server: ReturnType<typeof openServer>
+  readonly provider: ReturnType<typeof siteProvider>
+  readonly publisher: ReturnType<typeof createPublisher>
+  readonly notifier: Notifier | undefined
+  readonly months: number
+}
+
+const SHARED = Symbol.for('basalte.panel')
+
 let opened: Panel | undefined
 
 export function panelContext(): Panel {
@@ -45,6 +62,49 @@ export function panelContext(): Panel {
 }
 
 function open(): Panel {
+  const { server, provider, publisher, notifier, months } = shared()
+
+  return {
+    server,
+    root,
+    site,
+    dev,
+    schemas: async (): Promise<Schemas> => ({
+      site,
+      registry,
+      chrome: chromeRegistry,
+      journal: journalRegistry,
+      media: await readManifest(root),
+      documents: await readDocuments(root),
+    }),
+    publisher,
+    leads: {
+      notify: site.capabilities.notifyLeads,
+      to: contactAddress(process.env),
+      provider,
+      notifier,
+      months,
+    },
+    accessLog: accessLogPath(process.env),
+    support: adminAddress(process.env),
+  }
+}
+
+function shared(): Shared {
+  const globals = globalThis as { [SHARED]?: Map<string, Shared> }
+  const entries = (globals[SHARED] ??= new Map())
+  const existing = entries.get(root)
+
+  if (existing !== undefined) return existing
+
+  const created = openShared()
+
+  entries.set(root, created)
+
+  return created
+}
+
+function openShared(): Shared {
   // `openServer` charge le `.env` du dépôt : rien ne doit lire l’environnement
   // avant lui.
   const server = openServer(root, site)
@@ -77,29 +137,7 @@ function open(): Panel {
     )
   })
 
-  return {
-    server,
-    root,
-    dev,
-    schemas: async (): Promise<Schemas> => ({
-      site,
-      registry,
-      chrome: chromeRegistry,
-      journal: journalRegistry,
-      media: await readManifest(root),
-      documents: await readDocuments(root),
-    }),
-    publisher,
-    leads: {
-      notify: site.capabilities.notifyLeads,
-      to: contactAddress(process.env),
-      provider,
-      notifier,
-      months,
-    },
-    accessLog: accessLogPath(process.env),
-    support: adminAddress(process.env),
-  }
+  return { server, provider, publisher, notifier, months }
 }
 
 // Une adresse mal écrite ne doit pas empêcher le site de servir : elle se dit

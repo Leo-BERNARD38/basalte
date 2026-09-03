@@ -33,7 +33,7 @@ import { fileName } from '../media/resolve.js'
 import {
   countMediaUsage,
   withLineage,
-  type UsageSource,
+  type UsageScope,
 } from '../media/usage.js'
 import type { Panel } from './context.js'
 import { badRequest, json, withinLength } from './http.js'
@@ -64,10 +64,12 @@ export type MediaSummary = MediaEntry & {
 
 export function describeMedia(
   manifest: MediaManifest,
-  pages: readonly UsageSource[],
-  schemas: Schemas,
+  scope: UsageScope,
 ): readonly MediaSummary[] {
-  const usage = withLineage(countMediaUsage(schemas.registry, pages), manifest)
+  const usage = withLineage(
+    countMediaUsage(scope.registry, scope.pages),
+    manifest,
+  )
 
   return Object.entries(manifest)
     .map(([key, entry]) => ({ ...entry, key, usage: usage.get(key) ?? 0 }))
@@ -182,8 +184,7 @@ export async function updateMedia(
 export async function deleteMedia(
   panel: Panel,
   key: string,
-  pages: readonly UsageSource[],
-  schemas: Schemas,
+  scope: UsageScope,
   commit: Commit,
 ): Promise<Response> {
   if (!KEY.test(key)) return json({ ok: false, message: 'Média inconnu.' }, 404)
@@ -195,7 +196,7 @@ export async function deleteMedia(
     return json({ ok: false, message: 'Média inconnu.' }, 404)
   }
 
-  const counted = countMediaUsage(schemas.registry, pages)
+  const counted = countMediaUsage(scope.registry, scope.pages)
   const usage = counted.get(key) ?? 0
 
   if (usage > 0) {
