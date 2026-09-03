@@ -13,7 +13,7 @@
 // laisse le dépôt propre, dit au client que son site n’a pas changé, et envoie
 // l’erreur au mainteneur.
 
-import { isRepositoryRoot, tryGit } from '../server/git.js'
+import { identityOf, isRepositoryRoot, tryGit } from '../server/git.js'
 
 export type RemoteResult =
   | { readonly kind: 'done' }
@@ -43,10 +43,13 @@ export async function hasUpstream(root: string): Promise<boolean> {
   return result.kind === 'done' && result.stdout.trim() !== ''
 }
 
-export async function rebaseOnRemote(root: string): Promise<RemoteResult> {
+export async function rebaseOnRemote(
+  root: string,
+  email: string,
+): Promise<RemoteResult> {
   if (!(await hasUpstream(root))) return { kind: 'absent' }
 
-  const pulled = await tryGit(root, ['pull', '--rebase'])
+  const pulled = await tryGit(root, [...identityOf(email), 'pull', '--rebase'])
 
   if (pulled.kind === 'done') return { kind: 'done' }
 

@@ -186,7 +186,11 @@ export function MediaPicker({
                     </Text>
                   ) : (
                     places.map((place) => (
-                      <Text key={place.entry} tone="muted" data-size="eyebrow">
+                      <Text
+                        key={`${place.kind}-${place.entry}`}
+                        tone="muted"
+                        data-size="eyebrow"
+                      >
                         {place.label}
                       </Text>
                     ))

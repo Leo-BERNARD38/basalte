@@ -91,7 +91,7 @@ export function robotsTxt(site: Site): string {
   ].join('\n')
 }
 
-function escapeXml(value: string): string {
+export function escapeXml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')

@@ -18,7 +18,12 @@ import { z } from 'zod'
 import type { Progress } from '../fields/progress.js'
 import type { DocumentManifest } from '../media/documents.js'
 import type { MediaManifest } from '../media/manifest.js'
-import { BUSINESS_FIELDS, type BusinessFacts } from '../seo/business.js'
+import {
+  BUSINESS_ENTRY,
+  BUSINESS_FIELDS,
+  BUSINESS_TITLE,
+  type BusinessFacts,
+} from '../seo/business.js'
 import type { Languages } from '../site/languages.js'
 
 import { CONTENT_DIR, CONTENT_FORMAT } from './page.js'
@@ -95,6 +100,7 @@ export function validateBusiness(input: {
     languages: input.languages,
     media: input.media,
     documents: input.documents,
+    section: { index: 0, id: BUSINESS_ENTRY, label: BUSINESS_TITLE },
   })
 
   issues.push(...result.issues)

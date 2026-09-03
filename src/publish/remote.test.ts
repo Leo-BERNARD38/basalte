@@ -112,7 +112,7 @@ describe('rebaseOnRemote', () => {
     await commit(other, 'départ', 'un bloc sur mesure')
     git(other, ['push', '--quiet'])
 
-    expect(await rebaseOnRemote(site)).toEqual({ kind: 'done' })
+    expect(await rebaseOnRemote(site, EMAIL)).toEqual({ kind: 'done' })
     expect(git(site, ['log', '--oneline']).trim().split('\n')).toHaveLength(2)
   })
 
@@ -124,7 +124,7 @@ describe('rebaseOnRemote', () => {
 
     await commit(site, 'depuis le panel', 'la version du client')
 
-    const result = await rebaseOnRemote(site)
+    const result = await rebaseOnRemote(site, EMAIL)
 
     expect(result.kind).toBe('failed')
 
@@ -144,7 +144,7 @@ describe('rebaseOnRemote', () => {
 
     quiet(['init', '--initial-branch=main', alone])
 
-    expect(await rebaseOnRemote(alone)).toEqual({ kind: 'absent' })
+    expect(await rebaseOnRemote(alone, EMAIL)).toEqual({ kind: 'absent' })
   })
 })
 
