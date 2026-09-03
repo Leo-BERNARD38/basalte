@@ -1,7 +1,11 @@
-// L’écran « Compte » : le mot de passe, les appareils reconnus et le journal
-// des connexions. Ce dernier vaut plus qu’un verrouillage — il montre au
-// client ce qui se passe sur son site, et il tient donc toute la hauteur de
-// l’écran, à côté des deux réglages qu’on ne touche presque jamais.
+// L’écran « Compte » : l’apparence du panel, le mot de passe, les appareils
+// reconnus et le journal des connexions. Ce dernier vaut plus qu’un
+// verrouillage — il montre au client ce qui se passe sur son site, et il
+// tient donc toute la hauteur de l’écran, à côté des réglages qu’on ne touche
+// presque jamais.
+//
+// L’apparence est le seul réglage qui ne parte pas au serveur : le mode et
+// la couleur sont ceux de cet appareil, comme la taille d’une police (D208).
 //
 // C’est aussi là qu’il apprend à qui écrire. Un client qui ne sait pas qui
 // appeler appelle quand même, et il appelle plus tard qu’il n’aurait dû : la
@@ -16,6 +20,7 @@ import {
   readSession,
   type SessionInfo,
 } from './api.js'
+import { PREFERENCES, PRESETS, seedOf, type Appearance } from './appearance.js'
 import { Waiting } from './Waiting.js'
 import { Button, IconButton } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
@@ -24,6 +29,7 @@ import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Banner, Card } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
+import { Segmented } from './ui/Toggle.js'
 
 /** La borne du serveur, redite ici pour qu’un refus n’ait pas à faire l’aller. */
 const MINIMUM = 12
@@ -42,8 +48,15 @@ const DEVICE_COLUMNS = 'minmax(0, 1fr) 148px'
 const JOURNAL_COLUMNS = '148px minmax(0, 1fr) 116px'
 
 export function Account({
+  appearance,
+  siteSeed,
+  onAppearance,
   onSignedOut,
 }: {
+  readonly appearance: Appearance
+  /** La graine du site : ce à quoi « Couleur du site » revient. */
+  readonly siteSeed: string | undefined
+  readonly onAppearance: (appearance: Appearance) => void
   readonly onSignedOut: (message: string) => void
 }) {
   const [session, setSession] = useState<SessionInfo | undefined>(undefined)
@@ -151,6 +164,37 @@ export function Account({
       <div className="basalte-account">
         <Stack gap="xl">
           <Card>
+            <Stack gap="lg">
+              <Stack gap="xs">
+                <Title role="title-md">Apparence</Title>
+                <Text tone="meta" role="label-md">
+                  Réglée pour ce navigateur seulement.
+                </Text>
+              </Stack>
+
+              <Stack gap="xs">
+                <span className="basalte-label">Mode</span>
+                <Segmented
+                  block
+                  label="Le mode du panel"
+                  value={appearance.mode}
+                  items={PREFERENCES}
+                  onChange={(mode) => onAppearance({ ...appearance, mode })}
+                />
+              </Stack>
+
+              <Stack gap="xs">
+                <span className="basalte-label">Couleur</span>
+                <Swatches
+                  appearance={appearance}
+                  siteSeed={siteSeed}
+                  onAppearance={onAppearance}
+                />
+              </Stack>
+            </Stack>
+          </Card>
+
+          <Card>
             {/* Aucun bouton du panel n’est de type « submit » : la touche
                 entrée vaut le bouton, et ne relance pas ce qui est parti. */}
             <form
@@ -164,7 +208,7 @@ export function Account({
               }}
             >
               <Stack gap="lg">
-                <Title rank="card">Mot de passe</Title>
+                <Title role="title-md">Mot de passe</Title>
 
                 <Field label="Mot de passe actuel">
                   {(bound) => (
@@ -201,7 +245,7 @@ export function Account({
                 <Group gap="md">
                   <Spacer />
                   <Button
-                    tone="ink"
+                    variant="filled"
                     busy={changing}
                     disabled={!ready}
                     onClick={() => void change()}
@@ -215,12 +259,12 @@ export function Account({
 
           <Card>
             <Stack gap="lg">
-              <Title rank="card">Appareils reconnus</Title>
+              <Title role="title-md">Appareils reconnus</Title>
 
               {session === undefined ? (
                 <Waiting what="Lecture de la session…" />
               ) : session.devices.length === 0 ? (
-                <Text tone="meta" size="eyebrow">
+                <Text tone="meta" role="label-md">
                   Aucun appareil retenu : le code est demandé à chaque
                   connexion.
                 </Text>
@@ -258,7 +302,11 @@ export function Account({
 
               <Group gap="md">
                 <Spacer />
-                <Button busy={forgetting} onClick={() => setAsked(true)}>
+                <Button
+                  variant="text"
+                  busy={forgetting}
+                  onClick={() => setAsked(true)}
+                >
                   Oublier tous les appareils
                 </Button>
               </Group>
@@ -268,12 +316,12 @@ export function Account({
 
         <Card>
           <Stack gap="lg">
-            <Title rank="card">Journal de connexion</Title>
+            <Title role="title-md">Journal de connexion</Title>
 
             {session === undefined ? (
               <Waiting what="Lecture du journal…" />
             ) : session.journal.length === 0 ? (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 Rien à afficher pour l’instant.
               </Text>
             ) : (
@@ -301,7 +349,7 @@ export function Account({
                     {entry.ip ? (
                       <Mono>{entry.ip}</Mono>
                     ) : (
-                      <Text tone="meta" size="eyebrow">
+                      <Text tone="meta" role="label-md">
                         adresse inconnue
                       </Text>
                     )}
@@ -322,8 +370,10 @@ export function Account({
         foot={
           <>
             <Spacer />
-            <Button onClick={() => setAsked(false)}>Annuler</Button>
-            <Button tone="danger" onClick={() => void forget()}>
+            <Button variant="text" onClick={() => setAsked(false)}>
+              Annuler
+            </Button>
+            <Button variant="text" tone="error" onClick={() => void forget()}>
               Oublier
             </Button>
           </>
@@ -335,5 +385,79 @@ export function Account({
         </Text>
       </Modal>
     </Stack>
+  )
+}
+
+/**
+ * Les graines : celle du site d’abord, puis les propositions, puis une
+ * couleur libre. La choisie porte un anneau, jamais une coche — une coche
+ * blanche se perd sur une graine claire, un anneau se lit sur toutes.
+ */
+function Swatches({
+  appearance,
+  siteSeed,
+  onAppearance,
+}: {
+  readonly appearance: Appearance
+  readonly siteSeed: string | undefined
+  readonly onAppearance: (appearance: Appearance) => void
+}) {
+  const chosen = appearance.seed
+  const site = seedOf({ mode: appearance.mode }, siteSeed)
+  const known = new Set([site, ...PRESETS.map((preset) => preset.seed)])
+  const custom = chosen !== undefined && !known.has(chosen)
+
+  const choose = (seed: string | undefined) =>
+    onAppearance(
+      seed === undefined
+        ? { mode: appearance.mode }
+        : { mode: appearance.mode, seed },
+    )
+
+  const swatch = (
+    seed: string,
+    label: string,
+    on: boolean,
+    onClick: () => void,
+  ) => (
+    <button
+      key={label}
+      type="button"
+      className="basalte-swatch"
+      style={{ '--swatch': seed } as React.CSSProperties}
+      data-on={on ? 'true' : undefined}
+      aria-pressed={on}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    />
+  )
+
+  return (
+    <div className="basalte-swatches">
+      {swatch(
+        'var(--panel-color-primary)',
+        'Couleur du site',
+        chosen === undefined,
+        () => choose(undefined),
+      )}
+      {PRESETS.filter((preset) => preset.seed !== site).map((preset) =>
+        swatch(preset.seed, preset.label, chosen === preset.seed, () =>
+          choose(preset.seed),
+        ),
+      )}
+      <label
+        className="basalte-swatch basalte-swatch--custom"
+        data-on={custom ? 'true' : undefined}
+        title="Une autre couleur"
+      >
+        <input
+          type="color"
+          aria-label="Une autre couleur"
+          value={chosen ?? site}
+          onChange={(event) => choose(event.currentTarget.value.toLowerCase())}
+        />
+      </label>
+    </div>
   )
 }

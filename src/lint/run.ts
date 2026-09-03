@@ -20,7 +20,7 @@ import { loadSite } from '../site/load.js'
 import { listBounds } from './bounds.js'
 import { contrastFindings } from './contrast.js'
 import { ordered, relative, type Finding } from './finding.js'
-import { panelContrast } from './panel.js'
+import { panelContrast, seedContrast } from './panel.js'
 import { hardcodedStyle, PANEL, SITE } from './style.js'
 import { manualValidation } from './validation.js'
 import { catchAll, inlineScripts } from './structure.js'
@@ -137,7 +137,12 @@ async function tokens(root: string): Promise<readonly Finding[]> {
   try {
     const site = await loadSite(root)
 
-    return contrastFindings('site.config.ts', site.tokens)
+    return [
+      ...contrastFindings('site.config.ts', site.tokens),
+      ...(site.panel === undefined
+        ? []
+        : seedContrast('site.config.ts', site.panel.seed)),
+    ]
   } catch {
     return []
   }

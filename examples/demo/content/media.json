@@ -12,7 +12,22 @@
       "en": ""
     }
   },
-  "3a7abcf466070d5b": {
+  "31031094ea6514bd": {
+    "format": "webp",
+    "width": 2560,
+    "height": 1920,
+    "widths": [
+      480,
+      768,
+      1200,
+      1800,
+      2560
+    ],
+    "alt": {
+      "fr": "Une page et ses sections, côte à côte"
+    }
+  },
+  "39fd581959ee6833": {
     "format": "webp",
     "width": 2560,
     "height": 1440,
@@ -24,11 +39,10 @@
       2560
     ],
     "alt": {
-      "fr": "Le panneau d’édition : une page, ses sections, et son aperçu",
-      "en": ""
+      "fr": "Une grille de photos, prêtes à servir"
     }
   },
-  "5e35291831644868": {
+  "74655d89849b4046": {
     "format": "webp",
     "width": 2560,
     "height": 1920,
@@ -40,14 +54,13 @@
       2560
     ],
     "alt": {
-      "fr": "Les messages reçus par le formulaire de contact",
-      "en": ""
+      "fr": "Une grille de photos, prêtes à servir"
     }
   },
-  "7b3e8dd542690224": {
+  "8fbf77cbbff5c708": {
     "format": "webp",
     "width": 2560,
-    "height": 1920,
+    "height": 1440,
     "widths": [
       480,
       768,
@@ -56,8 +69,7 @@
       2560
     ],
     "alt": {
-      "fr": "Une page du site, telle qu’un visiteur la voit",
-      "en": ""
+      "fr": "Une page et ses sections, côte à côte"
     }
   },
   "9568a4a237805833": {
@@ -73,20 +85,19 @@
       "en": ""
     }
   },
-  "a66d2ae399f379ca": {
+  "b0c1779a9b54c426": {
     "format": "webp",
-    "width": 2560,
-    "height": 1440,
+    "width": 2400,
+    "height": 1260,
     "widths": [
       480,
       768,
       1200,
       1800,
-      2560
+      2400
     ],
     "alt": {
-      "fr": "La médiathèque du panneau, et le point focal d’une photo",
-      "en": ""
+      "fr": "Basalte — votre site, que vous modifiez vous-même"
     }
   },
   "ba93dd32cbe07aad": {
@@ -99,22 +110,6 @@
     ],
     "alt": {
       "fr": "MAISONS RIVET",
-      "en": ""
-    }
-  },
-  "c995042cc72d5bb0": {
-    "format": "webp",
-    "width": 2400,
-    "height": 1260,
-    "widths": [
-      480,
-      768,
-      1200,
-      1800,
-      2400
-    ],
-    "alt": {
-      "fr": "Basalte — votre site, que vous modifiez vous-même",
       "en": ""
     }
   },
@@ -132,7 +127,7 @@
       "en": ""
     }
   },
-  "d5cbe71ce2aea315": {
+  "e58a4d0d459e66fe": {
     "format": "webp",
     "width": 2560,
     "height": 1920,
@@ -144,24 +139,7 @@
       2560
     ],
     "alt": {
-      "fr": "Le panneau d’édition : une page, ses sections, et son aperçu",
-      "en": ""
-    }
-  },
-  "f1518577181a1ac1": {
-    "format": "webp",
-    "width": 2560,
-    "height": 1920,
-    "widths": [
-      480,
-      768,
-      1200,
-      1800,
-      2560
-    ],
-    "alt": {
-      "fr": "La médiathèque du panneau, et le point focal d’une photo",
-      "en": ""
+      "fr": "Une page qui part en ligne, d’un seul geste"
     }
   },
   "f7521f178c237da9": {

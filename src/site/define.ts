@@ -37,6 +37,18 @@ export type SiteDeclaration = {
   readonly journal?: JournalDeclaration
   readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
+  /**
+   * La couleur dont le panel tire son schéma (D195). Absente, le panel est
+   * neutre : c’est une graine choisie pour l’outil, jamais l’accent du site —
+   * la direction artistique d’un client ne décide pas de la lisibilité de son
+   * outil de travail (D65).
+   */
+  readonly panel?: PanelDeclaration
+}
+
+export type PanelDeclaration = {
+  /** Un « #rrggbb ». */
+  readonly seed?: string
 }
 
 /**
@@ -60,7 +72,10 @@ export type Site = {
   readonly journal?: Journal
   readonly email?: EmailDeclaration
   readonly leads?: { readonly purgeAfterMonths: number }
+  readonly panel?: { readonly seed: string }
 }
+
+const SEED = /^#[0-9a-f]{6}$/i
 
 const DOMAIN =
   /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/
@@ -81,6 +96,7 @@ export function defineSite(declaration: SiteDeclaration): Site {
   checkRedirects(redirects)
 
   const journal = resolveJournal(declaration.journal)
+  const panel = resolvePanel(declaration.panel)
 
   return {
     name: declaration.name.trim(),
@@ -92,5 +108,20 @@ export function defineSite(declaration: SiteDeclaration): Site {
     ...(journal === undefined ? {} : { journal }),
     ...(declaration.email === undefined ? {} : { email: declaration.email }),
     ...(declaration.leads === undefined ? {} : { leads: declaration.leads }),
+    ...(panel === undefined ? {} : { panel }),
   }
+}
+
+function resolvePanel(
+  declaration: PanelDeclaration | undefined,
+): { readonly seed: string } | undefined {
+  if (declaration?.seed === undefined) return undefined
+
+  if (!SEED.test(declaration.seed)) {
+    throw new Error(
+      `« ${declaration.seed} » n’est pas une couleur de graine : attendu « #rrggbb ».`,
+    )
+  }
+
+  return { seed: declaration.seed.toLowerCase() }
 }

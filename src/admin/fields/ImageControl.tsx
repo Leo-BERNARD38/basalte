@@ -70,7 +70,7 @@ export function ImageControl({
 
           <Group gap="sm">
             {entry !== undefined && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 {translated(entry.alt, editing.language) || 'Sans description'}
               </Text>
             )}
@@ -79,7 +79,12 @@ export function ImageControl({
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button tone="danger" size="xs" onClick={() => onChange('')}>
+              <Button
+                variant="text"
+                tone="error"
+                size="xs"
+                onClick={() => onChange('')}
+              >
                 Retirer
               </Button>
             )}

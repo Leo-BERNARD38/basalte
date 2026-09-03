@@ -1,86 +1,117 @@
-/* La feuille du panel. Elle porte tout ce qui s’y dessine : le panel n’emploie
-   aucune bibliothèque d’interface, et ses composants sont écrits dans
-   `src/admin/ui/`.
+/* La feuille du panel : tout ce qu’il dessine, et rien d’autre.
+   Le panel parle Material Design 3 (D194), sans bibliothèque d’interface
+   (D175) : ses composants vivent dans `src/admin/ui/`, un fichier par
+   famille, et cette feuille porte leur allure. Chaque valeur vient de
+   `tokens.ts`, posée ici en variable `--panel-*` — la couleur par ses rôles,
+   dans les deux modes ; la forme, le texte, l’écart et l’élévation par leur
+   échelle. `basalte lint` refuse une valeur écrite en clair dans une règle.
 
-   Les valeurs viennent de `tokens.ts`, posées ici en variables `--panel-*`.
-   Les deux ne peuvent pas diverger : `tokens.test.ts` relit ce bloc et le
-   compare au module. Le panel n’emprunte rien aux tokens du site (D65).
-
-   Cinq principes portent l’allure. Un filet d’un pixel sépare deux plans, et
-   l’ombre ne reste qu’à ce qui flotte réellement au-dessus du reste. Le panel
-   n’a pas de couleur d’identité : le neutre est pur, l’action est noire, ce
-   qui se mesure est noir, la sélection se donne par le poids de son aplat, et
-   il ne reste en couleur que le vert de « en ligne » et le rouge du refus. La
-   forme pleine est le défaut, et seuls le champ, la ligne de liste et la
-   surface gardent une arête. Enfin, c’est l’écart qui porte la hiérarchie : le
-   contenu tient dans une colonne centrée, les régions d’un écran sont à la
-   distance d’une gouttière, et la boîte est réservée à l’exception. */
+   Trois mécaniques tiennent le dessin. Une surface s’élève d’abord par sa
+   couleur — un conteneur plus clair sur le fond — et l’ombre ne vient qu’à
+   ce qui se détache vraiment. Ce qui se presse porte une couche d’état : la
+   couleur de son contenu, posée dessus à huit pour cent au survol, dix au
+   focus et à l’appui. Et la forme pleine est celle de ce qui agit, le rayon
+   moyen celle de ce qui contient. */
 
 @font-face {
-  font-family: 'Geist';
-  src: url('./fonts/Geist-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: 'Roboto Flex';
+  src: url('./fonts/RobotoFlex-Variable.woff2') format('woff2');
+  font-weight: 100 1000;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('./fonts/GeistMono-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: 'Roboto Mono';
+  src: url('./fonts/RobotoMono-Variable.woff2') format('woff2');
+  font-weight: 100 700;
   font-display: swap;
 }
 
 :root {
-  --panel-surface-canvas: #f5f5f5;
-  --panel-surface-card: #ffffff;
-  --panel-surface-raised: #fafafa;
-  --panel-surface-chosen: #e8e8eb;
-  --panel-surface-ink: #17171a;
-  --panel-surface-ink-hover: #000000;
+  color-scheme: light dark;
 
-  --panel-ink-1: #17171a;
-  --panel-ink-2: #5c5c60;
-  --panel-ink-3: #6e6e73;
+  --panel-color-primary: #5e5e62;
+  --panel-color-on-primary: #ffffff;
+  --panel-color-primary-container: #e2e2e7;
+  --panel-color-on-primary-container: #1b1b1f;
+  --panel-color-secondary: #5e5e60;
+  --panel-color-on-secondary: #ffffff;
+  --panel-color-secondary-container: #e2e2e5;
+  --panel-color-on-secondary-container: #1b1b1d;
+  --panel-color-tertiary: #5e5e60;
+  --panel-color-on-tertiary: #ffffff;
+  --panel-color-tertiary-container: #e2e2e5;
+  --panel-color-on-tertiary-container: #1b1b1d;
+  --panel-color-error: #ac3131;
+  --panel-color-on-error: #ffffff;
+  --panel-color-error-container: #ffdad6;
+  --panel-color-on-error-container: #410003;
+  --panel-color-success: #146d34;
+  --panel-color-on-success: #ffffff;
+  --panel-color-success-container: #a3f5b4;
+  --panel-color-on-success-container: #002108;
+  --panel-color-warning: #815500;
+  --panel-color-on-warning: #ffffff;
+  --panel-color-warning-container: #ffddb0;
+  --panel-color-on-warning-container: #2a1800;
+  --panel-color-surface: #f9f9fb;
+  --panel-color-surface-dim: #dadadc;
+  --panel-color-surface-bright: #f9f9fb;
+  --panel-color-surface-container-lowest: #ffffff;
+  --panel-color-surface-container-low: #f3f3f6;
+  --panel-color-surface-container: #eeeef0;
+  --panel-color-surface-container-high: #e8e8ea;
+  --panel-color-surface-container-highest: #e2e2e5;
+  --panel-color-on-surface: #1b1b1d;
+  --panel-color-on-surface-variant: #46464a;
+  --panel-color-outline: #77777b;
+  --panel-color-outline-variant: #c6c6cb;
+  --panel-color-inverse-surface: #303032;
+  --panel-color-inverse-on-surface: #f0f0f3;
+  --panel-color-inverse-primary: #c6c6cb;
+  --panel-color-scrim: #000000;
+  --panel-color-shadow: #000000;
 
-  --panel-on-ink-1: #ffffff;
-  --panel-on-ink-2: #c2c2c6;
-  --panel-on-ink-3: #a1a1a6;
+  --panel-state-hover: 8%;
+  --panel-state-focus: 10%;
+  --panel-state-pressed: 10%;
+  --panel-state-drag: 16%;
+  --panel-state-disabled-content: 38%;
+  --panel-state-disabled-container: 12%;
 
-  --panel-line-hair: #ebebed;
-  --panel-line-edge: #e6e6e8;
-  --panel-line-strong: #e2e2e5;
-  --panel-line-soft: #f2f2f4;
+  --panel-motion-short: 100ms;
+  --panel-motion-medium: 250ms;
+  --panel-motion-long: 400ms;
+  --panel-motion-standard: cubic-bezier(0.2, 0, 0, 1);
+  --panel-motion-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --panel-motion-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
 
-  --panel-mute-chart: #8e8e95;
-  --panel-mute-draw: #c2c2c6;
-  --panel-mute-inert: #a1a1a6;
+  --panel-elevation-1:
+    0 1px 2px rgb(0 0 0 / 30%), 0 1px 3px 1px rgb(0 0 0 / 15%);
+  --panel-elevation-2:
+    0 1px 2px rgb(0 0 0 / 30%), 0 2px 6px 2px rgb(0 0 0 / 15%);
+  --panel-elevation-3:
+    0 1px 3px rgb(0 0 0 / 30%), 0 4px 8px 3px rgb(0 0 0 / 15%);
+  --panel-elevation-4:
+    0 2px 3px rgb(0 0 0 / 30%), 0 6px 10px 4px rgb(0 0 0 / 15%);
+  --panel-elevation-5:
+    0 4px 4px rgb(0 0 0 / 30%), 0 8px 12px 6px rgb(0 0 0 / 15%);
 
-  --panel-state-online: #1a7f4b;
-  --panel-state-refused: #c0362c;
-  --panel-state-refused-wash: #fdf1f0;
-  --panel-state-refused-line: #f6d9d6;
-  --panel-state-watch: #8f5300;
-  --panel-state-watch-wash: #fdf6ec;
-  --panel-state-watch-line: #f5e2c4;
-
-  --panel-veil-hover: rgb(255 255 255 / 9%);
-  --panel-veil-chip: rgb(255 255 255 / 8%);
-  --panel-veil-chip-hover: rgb(255 255 255 / 15%);
-
-  --panel-scrim: rgb(23 23 26 / 44%);
+  --panel-scrim: rgb(0 0 0 / 32%);
 
   --panel-hatch: repeating-linear-gradient(
     45deg,
-    rgb(23 23 26 / 7.5%) 0 1px,
+    color-mix(in srgb, currentColor 12%, transparent) 0 1px,
     transparent 1px 6px
   );
 
-  --panel-radius-field: 10px;
-  --panel-radius-nested: 12px;
-  --panel-radius-surface: 16px;
-  --panel-radius-modal: 20px;
-  --panel-radius-pill: 999px;
-  --panel-radius-bar: 3px;
+  --panel-radius-none: 0;
+  --panel-radius-xs: 4px;
+  --panel-radius-sm: 8px;
+  --panel-radius-md: 12px;
+  --panel-radius-lg: 16px;
+  --panel-radius-xl: 28px;
+  --panel-radius-full: 999px;
 
   --panel-space-hair: 1px;
   --panel-space-xxs: 2px;
@@ -94,43 +125,92 @@
   --panel-space-region: 32px;
   --panel-space-gutter: 48px;
 
-  --panel-text-eyebrow: 12px;
-  --panel-text-body: 15px;
-  --panel-text-lead: 19px;
-  --panel-text-title: 28px;
-  --panel-text-display: 40px;
+  --panel-text-label-sm: 11px;
+  --panel-text-label-md: 12px;
+  --panel-text-label-lg: 13px;
+  --panel-text-body-sm: 12px;
+  --panel-text-body-md: 13px;
+  --panel-text-body-lg: 14px;
+  --panel-text-title-sm: 13px;
+  --panel-text-title-md: 15px;
+  --panel-text-title-lg: 17px;
+  --panel-text-headline-sm: 20px;
+  --panel-text-headline-md: 24px;
+  --panel-text-display-sm: 30px;
+  --panel-text-display-md: 36px;
+  --panel-text-display-lg: 45px;
 
-  --panel-font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --panel-font-sans:
+    'Roboto Flex', Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --panel-font-mono:
-    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --panel-control-mark: 22px;
-  --panel-control-xs: 28px;
-  --panel-control-sm: 32px;
-  --panel-control-md: 38px;
+  --panel-control-mark: 20px;
+  --panel-control-xs: 26px;
+  --panel-control-sm: 30px;
+  --panel-control-chip: 30px;
+  --panel-control-md: 36px;
+  --panel-control-field: 40px;
   --panel-control-row: 40px;
+  --panel-control-touch: 44px;
+  --panel-control-fab: 48px;
   --panel-control-bar: 60px;
-  --panel-control-touch: 48px;
+  --panel-control-rail: 72px;
 
-  --panel-width-form: 420px;
+  --panel-width-form: 400px;
   --panel-width-page: 860px;
-  --panel-width-rail: 388px;
-  --panel-width-menu: 322px;
+  --panel-width-aside: 360px;
+  --panel-width-menu: 300px;
   --panel-width-modal: 960px;
+  --panel-width-snackbar: 560px;
   --panel-width-phone: 414px;
   --panel-width-shell: 1600px;
+}
 
-  --panel-motion-fast: 120ms;
-  --panel-motion-base: 200ms;
-  --panel-motion-slow: 260ms;
-  --panel-motion-ease: cubic-bezier(0.2, 0, 0, 1);
-  --panel-motion-swing: cubic-bezier(0.4, 0, 0.2, 1);
-
-  --panel-shadow-button: 0 1px 1px rgb(23 23 26 / 4%);
-  --panel-shadow-thumb: 0 1px 2px rgb(23 23 26 / 7%);
-  --panel-shadow-float: 0 4px 16px rgb(23 23 26 / 9%);
-  --panel-shadow-menu: 0 14px 36px rgb(23 23 26 / 16%);
-  --panel-shadow-modal: 0 24px 70px rgb(23 23 26 / 28%);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --panel-color-primary: #c6c6cb;
+    --panel-color-on-primary: #303034;
+    --panel-color-primary-container: #46464a;
+    --panel-color-on-primary-container: #e2e2e7;
+    --panel-color-secondary: #c6c6c8;
+    --panel-color-on-secondary: #303032;
+    --panel-color-secondary-container: #464648;
+    --panel-color-on-secondary-container: #e2e2e5;
+    --panel-color-tertiary: #c6c6c8;
+    --panel-color-on-tertiary: #303032;
+    --panel-color-tertiary-container: #464648;
+    --panel-color-on-tertiary-container: #e2e2e5;
+    --panel-color-error: #ffb3ad;
+    --panel-color-on-error: #68000a;
+    --panel-color-error-container: #8f0e19;
+    --panel-color-on-error-container: #ffdad6;
+    --panel-color-success: #87d899;
+    --panel-color-on-success: #003915;
+    --panel-color-success-container: #005322;
+    --panel-color-on-success-container: #a3f5b4;
+    --panel-color-warning: #f6bc6a;
+    --panel-color-on-warning: #452b00;
+    --panel-color-warning-container: #624000;
+    --panel-color-on-warning-container: #ffddb0;
+    --panel-color-surface: #131315;
+    --panel-color-surface-dim: #131315;
+    --panel-color-surface-bright: #39393b;
+    --panel-color-surface-container-lowest: #0e0e10;
+    --panel-color-surface-container-low: #1b1b1d;
+    --panel-color-surface-container: #1f1f21;
+    --panel-color-surface-container-high: #2a2a2b;
+    --panel-color-surface-container-highest: #353536;
+    --panel-color-on-surface: #e2e2e5;
+    --panel-color-on-surface-variant: #c6c6cb;
+    --panel-color-outline: #909095;
+    --panel-color-outline-variant: #46464a;
+    --panel-color-inverse-surface: #e2e2e5;
+    --panel-color-inverse-on-surface: #303032;
+    --panel-color-inverse-primary: #5e5e62;
+    --panel-color-scrim: #000000;
+    --panel-color-shadow: #000000;
+  }
 }
 
 /* ---- Le socle ---- */
@@ -146,36 +226,31 @@
 
 body {
   margin: 0;
-  background: var(--panel-surface-canvas);
-  color: var(--panel-ink-1);
+  background: var(--panel-color-surface);
+  color: var(--panel-color-on-surface);
   font-family: var(--panel-font-sans);
-  font-size: var(--panel-text-body);
-  line-height: 1.5;
+  font-size: var(--panel-text-body-md);
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Le gras du panel est celui d’un titre de carte. Sans cette règle, le gras du
-   navigateur pèse 700, là où l’échelle ne monte qu’à 600 : un bandeau était
-   plus lourd que le titre de l’écran. */
+/* Le gras du panel est celui d’un titre : la fonte monte jusqu’à mille, et
+   le gras du navigateur pèserait sept cents là où l’échelle s’arrête à six. */
 strong,
 b {
   font-weight: 600;
 }
 
-/* L’anneau de focus ne déplace rien : il se pose à côté du filet, à l’encre
-   pleine. Sur le plan sombre, la même encre serait invisible — il y passe au
-   blanc, qui est l’encre de ce plan. */
+/* L’anneau de focus ne déplace rien : il se pose à côté, sur la couleur
+   secondaire, qui tient le plancher du dessin sur toutes les surfaces. */
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--panel-ink-1);
-  outline-offset: 1px;
-}
-
-.basalte-topbar :where(a, button, input, select, [tabindex]):focus-visible {
-  outline-color: var(--panel-on-ink-1);
+  outline: 3px solid var(--panel-color-secondary);
+  outline-offset: 2px;
 }
 
 ::selection {
-  background: var(--panel-surface-chosen);
+  background: var(--panel-color-primary-container);
+  color: var(--panel-color-on-primary-container);
 }
 
 .basalte-link {
@@ -185,16 +260,15 @@ b {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  color: var(--panel-ink-1);
+  color: var(--panel-color-primary);
   text-decoration: underline;
-  text-decoration-color: var(--panel-mute-draw);
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
 }
 
 .basalte-link:hover {
-  color: var(--panel-ink-1);
-  text-decoration-color: var(--panel-ink-1);
+  text-decoration-color: currentColor;
 }
 
 /* La ligne d’un incident : elle nomme la section et le champ, puis y mène. */
@@ -204,43 +278,120 @@ b {
 
 /* La barre de défilement du panel : un pouce et rien d’autre. Celle du système
    pose une gouttière grise permanente qui découpe une colonne en deux ; ici
-   elle ne se voit que là où quelque chose défile, et s’assombrit sous le
-   curseur. Les deux écritures cohabitent — la standard pour Firefox, celle de
-   WebKit pour les autres, qui donne le rayon et la gouttière. */
-.basalte-shell :where(*) {
+   elle ne se voit que là où quelque chose défile. Les deux écritures
+   cohabitent — la standard pour Firefox, celle de WebKit pour les autres. */
+.basalte-shell :where(*),
+.basalte-scrim :where(*) {
   scrollbar-width: thin;
-  scrollbar-color: var(--panel-mute-draw) transparent;
+  scrollbar-color: var(--panel-color-outline-variant) transparent;
 }
 
-.basalte-shell :where(*)::-webkit-scrollbar {
+.basalte-shell :where(*)::-webkit-scrollbar,
+.basalte-scrim :where(*)::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-.basalte-shell :where(*)::-webkit-scrollbar-track {
+.basalte-shell :where(*)::-webkit-scrollbar-track,
+.basalte-scrim :where(*)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.basalte-shell :where(*)::-webkit-scrollbar-thumb {
+.basalte-shell :where(*)::-webkit-scrollbar-thumb,
+.basalte-scrim :where(*)::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-mute-draw);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-outline-variant);
   background-clip: padding-box;
 }
 
-.basalte-shell :where(*)::-webkit-scrollbar-thumb:hover {
-  background: var(--panel-ink-3);
+.basalte-shell :where(*)::-webkit-scrollbar-thumb:hover,
+.basalte-scrim :where(*)::-webkit-scrollbar-thumb:hover {
+  background: var(--panel-color-outline);
   background-clip: padding-box;
-}
-
-.basalte-shell :where(*)::-webkit-scrollbar-corner {
-  background: transparent;
 }
 
 /* Le chiffre passe en chasse fixe, pour qu’une colonne s’aligne. */
 .basalte-mono {
   font-family: var(--panel-font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* ---- La couche d’état ---- */
+
+/* Tout ce qui se presse porte, au-dessus de son fond et sous son contenu, un
+   voile de la couleur de son contenu : huit pour cent au survol, dix au focus
+   et à l’appui. Une seule règle pour tous, et c’est ce qui fait qu’un bouton
+   plein, une ligne de liste et une destination du rail répondent de la même
+   manière. Le voile prend le rayon de ce qu’il couvre, et l’isolation garde
+   son `z-index` négatif à l’intérieur du composant. */
+:where(
+  .basalte-button,
+  .basalte-icon-button,
+  .basalte-fab,
+  .basalte-chip,
+  .basalte-row,
+  .basalte-nav__indicator,
+  .basalte-segmented__item,
+  .basalte-tab,
+  .basalte-picker,
+  .basalte-avatar
+) {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(
+  .basalte-button,
+  .basalte-icon-button,
+  .basalte-fab,
+  .basalte-chip,
+  .basalte-row,
+  .basalte-nav__indicator,
+  .basalte-segmented__item,
+  .basalte-tab,
+  .basalte-picker,
+  .basalte-avatar
+)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--panel-motion-short) var(--panel-motion-standard);
+}
+
+:where(
+    .basalte-button,
+    .basalte-icon-button,
+    .basalte-fab,
+    .basalte-chip,
+    .basalte-segmented__item,
+    .basalte-tab,
+    .basalte-picker,
+    .basalte-avatar
+  ):hover:not(:disabled)::after,
+.basalte-row:hover::after,
+.basalte-nav__item:hover .basalte-nav__indicator::after {
+  opacity: var(--panel-state-hover);
+}
+
+:where(
+    .basalte-button,
+    .basalte-icon-button,
+    .basalte-fab,
+    .basalte-chip,
+    .basalte-segmented__item,
+    .basalte-tab,
+    .basalte-picker,
+    .basalte-avatar
+  ):active:not(:disabled)::after,
+.basalte-row:active::after,
+.basalte-nav__item:active .basalte-nav__indicator::after {
+  opacity: var(--panel-state-pressed);
 }
 
 /* ---- La mise en place ---- */
@@ -304,6 +455,16 @@ b {
   gap: var(--panel-space-xl);
 }
 
+.basalte-stack[data-gap='xxl'],
+.basalte-group[data-gap='xxl'] {
+  gap: var(--panel-space-xxl);
+}
+
+.basalte-stack[data-gap='xxxl'],
+.basalte-group[data-gap='xxxl'] {
+  gap: var(--panel-space-xxxl);
+}
+
 /* L’écart entre deux régions d’un écran : le seul pas de l’échelle qui ne
    serve jamais à l’intérieur d’un objet. */
 .basalte-stack[data-gap='region'],
@@ -320,148 +481,263 @@ b {
   margin-left: 0;
 }
 
-/* ---- La typographie ---- */
-
-.basalte-title {
+/* Le filet qui sépare deux parties d’une même surface. */
+.basalte-divider {
+  width: 100%;
+  height: 1px;
+  flex-shrink: 0;
+  border: 0;
   margin: 0;
-  font-size: var(--panel-text-title);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+  background: var(--panel-color-outline-variant);
 }
 
-.basalte-title[data-rank='card'] {
-  font-size: var(--panel-text-lead);
+/* ---- La typographie ---- */
+
+/* L’échelle de type de Material : la taille est un token, la graisse,
+   l’interligne et l’approche vivent ici. Un titre porte un style de titre ou
+   d’en-tête, un texte un style de corps ou d’étiquette. */
+.basalte-title {
+  margin: 0;
+  font-size: var(--panel-text-title-lg);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+
+.basalte-title[data-role='headline-md'] {
+  font-size: var(--panel-text-headline-md);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.basalte-title[data-role='headline-sm'] {
+  font-size: var(--panel-text-headline-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.basalte-title[data-role='title-md'] {
+  font-size: var(--panel-text-title-md);
   font-weight: 600;
-  letter-spacing: -0.008em;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.basalte-title[data-role='title-sm'] {
+  font-size: var(--panel-text-title-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
 }
 
 .basalte-text {
   margin: 0;
-  font-size: var(--panel-text-body);
-  line-height: 1.6;
+  font-size: var(--panel-text-body-md);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
 }
 
-.basalte-text[data-tone='muted'] {
-  color: var(--panel-ink-2);
+.basalte-text[data-role='body-lg'] {
+  font-size: var(--panel-text-body-lg);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
 }
 
+.basalte-text[data-role='body-sm'] {
+  font-size: var(--panel-text-body-sm);
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+}
+
+.basalte-text[data-role='label-lg'] {
+  font-size: var(--panel-text-label-lg);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.basalte-text[data-role='label-md'] {
+  font-size: var(--panel-text-label-md);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+}
+
+.basalte-text[data-role='label-sm'] {
+  font-size: var(--panel-text-label-sm);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+}
+
+.basalte-text[data-tone='muted'],
 .basalte-text[data-tone='meta'] {
-  color: var(--panel-ink-3);
+  color: var(--panel-color-on-surface-variant);
 }
 
 .basalte-text[data-tone='refused'] {
-  color: var(--panel-state-refused);
+  color: var(--panel-color-error);
 }
 
-/* Ce qui appelle le regard au milieu de la méta grise : l’encre pleine et un
-   cran de graisse. Sans la graisse, la marque disparaîtrait partout où le
-   texte autour est déjà en encre 1. */
+/* Ce qui appelle le regard au milieu de la méta : l’encre pleine et un cran
+   de graisse. */
 .basalte-text[data-tone='strong'] {
-  color: var(--panel-ink-1);
+  color: var(--panel-color-on-surface);
   font-weight: 500;
 }
 
-.basalte-text[data-size='eyebrow'] {
-  font-size: var(--panel-text-eyebrow);
-  line-height: 1.5;
-}
-
-/* La ligne de contexte : encre 3, et jamais une phrase. Elle est de la même
-   fonte que le reste — la chasse fixe est réservée à ce qui s’aligne en
-   colonne, et l’employer ici faisait lire l’outil comme une sortie de log. */
+/* La ligne de contexte : une étiquette moyenne, sur l’encre secondaire, et
+   jamais une phrase. */
 .basalte-eyebrow {
-  font-size: var(--panel-text-eyebrow);
-  color: var(--panel-ink-3);
+  font-size: var(--panel-text-label-md);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  color: var(--panel-color-on-surface-variant);
 }
 
 .basalte-label {
-  font-size: var(--panel-text-eyebrow);
+  font-size: var(--panel-text-label-md);
   font-weight: 500;
-  color: var(--panel-ink-2);
+  letter-spacing: 0.04em;
+  color: var(--panel-color-on-surface-variant);
 }
 
 /* ---- Le bouton ---- */
 
+/* Quatre formes, et l’ordre est celui de l’engagement : le plein change
+   l’état du site, le tonal agit sur l’écran, le contour propose, le texte
+   annule. Le rouge se pose sur n’importe laquelle et dit qu’on détruit. */
 .basalte-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--panel-space-sm);
   height: var(--panel-control-md);
-  padding: 0 var(--panel-space-xl);
+  padding: 0 var(--panel-space-xxl);
   border: 0;
-  border-radius: var(--panel-radius-pill);
+  border-radius: var(--panel-radius-full);
   background: transparent;
+  color: var(--panel-color-primary);
   font-family: inherit;
-  font-size: var(--panel-text-body);
+  font-size: var(--panel-text-label-lg);
   font-weight: 500;
+  letter-spacing: 0.01em;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
 }
 
-.basalte-button[data-tone='ink'] {
-  background: var(--panel-surface-ink);
-  color: var(--panel-on-ink-1);
+.basalte-button > svg {
+  width: 18px;
+  height: 18px;
+  margin-left: calc(-1 * var(--panel-space-xs));
 }
 
-.basalte-button[data-tone='ink']:hover:not(:disabled) {
-  background: var(--panel-surface-ink-hover);
+.basalte-button[data-variant='filled'] {
+  background: var(--panel-color-primary);
+  color: var(--panel-color-on-primary);
 }
 
-.basalte-button[data-tone='line'] {
-  border: 1px solid var(--panel-line-hair);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
-  box-shadow: var(--panel-shadow-button);
+.basalte-button[data-variant='filled']:hover:not(:disabled) {
+  box-shadow: var(--panel-elevation-1);
 }
 
-.basalte-button[data-tone='line']:hover:not(:disabled) {
-  background: var(--panel-surface-raised);
-  border-color: var(--panel-line-strong);
+.basalte-button[data-variant='tonal'] {
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
 }
 
-.basalte-button[data-tone='bare'] {
-  color: var(--panel-ink-2);
+.basalte-button[data-variant='tonal']:hover:not(:disabled) {
+  box-shadow: var(--panel-elevation-1);
 }
 
-.basalte-button[data-tone='bare']:hover:not(:disabled) {
-  background: var(--panel-surface-canvas);
-  color: var(--panel-ink-1);
+/* Le contour est un filet, pas un cadre : la couleur de séparation, et
+   l’encre du contour ne vient qu’au survol. */
+.basalte-button[data-variant='outlined'] {
+  border: 1px solid var(--panel-color-outline-variant);
 }
 
-.basalte-button[data-tone='danger'] {
+.basalte-button[data-variant='outlined']:hover:not(:disabled) {
+  border-color: var(--panel-color-outline);
+}
+
+.basalte-button[data-variant='text'] {
   padding: 0 var(--panel-space-lg);
-  color: var(--panel-state-refused);
 }
 
-.basalte-button[data-tone='danger']:hover:not(:disabled) {
-  background: var(--panel-state-refused-wash);
+.basalte-button[data-tone='error'] {
+  color: var(--panel-color-error);
+}
+
+.basalte-button[data-tone='error'][data-variant='filled'] {
+  background: var(--panel-color-error);
+  color: var(--panel-color-on-error);
+}
+
+.basalte-button[data-tone='error'][data-variant='tonal'] {
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
 }
 
 .basalte-button[data-size='sm'] {
   height: var(--panel-control-sm);
-  padding: 0 var(--panel-space-lg);
-  font-size: var(--panel-text-eyebrow);
+  padding: 0 var(--panel-space-xl);
 }
 
 .basalte-button[data-size='xs'] {
   height: var(--panel-control-xs);
   padding: 0 var(--panel-space-lg);
-  font-size: var(--panel-text-eyebrow);
+  font-size: var(--panel-text-label-md);
+}
+
+.basalte-button[data-size='xs'] > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.basalte-button[data-size='sm'][data-variant='text'],
+.basalte-button[data-size='xs'][data-variant='text'] {
+  padding: 0 var(--panel-space-md);
 }
 
 .basalte-button[data-block='true'] {
   width: 100%;
 }
 
-.basalte-button:disabled {
-  background: var(--panel-surface-raised);
-  border: 1px solid var(--panel-line-hair);
-  color: var(--panel-mute-inert);
+/* Un contrôle éteint se donne par l’opacité de son contenu, à même les
+   couleurs de la surface : il ne change pas de teinte, il s’efface. Seul le
+   plein garde un fond, parce que sa place dans la barre ne bouge pas ; un
+   tonal éteint qui gardait le sien faisait une tache grise à côté de
+   l’action. */
+.basalte-button:disabled,
+.basalte-icon-button:disabled,
+.basalte-fab:disabled,
+.basalte-chip:disabled {
+  border-color: color-mix(
+    in srgb,
+    var(--panel-color-on-surface) var(--panel-state-disabled-container),
+    transparent
+  );
+  background: transparent;
+  color: color-mix(
+    in srgb,
+    var(--panel-color-on-surface) var(--panel-state-disabled-content),
+    transparent
+  );
   box-shadow: none;
   cursor: not-allowed;
+}
+
+.basalte-button[data-variant='filled']:disabled,
+.basalte-fab:disabled {
+  background: color-mix(
+    in srgb,
+    var(--panel-color-on-surface) var(--panel-state-disabled-container),
+    transparent
+  );
 }
 
 /* Le bouton-icône est rond, et c’est la seule chose qu’il dit. */
@@ -469,38 +745,84 @@ b {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--panel-control-sm);
-  height: var(--panel-control-sm);
+  width: var(--panel-control-md);
+  height: var(--panel-control-md);
   flex-shrink: 0;
+  padding: 0;
   border: 0;
-  border-radius: var(--panel-radius-pill);
+  border-radius: var(--panel-radius-full);
   background: transparent;
-  color: var(--panel-ink-3);
+  color: var(--panel-color-on-surface-variant);
   cursor: pointer;
 }
 
-.basalte-icon-button:hover:not(:disabled) {
-  background: var(--panel-surface-canvas);
-  color: var(--panel-ink-1);
+.basalte-icon-button[data-size='sm'] {
+  width: var(--panel-control-sm);
+  height: var(--panel-control-sm);
 }
 
-.basalte-icon-button:disabled {
-  color: var(--panel-mute-inert);
-  cursor: not-allowed;
+.basalte-icon-button[data-variant='filled'] {
+  background: var(--panel-color-primary);
+  color: var(--panel-color-on-primary);
 }
 
+.basalte-icon-button[data-variant='tonal'] {
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+}
+
+.basalte-icon-button[data-variant='outlined'] {
+  border: 1px solid var(--panel-color-outline-variant);
+  color: var(--panel-color-on-surface-variant);
+}
+
+.basalte-icon-button[data-toggled='true'] {
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+}
+
+/* Le bouton flottant : l’action première d’un écran, posée au-dessus de lui.
+   Il est de la couleur du conteneur principal et porte la troisième ombre,
+   qui monte d’un cran sous le curseur. */
+.basalte-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--panel-space-lg);
+  height: var(--panel-control-fab);
+  min-width: var(--panel-control-fab);
+  padding: 0 var(--panel-space-xl);
+  border: 0;
+  border-radius: var(--panel-radius-lg);
+  background: var(--panel-color-primary-container);
+  color: var(--panel-color-on-primary-container);
+  font-family: inherit;
+  font-size: var(--panel-text-label-lg);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: var(--panel-elevation-3);
+  cursor: pointer;
+}
+
+.basalte-fab:hover:not(:disabled) {
+  box-shadow: var(--panel-elevation-4);
+}
+
+.basalte-fab[data-extended='true'] {
+  padding-right: var(--panel-space-xxxl);
+}
+
+/* L’attente circulaire, à la taille d’une icône : une piste et un arc. */
 .basalte-spinner {
-  width: 11px;
-  height: 11px;
-  border: 1.5px solid var(--panel-line-strong);
-  border-top-color: var(--panel-ink-1);
-  border-radius: var(--panel-radius-pill);
-  animation: basalte-turn 0.7s linear infinite;
-}
-
-.basalte-spinner[data-on='ink'] {
-  border-color: var(--panel-veil-chip-hover);
-  border-top-color: var(--panel-on-ink-1);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 2px solid
+    color-mix(in srgb, currentColor var(--panel-state-drag), transparent);
+  border-top-color: currentColor;
+  border-radius: var(--panel-radius-full);
+  animation: basalte-turn 0.8s linear infinite;
 }
 
 @keyframes basalte-turn {
@@ -511,9 +833,11 @@ b {
 
 /* ---- Le champ ---- */
 
-/* Le champ garde l’arête : une colonne de formulaire se lit sur un axe
-   vertical net. Le focus noircit le filet et pose l’anneau à côté, sans rien
-   déplacer. */
+/* Le libellé se tient au-dessus du contrôle, jamais dedans : un champ
+   composite — une image, une liste — n’a pas de bord où le faire flotter, et
+   c’est le même libellé qui vise le contrôle pour que l’erreur l’atteigne
+   (D166). Le contrôle porte le contour de Material : un filet, qui double et
+   passe à la couleur principale au focus. */
 .basalte-field {
   display: flex;
   flex-direction: column;
@@ -523,42 +847,67 @@ b {
 
 .basalte-input {
   width: 100%;
-  height: var(--panel-control-md);
-  padding: 0 var(--panel-space-md);
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-field);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
+  height: var(--panel-control-field);
+  padding: 0 var(--panel-space-lg);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-lowest);
+  color: var(--panel-color-on-surface);
   font-family: inherit;
-  font-size: var(--panel-text-body);
+  font-size: var(--panel-text-body-lg);
+  letter-spacing: 0.01em;
 }
 
 .basalte-input::placeholder {
-  color: var(--panel-mute-inert);
+  color: var(--panel-color-on-surface-variant);
+  opacity: 0.7;
+}
+
+.basalte-input:hover:not(:disabled) {
+  border-color: var(--panel-color-outline);
 }
 
 .basalte-input:focus-visible {
-  border-color: var(--panel-ink-1);
+  border-color: var(--panel-color-primary);
+  outline: 1px solid var(--panel-color-primary);
+  outline-offset: -2px;
 }
 
 .basalte-input[data-wrong='true'] {
-  border-color: var(--panel-state-refused);
+  border-color: var(--panel-color-error);
+}
+
+.basalte-input[data-wrong='true']:focus-visible {
+  outline-color: var(--panel-color-error);
+}
+
+.basalte-input:disabled {
+  border-color: color-mix(
+    in srgb,
+    var(--panel-color-on-surface) var(--panel-state-disabled-container),
+    transparent
+  );
+  color: color-mix(
+    in srgb,
+    var(--panel-color-on-surface) var(--panel-state-disabled-content),
+    transparent
+  );
 }
 
 /* La zone grandit avec ce qu’on y écrit, sans descendre sous sa hauteur de
    départ. Un navigateur qui ne connaît pas `field-sizing` garde `rows`. */
 textarea.basalte-input {
   height: auto;
-  min-height: 76px;
+  min-height: 88px;
   field-sizing: content;
-  padding: var(--panel-space-md);
-  line-height: 1.6;
+  padding: var(--panel-space-md) var(--panel-space-lg);
+  line-height: 1.5;
   resize: vertical;
 }
 
 .basalte-input[data-mono='true'] {
   font-family: var(--panel-font-mono);
-  font-size: var(--panel-text-eyebrow);
+  font-size: var(--panel-text-body-md);
 }
 
 .basalte-select {
@@ -569,33 +918,45 @@ textarea.basalte-input {
 
 .basalte-select > .basalte-input {
   appearance: none;
-  padding-right: var(--panel-space-xxxl);
+  padding-right: var(--panel-space-region);
   cursor: pointer;
 }
 
 .basalte-select > svg {
   position: absolute;
   right: var(--panel-space-md);
-  color: var(--panel-ink-3);
+  color: var(--panel-color-on-surface-variant);
   pointer-events: none;
 }
 
 /* ---- La ligne de liste ---- */
 
-/* L’objet le plus vu du panel. Elle garde l’arête, comme le champ : c’est une
-   colonne qu’on parcourt du regard, pas un objet qu’on presse. */
+/* L’objet le plus vu du panel. Une ligne est pleine, comme tout ce qui se
+   presse, et ce qu’on est en train de modifier porte le conteneur secondaire
+   — la même marque que la destination ouverte du rail : un aplat, un cran de
+   graisse, et rien d’autre. */
 .basalte-row {
   display: flex;
   align-items: center;
   gap: var(--panel-space-md);
   width: 100%;
   min-height: var(--panel-control-row);
-  padding: var(--panel-space-xs) var(--panel-space-md);
-  border-radius: var(--panel-radius-field);
+  padding: var(--panel-space-xs) var(--panel-space-lg);
+  border-radius: var(--panel-radius-sm);
   background: transparent;
-  color: var(--panel-ink-2);
-  font-size: var(--panel-text-body);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-body-md);
   font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Dans un menu, la ligne prend la forme pleine du tiroir de Material : elle
+   ne porte qu’un libellé, et le plein ne déborde pas. Dans une colonne, une
+   ligne de deux hauteurs — un titre et une date — garde le rayon moyen : le
+   plein arrondissait un bloc de texte en galet. */
+.basalte-row[data-pill='true'] {
+  padding-inline: var(--panel-space-xl);
+  border-radius: var(--panel-radius-full);
 }
 
 /* Ce qui se presse dans une ligne. La poignée est sa sœur, pas sa fille : on
@@ -611,34 +972,29 @@ textarea.basalte-input {
   background: transparent;
   color: inherit;
   font: inherit;
+  letter-spacing: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .basalte-row:hover {
-  background: var(--panel-surface-canvas);
-  color: var(--panel-ink-1);
+  color: var(--panel-color-on-surface);
 }
 
-/* Ce qu’on est en train de modifier : un aplat, un cran de graisse, et rien
-   d’autre. La même marque désigne une section, un billet, un message et une
-   page — un chevron ici et un bâtonnet là faisaient quatre langues pour un
-   seul état. Jamais une teinte : elle entrerait en concurrence avec le site
-   ouvert en aperçu. */
 .basalte-row[data-current='true'],
 .basalte-row[data-current='true']:hover {
-  background: var(--panel-surface-chosen);
-  color: var(--panel-ink-1);
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
   font-weight: 500;
 }
 
 .basalte-row[data-hidden='true'] {
-  color: var(--panel-ink-3);
+  color: var(--panel-color-on-surface-variant);
 }
 
 .basalte-row[data-wrong='true'] {
-  background: var(--panel-state-refused-wash);
-  color: var(--panel-ink-1);
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
 }
 
 .basalte-row__text {
@@ -654,21 +1010,43 @@ textarea.basalte-input {
   flex: 1;
   min-width: 0;
   flex-direction: column;
-  gap: var(--panel-space-hair);
+  gap: var(--panel-space-xxs);
+  padding-block: var(--panel-space-xs);
+}
+
+/* Le titre d’une ligne à deux hauteurs tient sur deux lignes au plus, puis
+   se coupe : une colonne de billets n’est pas l’endroit où lire un titre. */
+.basalte-row__stack > span:first-child {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.35;
 }
 
 .basalte-row__glyph {
   display: flex;
   flex-shrink: 0;
-  color: var(--panel-mute-draw);
+  color: var(--panel-color-outline);
 }
 
-.basalte-row:hover .basalte-row__glyph {
-  color: var(--panel-ink-3);
-}
-
+.basalte-row:hover .basalte-row__glyph,
 .basalte-row[data-current='true'] .basalte-row__glyph {
-  color: var(--panel-ink-2);
+  color: currentColor;
+}
+
+/* La méta d’une ligne : une adresse, un compte, une date. */
+.basalte-row__note {
+  flex-shrink: 0;
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-sm);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.basalte-row[data-current='true'] .basalte-row__note {
+  color: var(--panel-color-on-secondary-container);
 }
 
 .basalte-handle {
@@ -678,7 +1056,7 @@ textarea.basalte-input {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--panel-mute-draw);
+  color: var(--panel-color-outline-variant);
   cursor: grab;
 }
 
@@ -688,51 +1066,53 @@ textarea.basalte-input {
 
 /* Au repos, la poignée est un dessin inerte, et c’est à ce titre qu’elle est
    tenue hors du plancher du graphique (D177). Dès qu’on la vise, elle porte
-   l’encre 3 et se lit — c’est ce qui rend l’exclusion tenable. */
+   l’encre secondaire et se lit — c’est ce qui rend l’exclusion tenable. */
 .basalte-row:hover .basalte-handle,
 .basalte-handle:hover,
 .basalte-handle:focus-visible {
-  color: var(--panel-ink-3);
+  color: var(--panel-color-on-surface-variant);
 }
 
 /* ---- Les marques ---- */
 
-/* Une marque est un filet et un point, pas un aplat : posés côte à côte, trois
-   badges pleins se disputent l’attention et l’écran devient une guirlande. */
+/* Une marque est une puce d’assistance : un contour, une étiquette, et le
+   point qui dit l’état. Trois puces pleines côte à côte se disputeraient
+   l’attention. */
 .basalte-badge {
   display: inline-flex;
   align-items: center;
   gap: var(--panel-space-sm);
-  padding: var(--panel-space-xs) var(--panel-space-md);
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
-  font-size: var(--panel-text-eyebrow);
-  font-weight: 400;
+  height: var(--panel-control-xs);
+  padding: 0 var(--panel-space-md);
+  border-radius: var(--panel-radius-full);
+  background: transparent;
+  color: var(--panel-color-on-surface);
+  font-size: var(--panel-text-label-md);
+  font-weight: 500;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .basalte-badge[data-tone='muted'] {
-  color: var(--panel-ink-2);
+  color: var(--panel-color-on-surface-variant);
 }
 
 .basalte-badge[data-tone='refused'] {
-  border-color: var(--panel-state-refused-line);
-  background: var(--panel-state-refused-wash);
-  color: var(--panel-state-refused);
+  padding: 0 var(--panel-space-lg);
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
 }
 
 .basalte-badge__dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   flex-shrink: 0;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-ink-1);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-primary);
 }
 
 .basalte-badge__dot[data-tone='online'] {
-  background: var(--panel-state-online);
+  background: var(--panel-color-success);
 }
 
 /* La micro-marque tient dans la hauteur d’une ligne de liste : elle qualifie
@@ -743,164 +1123,278 @@ textarea.basalte-input {
   gap: var(--panel-space-xs);
   height: var(--panel-control-mark);
   padding: 0 var(--panel-space-sm);
-  border: 1px solid var(--panel-line-strong);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-eyebrow);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-xs);
+  background: transparent;
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
-/* Sur l’aplat choisi, la marque perd son fond et son filet s’assombrit d’un
-   cran : l’encre 3 n’y tiendrait pas le plancher, elle passe à l’encre 2. */
 .basalte-row[data-current='true'] .basalte-mark {
-  border-color: var(--panel-mute-draw);
-  background: transparent;
-  color: var(--panel-ink-2);
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  color: inherit;
 }
 
 .basalte-mark[data-hatched='true'] {
   background-image: var(--panel-hatch);
 }
 
-/* Le seul compteur du panel, et le seul rouge qui ne dit pas « refusé ». */
+/* Le compteur : la pastille de Material, et le seul rouge qui ne dit pas
+   « refusé ». */
 .basalte-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 17px;
-  height: 17px;
+  min-width: 16px;
+  height: 16px;
   padding: 0 var(--panel-space-xs);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-state-refused);
-  color: var(--panel-on-ink-1);
-  font-size: var(--panel-text-eyebrow);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-error);
+  color: var(--panel-color-on-error);
+  font-size: var(--panel-text-label-sm);
   font-weight: 500;
+  line-height: 1;
 }
 
 /* ---- Les interrupteurs ---- */
 
-/* Le pouce remplit la hauteur de sa glissière, et il y glisse : une bascule
-   d’alignement sauterait d’un bord à l’autre sans que l’œil suive le trajet. */
+/* L’interrupteur de Material : la piste se remplit et le pouce grandit en
+   glissant, de seize à vingt-quatre pixels. */
 .basalte-switch {
+  position: relative;
   display: flex;
-  width: 38px;
-  height: var(--panel-control-mark);
+  width: 44px;
+  height: 26px;
   flex-shrink: 0;
-  align-items: center;
-  padding: var(--panel-space-xxs);
-  border: 0;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-surface-card);
-  box-shadow: inset 0 0 0 1px var(--panel-line-strong);
+  padding: 0;
+  border: 2px solid var(--panel-color-outline);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-surface-container-highest);
   cursor: pointer;
   transition:
-    background-color var(--panel-motion-base) var(--panel-motion-ease),
-    box-shadow var(--panel-motion-base) var(--panel-motion-ease);
+    background-color var(--panel-motion-medium) var(--panel-motion-standard),
+    border-color var(--panel-motion-medium) var(--panel-motion-standard);
 }
 
 .basalte-switch-line {
   display: flex;
   align-items: center;
-  gap: var(--panel-space-md);
+  gap: var(--panel-space-lg);
+  min-width: 0;
+}
+
+.basalte-switch-line > .basalte-text {
+  min-width: 0;
+  color: var(--panel-color-on-surface);
 }
 
 .basalte-switch__thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-mute-draw);
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-outline);
+  transform: translateY(-50%);
   transition:
-    transform var(--panel-motion-base) var(--panel-motion-ease),
-    background-color var(--panel-motion-base) var(--panel-motion-ease);
+    left var(--panel-motion-medium) var(--panel-motion-standard),
+    width var(--panel-motion-medium) var(--panel-motion-standard),
+    height var(--panel-motion-medium) var(--panel-motion-standard),
+    background-color var(--panel-motion-medium) var(--panel-motion-standard);
+}
+
+.basalte-switch:hover .basalte-switch__thumb {
+  background: var(--panel-color-on-surface-variant);
 }
 
 .basalte-switch[data-on='true'] {
-  background: var(--panel-surface-ink);
-  box-shadow: none;
+  border-color: var(--panel-color-primary);
+  background: var(--panel-color-primary);
 }
 
-/* 38 de glissière, moins deux fois le rembourrage et la largeur du pouce. */
-.basalte-switch[data-on='true'] .basalte-switch__thumb {
-  transform: translateX(16px);
+.basalte-switch[data-on='true'] .basalte-switch__thumb,
+.basalte-switch[data-on='true']:hover .basalte-switch__thumb {
+  left: 19px;
+  width: 20px;
+  height: 20px;
+  background: var(--panel-color-on-primary);
 }
 
-.basalte-switch[data-on='true'] .basalte-switch__thumb {
-  background: var(--panel-on-ink-1);
+/* Une ligne d’interrupteur : le libellé à gauche, l’interrupteur au bout,
+   sur un conteneur qui les tient ensemble. C’est la ligne de liste de
+   Material avec un interrupteur en fin, et c’est ce qui remplace un
+   interrupteur flottant à côté d’un titre, qui passait à la ligne dès que la
+   colonne se resserrait. */
+.basalte-switch-row {
+  display: flex;
+  min-height: var(--panel-control-field);
+  padding: var(--panel-space-sm) var(--panel-space-lg);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-low);
 }
 
-/* La glissière : le pouce blanc porte la seule ombre de l’écran qui ne flotte
-   pas — elle dit qu’il glisse, pas qu’il s’élève. */
+.basalte-switch-row > .basalte-switch-line {
+  flex: 1;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.basalte-switch:disabled {
+  opacity: var(--panel-state-disabled-content);
+  cursor: not-allowed;
+}
+
+/* Le bouton segmenté : deux ou trois choix sous un même contour, et le
+   choisi se remplit du conteneur secondaire. */
 .basalte-segmented {
   display: flex;
-  gap: var(--panel-space-xxs);
-  height: var(--panel-control-md);
+  height: var(--panel-control-sm);
   flex-shrink: 0;
-  padding: var(--panel-space-xxs);
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-surface-canvas);
-}
-
-.basalte-segmented[data-tone='ink'] {
-  background: var(--panel-surface-card);
-  border-color: var(--panel-line-strong);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-full);
+  background: transparent;
+  overflow: hidden;
 }
 
 .basalte-segmented__item {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  gap: var(--panel-space-sm);
+  gap: var(--panel-space-md);
   padding: 0 var(--panel-space-lg);
   border: 0;
-  border-radius: var(--panel-radius-pill);
+  border-right: 1px solid var(--panel-color-outline-variant);
+  border-radius: 0;
   background: transparent;
-  color: var(--panel-ink-2);
+  color: var(--panel-color-on-surface);
   font-family: inherit;
-  font-size: var(--panel-text-eyebrow);
-  font-weight: 400;
+  font-size: var(--panel-text-label-lg);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
 }
 
-.basalte-segmented__item[data-on='true'] {
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
-  font-weight: 500;
-  box-shadow: var(--panel-shadow-thumb);
+.basalte-segmented__item:last-child {
+  border-right: 0;
 }
 
-.basalte-segmented[data-tone='ink'] .basalte-segmented__item[data-on='true'] {
-  background: var(--panel-surface-ink);
-  color: var(--panel-on-ink-1);
-  box-shadow: none;
+.basalte-segmented__item > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.basalte-segmented__item[data-on='true'] {
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+}
+
+.basalte-segmented__item[data-off='true'] {
+  color: var(--panel-color-on-surface-variant);
+}
+
+.basalte-segmented[data-block='true'] {
+  width: 100%;
+}
+
+/* La puce : un choix qu’on filtre ou une aide qu’on propose. Choisie, elle
+   perd son contour et prend le conteneur secondaire. */
+.basalte-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--panel-space-md);
+  height: var(--panel-control-chip);
+  padding: 0 var(--panel-space-lg);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
+  background: transparent;
+  color: var(--panel-color-on-surface-variant);
+  font-family: inherit;
+  font-size: var(--panel-text-label-lg);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.basalte-chip[data-on='true'] {
+  border-color: transparent;
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+}
+
+/* Les onglets, quand un écran tient deux listes de même nature : une ligne
+   sous celui qui est ouvert, et c’est tout. */
+.basalte-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--panel-color-outline-variant);
+}
+
+.basalte-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--panel-space-md);
+  height: var(--panel-control-field);
+  padding: 0 var(--panel-space-lg);
+  border: 0;
+  border-radius: var(--panel-radius-sm) var(--panel-radius-sm) 0 0;
+  background: transparent;
+  color: var(--panel-color-on-surface-variant);
+  font-family: inherit;
+  font-size: var(--panel-text-title-sm);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.basalte-tab[data-on='true'] {
+  color: var(--panel-color-primary);
+  box-shadow: inset 0 -2px 0 var(--panel-color-primary);
 }
 
 /* ---- Les surfaces ---- */
 
-/* Une carte se détache par son filet, jamais par une ombre : dans la page,
-   c’est le trait qui sépare. */
+/* Une carte est un conteneur posé sur le fond : elle s’en détache par sa
+   couleur, la plus claire des surfaces, et par son rayon. Élevée, elle porte
+   la première ombre ; contournée, un filet. */
 .basalte-card {
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-surface);
-  background: var(--panel-surface-card);
-  padding: var(--panel-space-xxxl);
   min-width: 0;
+  padding: var(--panel-space-xxl);
+  border: 1px solid transparent;
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-lowest);
+}
+
+.basalte-card[data-variant='elevated'] {
+  background: var(--panel-color-surface-container-low);
+  box-shadow: var(--panel-elevation-1);
+}
+
+.basalte-card[data-variant='outlined'] {
+  border-color: var(--panel-color-outline-variant);
+  background: var(--panel-color-surface);
 }
 
 .basalte-card[data-tone='raised'] {
-  background: var(--panel-surface-raised);
+  background: var(--panel-color-surface-container-low);
 }
 
+/* Une carte dans une carte : le conteneur bas, et le rayon moyen. */
 .basalte-card[data-nested='true'] {
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-surface-raised);
-  padding: var(--panel-space-xl);
+  padding: var(--panel-space-lg);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-low);
 }
 
 .basalte-card[data-pad='sm'] {
-  padding: var(--panel-space-xl);
+  padding: var(--panel-space-lg);
 }
 
 .basalte-card[data-pad='lg'] {
@@ -911,83 +1405,73 @@ textarea.basalte-input {
    son conteneur : l’erreur se lit sous le champ, encore faut-il voir lequel. */
 .basalte-card[data-wrong='true'],
 .basalte-stack[data-wrong='true'] {
-  border: 1px solid var(--panel-state-refused-line);
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-state-refused-wash);
   padding: var(--panel-space-lg);
+  border: 1px solid var(--panel-color-error);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
 }
 
-/* Un objet posé sur le canvas : filet plus marqué, et la première ombre. */
+/* Un objet posé sur le canvas, au-dessus de l’aperçu : la deuxième ombre. */
 .basalte-float {
-  border: 1px solid var(--panel-line-edge);
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-surface-card);
   padding: var(--panel-space-md);
-  box-shadow: var(--panel-shadow-float);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-low);
+  box-shadow: var(--panel-elevation-2);
 }
 
-/* Un bandeau dit l’état du site, pas son contenu. Il se pose à même le fond,
-   sur l’axe de la page : la boîte est réservée à ce qui refuse et à ce qui
-   marque le pas-en-ligne, faute de quoi chaque écran s’ouvre sur deux cartes
-   blanches avant son sujet. */
+/* Un bandeau dit l’état du site, pas son contenu. Sans ton, il se pose à
+   même le fond, sur l’axe de la page ; avec, il prend le conteneur de ce
+   qu’il annonce — le rouge du refus, l’ambre du regard. */
 .basalte-banner {
-  font-size: var(--panel-text-body);
-  line-height: 1.55;
+  font-size: var(--panel-text-body-md);
+  line-height: 1.5;
 }
 
 .basalte-banner[data-tone='refused'],
 .basalte-banner[data-tone='watch'],
 .basalte-banner[data-tone='raised'],
 .basalte-banner[data-hatched='true'] {
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-nested);
   padding: var(--panel-space-lg) var(--panel-space-xl);
+  border-radius: var(--panel-radius-sm);
 }
 
-.basalte-banner[data-tone='refused'],
+.basalte-banner[data-tone='refused'] {
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
+}
+
 .basalte-banner[data-tone='watch'] {
-  border-color: var(--panel-state-refused-line);
-  background: var(--panel-state-refused-wash);
+  background: var(--panel-color-warning-container);
+  color: var(--panel-color-on-warning-container);
 }
 
-.basalte-banner[data-tone='watch'] {
-  border-color: var(--panel-state-watch-line);
-  background: var(--panel-state-watch-wash);
-}
-
-/* Le titre d’un bandeau porte la couleur de ce qu’il annonce : c’est elle qui
-   se lit d’un coup d’œil, là où une phrase noire demande d’être lue. */
-.basalte-banner[data-tone='refused'] strong {
-  color: var(--panel-state-refused);
-}
-
-.basalte-banner[data-tone='watch'] strong {
-  color: var(--panel-state-watch);
+.basalte-banner[data-tone='refused'] .basalte-link,
+.basalte-banner[data-tone='watch'] .basalte-link {
+  color: inherit;
 }
 
 .basalte-banner[data-tone='raised'] {
-  background: var(--panel-surface-raised);
-  color: var(--panel-ink-2);
-  font-size: var(--panel-text-eyebrow);
+  background: var(--panel-color-surface-container-high);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-md);
+  letter-spacing: 0.03em;
 }
 
 /* Un groupe de points, sous la page qu’il vise. Le filet le sépare du suivant :
    sans lui, trois pages de reproches se lisaient comme un seul paragraphe. */
 .basalte-points + .basalte-points {
   padding-top: var(--panel-space-md);
-  border-top: 1px solid var(--panel-state-watch-line);
-}
-
-.basalte-banner[data-tone='refused'] .basalte-points + .basalte-points {
-  border-top-color: var(--panel-state-refused-line);
+  border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
 }
 
 /* Les hachures ne décorent pas : elles disent « pas en ligne ». */
 .basalte-banner[data-hatched='true'] {
-  border-color: var(--panel-line-strong);
+  border: 1px solid var(--panel-color-outline-variant);
   background-image: var(--panel-hatch);
-  color: var(--panel-ink-2);
-  font-size: var(--panel-text-eyebrow);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-md);
+  letter-spacing: 0.03em;
 }
 
 .basalte-empty {
@@ -995,11 +1479,15 @@ textarea.basalte-input {
   flex-direction: column;
   align-items: center;
   gap: var(--panel-space-sm);
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-surface-raised);
   padding: var(--panel-space-gutter) var(--panel-space-region);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-low);
+  color: var(--panel-color-on-surface-variant);
   text-align: center;
+}
+
+.basalte-empty > strong {
+  color: var(--panel-color-on-surface);
 }
 
 /* ---- Ce qui flotte ---- */
@@ -1015,15 +1503,19 @@ textarea.basalte-input {
   background: var(--panel-scrim);
 }
 
+/* La fenêtre de Material : le conteneur haut, le plus grand rayon, la
+   troisième ombre. Son titre est un en-tête, ses actions se tiennent à
+   droite en boutons de texte. */
 .basalte-modal {
   display: flex;
   width: 100%;
   max-height: 100%;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--panel-radius-modal);
-  background: var(--panel-surface-card);
-  box-shadow: var(--panel-shadow-modal);
+  border-radius: var(--panel-radius-lg);
+  background: var(--panel-color-surface-container-lowest);
+  color: var(--panel-color-on-surface);
+  box-shadow: var(--panel-elevation-3);
 }
 
 .basalte-modal__head,
@@ -1032,23 +1524,29 @@ textarea.basalte-input {
   align-items: flex-start;
   gap: var(--panel-space-lg);
   flex-shrink: 0;
-  padding: var(--panel-space-xl);
-}
-
-.basalte-modal__head {
-  border-bottom: 1px solid var(--panel-line-hair);
+  padding: var(--panel-space-xxl) var(--panel-space-xxl) var(--panel-space-lg);
 }
 
 .basalte-modal__foot {
   align-items: center;
-  border-top: 1px solid var(--panel-line-hair);
+  justify-content: flex-end;
+  gap: var(--panel-space-md);
+  padding: var(--panel-space-lg) var(--panel-space-xxl) var(--panel-space-xxl);
 }
 
 .basalte-modal__body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--panel-space-xl);
+  padding: 0 var(--panel-space-xxl) var(--panel-space-lg);
+}
+
+/* Le corps qui défile se sépare de la tête et du pied par un filet, comme
+   chez Material : sans lui, un contenu coupé net semblait fini. */
+.basalte-modal[data-scrolls='true'] .basalte-modal__body {
+  padding-top: var(--panel-space-xl);
+  border-top: 1px solid var(--panel-color-outline-variant);
+  border-bottom: 1px solid var(--panel-color-outline-variant);
 }
 
 /* Le menu défile plutôt que de sortir de l’écran : la bibliothèque d’un site
@@ -1064,24 +1562,20 @@ textarea.basalte-input {
   width: var(--panel-width-menu);
   max-height: 60vh;
   /* Un menu est un plan détaché : rien de la ligne qui le porte ne doit le
-     traverser. Ancré dans la barre du haut, il héritait de son `nowrap` — et
-     l’aide, seul menu de prose du panel, s’écrivait donc sur une seule ligne
-     de mille pixels, à faire défiler de gauche à droite. */
+     traverser — ancré dans une barre, il en héritait le `nowrap`. */
   white-space: normal;
   /* `overflow-y: auto` seul ne suffit pas : un axe laissé à `visible` en face
-     d’un axe qui défile est calculé à `auto`, et le menu se mettait donc à
-     défiler aussi de gauche à droite dès qu’une adresse un peu longue passait
-     sa largeur. La réserve garde la gouttière de la barre, pour que le contenu
-     ne se décale pas quand elle paraît. */
+     d’un axe qui défile est calculé à `auto`, et le menu défilait aussi de
+     gauche à droite dès qu’une adresse passait sa largeur. */
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  margin-top: var(--panel-space-md);
+  margin-top: var(--panel-space-sm);
   padding: var(--panel-space-sm);
-  border: 1px solid var(--panel-line-strong);
-  border-radius: var(--panel-radius-surface);
-  background: var(--panel-surface-card);
-  box-shadow: var(--panel-shadow-menu);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-lowest);
+  color: var(--panel-color-on-surface);
+  box-shadow: var(--panel-elevation-2);
 }
 
 .basalte-menu[data-align='left'] {
@@ -1089,16 +1583,58 @@ textarea.basalte-input {
   left: 0;
 }
 
+/* Ce qu’un menu porte garde sa hauteur : une colonne qui défile rétrécit
+   ses enfants à leur hauteur minimale, et une ligne de deux hauteurs se
+   tassait sur la suivante. */
+.basalte-menu > * {
+  flex-shrink: 0;
+}
+
 .basalte-menu__rule {
   height: 1px;
-  margin: var(--panel-space-xs) var(--panel-space-xs);
-  background: var(--panel-line-soft);
+  margin: var(--panel-space-xs) var(--panel-space-md);
+  background: var(--panel-color-outline-variant);
+}
+
+.basalte-menu__note {
+  padding: var(--panel-space-sm) var(--panel-space-lg) var(--panel-space-xs);
 }
 
 .basalte-anchor {
   position: relative;
   display: flex;
   align-items: center;
+}
+
+/* La snackbar : ce qui vient de se passer, dit une fois, en bas, sur la
+   surface inverse. Elle disparaît d’elle-même — rien à fermer. */
+.basalte-snackbar {
+  position: fixed;
+  bottom: var(--panel-space-xxxl);
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--panel-space-xl);
+  min-width: 320px;
+  max-width: min(
+    var(--panel-width-snackbar),
+    calc(100vw - 2 * var(--panel-space-xl))
+  );
+  min-height: var(--panel-control-field);
+  padding: var(--panel-space-md) var(--panel-space-xl);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-inverse-surface);
+  color: var(--panel-color-inverse-on-surface);
+  font-size: var(--panel-text-body-md);
+  letter-spacing: 0.01em;
+  box-shadow: var(--panel-elevation-3);
+  transform: translateX(-50%);
+}
+
+.basalte-snackbar .basalte-button {
+  margin-right: calc(-1 * var(--panel-space-md));
+  color: var(--panel-color-inverse-primary);
 }
 
 /* ---- Le cadre ---- */
@@ -1111,137 +1647,202 @@ textarea.basalte-input {
   justify-content: center;
 }
 
-/* La page ne défile jamais. Le shell tient la hauteur de la fenêtre, la barre
-   et l’en-tête ne bougent pas, et le défilement descend dans la région qui le
-   demande — le contenu d’un écran, ou chacune des colonnes d’un écran qui
-   tient à l’écran. */
+/* La page ne défile jamais. Le rail tient la colonne de gauche, la colonne de
+   droite tient la barre d’application et l’écran, et le défilement descend
+   dans la région qui le demande — le contenu d’un écran, ou chacune des
+   colonnes d’un écran qui tient à l’écran. */
 .basalte-shell {
-  display: flex;
+  display: grid;
   height: 100dvh;
-  flex-direction: column;
   overflow: hidden;
-  background: var(--panel-surface-canvas);
+  grid-template-columns: var(--panel-control-rail) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  background: var(--panel-color-surface);
 }
 
-/* La barre est noire, et sans filet : le fond suffit à séparer l’outil du
-   document, et libère le blanc pour la page qu’on fabrique. */
-.basalte-topbar {
+.basalte-shell__column {
   display: flex;
-  align-items: center;
-  gap: var(--panel-space-region);
-  height: var(--panel-control-bar);
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+/* Le rail de navigation, et la barre qui le remplace sur un écran étroit.
+   Tous deux portent les mêmes destinations : une icône dans une pastille,
+   une étiquette dessous, et le conteneur secondaire sous celle qui est
+   ouverte. Le rail se tient sur la surface, comme la page ; la barre sur un
+   conteneur, parce qu’elle chevauche ce qui défile. */
+.basalte-nav {
+  display: flex;
   flex-shrink: 0;
-  background: var(--panel-surface-ink);
 }
 
-.basalte-brand {
-  display: flex;
+.basalte-nav[data-form='rail'] {
+  flex-direction: column;
   align-items: center;
   gap: var(--panel-space-md);
-  flex-shrink: 0;
-  color: var(--panel-on-ink-1);
-  font-size: var(--panel-text-body);
-  font-weight: 600;
-  letter-spacing: -0.008em;
-  white-space: nowrap;
+  width: var(--panel-control-rail);
+  padding: var(--panel-space-lg) 0 var(--panel-space-xxl);
+  background: var(--panel-color-surface);
 }
 
-.basalte-brand__mark {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border-radius: var(--panel-radius-field);
-  background: var(--panel-on-ink-1);
+.basalte-nav[data-form='bar'] {
+  display: none;
+  height: var(--panel-control-bar);
+  justify-content: space-around;
+  padding: var(--panel-space-md) var(--panel-space-sm) var(--panel-space-md);
+  background: var(--panel-color-surface-container);
 }
 
-.basalte-tabs {
+.basalte-nav__list {
   display: flex;
-  align-items: center;
-  gap: var(--panel-space-xxs);
+  flex-direction: column;
+  gap: var(--panel-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.basalte-nav[data-form='bar'] .basalte-nav__list {
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 0;
+}
+
+.basalte-nav[data-form='bar'] .basalte-nav__list > li {
+  flex: 1;
   min-width: 0;
 }
 
-/* L’onglet ouvert est une pastille blanche : c’est la seule chose de la barre
-   qui porte l’encre du document. */
-.basalte-tab {
+.basalte-nav__item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--panel-space-sm);
-  height: var(--panel-control-md);
-  padding: 0 var(--panel-space-lg);
+  gap: var(--panel-space-xs);
+  width: 100%;
+  padding: 0;
   border: 0;
-  border-radius: var(--panel-radius-pill);
   background: transparent;
-  color: var(--panel-on-ink-3);
+  color: var(--panel-color-on-surface-variant);
   font-family: inherit;
-  font-size: var(--panel-text-body);
-  font-weight: 400;
-  white-space: nowrap;
+  font-size: var(--panel-text-label-sm);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
   cursor: pointer;
 }
 
-.basalte-tab:hover {
-  background: var(--panel-veil-hover);
-  color: var(--panel-on-ink-1);
-}
-
-.basalte-tab[data-on='true'],
-.basalte-tab[data-on='true']:hover {
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
-  font-weight: 500;
-}
-
-.basalte-topbar__aside {
+.basalte-nav__indicator {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--panel-space-md);
-  margin-left: auto;
-  flex-shrink: 0;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--panel-radius-full);
+  color: var(--panel-color-on-surface-variant);
+  transition: background-color var(--panel-motion-short)
+    var(--panel-motion-standard);
+}
+
+.basalte-nav[data-form='bar'] .basalte-nav__indicator {
+  width: 56px;
+}
+
+.basalte-nav__item[data-on='true'] {
+  color: var(--panel-color-on-surface);
+  font-weight: 600;
+}
+
+.basalte-nav__item[data-on='true'] .basalte-nav__indicator {
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+}
+
+/* La pastille de ce qui attend, posée sur le coin de l’indicateur. */
+.basalte-nav__indicator > .basalte-count {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  margin-left: var(--panel-space-sm);
+}
+
+.basalte-nav__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Le compte : une méta posée sur le plan sombre, où aucun gris clair ne
-   tiendrait sur du blanc. */
-.basalte-topbar__account {
-  color: var(--panel-on-ink-3);
-  font-size: var(--panel-text-eyebrow);
+/* La marque du site, en tête du rail : une lettre sur le conteneur
+   principal. */
+.basalte-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--panel-control-md);
+  height: var(--panel-control-md);
+  margin-bottom: var(--panel-space-lg);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-primary);
+  color: var(--panel-color-on-primary);
+  font-size: var(--panel-text-title-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
-@media (max-width: 60rem) {
-  .basalte-topbar__account {
-    display: none;
-  }
-}
-
-.basalte-signout {
+/* L’avatar du compte : une lettre dans un rond, au pied du rail ou au bout
+   de la barre d’application. Il ouvre le menu du compte. */
+.basalte-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--panel-control-sm);
   height: var(--panel-control-sm);
-  padding: 0 var(--panel-space-lg);
+  flex-shrink: 0;
+  padding: 0;
   border: 0;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-veil-chip);
-  color: var(--panel-on-ink-2);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-tertiary-container);
+  color: var(--panel-color-on-tertiary-container);
   font-family: inherit;
-  font-size: var(--panel-text-eyebrow);
-  font-weight: 400;
+  font-size: var(--panel-text-label-lg);
+  font-weight: 600;
   cursor: pointer;
 }
 
-.basalte-signout:hover {
-  background: var(--panel-veil-chip-hover);
-  color: var(--panel-on-ink-1);
+.basalte-nav__foot {
+  margin-top: auto;
+}
+
+/* Au pied du rail, le menu du compte n’a pas de place en dessous : il s’ouvre
+   à droite de l’avatar, calé sur son bas. */
+.basalte-nav__foot .basalte-menu {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 100%;
+  width: auto;
+  min-width: 232px;
+  margin: 0 0 0 var(--panel-space-lg);
+}
+
+/* L’avatar de la barre d’application ne sert que sans rail : avec lui, le
+   compte est au pied du rail. */
+.basalte-appbar__account {
+  display: none;
 }
 
 /* L’encart de l’application. Le contenu tient dans une colonne centrée : au
    delà de sa largeur, c’est la gouttière qui grandit, pas la ligne de texte.
-   La barre du haut, l’en-tête d’écran et le contenu le partagent, et c’est ce
-   qui pose la marque, le titre et la première carte sur un seul axe. */
-.basalte-topbar,
+   La barre d’application, le bandeau et le contenu le partagent, et c’est ce
+   qui pose le titre et la première carte sur un seul axe. */
+.basalte-appbar,
 .basalte-alert,
-.basalte-head,
 .basalte-main {
   --panel-inset: max(
-    var(--panel-space-gutter),
+    var(--panel-space-region),
     (100% - var(--panel-width-shell)) / 2
   );
 
@@ -1249,59 +1850,105 @@ textarea.basalte-input {
   padding-left: var(--panel-inset);
 }
 
-/* Ce qui a échoué au niveau du site : un aplat plein, d’un bord à l’autre,
-   collé sous la barre. Pas de filet, pas d’arrondi, pas de marge — il n’est
-   posé dans aucun écran, il en sépare deux, et c’est ce qui le distingue d’un
-   bandeau du contenu. Il ne défile pas non plus : la cause est ailleurs que
-   dans ce qu’on est en train de lire.
-
-   Rien de gris ne s’y écrit : sur un rouge plein, le second niveau se donne
-   par la taille et la graisse, jamais par une encre plus claire. */
+/* Ce qui a échoué au niveau du site : un bandeau d’un bord à l’autre, sous
+   la barre d’application, sur le conteneur du refus. Il n’est posé dans
+   aucun écran, il en sépare deux, et il ne défile pas : la cause est
+   ailleurs que dans ce qu’on est en train de lire. */
 .basalte-alert {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: var(--panel-space-lg);
   flex-shrink: 0;
-  flex-wrap: wrap;
   padding-top: var(--panel-space-lg);
   padding-bottom: var(--panel-space-lg);
-  background: var(--panel-state-refused);
-  color: var(--panel-on-ink-1);
-  font-size: var(--panel-text-body);
-  line-height: 1.5;
+  background: var(--panel-color-error-container);
+  color: var(--panel-color-on-error-container);
+  font-size: var(--panel-text-body-md);
+  line-height: 1.45;
 }
 
-.basalte-alert strong {
-  font-weight: 600;
+.basalte-alert > svg {
+  flex-shrink: 0;
+  margin-top: var(--panel-space-hair);
+}
+
+.basalte-alert__text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--panel-space-xxs);
 }
 
 .basalte-alert__note {
   min-width: 0;
-  font-size: var(--panel-text-eyebrow);
+  opacity: 0.85;
   overflow-wrap: anywhere;
 }
 
-/* L’en-tête d’écran : le contexte, le titre, l’état, et le seul endroit où
-   l’on agit sur l’état du site. Sa place ne change pas d’un écran à l’autre.
-   Il ne porte ni fond ni filet : sous la barre, l’écran est d’un seul tenant,
-   et c’est le blanc qui l’ouvre. */
-.basalte-head {
+/* La barre d’application : le contexte, le titre, l’état, et le seul endroit
+   où l’on agit sur l’état du site. Sa place ne change pas d’un écran à
+   l’autre. Elle se tient sur la surface, sans filet : sous elle, l’écran est
+   d’un seul tenant. */
+.basalte-appbar {
   position: relative;
   z-index: 30;
   display: flex;
-  align-items: flex-start;
-  gap: var(--panel-space-region);
+  align-items: center;
+  gap: var(--panel-space-xxl);
   flex-shrink: 0;
-  padding-top: var(--panel-space-region);
-  padding-bottom: var(--panel-space-xxl);
+  min-height: var(--panel-control-bar);
+  padding-top: var(--panel-space-lg);
+  padding-bottom: var(--panel-space-lg);
 }
 
-.basalte-head__actions {
+/* Le titre tient sur une ligne et se coupe : c’est un billet ou une page
+   qu’il nomme, et la barre n’est pas l’endroit où le lire en entier. */
+.basalte-appbar > .basalte-stack {
+  min-width: 0;
+}
+
+.basalte-appbar .basalte-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.basalte-appbar__actions {
   display: flex;
   align-items: center;
-  gap: var(--panel-space-md);
+  gap: var(--panel-space-sm);
   margin-left: auto;
   flex-shrink: 0;
+}
+
+/* L’attente linéaire, sous la barre : une mise en ligne qui tourne. */
+.basalte-progress {
+  position: relative;
+  height: 3px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-secondary-container);
+}
+
+.basalte-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--panel-color-primary);
+  animation: basalte-slide 1.4s var(--panel-motion-standard) infinite;
+}
+
+@keyframes basalte-slide {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
 }
 
 .basalte-main {
@@ -1335,34 +1982,26 @@ textarea.basalte-input {
 
 .basalte-edit {
   display: grid;
-  gap: var(--panel-space-region);
+  gap: var(--panel-space-xxxl);
   align-items: start;
-  grid-template-columns: minmax(0, 1fr) var(--panel-width-rail);
+  grid-template-columns: minmax(0, 1fr) var(--panel-width-aside);
 }
 
 /* À pleine hauteur, les deux colonnes s’étirent et défilent chacune pour
-   elle-même : le rail suit la page qu’on remplit sans emmener l’aperçu. */
+   elle-même : la colonne suit la page qu’on remplit sans emmener l’aperçu. */
 .basalte-main[data-fill='true'] .basalte-edit {
   align-items: stretch;
 }
 
 /* Les trois colonnes du journal : les billets, celui qu’on écrit, et ce qu’il
-   donnera. La liste est étroite — un titre et une date suffisent à choisir.
-   L’aperçu est la plus large des deux autres : à 420 pixels écrits, il montrait
-   le rendu bureau dans la largeur d’un téléphone, en-tête coupé, pendant qu’un
-   formulaire de six champs occupait neuf cents pixels. Les deux respirent
-   maintenant en proportion, quelle que soit la fenêtre. */
+   donnera. La liste est étroite — un titre et une date suffisent à choisir. */
 .basalte-journal {
   display: grid;
-  gap: var(--panel-space-region);
+  gap: var(--panel-space-xxxl);
   align-items: start;
-  grid-template-columns: 264px minmax(0, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: 272px minmax(0, 1fr) minmax(0, 1.4fr);
 }
 
-/* À pleine hauteur, les trois colonnes s’étirent et défilent chacune pour
-   elle-même, comme les deux de l’édition. L’écran ne défile pas en bloc : sans
-   cela, un billet plus haut que la fenêtre était coupé net, et rien ne
-   permettait d’atteindre les champs qui suivaient. */
 .basalte-main[data-fill='true'] .basalte-journal {
   align-items: stretch;
 }
@@ -1377,22 +2016,21 @@ textarea.basalte-input {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: var(--panel-space-lg);
+  gap: var(--panel-space-md);
 }
 
 /* L’aperçu est un seul objet : sa barre d’outils et la page qu’elle commande
-   partagent un filet et un rayon, comme la chrome d’un navigateur tient à sa
-   fenêtre. Une carte flottante posée au-dessus donnait deux objets à lire, et
-   son rayon serré jurait avec la pastille qu’elle contenait. */
+   partagent un contour et un rayon, comme la chrome d’un navigateur tient à
+   sa fenêtre. */
 .basalte-stage__screen {
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--panel-surface-ink);
-  border-radius: var(--panel-radius-surface);
-  background: var(--panel-surface-card);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-lowest);
 }
 
 .basalte-stage__screen[data-viewport='mobile'] {
@@ -1408,125 +2046,114 @@ textarea.basalte-input {
   flex-shrink: 0;
   flex-wrap: nowrap;
   justify-content: space-between;
-  padding: var(--panel-space-md) var(--panel-space-xl);
-  border-bottom: 1px solid var(--panel-line-hair);
-  background: var(--panel-surface-raised);
+  padding: var(--panel-space-sm) var(--panel-space-lg);
+  border-bottom: 1px solid var(--panel-color-outline-variant);
+  background: var(--panel-color-surface-container-low);
 }
 
 /* La phrase qui dit que l’aperçu est en retard sur ce qu’on écrit. Elle est
    dans le cadre, sous la barre, et sur son axe : c’est l’aperçu qu’elle
-   qualifie, pas la page. Posée là sans réglage, elle touchait le filet. */
+   qualifie, pas la page. */
 .basalte-stage__note {
   flex-shrink: 0;
-  padding: var(--panel-space-md) var(--panel-space-xl);
-  border-bottom: 1px solid var(--panel-line-hair);
-  background: var(--panel-surface-raised);
+  padding: var(--panel-space-sm) var(--panel-space-lg);
+  border-bottom: 1px solid var(--panel-color-outline-variant);
+  background: var(--panel-color-surface-container-low);
 }
 
 /* Rien à montrer : le vide occupe le cadre plutôt que de se tasser en haut. */
 .basalte-stage__screen > .basalte-empty {
   flex: 1;
   justify-content: center;
+  border-radius: 0;
 }
 
-/* La page elle-même : c’est l’écran qui porte le filet et le rayon, elle n’a
-   qu’à remplir ce qu’il lui laisse. */
+/* La page elle-même : c’est l’écran qui porte le contour et le rayon, elle
+   n’a qu’à remplir ce qu’il lui laisse. Elle reste blanche dans les deux
+   modes — c’est le site du client, pas l’outil. */
 .basalte-stage__frame {
   display: block;
   width: 100%;
   flex: 1;
   min-height: 200px;
   border: 0;
-  background: var(--panel-surface-card);
+  background: var(--panel-color-surface-container-lowest);
 }
 
-.basalte-rail {
+/* La colonne de l’édition : les sections, puis les réglages de celle qui
+   est choisie. */
+.basalte-aside {
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: var(--panel-space-lg);
+  gap: var(--panel-space-md);
 }
 
-.basalte-main[data-fill='true'] .basalte-rail {
+.basalte-main[data-fill='true'] .basalte-aside {
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* L’anneau de focus d’un champ déborde d’un pixel : sans cette gouttière,
-     la colonne qui défile le rogne. */
-  padding: var(--panel-space-xxs);
-  margin: calc(-1 * var(--panel-space-xxs));
+  /* L’anneau de focus d’un champ déborde : sans cette gouttière, la colonne
+     qui défile le rogne. */
+  padding: var(--panel-space-xs);
+  margin: calc(-1 * var(--panel-space-xs));
 }
 
-/* Une ligne de menu reste une ligne de liste : on la parcourt du regard, donc
-   elle garde l’arête (D173). En pilule, une colonne de choix se lisait comme
-   une rangée de boutons, et un libellé long y débordait de ses bords. */
-.basalte-row[data-pill='true'] {
-  border-radius: var(--panel-radius-field);
-}
-
-/* La méta d’une ligne : une adresse, un compte, une date. */
-.basalte-row__note {
-  flex-shrink: 0;
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-eyebrow);
-  white-space: nowrap;
-}
-
-.basalte-row[data-current='true'] .basalte-row__note {
-  color: var(--panel-ink-2);
-}
-
-.basalte-menu__note {
-  padding: var(--panel-space-md) var(--panel-space-md) var(--panel-space-xs);
-}
-
-.basalte-rail__head {
-  padding: 0 var(--panel-space-sm);
+.basalte-aside__head {
+  padding: 0 var(--panel-space-md);
 }
 
 /* Les deux sélecteurs de la barre posée au-dessus de l’aperçu : la page, et la
    langue écrite. Ils décident de la même chose — ce que l’aperçu montre — et
-   n’ont donc qu’une forme, ni l’un ni l’autre de chevron : c’est l’aplat de la
-   ligne ouverte, dans le menu, qui dit lequel est choisi. */
+   n’ont donc qu’une forme : une puce, dont le menu dit ce qui est choisi. */
 .basalte-picker {
   display: flex;
   align-items: center;
-  gap: var(--panel-space-md);
-  height: var(--panel-control-sm);
-  padding: 0 var(--panel-space-lg);
-  border: 1px solid var(--panel-line-edge);
-  border-radius: var(--panel-radius-field);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-1);
+  gap: var(--panel-space-sm);
+  height: var(--panel-control-chip);
+  max-width: 100%;
+  padding: 0 var(--panel-space-md) 0 var(--panel-space-lg);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-lowest);
+  color: var(--panel-color-on-surface);
   font-family: inherit;
-  font-size: var(--panel-text-eyebrow);
+  font-size: var(--panel-text-label-lg);
   font-weight: 500;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .basalte-picker:hover {
-  background: var(--panel-surface-raised);
-  border-color: var(--panel-line-strong);
+  border-color: var(--panel-color-outline);
 }
 
-/* Le bouton porte la marque de sa langue : elle est plus haute que le texte,
-   et pousserait le bouton d’un cran sans ce resserrement. */
-.basalte-picker > .basalte-mark {
-  margin-right: calc(-1 * var(--panel-space-sm));
+/* Ce qu’une puce porte se coupe plutôt que de pousser la barre : une adresse
+   de billet compte cinquante caractères. */
+.basalte-picker > .basalte-mono,
+.basalte-picker > .basalte-picker__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.basalte-picker > svg:last-child {
+  flex-shrink: 0;
+  color: var(--panel-color-on-surface-variant);
 }
 
 /* Deux ou trois noms de langue : le menu tient à ce qu’il porte, plutôt que de
    prendre la largeur de la bibliothèque de blocs. */
 .basalte-language .basalte-menu {
-  width: 258px;
+  width: 240px;
 }
 
 .basalte-rule {
   width: 1px;
   height: var(--panel-control-mark);
   flex-shrink: 0;
-  background: var(--panel-line-hair);
+  background: var(--panel-color-outline-variant);
 }
 
 /* L’adresse de la page, et le lien qui l’ouvre pour de vrai. */
@@ -1534,14 +2161,15 @@ textarea.basalte-input {
   display: flex;
   align-items: center;
   gap: var(--panel-space-md);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-eyebrow);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-md);
+  letter-spacing: 0.03em;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .basalte-preview-link:hover {
-  color: var(--panel-ink-1);
+  color: var(--panel-color-primary);
 }
 
 /* ---- Les objets des écrans ---- */
@@ -1562,26 +2190,31 @@ textarea.basalte-input {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-surface-canvas);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container);
+}
+
+.basalte-tile:hover .basalte-tile__image {
+  box-shadow: var(--panel-elevation-2);
 }
 
 .basalte-tile[data-on='true'] .basalte-tile__image {
-  outline: 2px solid var(--panel-ink-1);
+  outline: 2px solid var(--panel-color-primary);
   outline-offset: 2px;
 }
 
 .basalte-tile__flag {
   position: absolute;
-  top: var(--panel-space-sm);
-  left: var(--panel-space-sm);
-  padding: 0 var(--panel-space-sm);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-surface-card);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-eyebrow);
+  top: var(--panel-space-md);
+  left: var(--panel-space-md);
+  padding: 0 var(--panel-space-md);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-secondary-container);
+  color: var(--panel-color-on-secondary-container);
+  font-size: var(--panel-text-label-sm);
   font-weight: 500;
-  line-height: 18px;
+  letter-spacing: 0.04em;
+  line-height: 20px;
 }
 
 /* L’emplacement vide : hachuré, comme tout ce qui n’existe pas encore. */
@@ -1593,26 +2226,27 @@ textarea.basalte-input {
   justify-content: center;
   gap: var(--panel-space-xs);
   padding: var(--panel-space-md);
-  border: 1px dashed var(--panel-line-strong);
-  border-radius: var(--panel-radius-field);
+  border: 1px dashed var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
   background-image: var(--panel-hatch);
-  color: var(--panel-ink-3);
-  font-size: var(--panel-text-eyebrow);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-md);
+  letter-spacing: 0.03em;
   text-align: center;
 }
 
 .basalte-gauge {
   flex: 1;
-  height: 6px;
+  height: 8px;
   overflow: hidden;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-line-soft);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-secondary-container);
 }
 
 .basalte-gauge__fill {
   height: 100%;
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-ink-1);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-primary);
 }
 
 /* Un chiffre sans repère est un chiffre mort : la trame et la moyenne sont
@@ -1622,7 +2256,7 @@ textarea.basalte-input {
   height: 150px;
   background-image: repeating-linear-gradient(
     180deg,
-    var(--panel-line-hair) 0 1px,
+    var(--panel-color-outline-variant) 0 1px,
     transparent 1px 25px
   );
 }
@@ -1637,19 +2271,20 @@ textarea.basalte-input {
 
 .basalte-chart__bar {
   flex: 1;
-  border-radius: var(--panel-radius-bar) var(--panel-radius-bar) 0 0;
-  background: var(--panel-mute-chart);
+  border-radius: var(--panel-radius-xs) var(--panel-radius-xs) 0 0;
+  background: var(--panel-color-primary);
+  opacity: 0.55;
 }
 
 .basalte-chart__bar[data-today='true'] {
-  background: var(--panel-ink-1);
+  opacity: 1;
 }
 
 .basalte-chart__mean {
   position: absolute;
   right: 0;
   left: 0;
-  border-top: 1px dashed var(--panel-mute-inert);
+  border-top: 1px dashed var(--panel-color-outline);
 }
 
 .basalte-spark {
@@ -1662,12 +2297,13 @@ textarea.basalte-input {
 
 .basalte-spark__bar {
   flex: 1;
-  border-radius: 0;
-  background: var(--panel-mute-chart);
+  border-radius: var(--panel-radius-xs) var(--panel-radius-xs) 0 0;
+  background: var(--panel-color-primary);
+  opacity: 0.55;
 }
 
 .basalte-spark__bar[data-today='true'] {
-  background: var(--panel-ink-1);
+  opacity: 1;
 }
 
 .basalte-focal {
@@ -1684,34 +2320,36 @@ textarea.basalte-input {
   display: block;
   max-width: 100%;
   max-height: 18rem;
-  border-radius: var(--panel-radius-field);
+  border-radius: var(--panel-radius-md);
   object-fit: contain;
 }
 
 .basalte-focal__dot {
   position: absolute;
-  width: var(--panel-space-lg);
-  height: var(--panel-space-lg);
-  border: 2px solid var(--panel-on-ink-1);
-  border-radius: var(--panel-radius-pill);
-  background: var(--panel-ink-1);
+  width: var(--panel-space-xl);
+  height: var(--panel-space-xl);
+  border: 3px solid var(--panel-color-on-primary);
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-primary);
+  box-shadow: var(--panel-elevation-2);
   transform: translate(-50%, -50%);
 }
 
-/* Un tableau vit dans une carte : il en prend le rayon imbriqué, jamais celui
-   d’une surface posée sur le canvas. */
+/* Un tableau vit dans une carte : il en prend le rayon moyen, jamais celui
+   d’une surface posée sur le fond. */
 .basalte-table {
   overflow: hidden;
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-nested);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
 }
 
 .basalte-table__row {
   display: grid;
   align-items: center;
-  gap: var(--panel-space-xl);
-  padding: var(--panel-space-lg) var(--panel-space-xxl);
-  border-top: 1px solid var(--panel-line-soft);
+  gap: var(--panel-space-lg);
+  min-height: var(--panel-control-field);
+  padding: var(--panel-space-md) var(--panel-space-lg);
+  border-top: 1px solid var(--panel-color-outline-variant);
 }
 
 /* Une cellule tient sur une ligne : un horodatage ou une adresse qui se replie
@@ -1724,9 +2362,15 @@ textarea.basalte-input {
 }
 
 .basalte-table__row[data-head='true'] {
+  min-height: var(--panel-control-sm);
+  padding-block: var(--panel-space-sm);
   border-top: 0;
-  border-bottom: 1px solid var(--panel-line-hair);
-  background: var(--panel-surface-raised);
+  border-bottom: 1px solid var(--panel-color-outline-variant);
+  background: var(--panel-color-surface-container-low);
+  color: var(--panel-color-on-surface-variant);
+  font-size: var(--panel-text-label-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .basalte-table__row:first-child {
@@ -1734,14 +2378,14 @@ textarea.basalte-input {
 }
 
 .basalte-markdown {
-  font-size: var(--panel-text-body);
-  line-height: 1.65;
+  font-size: var(--panel-text-body-lg);
+  line-height: 1.6;
 }
 
 .basalte-markdown :where(h1, h2, h3) {
   margin: 0 0 var(--panel-space-md);
-  font-size: var(--panel-text-lead);
-  font-weight: 600;
+  font-size: var(--panel-text-title-lg);
+  font-weight: 500;
 }
 
 .basalte-markdown :where(p, ul, ol) {
@@ -1749,7 +2393,7 @@ textarea.basalte-input {
 }
 
 .basalte-markdown :where(a) {
-  color: var(--panel-ink-1);
+  color: var(--panel-color-primary);
 }
 
 .basalte-markdown :where(:last-child) {
@@ -1762,7 +2406,7 @@ textarea.basalte-input {
    qui est plus étroite. */
 .basalte-tiles {
   display: grid;
-  gap: var(--panel-space-lg);
+  gap: var(--panel-space-md);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -1775,43 +2419,71 @@ textarea.basalte-input {
   display: grid;
   gap: var(--panel-space-xl);
   align-items: start;
-  grid-template-columns: minmax(0, 1fr) 268px;
+  grid-template-columns: minmax(0, 1fr) 256px;
 }
 
 .basalte-picker-aside {
   min-height: 100%;
-  padding: var(--panel-space-xl);
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-nested);
-  background: var(--panel-surface-raised);
+  padding: var(--panel-space-lg);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-low);
+}
+
+/* La barre d’une médiathèque : les onglets, la recherche, et l’ajout. La
+   recherche tient une largeur de colonne, pas la fenêtre : un champ qui
+   court d’un bord à l’autre demande plus qu’un mot. */
+.basalte-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: var(--panel-width-menu);
+}
+
+.basalte-search > svg {
+  position: absolute;
+  left: var(--panel-space-md);
+  color: var(--panel-color-on-surface-variant);
+  pointer-events: none;
+}
+
+.basalte-search > .basalte-input {
+  padding-left: var(--panel-space-region);
+  background: var(--panel-color-surface-container-low);
+  border-color: transparent;
+}
+
+.basalte-search > .basalte-input:hover:not(:disabled) {
+  border-color: var(--panel-color-outline-variant);
 }
 
 /* Les messages : la liste, et celui qu’on lit. */
 .basalte-messages {
   display: grid;
-  gap: var(--panel-space-region);
+  gap: var(--panel-space-xxxl);
   align-items: start;
   grid-template-columns: 320px minmax(0, 1fr);
 }
 
 .basalte-messages__body {
   white-space: pre-wrap;
-  line-height: 1.75;
+  line-height: 1.7;
+  font-size: var(--panel-text-body-lg);
 }
 
 /* Les indicateurs, dans leur bandeau. */
 .basalte-figures {
   display: grid;
-  gap: var(--panel-space-lg);
+  gap: var(--panel-space-xl);
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* Le chiffre d’un indicateur : c’est la seule taille de cette échelle qui
    serve, et elle ne sert qu’ici. */
 .basalte-figure {
-  font-size: var(--panel-text-display);
+  font-size: var(--panel-text-display-sm);
   font-weight: 500;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
@@ -1820,107 +2492,259 @@ textarea.basalte-input {
   display: grid;
   gap: var(--panel-space-hair);
   overflow: hidden;
-  border: 1px solid var(--panel-line-hair);
-  border-radius: var(--panel-radius-surface);
-  background: var(--panel-line-hair);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-outline-variant);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* Le compte : le mot de passe et les appareils à gauche, le journal à droite. */
+/* Le compte : l’apparence, le mot de passe et les appareils à gauche, le
+   journal à droite. */
 .basalte-account {
   display: grid;
-  gap: var(--panel-space-region);
+  gap: var(--panel-space-xxxl);
   align-items: start;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
 }
 
-/* L’aide se déplie sous son « ? », dernier de la barre : son panneau tombe
-   donc contre la gouttière, jamais au-dessus des onglets.
-   C’est le seul menu qui porte de la prose et non des lignes de liste — il a
-   donc la mesure et l’air d’une page qu’on lit, et non le pas serré d’une
-   liste qu’on parcourt. Une adresse de courriel y coupe plutôt que d’en
-   sortir. */
+/* Les graines proposées : un rond par couleur, la choisie porte une coche.
+   La couleur du rond est celle de la graine elle-même, posée en variable par
+   le composant — c’est une donnée, pas un style. */
+.basalte-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--panel-space-md);
+}
+
+.basalte-swatch {
+  display: block;
+  width: var(--panel-control-xs);
+  height: var(--panel-control-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--panel-radius-full);
+  background: var(--swatch);
+  cursor: pointer;
+  transition:
+    transform var(--panel-motion-short) var(--panel-motion-standard),
+    box-shadow var(--panel-motion-short) var(--panel-motion-standard);
+}
+
+.basalte-swatch:hover {
+  transform: scale(1.1);
+}
+
+.basalte-swatch[data-on='true'] {
+  box-shadow:
+    0 0 0 2px var(--panel-color-surface-container-lowest),
+    0 0 0 4px var(--panel-color-on-surface);
+}
+
+/* La graine libre : un champ de couleur du navigateur, habillé en rond. */
+.basalte-swatch--custom {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(
+    from 90deg,
+    var(--panel-color-error),
+    var(--panel-color-warning),
+    var(--panel-color-success),
+    var(--panel-color-primary),
+    var(--panel-color-tertiary),
+    var(--panel-color-error)
+  );
+}
+
+.basalte-swatch--custom > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* L’aide se déplie sous son « ? ». C’est le seul menu qui porte de la prose
+   et non des lignes de liste — il a donc la mesure et l’air d’une page qu’on
+   lit. Une adresse de courriel y coupe plutôt que d’en sortir. */
 .basalte-help .basalte-menu {
-  width: 380px;
+  width: 360px;
   max-width: calc(100vw - 2 * var(--panel-space-xl));
-  padding: var(--panel-space-xxl);
+  padding: var(--panel-space-xl) var(--panel-space-xxl);
   overflow-wrap: anywhere;
 }
 
-/* La connexion : le seul écran sans barre, et sans rien autour. */
+/* La connexion : le seul écran sans rail. Deux volets sur un écran large —
+   à gauche le site, sur la couleur de sa graine ; à droite le formulaire, sur
+   la surface. Sur un écran étroit, le volet de couleur devient un bandeau et
+   le formulaire prend la page (D210). */
 .basalte-signin {
-  display: flex;
+  display: grid;
   min-height: 100dvh;
-  align-items: center;
-  justify-content: center;
-  padding: var(--panel-space-xxxl);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--panel-color-surface);
 }
 
-/* La carte tient la largeur d’une colonne de formulaire : sans elle, elle se
-   réduit à son contenu et les deux champs se resserrent au milieu du vide. */
-.basalte-signin > .basalte-card {
-  width: var(--panel-width-form);
-  max-width: 100%;
+.basalte-signin__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--panel-space-gutter);
+  overflow: hidden;
+  padding: var(--panel-space-gutter);
+  background:
+    radial-gradient(
+      circle at 20% 15%,
+      color-mix(in srgb, var(--panel-color-primary) 55%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 90%,
+      color-mix(in srgb, var(--panel-color-tertiary) 40%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(
+      160deg,
+      var(--panel-color-primary-container),
+      var(--panel-color-surface-container-high)
+    );
+  color: var(--panel-color-on-primary-container);
+}
+
+/* Le grain : une trame fine de la couleur du contenu, qui donne au volet
+   la matière d’un papier plutôt que l’aplat d’un écran. */
+.basalte-signin__side::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--panel-hatch);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.basalte-signin__side > * {
+  position: relative;
+  z-index: 1;
+}
+
+.basalte-signin__side .basalte-eyebrow {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.basalte-signin__name {
+  margin: 0;
+  font-size: clamp(
+    var(--panel-text-display-sm),
+    4.5vw,
+    var(--panel-text-display-lg)
+  );
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.basalte-signin__claim {
+  max-width: var(--panel-width-form);
+  font-size: var(--panel-text-body-lg);
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.basalte-signin__form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--panel-space-gutter) var(--panel-space-region);
+}
+
+/* Le formulaire tient la largeur d’une colonne : sans elle, il se réduit à
+   son contenu et les deux champs se resserrent au milieu du vide. */
+.basalte-signin__form > form {
+  width: 100%;
+  max-width: var(--panel-width-form);
 }
 
 .basalte-signin__mark {
-  display: block;
-  width: var(--panel-space-xxl);
-  height: var(--panel-space-xxl);
-  border-radius: var(--panel-radius-field);
-  background: var(--panel-surface-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--panel-control-fab);
+  height: var(--panel-control-fab);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-primary);
+  color: var(--panel-color-on-primary);
+  font-size: var(--panel-text-headline-sm);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  box-shadow: var(--panel-elevation-2);
 }
 
 /* ---- Le mouvement ---- */
 
 /* Une seule courbe, et elle ne s’applique qu’aux propriétés qui changent
-   vraiment sous le curseur : la couleur, le filet, l’opacité. Jamais la
+   vraiment sous le curseur : la couleur, le contour, l’ombre. Jamais la
    géométrie d’une ligne de liste — dnd-kit y pose sa propre transformation
    pendant un déplacement, et deux transitions sur la même propriété se
    battraient à chaque pixel. */
 :where(
   .basalte-button,
   .basalte-icon-button,
+  .basalte-fab,
+  .basalte-chip,
   .basalte-tab,
   .basalte-row,
-  .basalte-signout,
   .basalte-segmented__item,
   .basalte-handle,
   .basalte-tile__flag,
+  .basalte-tile__image,
   .basalte-mark,
-  .basalte-badge
+  .basalte-badge,
+  .basalte-picker,
+  .basalte-nav__item
 ) {
   transition:
-    background-color var(--panel-motion-fast) var(--panel-motion-ease),
-    border-color var(--panel-motion-fast) var(--panel-motion-ease),
-    color var(--panel-motion-fast) var(--panel-motion-ease),
-    box-shadow var(--panel-motion-fast) var(--panel-motion-ease);
+    background-color var(--panel-motion-short) var(--panel-motion-standard),
+    border-color var(--panel-motion-short) var(--panel-motion-standard),
+    color var(--panel-motion-short) var(--panel-motion-standard),
+    box-shadow var(--panel-motion-short) var(--panel-motion-standard);
 }
 
 :where(.basalte-link, .basalte-preview-link) {
   transition:
-    color var(--panel-motion-fast) var(--panel-motion-ease),
-    text-decoration-color var(--panel-motion-fast) var(--panel-motion-ease);
+    color var(--panel-motion-short) var(--panel-motion-standard),
+    text-decoration-color var(--panel-motion-short) var(--panel-motion-standard);
 }
 
-:where(.basalte-input, .basalte-select > .basalte-input) {
-  transition: border-color var(--panel-motion-fast) var(--panel-motion-ease);
+:where(.basalte-input) {
+  transition:
+    border-color var(--panel-motion-short) var(--panel-motion-standard),
+    outline-color var(--panel-motion-short) var(--panel-motion-standard);
 }
 
 /* La jauge et la barre du jour se remplissent : c’est une mesure qui bouge,
    pas un survol. */
 :where(.basalte-gauge__fill, .basalte-chart__bar, .basalte-spark__bar) {
   transition:
-    width var(--panel-motion-slow) var(--panel-motion-ease),
-    height var(--panel-motion-slow) var(--panel-motion-ease);
+    width var(--panel-motion-long) var(--panel-motion-standard),
+    height var(--panel-motion-long) var(--panel-motion-standard);
 }
 
-/* Ce qui paraît par-dessus la page monte de quelques pixels en se posant. Le
-   voile, lui, ne fait que s’allumer : il n’a pas de place d’où venir. */
+/* Ce qui paraît par-dessus la page monte de quelques pixels en se posant, sur
+   la courbe qui décélère. Le voile, lui, ne fait que s’allumer : il n’a pas
+   de place d’où venir. */
 @keyframes basalte-rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
+  }
+}
+
+@keyframes basalte-rise-centered {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
   }
 }
 
@@ -1931,25 +2755,35 @@ textarea.basalte-input {
 }
 
 .basalte-menu {
-  animation: basalte-rise var(--panel-motion-base) var(--panel-motion-ease);
+  animation: basalte-rise var(--panel-motion-medium)
+    var(--panel-motion-decelerate);
 }
 
 .basalte-scrim {
-  animation: basalte-appear var(--panel-motion-slow) var(--panel-motion-ease);
+  animation: basalte-appear var(--panel-motion-medium)
+    var(--panel-motion-standard);
 }
 
 .basalte-modal {
-  animation: basalte-rise var(--panel-motion-slow) var(--panel-motion-ease);
+  animation: basalte-rise var(--panel-motion-long)
+    var(--panel-motion-decelerate);
+}
+
+.basalte-snackbar {
+  animation: basalte-rise-centered var(--panel-motion-medium)
+    var(--panel-motion-decelerate);
 }
 
 /* Ce qui vient d’arriver dans le flux de la page : un bandeau d’état ne doit
    pas apparaître d’un coup au milieu de ce qu’on lisait. */
 .basalte-banner {
-  animation: basalte-appear var(--panel-motion-base) var(--panel-motion-ease);
+  animation: basalte-appear var(--panel-motion-medium)
+    var(--panel-motion-standard);
 }
 
-/* Un système réglé sur « moins de mouvement » n’en garde qu’un : l’attente,
-   qui n’est pas une décoration mais la preuve que quelque chose se passe. */
+/* Un système réglé sur « moins de mouvement » n’en garde que deux : les
+   attentes, qui ne sont pas une décoration mais la preuve que quelque chose
+   se passe. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1959,29 +2793,20 @@ textarea.basalte-input {
     transition-duration: 1ms !important;
   }
 
-  .basalte-spinner {
-    animation-duration: 0.7s !important;
+  .basalte-spinner,
+  .basalte-progress::before {
+    animation-duration: 1.4s !important;
     animation-iteration-count: infinite !important;
   }
 }
 
 /* ---- Ce qui tient sur l’écran qu’on a ---- */
 
-@media (max-width: 80rem) {
-  .basalte-topbar {
-    height: auto;
-    flex-wrap: wrap;
-    padding-bottom: var(--panel-space-md);
-  }
-
-  .basalte-tabs {
-    order: 3;
-    width: 100%;
-    overflow-x: auto;
-  }
-}
-
-@media (max-width: 75rem) {
+/* Les classes de fenêtre de Material, en pixels écrits : une media query ne
+   lit pas un token. Sous 1200, un écran à colonnes n’en garde qu’une ; sous
+   840, le rail devient une barre ; sous 600, tout ce qui se presse atteint
+   la cible tactile. */
+@media (max-width: 1199px) {
   .basalte-edit,
   .basalte-journal,
   .basalte-messages,
@@ -1999,14 +2824,12 @@ textarea.basalte-input {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .basalte-rail {
+  .basalte-aside {
     order: -1;
   }
 
   /* En une colonne, il n’y a plus de colonnes à faire défiler chacune pour
-     elle-même : la page reprend le défilement. Sans cela, les cartes empilées
-     se partageaient la hauteur de la fenêtre et se coupaient chacune au tiers,
-     avec trois barres de défilement pour un seul écran. */
+     elle-même : la page reprend le défilement. */
   .basalte-main[data-fill='true'] {
     display: block;
     overflow-y: auto;
@@ -2018,7 +2841,7 @@ textarea.basalte-input {
   }
 
   .basalte-main[data-fill='true']
-    :where(.basalte-rail, .basalte-journal > .basalte-card) {
+    :where(.basalte-aside, .basalte-journal > .basalte-card) {
     overflow: visible;
   }
 
@@ -2028,27 +2851,118 @@ textarea.basalte-input {
   }
 }
 
-@media (max-width: 60rem) {
-  /* La gouttière se referme là où elle mangerait la colonne de lecture. */
-  .basalte-topbar,
-  .basalte-head,
+@media (max-width: 839px) {
+  .basalte-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .basalte-nav[data-form='rail'] {
+    display: none;
+  }
+
+  .basalte-nav[data-form='bar'] {
+    display: flex;
+  }
+
+  .basalte-appbar__account {
+    display: flex;
+  }
+
+  .basalte-appbar,
+  .basalte-alert,
+  .basalte-main {
+    --panel-inset: var(--panel-space-xxxl);
+  }
+
+  .basalte-snackbar {
+    bottom: calc(var(--panel-control-bar) + var(--panel-space-xl));
+  }
+
+  /* Sur un écran étroit, le volet de couleur devient un bandeau au-dessus
+     du formulaire. */
+  .basalte-signin {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .basalte-signin__side {
+    gap: var(--panel-space-xxxl);
+    padding: var(--panel-space-region) var(--panel-space-xxxl);
+  }
+
+  .basalte-signin__side > .basalte-eyebrow {
+    display: none;
+  }
+
+  .basalte-signin__form {
+    align-items: flex-start;
+    padding: var(--panel-space-region) var(--panel-space-xxxl);
+  }
+}
+
+@media (max-width: 599px) {
+  .basalte-appbar,
+  .basalte-alert,
   .basalte-main {
     --panel-inset: var(--panel-space-xl);
   }
 
-  .basalte-head {
-    flex-direction: column;
-    padding-top: var(--panel-space-region);
+  .basalte-appbar {
+    flex-wrap: wrap;
+    gap: var(--panel-space-md);
+    padding-top: var(--panel-space-md);
+    padding-bottom: var(--panel-space-md);
   }
 
-  .basalte-head__actions {
+  .basalte-appbar .basalte-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .basalte-signin__side {
+    padding: var(--panel-space-xxxl) var(--panel-space-xl);
+  }
+
+  .basalte-signin__form {
+    padding: var(--panel-space-xxxl) var(--panel-space-xl);
+  }
+
+  .basalte-appbar__actions {
+    width: 100%;
     margin-left: 0;
+  }
+
+  .basalte-appbar__actions > .basalte-button {
+    flex: 1;
+  }
+
+  .basalte-tiles,
+  .basalte-tiles[data-cols='6'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .basalte-scrim {
+    padding: var(--panel-space-xl);
+  }
+
+  .basalte-snackbar {
+    right: var(--panel-space-xl);
+    left: var(--panel-space-xl);
+    min-width: 0;
+    max-width: none;
+    transform: none;
   }
 
   .basalte-button,
   .basalte-icon-button,
   .basalte-tab,
+  .basalte-chip,
   .basalte-segmented,
+  .basalte-picker,
   .basalte-input {
     min-height: var(--panel-control-touch);
   }

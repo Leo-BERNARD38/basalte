@@ -25,8 +25,11 @@ quelqu'un de corriger un texte.
 Les deux systèmes de tokens sont contrôlés par le même code, sur des périmètres
 différents : celui du site vit dans le `<style>` d'un bloc et nomme ses familles
 sans préfixe, celui du panel occupe une feuille entière et préfixe les siennes
-(D65). Un système ne porte pas forcément toutes les familles — le panel n'a ni
-police ni largeur —, et une propriété d'une famille absente échappe au contrôle.
+(D65). Un système ne porte pas forcément toutes les familles — le panel ne
+contrôle pas la police, qu'un `@font-face` nomme forcément en clair —, et une
+propriété d'une famille absente échappe au contrôle. Le contraste du panel se
+mesure sur ses deux schémas, clair et sombre, et sur la graine qu'un site
+déclare (D195).
 
 Deux choses sont **signalées sans être refusées**, pour la même raison :
 aucune machine ne peut décider à la place de l'auteur si elles sont méritées.

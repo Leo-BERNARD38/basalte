@@ -3,20 +3,25 @@
 // C’est la même règle que `contrast.ts` applique aux tokens d’un site, sur
 // l’autre système de tokens : le calcul est partagé, seules les paires
 // diffèrent. Elles ne sont pas le produit de toutes les couleurs par toutes
-// les surfaces — ce sont celles qui se superposent vraiment. Une paire
-// inventée rendrait une erreur que personne ne peut corriger, puisque
-// personne ne l’écrit.
+// les surfaces — ce sont celles que Material superpose vraiment : chaque
+// encre sur la surface et ses cinq conteneurs, chaque « on » sur son
+// conteneur, et ce qui se dessine en portant une valeur. Une paire inventée
+// rendrait une erreur que personne ne peut corriger, puisque personne ne
+// l’écrit.
+//
+// Les mêmes paires se mesurent trois fois : sur le schéma neutre en clair et
+// en sombre — les littéraux de `tokens.ts` —, et sur la graine qu’un site
+// déclare, au lint de son dépôt. Le générateur garantit le plancher par
+// construction (D196) ; la mesure est ce qui le prouve.
 //
 // Le seuil du dessin ne vaut que pour ce qui **porte une information** : la
-// barre d’un histogramme, le remplissage d’une jauge, l’anneau de focus. Ce
-// qui sépare ou décore en est tenu dehors, et nommément — le filet entre deux
-// plans, la poignée au repos, le glyphe inerte posé sur un aplat, et le ton
-// d’un contrôle éteint. Les y inclure ne les rendrait pas plus lisibles : cela
-// obligerait à les assombrir jusqu’à ce qu’ils se lisent comme du contenu, et
-// c’est précisément ce que la planche refuse. La poignée se donne autrement —
-// elle passe à l’encre 3 au survol et au focus, et une section se déplace
-// aussi au clavier.
+// barre d’un histogramme, l’anneau de focus, le point qui dit « en ligne ».
+// Ce qui sépare ou décore en est tenu dehors, et nommément — le filet entre
+// deux plans (`outlineVariant`), les couches d’état, et le ton d’un contrôle
+// éteint. Les y inclure obligerait à les assombrir jusqu’à ce qu’ils se
+// lisent comme du contenu, et c’est précisément ce que la planche refuse.
 
+import { scheme, type Role, type Scheme } from '../admin/scheme.js'
 import { tokens } from '../admin/tokens.js'
 import { contrast, MINIMUM_RATIO } from './contrast.js'
 import { finding, type Finding } from './finding.js'
@@ -24,14 +29,7 @@ import { finding, type Finding } from './finding.js'
 /** Le seuil de l’AA sur ce qui est dessiné plutôt que lu. */
 export const GRAPHIC_RATIO = 3
 
-/** Les trois plans clairs sur lesquels le panel pose ses trois encres. */
-const SURFACES = {
-  'surface.canvas': tokens.surface.canvas,
-  'surface.card': tokens.surface.card,
-  'surface.raised': tokens.surface.raised,
-} as const
-
-type Pair = {
+export type Pair = {
   readonly front: string
   readonly frontValue: string
   readonly back: string
@@ -40,153 +38,121 @@ type Pair = {
   readonly ratio: number
 }
 
+/** La surface et ses cinq conteneurs : tout ce sur quoi une encre se pose. */
+const PLANES: readonly Role[] = [
+  'surface',
+  'surfaceDim',
+  'surfaceBright',
+  'surfaceContainerLowest',
+  'surfaceContainerLow',
+  'surfaceContainer',
+  'surfaceContainerHigh',
+  'surfaceContainerHighest',
+]
+
+/** Chaque « on » sur ce qu’il recouvre. */
+const CONTAINED: readonly [Role, Role, string][] = [
+  ['onPrimary', 'primary', 'le texte du bouton plein'],
+  ['onPrimaryContainer', 'primaryContainer', 'le texte du bouton flottant'],
+  ['onSecondary', 'secondary', 'le texte sur la couleur secondaire'],
+  [
+    'onSecondaryContainer',
+    'secondaryContainer',
+    'le texte de ce qui est choisi, et du bouton tonal',
+  ],
+  ['onTertiary', 'tertiary', 'le texte sur la couleur tertiaire'],
+  [
+    'onTertiaryContainer',
+    'tertiaryContainer',
+    'le texte d’une marque tertiaire',
+  ],
+  ['onError', 'error', 'le texte de ce qui refuse'],
+  ['onErrorContainer', 'errorContainer', 'le texte d’un bandeau de refus'],
+  ['onSuccess', 'success', 'le texte sur le vert'],
+  [
+    'onSuccessContainer',
+    'successContainer',
+    'le texte d’une marque « en ligne »',
+  ],
+  ['onWarning', 'warning', 'le texte sur l’ambre'],
+  [
+    'onWarningContainer',
+    'warningContainer',
+    'le texte d’un bandeau à regarder',
+  ],
+  ['inverseOnSurface', 'inverseSurface', 'le texte d’une snackbar'],
+  ['inversePrimary', 'inverseSurface', 'l’action d’une snackbar'],
+]
+
 /**
- * Chaque niveau d’encre sur chacun des trois plans clairs, l’encre du plan
- * sombre, les deux encres que porte l’aplat choisi, le rouge du refus, et ce
- * qui se dessine en portant une valeur.
+ * Les paires d’un schéma. `label` nomme le schéma dans le rapport — « light »,
+ * « dark », ou la graine d’un site.
  */
-export function panelPairs(): readonly Pair[] {
+export function schemePairs(colours: Scheme, label: string): readonly Pair[] {
   const pairs: Pair[] = []
-
-  for (const [name, value] of Object.entries(SURFACES)) {
-    for (const [level, ink] of Object.entries(tokens.ink)) {
-      pairs.push({
-        front: `ink.${level}`,
-        frontValue: ink,
-        back: name,
-        backValue: value,
-        what: `le texte d’encre ${level}`,
-        ratio: MINIMUM_RATIO,
-      })
-    }
-  }
-
-  // L’aplat de ce qu’on modifie ne porte que deux encres : la pleine, et la
-  // seconde. L’encre 3 n’y tient que 3,8:1, et c’est pourquoi la marque et la
-  // méta d’une ligne choisie montent d’un cran.
-  for (const level of ['1', '2'] as const) {
+  const pair = (
+    front: Role,
+    back: Role,
+    what: string,
+    ratio: number = MINIMUM_RATIO,
+  ): void => {
     pairs.push({
-      front: `ink.${level}`,
-      frontValue: tokens.ink[level === '1' ? 1 : 2],
-      back: 'surface.chosen',
-      backValue: tokens.surface.chosen,
-      what: `le texte d’encre ${level} sur ce qu’on modifie`,
-      ratio: MINIMUM_RATIO,
+      front: `${label}.${front}`,
+      frontValue: colours[front],
+      back: `${label}.${back}`,
+      backValue: colours[back],
+      what,
+      ratio,
     })
   }
 
-  // Un graphique vit dans une carte, jamais à même le canvas : c’est là que la
-  // barre et la marque d’état se superposent réellement.
-  for (const [name, value] of Object.entries({
-    'surface.card': tokens.surface.card,
-    'surface.raised': tokens.surface.raised,
-  })) {
-    pairs.push({
-      front: 'mute.chart',
-      frontValue: tokens.mute.chart,
-      back: name,
-      backValue: value,
-      what: 'la barre d’un histogramme, qui porte une valeur',
-      ratio: GRAPHIC_RATIO,
-    })
-
-    pairs.push({
-      front: 'state.online',
-      frontValue: tokens.state.online,
-      back: name,
-      backValue: value,
-      what: 'la marque « en ligne »',
-      ratio: GRAPHIC_RATIO,
-    })
+  for (const plane of PLANES) {
+    pair('onSurface', plane, 'le texte courant')
+    pair('onSurfaceVariant', plane, 'le texte secondaire')
   }
 
-  // Le plan sombre : la barre du haut, et le bouton qui met en ligne.
-  for (const [level, ink] of Object.entries(tokens.onInk)) {
-    pairs.push({
-      front: `onInk.${level}`,
-      frontValue: ink,
-      back: 'surface.ink',
-      backValue: tokens.surface.ink,
-      what: `le texte d’encre ${level} sur la barre`,
-      ratio: MINIMUM_RATIO,
-    })
+  // Le texte coloré à même un plan : l’étiquette d’un bouton texte, l’aide
+  // d’un champ en erreur, un titre de bandeau ambre.
+  for (const plane of [
+    'surface',
+    'surfaceContainerLow',
+    'surfaceContainerHigh',
+  ] as const) {
+    pair('primary', plane, 'l’étiquette d’un bouton texte')
+    pair('error', plane, 'l’aide d’un champ refusé')
+    pair('warning', plane, 'ce qui demande un regard')
   }
 
-  pairs.push({
-    front: 'state.refused',
-    frontValue: tokens.state.refused,
-    back: 'surface.card',
-    backValue: tokens.surface.card,
-    what: 'ce qui refuse, et ce qui détruit',
-    ratio: MINIMUM_RATIO,
-  })
+  for (const [front, back, what] of CONTAINED) pair(front, back, what)
 
-  pairs.push({
-    front: 'state.refused',
-    frontValue: tokens.state.refused,
-    back: 'state.refusedWash',
-    backValue: tokens.state.refusedWash,
-    what: 'le titre d’un bandeau de refus',
-    ratio: MINIMUM_RATIO,
-  })
-
-  // Le bandeau plein posé sous la barre. Il ne porte qu’un blanc : sur cet
-  // aplat, l’encre du plan sombre ne tient que 3,1:1, et un second niveau de
-  // gris y serait donc illisible.
-  pairs.push({
-    front: 'onInk.1',
-    frontValue: tokens.onInk[1],
-    back: 'state.refused',
-    backValue: tokens.state.refused,
-    what: 'ce qu’annonce le bandeau plein',
-    ratio: MINIMUM_RATIO,
-  })
-
-  // L’ambre de ce qui mérite un regard, sur les plans où le bandeau se pose et
-  // sur son propre aplat.
-  for (const [name, value] of Object.entries({
-    ...SURFACES,
-    'state.watchWash': tokens.state.watchWash,
-  })) {
-    pairs.push({
-      front: 'state.watch',
-      frontValue: tokens.state.watch,
-      back: name,
-      backValue: value,
-      what: 'le titre d’un bandeau à regarder',
-      ratio: MINIMUM_RATIO,
-    })
-  }
-
-  for (const [level, ink] of Object.entries(tokens.ink)) {
-    pairs.push({
-      front: `ink.${level}`,
-      frontValue: ink,
-      back: 'state.watchWash',
-      backValue: tokens.state.watchWash,
-      what: `le texte d’encre ${level} sur un point à regarder`,
-      ratio: MINIMUM_RATIO,
-    })
-  }
-
-  for (const [level, ink] of Object.entries(tokens.ink)) {
-    pairs.push({
-      front: `ink.${level}`,
-      frontValue: ink,
-      back: 'state.refusedWash',
-      backValue: tokens.state.refusedWash,
-      what: `le texte d’encre ${level} sur une ligne fautive`,
-      ratio: MINIMUM_RATIO,
-    })
+  // Ce qui se dessine en portant une valeur : la barre d’un histogramme,
+  // l’anneau de focus, le contour d’un champ, le point « en ligne ».
+  for (const plane of ['surface', 'surfaceContainerHigh'] as const) {
+    pair('primary', plane, 'la barre d’un histogramme', GRAPHIC_RATIO)
+    pair('secondary', plane, 'l’anneau de focus', GRAPHIC_RATIO)
+    pair('outline', plane, 'le contour d’un champ', GRAPHIC_RATIO)
+    pair('success', plane, 'la marque « en ligne »', GRAPHIC_RATIO)
   }
 
   return pairs
 }
 
-export function panelContrast(file: string): readonly Finding[] {
+/** Les paires du schéma neutre, en clair puis en sombre. */
+export function panelPairs(): readonly Pair[] {
+  return [
+    ...schemePairs(tokens.color.light, 'light'),
+    ...schemePairs(tokens.color.dark, 'dark'),
+  ]
+}
+
+function measure(
+  file: string,
+  pairs: readonly Pair[],
+  rule: string,
+): readonly Finding[] {
   const findings: Finding[] = []
 
-  for (const pair of panelPairs()) {
+  for (const pair of pairs) {
     const measured = contrast(pair.frontValue, pair.backValue)
 
     if (measured === undefined || measured >= pair.ratio) continue
@@ -195,7 +161,7 @@ export function panelContrast(file: string): readonly Finding[] {
       finding({
         file,
         line: 1,
-        rule: 'design/panel-contrast',
+        rule,
         message: `${pair.what} — « ${pair.front} » sur « ${pair.back} » ne donne que ${measured.toFixed(1)}:1, il en faut ${pair.ratio}.`,
         severity: 'error',
       }),
@@ -203,4 +169,20 @@ export function panelContrast(file: string): readonly Finding[] {
   }
 
   return findings
+}
+
+export function panelContrast(file: string): readonly Finding[] {
+  return measure(file, panelPairs(), 'design/panel-contrast')
+}
+
+/** Le même plancher, sur le schéma qu’un site tire de sa graine. */
+export function seedContrast(file: string, seed: string): readonly Finding[] {
+  return measure(
+    file,
+    [
+      ...schemePairs(scheme(seed, 'light'), `${seed} light`),
+      ...schemePairs(scheme(seed, 'dark'), `${seed} dark`),
+    ],
+    'design/panel-contrast',
+  )
 }

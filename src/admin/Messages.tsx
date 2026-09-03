@@ -155,12 +155,14 @@ export function Messages({
                 <RowStack>
                   <RowText>{lead.name}</RowText>
                   <RowText>
-                    <Text tone="meta" size="eyebrow">
+                    <Text tone="meta" role="label-md">
                       {previewOf(lead)}
                     </Text>
                   </RowText>
                 </RowStack>
-                <Mono>{stampOf(lead.at, now)}</Mono>
+                <Mono className="basalte-row__note">
+                  {stampOf(lead.at, now)}
+                </Mono>
               </Row>
             ))}
           </Stack>
@@ -174,7 +176,7 @@ export function Messages({
             <Card>
               <Stack gap="xl">
                 <Stack gap="xs">
-                  <Title rank="card">{current.name}</Title>
+                  <Title role="title-md">{current.name}</Title>
                   <Text tone="muted">{current.email}</Text>
                   <Eyebrow>
                     {MOMENT.format(current.at)} · reçu depuis {current.page}
@@ -197,7 +199,8 @@ export function Messages({
                   </a>
                   <Spacer />
                   <Button
-                    tone="danger"
+                    variant="text"
+                    tone="error"
                     size="sm"
                     onClick={() => setAsked(current)}
                   >
@@ -219,7 +222,8 @@ export function Messages({
             <Spacer />
             <Button onClick={() => setAsked(undefined)}>Annuler</Button>
             <Button
-              tone="danger"
+              variant="text"
+              tone="error"
               onClick={() => asked !== undefined && void remove(asked)}
             >
               Supprimer

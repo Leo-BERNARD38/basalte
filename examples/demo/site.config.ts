@@ -19,6 +19,9 @@ export default defineSite({
     base: 'actualites',
     label: 'Actualités',
   },
+  panel: {
+    seed: '#2f5bea',
+  },
   tokens: {
     color: {
       bg: '#ffffff',

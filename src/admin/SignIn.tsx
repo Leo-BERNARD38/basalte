@@ -8,6 +8,10 @@
 // collés ou tapés, validés dès le sixième — et ce que le serveur sait du refus
 // se montre plutôt que de se perdre : combien d’essais restent, et à partir de
 // quand une nouvelle tentative sera acceptée.
+//
+// Deux volets (D210) : le site à gauche, sur la couleur de sa graine — c’est
+// la première chose qu’un client voit de son outil, et elle doit lui dire que
+// c’est le sien — ; le formulaire à droite, sur la surface, sans rien autour.
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -15,8 +19,8 @@ import { signIn, submitCode } from './api.js'
 import { Button } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
 import { Group, Stack } from './ui/Layout.js'
-import { Banner, Card } from './ui/Surface.js'
-import { Text, Title } from './ui/Text.js'
+import { Banner } from './ui/Surface.js'
+import { Eyebrow, Text, Title } from './ui/Text.js'
 import { Switch } from './ui/Toggle.js'
 
 const DIGITS = 6
@@ -160,24 +164,48 @@ export function SignIn({
 
   return (
     <div className="basalte-signin">
-      <Card pad="lg">
+      <aside className="basalte-signin__side" aria-hidden="true">
+        <Group gap="lg">
+          <span className="basalte-signin__mark">{initial(site)}</span>
+          <Eyebrow>Administration</Eyebrow>
+        </Group>
+
+        <Stack gap="lg">
+          <p className="basalte-signin__name">{site}</p>
+          <p className="basalte-signin__claim">
+            Vos textes, vos photos, l’ordre de vos sections : tout se modifie
+            ici, et rien ne part en ligne tant que vous ne le dites pas.
+          </p>
+        </Stack>
+
+        <Eyebrow>Un site sous Basalte</Eyebrow>
+      </aside>
+
+      <div className="basalte-signin__form">
         <form
           onSubmit={(event) => {
             event.preventDefault()
             submit()
           }}
         >
-          <Stack gap="xl">
-            <Stack gap="md">
-              <Group gap="md">
-                <span className="basalte-signin__mark" />
-                <Text>{site}</Text>
-              </Group>
-              <Title level={1}>Administration</Title>
+          <Stack gap="xxl">
+            <Stack gap="xs">
+              <Title level={1} role="headline-sm">
+                {step === 'password' ? 'Connexion' : 'Le code reçu'}
+              </Title>
+              <Text tone="muted">
+                {step === 'password'
+                  ? `Entrez pour modifier ${site}.`
+                  : `Un code à six chiffres vient de partir vers ${email}.${
+                      expiresAt === undefined
+                        ? ''
+                        : ` Il est valable ${minutesUntil(expiresAt, now)} minutes.`
+                    }`}
+              </Text>
             </Stack>
 
             {notice !== '' && problem === '' && step === 'password' && (
-              <Banner>{notice}</Banner>
+              <Banner tone="raised">{notice}</Banner>
             )}
 
             {problem !== '' && (
@@ -200,91 +228,94 @@ export function SignIn({
               </Banner>
             )}
 
-            {step === 'password' ? (
-              <>
-                <Field label="Adresse email" required>
-                  {(bound) => (
-                    <TextField
-                      {...bound}
-                      ref={field}
-                      type="email"
-                      autoComplete="username"
-                      required
-                      disabled={busy}
-                      value={email}
-                      onChange={(event) => setEmail(event.currentTarget.value)}
-                    />
-                  )}
-                </Field>
-                <Field label="Mot de passe" required>
-                  {(bound) => (
-                    <TextField
-                      {...bound}
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      disabled={busy}
-                      value={password}
-                      onChange={(event) =>
-                        setPassword(event.currentTarget.value)
-                      }
-                    />
-                  )}
-                </Field>
-              </>
-            ) : (
-              <>
-                <Text tone="muted">
-                  Un code à six chiffres vient de partir vers {email}.
-                  {expiresAt !== undefined &&
-                    ` Il est valable ${minutesUntil(expiresAt, now)} minutes.`}
-                </Text>
-                <Field label="Code reçu par email" required>
-                  {(bound) => (
-                    <TextField
-                      {...bound}
-                      ref={field}
-                      mono
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={DIGITS}
-                      required
-                      disabled={busy}
-                      value={code}
-                      onChange={(event) => change(event.currentTarget.value)}
-                    />
-                  )}
-                </Field>
-                <Switch
-                  on={remember}
-                  shown
-                  label={TRUSTED}
-                  disabled={busy}
-                  onChange={() => setRemember(!remember)}
-                />
-              </>
-            )}
+            <Stack gap="lg">
+              {step === 'password' ? (
+                <>
+                  <Field label="Adresse email" required>
+                    {(bound) => (
+                      <TextField
+                        {...bound}
+                        ref={field}
+                        type="email"
+                        autoComplete="username"
+                        required
+                        disabled={busy}
+                        value={email}
+                        onChange={(event) =>
+                          setEmail(event.currentTarget.value)
+                        }
+                      />
+                    )}
+                  </Field>
+                  <Field label="Mot de passe" required>
+                    {(bound) => (
+                      <TextField
+                        {...bound}
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        disabled={busy}
+                        value={password}
+                        onChange={(event) =>
+                          setPassword(event.currentTarget.value)
+                        }
+                      />
+                    )}
+                  </Field>
+                </>
+              ) : (
+                <>
+                  <Field label="Code reçu par email" required>
+                    {(bound) => (
+                      <TextField
+                        {...bound}
+                        ref={field}
+                        mono
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={DIGITS}
+                        required
+                        disabled={busy}
+                        value={code}
+                        onChange={(event) => change(event.currentTarget.value)}
+                      />
+                    )}
+                  </Field>
+                  <Switch
+                    on={remember}
+                    shown
+                    label={TRUSTED}
+                    disabled={busy}
+                    onChange={() => setRemember(!remember)}
+                  />
+                </>
+              )}
+            </Stack>
 
-            <Button
-              type="submit"
-              tone="ink"
-              block
-              busy={busy}
-              disabled={locked}
-            >
-              {step === 'password' ? 'Continuer' : 'Se connecter'}
-            </Button>
+            <Stack gap="md">
+              <Button
+                type="submit"
+                variant="filled"
+                block
+                busy={busy}
+                disabled={locked}
+              >
+                {step === 'password' ? 'Continuer' : 'Se connecter'}
+              </Button>
 
-            {step === 'code' && (
-              <Group>
-                <Button tone="bare" size="sm" block onClick={restart}>
+              {step === 'code' && (
+                <Button variant="text" size="sm" block onClick={restart}>
                   Reprendre avec une autre adresse
                 </Button>
-              </Group>
-            )}
+              )}
+            </Stack>
           </Stack>
         </form>
-      </Card>
+      </div>
     </div>
   )
+}
+
+function initial(text: string): string {
+  return (text.trim().charAt(0) || '?').toUpperCase()
 }

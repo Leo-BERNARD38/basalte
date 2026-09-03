@@ -50,7 +50,7 @@ export function DocumentPicker({
       foot={
         <>
           <DocumentUploadButton
-            tone="line"
+            variant="outlined"
             label="Importer"
             onDone={(added) => {
               setSelected(added.key)
@@ -61,7 +61,7 @@ export function DocumentPicker({
           <Spacer />
           <Button onClick={onClose}>Annuler</Button>
           <Button
-            tone="ink"
+            variant="filled"
             disabled={selected === ''}
             onClick={() => onChoose(selected)}
           >

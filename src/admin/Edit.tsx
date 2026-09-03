@@ -218,7 +218,6 @@ export function Edit({
         <div className="basalte-stage__screen" data-viewport={viewport}>
           <div className="basalte-stage__bar">
             <Segmented
-              tone="ink"
               label="Le support regardé"
               value={viewport}
               items={SUPPORTS}
@@ -301,7 +300,7 @@ export function Edit({
           </div>
 
           {dirty && (
-            <Text className="basalte-stage__note" tone="meta" size="eyebrow">
+            <Text className="basalte-stage__note" tone="meta" role="label-md">
               L’aperçu montre le dernier enregistrement. Enregistrez pour le
               voir se mettre à jour.
             </Text>
@@ -316,7 +315,7 @@ export function Edit({
         </div>
       </div>
 
-      <div className="basalte-rail">
+      <div className="basalte-aside">
         {/* Ce qu’il reste à corriger est ici et pas dans le tronc commun : ces
             points naissent du contenu, et c’est dans cette colonne qu’on les
             corrige. Sur les autres écrans, ils n’étaient qu’un bandeau de plus
@@ -361,7 +360,7 @@ export function Edit({
                         <Text
                           key={`${rank}-${point.message}`}
                           tone="muted"
-                          size="eyebrow"
+                          role="label-md"
                         >
                           {point.place === '' ? '' : `${point.place} — `}
                           {point.message}
@@ -377,8 +376,8 @@ export function Edit({
 
         <Card pad="sm">
           <Stack gap="md">
-            <Group gap="md" align="baseline" className="basalte-rail__head">
-              <Title rank="card">
+            <Group gap="md" align="baseline" className="basalte-aside__head">
+              <Title role="title-md">
                 {fixed ? 'Emplacements' : 'Sections de cette page'}
               </Title>
               <Spacer />
@@ -475,11 +474,11 @@ export function Edit({
             {!fixed && (
               <Anchor>
                 <Button
-                  block
+                  variant="text"
+                  icon={<Plus />}
                   aria-expanded={adding}
                   onClick={() => setAdding(!adding)}
                 >
-                  <Plus />
                   Ajouter une section
                 </Button>
 
@@ -497,7 +496,7 @@ export function Edit({
                       <RowStack>
                         <span>{type.label}</span>
                         {type.help !== undefined && (
-                          <Text tone="meta" size="eyebrow">
+                          <Text tone="meta" role="label-md">
                             {type.help}
                           </Text>
                         )}
@@ -512,13 +511,15 @@ export function Edit({
 
         <Card>
           <Stack gap="xl">
-            {spoken !== undefined && <Eyebrow>{spoken}</Eyebrow>}
-
             {active.kind === 'meta' ? (
               <Stack gap="xl">
                 <Stack gap="xs">
-                  <Eyebrow>{previewed}</Eyebrow>
-                  <Title rank="card">Informations de la page</Title>
+                  <Eyebrow>
+                    {[previewed, spoken]
+                      .filter((part) => part !== undefined)
+                      .join(' · ')}
+                  </Eyebrow>
+                  <Title role="title-md">Informations de la page</Title>
                 </Stack>
                 <FieldSet
                   descriptions={payload.meta}
@@ -535,6 +536,7 @@ export function Edit({
             ) : (
               <Section
                 section={focused}
+                context={spoken}
                 type={types.find((entry) => entry.name === focused.type)}
                 hideable={!fixed}
                 issues={issuesOf(issues, focused.id)}

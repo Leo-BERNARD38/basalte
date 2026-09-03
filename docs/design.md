@@ -48,9 +48,10 @@ d'une page :
 Le troisième existe pour lui-même : sans lui, un bandeau inversé détourne
 l'accent, et un site qui veut ce bandeau noir n'a plus d'accent nulle part.
 
-**Il n'y a pas de famille `shadow`**, et il n'y en aura pas tant que la règle du
-panel tient (D172) : un filet d'un pixel sépare deux plans, et l'ombre ne reste
-qu'à ce qui flotte. Le seul élément qui flotte est l'en-tête collant.
+**Il n'y a pas de famille `shadow`** (D183) : sur le site, un filet d'un pixel
+sépare deux plans, et le seul élément qui flotte est l'en-tête collant. Le
+panel, lui, s'élève par ses conteneurs tonaux et cinq ombres — c'est le
+langage de Material (D200), et il reste le sien.
 
 Un besoin qui ne rentre pas dans cette liste est un token à ajouter au socle,
 jamais une valeur en dur dans un bloc.

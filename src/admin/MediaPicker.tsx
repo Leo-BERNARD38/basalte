@@ -78,7 +78,7 @@ export function MediaPicker({
       title="Bibliothèque d’images"
       width="var(--panel-width-modal)"
       note={
-        <Text tone="muted" data-size="eyebrow">
+        <Text tone="muted" data-role="label-md">
           Toutes vos images, quelle que soit la page.
         </Text>
       }
@@ -92,7 +92,7 @@ export function MediaPicker({
           <Spacer />
           <Button onClick={onClose}>Annuler</Button>
           <Button
-            tone="ink"
+            variant="filled"
             disabled={selected === ''}
             onClick={() => onChoose(selected)}
           >
@@ -162,7 +162,7 @@ export function MediaPicker({
 
           <Stack gap="lg" className="basalte-picker-aside">
             {entry === undefined ? (
-              <Text tone="meta" data-size="eyebrow">
+              <Text tone="meta" data-role="label-md">
                 Choisissez une image pour voir ce qu’elle porte.
               </Text>
             ) : (
@@ -172,7 +172,7 @@ export function MediaPicker({
                 </Eyebrow>
                 <Stack gap="xs">
                   <span className="basalte-label">Texte alternatif</span>
-                  <Text tone="muted" data-size="eyebrow">
+                  <Text tone="muted" data-role="label-md">
                     {alt(entry) === ''
                       ? 'Rien n’est écrit. Il se règle dans l’onglet Médias.'
                       : alt(entry)}
@@ -181,7 +181,7 @@ export function MediaPicker({
                 <Stack gap="xs">
                   <span className="basalte-label">Utilisée dans</span>
                   {places.length === 0 ? (
-                    <Text tone="meta" data-size="eyebrow">
+                    <Text tone="meta" data-role="label-md">
                       Nulle part pour l’instant.
                     </Text>
                   ) : (
@@ -189,7 +189,7 @@ export function MediaPicker({
                       <Text
                         key={`${place.kind}-${place.entry}`}
                         tone="muted"
-                        data-size="eyebrow"
+                        data-role="label-md"
                       >
                         {place.label}
                       </Text>
@@ -199,7 +199,7 @@ export function MediaPicker({
               </>
             )}
             <Spacer />
-            <Text tone="meta" data-size="eyebrow">
+            <Text tone="meta" data-role="label-md">
               Le texte alternatif et le point focal se règlent dans l’onglet
               Médias. Aucun recadrage : le site cadre autour du point focal
               {ratio === undefined ? '' : `, y compris en ${ratio}`}.

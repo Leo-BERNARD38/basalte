@@ -33,7 +33,7 @@ import { Modal } from './ui/Overlay.js'
 import { Row, RowStack } from './ui/Row.js'
 import { Card, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
-import { Segmented, Switch } from './ui/Toggle.js'
+import { Segmented, SwitchRow } from './ui/Toggle.js'
 
 type Viewport = 'desktop' | 'mobile'
 
@@ -118,13 +118,13 @@ export function Journal({
     <div className="basalte-journal">
       <Card pad="sm">
         <Stack gap="md">
-          <Button tone="ink" block onClick={() => setWriting(true)}>
+          <Button variant="filled" block onClick={() => setWriting(true)}>
             <Plus />
             Nouveau billet
           </Button>
 
-          <Group gap="md" align="baseline" className="basalte-rail__head">
-            <Title rank="card">Billets</Title>
+          <Group gap="md" align="baseline" className="basalte-aside__head">
+            <Title role="title-md">Billets</Title>
             <Spacer />
             <Mono className="basalte-row__note">{posts.length}</Mono>
           </Group>
@@ -175,19 +175,18 @@ export function Journal({
           />
         ) : (
           <Stack gap="xl">
-            <Group gap="md" align="start" wrap>
-              <Stack gap="xs">
-                <Eyebrow>
-                  {[open.route, editedLanguage(editing)]
-                    .filter((part) => part !== undefined)
-                    .join(' · ')}
-                </Eyebrow>
-                <Title rank="card">{open.title}</Title>
-              </Stack>
-              <Spacer />
-              <Switch
+            <Stack gap="xs">
+              <Eyebrow>
+                {[open.route, editedLanguage(editing)]
+                  .filter((part) => part !== undefined)
+                  .join(' · ')}
+              </Eyebrow>
+              <Title role="title-md">{open.title}</Title>
+            </Stack>
+
+            <Stack gap="sm">
+              <SwitchRow
                 on={!hidden}
-                shown
                 label="Le billet paraît sur le site"
                 onChange={() =>
                   onDraft({
@@ -196,13 +195,12 @@ export function Journal({
                   })
                 }
               />
-            </Group>
-
-            <Text tone="meta" size="eyebrow">
-              {hidden
-                ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
-                : 'Ce billet partira à la prochaine mise en ligne.'}
-            </Text>
+              <Text tone="meta" role="label-md">
+                {hidden
+                  ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
+                  : 'Ce billet partira à la prochaine mise en ligne.'}
+              </Text>
+            </Stack>
 
             <FieldSet
               descriptions={journal.fields}
@@ -213,7 +211,8 @@ export function Journal({
 
             <Group>
               <Button
-                tone="danger"
+                variant="text"
+                tone="error"
                 disabled={busy}
                 onClick={() => setRemoving(open)}
               >
@@ -233,7 +232,6 @@ export function Journal({
         <div className="basalte-stage__screen" data-viewport={viewport}>
           <div className="basalte-stage__bar">
             <Segmented
-              tone="ink"
               label="Le support regardé"
               value={viewport}
               items={SUPPORTS}
@@ -246,7 +244,7 @@ export function Journal({
           </div>
 
           {open !== undefined && dirty && (
-            <Text className="basalte-stage__note" tone="meta" size="eyebrow">
+            <Text className="basalte-stage__note" tone="meta" role="label-md">
               L’aperçu montre le dernier enregistrement. Enregistrez pour le
               voir se mettre à jour.
             </Text>
@@ -276,7 +274,11 @@ export function Journal({
           <>
             <Spacer />
             <Button onClick={() => setWriting(false)}>Annuler</Button>
-            <Button tone="ink" disabled={title.trim() === ''} onClick={compose}>
+            <Button
+              variant="filled"
+              disabled={title.trim() === ''}
+              onClick={compose}
+            >
               Écrire
             </Button>
           </>
@@ -313,7 +315,8 @@ export function Journal({
             <Spacer />
             <Button onClick={() => setRemoving(undefined)}>Le garder</Button>
             <Button
-              tone="danger"
+              variant="text"
+              tone="error"
               onClick={() => {
                 const slug = removing?.slug
 

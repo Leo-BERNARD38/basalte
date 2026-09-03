@@ -45,6 +45,20 @@ export function Switch({ on, label, shown, onChange, disabled }: SwitchProps) {
   )
 }
 
+/**
+ * Une ligne d’interrupteur : le libellé à gauche, l’interrupteur au bout,
+ * sur un conteneur qui les tient ensemble. C’est ce qu’un titre porte à côté
+ * de lui quand la colonne est large, et sous lui quand elle ne l’est pas —
+ * et la ligne ne change pas de forme entre les deux.
+ */
+export function SwitchRow(props: Omit<SwitchProps, 'shown'>) {
+  return (
+    <div className="basalte-switch-row">
+      <Switch {...props} shown />
+    </div>
+  )
+}
+
 export type Segment<T extends string> = {
   readonly value: T
   readonly label: ReactNode
@@ -57,8 +71,6 @@ type SegmentedProps<T extends string> = {
   readonly items: readonly Segment<T>[]
   readonly onChange: (value: T) => void
   readonly label: string
-  /** Le pouce noir, quand le choix porte sur ce qu’on regarde. */
-  readonly tone?: 'ink' | undefined
   readonly block?: boolean | undefined
 }
 
@@ -67,7 +79,6 @@ export function Segmented<T extends string>({
   items,
   onChange,
   label,
-  tone,
   block,
 }: SegmentedProps<T>) {
   return (
@@ -75,7 +86,6 @@ export function Segmented<T extends string>({
       className="basalte-segmented"
       role="group"
       aria-label={label}
-      data-tone={tone}
       data-block={block === true ? 'true' : undefined}
     >
       {items.map((item) => (

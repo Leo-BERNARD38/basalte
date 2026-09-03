@@ -17,7 +17,7 @@ import type { AudienceReport, Counted, Daily } from '../analytics/report.js'
 import { readAudience } from './api.js'
 import { Waiting } from './Waiting.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
-import { Banner, Card } from './ui/Surface.js'
+import { Banner, Card, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
 import { Segmented, type Segment } from './ui/Toggle.js'
 
@@ -122,15 +122,10 @@ export function Stats({
 
   if (!audience.readable) {
     return (
-      <Banner>
-        <Stack gap="xs">
-          <strong>Aucune mesure disponible</strong>
-          <Text tone="muted">
-            Les journaux d’accès ne sont pas lisibles depuis le panel. Le site
-            continue de fonctionner : seule cette page est vide.
-          </Text>
-        </Stack>
-      </Banner>
+      <Empty
+        title="Aucune mesure disponible"
+        note="Les journaux d’accès ne sont pas lisibles depuis le panel. Le site continue de fonctionner : seule cette page est vide."
+      />
     )
   }
 
@@ -159,7 +154,6 @@ export function Stats({
           items={SPANS}
           onChange={setSpan}
           label="La période regardée"
-          tone="ink"
         />
       </Group>
 
@@ -195,10 +189,10 @@ export function Stats({
 
       <Card>
         <Stack gap="lg">
-          <Title rank="card">Visites par jour</Title>
+          <Title role="title-md">Visites par jour</Title>
 
           {measured === 0 ? (
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               Aucune visite sur la période.
             </Text>
           ) : (
@@ -284,7 +278,7 @@ function Figure({
       <Eyebrow>{name}</Eyebrow>
       <Mono className="basalte-figure">{NUMBER.format(value)}</Mono>
       {change !== undefined && <Text tone="strong">{change}</Text>}
-      <Text tone="meta" size="eyebrow">
+      <Text tone="meta" role="label-md">
         {note}
       </Text>
       {spark !== undefined && spark.length > 0 && (
@@ -319,10 +313,10 @@ function Ranking({
   return (
     <Card>
       <Stack gap="lg">
-        <Title rank="card">{title}</Title>
+        <Title role="title-md">{title}</Title>
 
         {rows.length === 0 ? (
-          <Text tone="meta" size="eyebrow">
+          <Text tone="meta" role="label-md">
             {empty}
           </Text>
         ) : (

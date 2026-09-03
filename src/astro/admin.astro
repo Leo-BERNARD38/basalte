@@ -1,31 +1,45 @@
 ---
 import { site } from 'virtual:basalte'
 import Panel from '@leobernard/basalte/admin'
+import { BOOT } from '../admin/appearance.js'
+import { scheme, schemeCss } from '../admin/scheme.js'
+import { tokens } from '../admin/tokens.js'
 
 export const prerender = false
+
+// La graine d’un site donne au panel ses propres rôles de couleur (D195). La
+// feuille arrive inline, calculée ici, avant que l’island monte : pas de
+// neutre qui clignote, et l’attribut porte la spécificité qui gagne quel que
+// soit l’ordre des feuilles (D199).
+const seed = site.panel?.seed
+const light = seed === undefined ? tokens.color.light : scheme(seed, 'light')
+const dark = seed === undefined ? tokens.color.dark : scheme(seed, 'dark')
+// Le fond lit d’abord la variable que l’amorçage de l’apparence a pu poser
+// sur `<html>` (D208), et retombe sur la surface du schéma du site.
+const boot = `body{margin:0;background:var(--panel-color-surface,${light.surface})}@media (prefers-color-scheme: dark){body{background:var(--panel-color-surface,${dark.surface})}}`
 ---
 
-<html lang="fr">
+<html lang="fr" data-seed={seed}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="light dark" />
     <title>Administration — {site.name}</title>
     <!-- Le panel est une island `client:only` : le corps est vide jusqu’à ce
-         que React s’exécute, et sa feuille arrive avec lui. Sans ces deux
-         lignes, la première image du panel est une page blanche puis un fond
-         gris. Elles ne dupliquent pas un token — elles portent la seule valeur
-         qui existe avant que la couche de tokens soit chargée, et c’est le
-         canvas de `src/admin/tokens.ts`. -->
-    <style>
-      body {
-        margin: 0;
-        background: #f5f5f5;
-      }
-    </style>
+         que React s’exécute, et sa feuille arrive avec lui. Sans cette ligne,
+         la première image du panel est une page blanche puis un fond gris.
+         Elle ne duplique pas un token — elle porte la seule valeur qui existe
+         avant que la couche de tokens soit chargée : la surface du schéma. -->
+    <style is:inline set:html={boot}></style>
+    {seed !== undefined && <style is:inline set:html={schemeCss(seed)} />}
+    <!-- L’apparence choisie sur cet appareil — un mode forcé, une autre
+         graine — se pose avant toute feuille, depuis ce que « Compte » a
+         rangé dans le navigateur (D208). -->
+    <script is:inline set:html={BOOT} />
   </head>
   <body>
-    <Panel client:only="react" site={site.name} />
+    <Panel client:only="react" site={site.name} seed={seed} />
     <noscript>
       <p style="font: 16px/1.5 system-ui; margin: 2rem;">
         L’administration a besoin de JavaScript pour s’afficher. Le site public,

@@ -97,7 +97,7 @@ export function ListControl({
         <Stack gap="sm" {...bound}>
           <Group gap="sm">
             <Spacer />
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               {items.length} élément{items.length > 1 ? 's' : ''}
               {description.max === undefined ? '' : ` sur ${description.max}`}
             </Text>
@@ -144,7 +144,8 @@ export function ListControl({
                           </RowGlyph>
                         </Row>
                         <Button
-                          tone="danger"
+                          variant="text"
+                          tone="error"
                           size="xs"
                           disabled={scarce}
                           onClick={() =>
@@ -187,12 +188,12 @@ export function ListControl({
               Ajouter un élément
             </Button>
             {full && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 La mise en page de ce bloc n’en porte pas davantage.
               </Text>
             )}
             {scarce && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 Ce bloc en demande au moins {description.min} : « Retirer »
                 attendra qu’il y en ait un de plus.
               </Text>
@@ -211,7 +212,8 @@ export function ListControl({
                 <Spacer />
                 <Button onClick={() => setAsked(null)}>Le garder</Button>
                 <Button
-                  tone="danger"
+                  variant="text"
+                  tone="error"
                   onClick={() => asked !== null && drop(asked)}
                 >
                   Retirer

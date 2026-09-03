@@ -39,12 +39,12 @@ export function DocumentControl({
         <Card nested pad="sm" {...bound}>
           <Group gap="sm">
             {entry === undefined ? (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 Aucun document
               </Text>
             ) : (
               <>
-                <Text size="eyebrow">{entry.name}</Text>
+                <Text role="label-md">{entry.name}</Text>
                 <Mono>{documentWeight(entry.bytes)}</Mono>
               </>
             )}
@@ -53,7 +53,12 @@ export function DocumentControl({
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button tone="danger" size="xs" onClick={() => onChange('')}>
+              <Button
+                variant="text"
+                tone="error"
+                size="xs"
+                onClick={() => onChange('')}
+              >
                 Retirer
               </Button>
             )}

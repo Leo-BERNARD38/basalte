@@ -30,7 +30,8 @@ import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Banner, Card, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
-import { Segmented } from './ui/Toggle.js'
+import { Tabs } from './ui/Chip.js'
+import { Search } from './ui/icons.js'
 
 const CENTRE = 50
 
@@ -97,7 +98,7 @@ export function MediaLibrary({
 
       <Group>
         {editing.capabilities.documents && (
-          <Segmented
+          <Tabs
             value={view}
             items={[
               { value: 'images', label: 'Images' },
@@ -105,18 +106,20 @@ export function MediaLibrary({
             ]}
             onChange={setView}
             label="Ce que l’écran range"
-            tone="ink"
           />
         )}
 
-        <TextField
-          value={search}
-          aria-label={
-            images ? 'Rechercher une image' : 'Rechercher un document'
-          }
-          placeholder="Rechercher"
-          onChange={(event) => setSearch(event.target.value)}
-        />
+        <span className="basalte-search">
+          <Search size={18} />
+          <TextField
+            value={search}
+            aria-label={
+              images ? 'Rechercher une image' : 'Rechercher un document'
+            }
+            placeholder="Rechercher"
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </span>
 
         <Spacer />
 
@@ -172,7 +175,7 @@ export function MediaLibrary({
               onSelect={setSelected}
             />
 
-            <div className="basalte-rail">
+            <div className="basalte-aside">
               {entry === undefined ? (
                 <Empty
                   title="Aucune image choisie"
@@ -324,10 +327,10 @@ function MediaDetail({
     <Card>
       <Stack>
         <Group gap="md">
-          <Title rank="card">Cette image</Title>
+          <Title role="title-md">Cette image</Title>
           <Spacer />
           {saved && !busy && (
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               Enregistré
             </Text>
           )}
@@ -387,7 +390,7 @@ function MediaDetail({
 
         <Stack gap="xs">
           <Eyebrow>Point focal</Eyebrow>
-          <Text id={`${name}-focal`} tone="muted" size="eyebrow">
+          <Text id={`${name}-focal`} tone="muted" role="label-md">
             Cliquez le sujet de l’image, ou déplacez le point aux flèches :
             c’est lui que le cadrage garde toujours visible, quel que soit le
             format de l’emplacement. Il est à {focal.x} % depuis la gauche et{' '}
@@ -398,7 +401,8 @@ function MediaDetail({
         <Stack gap="xs">
           <Group>
             <Button
-              tone="danger"
+              variant="text"
+              tone="error"
               busy={busy}
               disabled={entry.usage > 0}
               onClick={() => setAsked(true)}
@@ -407,7 +411,7 @@ function MediaDetail({
             </Button>
           </Group>
           {entry.usage > 0 && (
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               Une section l’emploie : retirez-la d’abord de la page.
             </Text>
           )}
@@ -422,7 +426,7 @@ function MediaDetail({
           <>
             <Spacer />
             <Button onClick={() => setAsked(false)}>La garder</Button>
-            <Button tone="danger" onClick={() => void drop()}>
+            <Button variant="text" tone="error" onClick={() => void drop()}>
               Supprimer
             </Button>
           </>

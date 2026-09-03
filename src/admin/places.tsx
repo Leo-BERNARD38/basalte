@@ -112,7 +112,7 @@ export function Places({
     <Stack gap="sm">
       <Eyebrow>{title}</Eyebrow>
       {places.length === 0 ? (
-        <Text tone="meta" size="eyebrow">
+        <Text tone="meta" role="label-md">
           {none}
         </Text>
       ) : (

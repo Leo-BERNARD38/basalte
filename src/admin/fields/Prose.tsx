@@ -88,7 +88,7 @@ export function Prose({ description, value, issues, onChange }: ControlProps) {
             <Group gap="sm">
               <Spacer />
               <Text
-                size="eyebrow"
+                role="label-md"
                 tone={
                   text.length >= description.max * CLOSE ? 'strong' : 'meta'
                 }

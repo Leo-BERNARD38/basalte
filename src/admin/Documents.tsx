@@ -42,7 +42,7 @@ export function DocumentList({
         >
           <RowText>{entry.name}</RowText>
           {entry.usage === 0 && <Mark>jamais utilisé</Mark>}
-          <Text tone="meta" size="eyebrow">
+          <Text tone="meta" role="label-md">
             {documentWeight(entry.bytes)}
           </Text>
         </Row>
@@ -60,12 +60,12 @@ function usageLabel(usage: number): string {
 
 export function DocumentUploadButton({
   label = 'Ajouter un document',
-  tone = 'ink',
+  variant = 'filled',
   onDone,
   onError,
 }: {
   readonly label?: string | undefined
-  readonly tone?: 'ink' | 'line' | undefined
+  readonly variant?: 'filled' | 'outlined' | undefined
   readonly onDone: (document: DocumentSummary) => void
   readonly onError: (message: string) => void
 }) {
@@ -99,7 +99,11 @@ export function DocumentUploadButton({
           event.target.value = ''
         }}
       />
-      <Button tone={tone} busy={busy} onClick={() => input.current?.click()}>
+      <Button
+        variant={variant}
+        busy={busy}
+        onClick={() => input.current?.click()}
+      >
         {label}
       </Button>
     </>
@@ -176,7 +180,7 @@ export function DocumentPanel({
         onSelect={onSelect}
       />
 
-      <div className="basalte-rail">
+      <div className="basalte-aside">
         {entry === undefined ? (
           <Empty
             title="Aucun document choisi"
@@ -185,7 +189,7 @@ export function DocumentPanel({
         ) : (
           <Card>
             <Stack>
-              <Title rank="card">{entry.name}</Title>
+              <Title role="title-md">{entry.name}</Title>
 
               <Mono>
                 {documentWeight(entry.bytes)} · {usageLabel(entry.usage)}
@@ -211,7 +215,8 @@ export function DocumentPanel({
               <Stack gap="xs">
                 <Group>
                   <Button
-                    tone="danger"
+                    variant="text"
+                    tone="error"
                     busy={busy}
                     disabled={entry.usage > 0}
                     onClick={() => setAsked(true)}
@@ -220,7 +225,7 @@ export function DocumentPanel({
                   </Button>
                 </Group>
                 {entry.usage > 0 && (
-                  <Text tone="meta" size="eyebrow">
+                  <Text tone="meta" role="label-md">
                     Une section y mène : retirez-le d’abord de la page.
                   </Text>
                 )}
@@ -235,7 +240,11 @@ export function DocumentPanel({
                 <>
                   <Spacer />
                   <Button onClick={() => setAsked(false)}>Le garder</Button>
-                  <Button tone="danger" onClick={() => void drop()}>
+                  <Button
+                    variant="text"
+                    tone="error"
+                    onClick={() => void drop()}
+                  >
                     Supprimer
                   </Button>
                 </>

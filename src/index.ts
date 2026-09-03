@@ -2,7 +2,7 @@
 // `src/blocks/*/schema.ts` de dépôt client importent.
 
 export { defineSite } from './site/define.js'
-export type { Site, SiteDeclaration } from './site/define.js'
+export type { PanelDeclaration, Site, SiteDeclaration } from './site/define.js'
 export type {
   Language,
   LanguageDeclaration,

@@ -1,37 +1,34 @@
-// Le cadre du panel : la navigation, ce qui a échoué, et l’en-tête d’écran —
-// seul endroit où agir sur l’état du site.
+// Le cadre du panel : la navigation, ce qui a échoué, la barre d’application
+// — seul endroit où agir sur l’état du site — et ce qui vient de se passer.
 //
-// La barre est noire, et l’onglet ouvert y est une pastille blanche : l’outil
-// se tient au-dessus du document, pas à côté, et le blanc reste à la page
-// qu’on fabrique. Elle ne porte que la session — le compte, la déconnexion, le
-// « ? » à son extrémité droite. La langue écrite n’y est pas : elle décide de
-// ce qu’on écrit, pas de qui est connecté, et vit avec le choix de la page
-// (`Language.tsx`).
+// La navigation est celle de Material (D204) : un rail à gauche sur un écran
+// large, une barre en bas sur un écran étroit, et les mêmes cinq destinations
+// dans les deux. Le compte n’en est pas une : il se tient derrière l’avatar,
+// au pied du rail ou au bout de la barre d’application, avec la déconnexion.
+// Cinq est le plafond d’une barre, et c’est ce qui a sorti « Compte » de la
+// liste — on y va une fois par mois, pas entre deux sections.
 //
-// Sous la barre, un bandeau plein d’un bord à l’autre dit ce qui a échoué au
-// niveau du site. Il ne défile pas et n’appartient à aucun écran : c’est la
-// forme de l’annonce, réservée à ce qui ne s’attache à aucun champ. Ce qui se
-// corrige champ par champ reste dans la page, en liste cliquable (D166).
+// Sous la barre d’application, un bandeau d’un bord à l’autre dit ce qui a
+// échoué au niveau du site. Il ne défile pas et n’appartient à aucun écran :
+// c’est la forme de l’annonce, réservée à ce qui ne s’attache à aucun champ.
+// Ce qui se corrige champ par champ reste dans la page, en liste cliquable
+// (D166). Ce qui vient de réussir se dit une fois, en bas, dans une snackbar
+// qui s’efface d’elle-même (D205).
 //
 // Trois informations sont lisibles en permanence : reste-t-il quelque chose à
 // enregistrer, quand la dernière modification a-t-elle été enregistrée, et
-// quelque chose est-il cassé. Elles vivent sous le titre, à côté des deux
-// boutons, pour qu’un seul regard suffise.
+// quelque chose est-il cassé. Elles vivent au-dessus du titre et à côté de
+// lui, près des deux boutons, pour qu’un seul regard suffise.
 //
-// Le titre nomme ce qui est ouvert ; l’œilleton qui le surmonte nomme l’écran.
+// Le titre nomme ce qui est ouvert ; la ligne qui le surmonte nomme l’écran.
 // Ce que les deux boutons font est à un clic, sous le « ? » de la barre, avec
-// tout ce que cet écran-là explique (D169). Le « ? » est dans la barre et non
-// dans l’en-tête : celui-ci ne porte que ce qui agit sur le site, et lire
-// n’agit sur rien. Il est le dernier de la barre, et son panneau se déplie
-// donc contre la gouttière plutôt qu’au-dessus des onglets.
-//
-// Ce qu’il reste à corriger ne vit pas ici : les points à regarder sont dans
-// le rail de l’écran d’édition, qui est le seul endroit où on les corrige.
+// tout ce que cet écran-là explique (D169). Il est à côté des actions et non
+// parmi elles : lire n’agit sur rien.
 //
 // « Enregistrer » et « Mettre en ligne » ne paraissent que sur les deux écrans
 // qui écrivent du contenu. Ailleurs ils ne veulent rien dire : une médiathèque
 // enregistre à chaque geste, et des messages ne se mettent pas en ligne. La
-// place, elle, ne bouge pas — l’en-tête garde sa forme d’un écran à l’autre.
+// place, elle, ne bouge pas — la barre garde sa forme d’un écran à l’autre.
 
 import type { ReactNode } from 'react'
 
@@ -40,11 +37,29 @@ import type { PublishState } from '../publish/publish.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { Capabilities } from '../site/capabilities.js'
 import { Help } from './Help.js'
-import { Badge, Count } from './ui/Badge.js'
+import { Badge } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
-import { Group, Stack } from './ui/Layout.js'
+import { LinearProgress, Snackbar } from './ui/Feedback.js'
+import {
+  AccountCircle,
+  Edit as EditIcon,
+  Logout,
+  Mail,
+  Monitoring,
+  Newspaper,
+  PhotoLibrary,
+} from './ui/icons.js'
+import { Divider, Group, Stack } from './ui/Layout.js'
+import {
+  Avatar,
+  Brand,
+  Navigation,
+  TopAppBar,
+  type Destination,
+} from './ui/Navigation.js'
+import { Row, RowGlyph, RowText } from './ui/Row.js'
 import { Alert, Banner } from './ui/Surface.js'
-import { Eyebrow, Title } from './ui/Text.js'
+import { Eyebrow, Text, Title } from './ui/Text.js'
 
 export type Screen =
   'edit' | 'journal' | 'media' | 'messages' | 'stats' | 'account'
@@ -52,7 +67,8 @@ export type Screen =
 // L’ordre suit la fréquence d’usage. Arriver à dix signifierait que deux
 // d’entre eux auraient dû fusionner (`panel.md`) ; « Actualités » vient en
 // second parce qu’un site qui tient un journal y revient chaque jour, quand il
-// n’édite ses pages que de loin en loin.
+// n’édite ses pages que de loin en loin. « Compte » est le seul qui ne soit
+// pas une destination du rail.
 export const SCREENS: readonly {
   readonly value: Screen
   readonly label: string
@@ -64,6 +80,15 @@ export const SCREENS: readonly {
   { value: 'stats', label: 'Statistiques' },
   { value: 'account', label: 'Compte' },
 ]
+
+const ICONS: Readonly<Record<Screen, ReactNode>> = {
+  edit: <EditIcon size={20} />,
+  journal: <Newspaper size={20} />,
+  media: <PhotoLibrary size={20} />,
+  messages: <Mail size={20} />,
+  stats: <Monitoring size={20} />,
+  account: <AccountCircle size={20} />,
+}
 
 /**
  * Les écrans que ce site-là déclare. Deux peuvent manquer : la mesure
@@ -117,6 +142,8 @@ export function Shell({
   issues,
   onIssue,
   publication,
+  notice,
+  onNoticeDone,
   onSave,
   onPublish,
   onSignOut,
@@ -136,6 +163,9 @@ export function Shell({
   readonly issues: readonly ContentIssue[]
   readonly onIssue: (issue: ContentIssue) => void
   readonly publication: PublishState
+  /** Ce qui vient de réussir, dit une fois. */
+  readonly notice: string | undefined
+  readonly onNoticeDone: () => void
   readonly onSave: () => void
   readonly onPublish: () => void
   readonly onSignOut: () => void
@@ -145,148 +175,178 @@ export function Shell({
   const last = publication.last
   const writes = WRITES.has(screen)
 
+  const destinations: readonly Destination<Screen>[] = screensFor(
+    payload.site.capabilities,
+    payload.journal !== undefined,
+  )
+    .filter((entry) => entry.value !== 'account')
+    .map((entry) => ({
+      value: entry.value,
+      label: entry.label,
+      icon: ICONS[entry.value],
+      pending: entry.value === 'messages' ? payload.unread : undefined,
+    }))
+
+  const account = (
+    <Avatar account={payload.account} label="Compte">
+      <Stack gap="xs">
+        <div className="basalte-menu__note">
+          <Text role="label-md" tone="meta">
+            {payload.account}
+          </Text>
+        </div>
+        <Row
+          current={screen === 'account'}
+          pill
+          onClick={() => onScreen('account')}
+        >
+          <RowGlyph>{ICONS.account}</RowGlyph>
+          <RowText>Compte</RowText>
+        </Row>
+        <Divider />
+        <Row disabled={busy} pill onClick={onSignOut}>
+          <RowGlyph>
+            <Logout size={18} />
+          </RowGlyph>
+          <RowText>Se déconnecter</RowText>
+        </Row>
+      </Stack>
+    </Avatar>
+  )
+
+  const navigation = (form: 'rail' | 'bar') => (
+    <Navigation
+      form={form}
+      items={destinations}
+      current={screen}
+      onChange={onScreen}
+      head={<Brand name={payload.site.name} />}
+      foot={account}
+    />
+  )
+
   return (
     <div className="basalte-shell">
-      <header className="basalte-topbar">
-        <span className="basalte-brand">
-          <span className="basalte-brand__mark" />
-          {payload.site.name}
-        </span>
+      {navigation('rail')}
 
-        <nav className="basalte-tabs" aria-label="Les écrans du panel">
-          {screensFor(
-            payload.site.capabilities,
-            payload.journal !== undefined,
-          ).map((entry) => (
-            <button
-              key={entry.value}
-              type="button"
-              className="basalte-tab"
-              data-on={entry.value === screen ? 'true' : undefined}
-              aria-current={entry.value === screen ? 'page' : undefined}
-              onClick={() => onScreen(entry.value)}
-            >
-              {entry.label}
-              {entry.value === 'messages' && payload.unread > 0 && (
-                <Count>{payload.unread}</Count>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        <span className="basalte-topbar__aside">
-          <span className="basalte-topbar__account">{payload.account}</span>
-          <button
-            type="button"
-            className="basalte-signout"
-            disabled={busy}
-            onClick={onSignOut}
-          >
-            Se déconnecter
-          </button>
-          <Help screen={screen} payload={payload} />
-        </span>
-      </header>
-
-      {/* Ce qui a échoué au niveau du site se dit en bandeau plein, d’un bord
-          à l’autre et sous la barre : ce n’est l’affaire d’aucun écran, et un
-          aplat rouge se lit avant d’être lu. Ce qui se corrige champ par champ
-          reste dans la page, où le clic mène à l’endroit fautif. */}
-      {last?.outcome === 'failed' && !busyOnline && (
-        <Alert title="La dernière mise en ligne n’a pas abouti">
-          {last.message}
-        </Alert>
-      )}
-
-      {issues.length === 0 && problems.length > 0 && (
-        <Alert title={refusal ?? 'Rien n’a été enregistré'}>
-          {problems.join(' · ')}
-        </Alert>
-      )}
-
-      <div className="basalte-head">
-        <Stack gap="xs">
-          <Eyebrow>
-            {[
-              // L’écran ne se nomme au-dessus du titre que lorsqu’il en dit
-              // autre chose : sur « Compte », les deux lignes se répétaient.
-              SCREENS.find(
-                (entry) => entry.value === screen && entry.label !== heading,
-              )?.label,
-              savedAt === undefined
-                ? undefined
-                : `enregistré à ${MOMENT.format(savedAt)}`,
-              onlineLabel(publication),
-              payload.tracked ? undefined : 'sans historique',
-            ]
-              .filter((part) => part !== undefined)
-              .join(' · ')}
-          </Eyebrow>
-
-          <Group gap="md">
-            <Title level={1}>{heading}</Title>
-            {writes &&
-              (dirty ? (
-                <Badge dot="ink">Modifications non enregistrées</Badge>
-              ) : (
-                <Badge dot="online" tone="muted">
-                  Tout est enregistré
-                </Badge>
-              ))}
-          </Group>
-        </Stack>
-
-        <div className="basalte-head__actions">
-          {writes && (
+      <div className="basalte-shell__column">
+        <TopAppBar
+          context={
+            <Eyebrow>
+              {[
+                // L’écran ne se nomme au-dessus du titre que lorsqu’il en dit
+                // autre chose : sur « Compte », les deux lignes se répétaient.
+                SCREENS.find(
+                  (entry) => entry.value === screen && entry.label !== heading,
+                )?.label,
+                savedAt === undefined
+                  ? undefined
+                  : `enregistré à ${MOMENT.format(savedAt)}`,
+                onlineLabel(publication),
+                payload.tracked ? undefined : 'sans historique',
+              ]
+                .filter((part) => part !== undefined)
+                .join(' · ')}
+            </Eyebrow>
+          }
+          title={
+            <Group gap="md" wrap>
+              <Title level={1} role="headline-sm">
+                {heading}
+              </Title>
+              {writes &&
+                (dirty ? (
+                  <Badge dot="ink">Modifications non enregistrées</Badge>
+                ) : (
+                  <Badge dot="online" tone="muted">
+                    Enregistré
+                  </Badge>
+                ))}
+            </Group>
+          }
+          actions={
             <>
-              <Button disabled={!dirty} busy={busy} onClick={onSave}>
-                Enregistrer
-              </Button>
-              <Button
-                tone="ink"
-                disabled={busy}
-                busy={busyOnline}
-                onClick={onPublish}
-              >
-                Mettre en ligne
-              </Button>
+              {writes && (
+                <>
+                  <Button
+                    variant="tonal"
+                    disabled={!dirty}
+                    busy={busy}
+                    onClick={onSave}
+                  >
+                    Enregistrer
+                  </Button>
+                  <Button
+                    variant="filled"
+                    disabled={busy}
+                    busy={busyOnline}
+                    onClick={onPublish}
+                  >
+                    Mettre en ligne
+                  </Button>
+                </>
+              )}
+              <Help screen={screen} payload={payload} />
+              <span className="basalte-appbar__account">{account}</span>
             </>
-          )}
-        </div>
+          }
+        />
+
+        {busyOnline && <LinearProgress label="Mise en ligne en cours" />}
+
+        {/* Ce qui a échoué au niveau du site se dit en bandeau plein, d’un
+            bord à l’autre et sous la barre : ce n’est l’affaire d’aucun écran.
+            Ce qui se corrige champ par champ reste dans la page, où le clic
+            mène à l’endroit fautif. */}
+        {last?.outcome === 'failed' && !busyOnline && (
+          <Alert title="La dernière mise en ligne n’a pas abouti">
+            {last.message}
+          </Alert>
+        )}
+
+        {issues.length === 0 && problems.length > 0 && (
+          <Alert title={refusal ?? 'Rien n’a été enregistré'}>
+            {problems.join(' · ')}
+          </Alert>
+        )}
+
+        <main
+          className="basalte-main"
+          data-fill={FILLS.has(screen) ? 'true' : undefined}
+        >
+          <Stack gap="region">
+            {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait
+                quelle section et quel champ, et une liste de phrases faisait
+                relire l’écran à la main pour retrouver lequel (D166). */}
+            {issues.length > 0 && (
+              <Banner tone="refused">
+                <Stack gap="sm">
+                  <strong>Rien n’a été enregistré</strong>
+                  <Stack gap="xs">
+                    {issues.map((issue, rank) => (
+                      <button
+                        key={`${rank}-${issue.message}`}
+                        type="button"
+                        className="basalte-link basalte-notice"
+                        onClick={() => onIssue(issue)}
+                      >
+                        {where(issue)}
+                        {issue.message}
+                      </button>
+                    ))}
+                  </Stack>
+                </Stack>
+              </Banner>
+            )}
+
+            {children}
+          </Stack>
+        </main>
       </div>
 
-      <main
-        className="basalte-main"
-        data-fill={FILLS.has(screen) ? 'true' : undefined}
-      >
-        <Stack gap="region">
-          {/* Chaque ligne mène au champ qu’elle nomme : le serveur sait quelle
-              section et quel champ, et une liste de phrases faisait relire
-              l’écran à la main pour retrouver lequel (D166). */}
-          {issues.length > 0 && (
-            <Banner tone="refused">
-              <Stack gap="sm">
-                <strong>Rien n’a été enregistré</strong>
-                <Stack gap="xs">
-                  {issues.map((issue, rank) => (
-                    <button
-                      key={`${rank}-${issue.message}`}
-                      type="button"
-                      className="basalte-link basalte-notice"
-                      onClick={() => onIssue(issue)}
-                    >
-                      {where(issue)}
-                      {issue.message}
-                    </button>
-                  ))}
-                </Stack>
-              </Stack>
-            </Banner>
-          )}
+      {navigation('bar')}
 
-          {children}
-        </Stack>
-      </main>
+      <Snackbar message={notice} onDone={onNoticeDone} />
     </div>
   )
 }

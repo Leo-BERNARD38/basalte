@@ -29,6 +29,12 @@ import { today } from '../fields/date.js'
 import type { DraftPost } from '../server/posts.js'
 import { Account } from './Account.js'
 import {
+  applyAppearance,
+  readAppearance,
+  writeAppearance,
+  type Appearance,
+} from './appearance.js'
+import {
   createPost,
   deletePost,
   loadPanel,
@@ -71,8 +77,23 @@ type Picker = {
   readonly resolve: (key: string | undefined) => void
 }
 
-export default function Panel({ site }: { readonly site: string }) {
+const DARK = '(prefers-color-scheme: dark)'
+
+export default function Panel({
+  site,
+  seed,
+}: {
+  readonly site: string
+  /** La graine du site, pour que « Compte » sache à quoi il revient. */
+  readonly seed?: string | undefined
+}) {
   const [payload, setPayload] = useState<PanelPayload | undefined>(undefined)
+  // L’apparence de cet appareil : le mode et la graine choisis dans
+  // « Compte », posés sur la racine dès le montage — le script d’amorçage
+  // les a déjà posés avant, et c’est ce qui évite le clignotement (D208).
+  const [appearance, setAppearance] = useState<Appearance>(() =>
+    readAppearance(window.localStorage),
+  )
   const [ready, setReady] = useState(false)
   const [screen, setScreen] = useState<Screen>(readScreen())
   const [selected, setSelected] = useState('')
@@ -95,6 +116,8 @@ export default function Panel({ site }: { readonly site: string }) {
   const [asked, setAsked] = useState<Asked | undefined>(undefined)
   const [publication, setPublication] = useState<PublishState>(IDLE)
   const [closed, setClosed] = useState('')
+  // Ce qui vient de réussir, dit une fois en bas de l’écran (D205).
+  const [notice, setNotice] = useState<string | undefined>(undefined)
 
   // La section qu’une ligne du résumé désigne. Elle voyage par l’état plutôt
   // que par un appel : c’est l’écran d’édition qui sait ouvrir une section, et
@@ -219,6 +242,22 @@ export default function Panel({ site }: { readonly site: string }) {
 
     if (opened !== undefined) open(opened)
     else openAside(data, wanted)
+  }
+
+  useEffect(() => {
+    const media = window.matchMedia(DARK)
+    const apply = () =>
+      applyAppearance(appearance, seed, document.documentElement, media.matches)
+
+    apply()
+    media.addEventListener('change', apply)
+
+    return () => media.removeEventListener('change', apply)
+  }, [appearance, seed])
+
+  const chooseAppearance = (next: Appearance) => {
+    setAppearance(next)
+    writeAppearance(window.localStorage, next, seed)
   }
 
   useEffect(() => {
@@ -353,6 +392,7 @@ export default function Panel({ site }: { readonly site: string }) {
     setProblems([])
     setIssues([])
     setSavedAt(Date.now())
+    setNotice('Enregistré')
     await load(
       selected,
       editingJournal ? openedPost : undefined,
@@ -422,6 +462,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
     if (answer.ok) {
       setPublication(answer.data.publication)
+      setNotice('Mise en ligne lancée')
       return
     }
 
@@ -558,6 +599,8 @@ export default function Panel({ site }: { readonly site: string }) {
         issues={issues}
         onIssue={setWanted}
         publication={publication}
+        notice={notice}
+        onNoticeDone={() => setNotice(undefined)}
         onSave={() => void save()}
         onPublish={() => void goOnline()}
         onSignOut={() => ask({ kind: 'sign-out' })}
@@ -620,7 +663,14 @@ export default function Panel({ site }: { readonly site: string }) {
 
         {shown === 'stats' && <Stats onSignedOut={dropSession} />}
 
-        {shown === 'account' && <Account onSignedOut={dropSession} />}
+        {shown === 'account' && (
+          <Account
+            appearance={appearance}
+            siteSeed={seed}
+            onAppearance={chooseAppearance}
+            onSignedOut={dropSession}
+          />
+        )}
       </Shell>
 
       <MediaPicker
@@ -651,13 +701,13 @@ export default function Panel({ site }: { readonly site: string }) {
         onClose={() => setAsked(undefined)}
         foot={
           <>
-            <Button tone="danger" onClick={abandon}>
+            <Button variant="text" tone="error" onClick={abandon}>
               Abandonner les modifications
             </Button>
             <Spacer />
             <Button onClick={() => setAsked(undefined)}>Rester ici</Button>
             <Button
-              tone="ink"
+              variant="filled"
               busy={busy}
               onClick={() => {
                 void keepThenGo()

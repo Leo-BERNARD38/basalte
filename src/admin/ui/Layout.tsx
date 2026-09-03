@@ -64,3 +64,8 @@ export function Spacer() {
 export function joined(...names: readonly (string | undefined)[]): string {
   return names.filter((name) => name !== undefined).join(' ')
 }
+
+/** Le filet qui sépare deux parties d’une même surface. */
+export function Divider() {
+  return <hr className="basalte-divider" />
+}

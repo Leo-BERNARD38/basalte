@@ -15,13 +15,14 @@ import type { Values } from './draft.js'
 import { languageLabel, useEditing } from './editing.js'
 import { FieldSet, type FieldIssue } from './fields/Field.js'
 import { Button } from './ui/Button.js'
-import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Group, Stack } from './ui/Layout.js'
 import { Banner } from './ui/Surface.js'
 import { Eyebrow, Text, Title } from './ui/Text.js'
-import { Switch } from './ui/Toggle.js'
+import { SwitchRow } from './ui/Toggle.js'
 
 export function Section({
   section,
+  context,
   type,
   hideable = true,
   issues,
@@ -29,6 +30,8 @@ export function Section({
   onRemove,
 }: {
   readonly section: PageBlock
+  /** Ce que la ligne de contexte ajoute : la langue écrite, s’il y en a plusieurs. */
+  readonly context?: string | undefined
   readonly type: PanelBlockType | undefined
   /** L’en-tête et le pied de page sont sur toutes les pages : ils ne se masquent pas. */
   readonly hideable?: boolean
@@ -43,32 +46,32 @@ export function Section({
 
   return (
     <Stack gap="xl">
-      <Group gap="md" align="start">
-        <Stack gap="xs">
-          <Eyebrow>section choisie</Eyebrow>
-          <Title rank="card">{type?.label ?? section.type}</Title>
-        </Stack>
-        <Spacer />
-        {hideable && (
-          <Switch
-            on={!hidden}
-            shown
-            label={
-              several
-                ? `Visible en ${languageLabel(editing.languages, editing.language)}`
-                : 'Visible sur le site'
-            }
-            onChange={() =>
-              onChange({
-                ...section,
-                hidden: { ...section.hidden, [editing.language]: !hidden },
-              })
-            }
-          />
-        )}
-      </Group>
+      <Stack gap="xs">
+        <Eyebrow>
+          {['section choisie', context]
+            .filter((part) => part !== undefined)
+            .join(' · ')}
+        </Eyebrow>
+        <Title role="title-md">{type?.label ?? section.type}</Title>
+        {type?.help !== undefined && <Text tone="muted">{type.help}</Text>}
+      </Stack>
 
-      {type?.help !== undefined && <Text tone="muted">{type.help}</Text>}
+      {hideable && (
+        <SwitchRow
+          on={!hidden}
+          label={
+            several
+              ? `Visible en ${languageLabel(editing.languages, editing.language)}`
+              : 'Visible sur le site'
+          }
+          onChange={() =>
+            onChange({
+              ...section,
+              hidden: { ...section.hidden, [editing.language]: !hidden },
+            })
+          }
+        />
+      )}
 
       {type === undefined && (
         <Banner tone="refused">
@@ -103,7 +106,7 @@ export function Section({
 
       {onRemove !== undefined && (
         <Group>
-          <Button tone="danger" onClick={onRemove}>
+          <Button variant="text" tone="error" onClick={onRemove}>
             Supprimer la section
           </Button>
         </Group>
