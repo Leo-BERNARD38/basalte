@@ -159,7 +159,6 @@
 
   --panel-width-form: 400px;
   --panel-width-page: 860px;
-  --panel-width-structure: 248px;
   --panel-width-aside: 400px;
   --panel-width-menu: 300px;
   --panel-width-modal: 960px;
@@ -336,8 +335,7 @@ b {
   .basalte-nav__indicator,
   .basalte-segmented__item,
   .basalte-tab,
-  .basalte-picker,
-  .basalte-avatar
+  .basalte-picker
 ) {
   position: relative;
   isolation: isolate;
@@ -352,8 +350,7 @@ b {
   .basalte-nav__indicator,
   .basalte-segmented__item,
   .basalte-tab,
-  .basalte-picker,
-  .basalte-avatar
+  .basalte-picker
 )::after {
   content: '';
   position: absolute;
@@ -373,8 +370,7 @@ b {
     .basalte-chip,
     .basalte-segmented__item,
     .basalte-tab,
-    .basalte-picker,
-    .basalte-avatar
+    .basalte-picker
   ):hover:not(:disabled)::after,
 .basalte-row:hover::after,
 .basalte-nav__item:hover .basalte-nav__indicator::after {
@@ -388,8 +384,7 @@ b {
     .basalte-chip,
     .basalte-segmented__item,
     .basalte-tab,
-    .basalte-picker,
-    .basalte-avatar
+    .basalte-picker
   ):active:not(:disabled)::after,
 .basalte-row:active::after,
 .basalte-nav__item:active .basalte-nav__indicator::after {
@@ -954,11 +949,15 @@ textarea.basalte-input {
    presse, et ce qu’on est en train de modifier porte le conteneur secondaire
    — la même marque que la destination ouverte du rail : un aplat, un cran de
    graisse, et rien d’autre. */
+/* `min-width: 0` : une ligne posée à côté d’un bouton — l’élément d’une liste
+   répétable et son « Retirer » — refusait sinon de descendre sous la largeur
+   de son texte, et poussait le bouton hors de la colonne. */
 .basalte-row {
   display: flex;
   align-items: center;
   gap: var(--panel-space-md);
   width: 100%;
+  min-width: 0;
   min-height: var(--panel-control-row);
   padding: var(--panel-space-xs) var(--panel-space-lg);
   border-radius: var(--panel-radius-sm);
@@ -1935,26 +1934,6 @@ textarea.basalte-input {
   letter-spacing: -0.02em;
 }
 
-/* L’avatar du compte : une lettre dans un rond, au pied du rail ou au bout
-   de la barre d’application. Il ouvre le menu du compte. */
-.basalte-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--panel-control-sm);
-  height: var(--panel-control-sm);
-  flex-shrink: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--panel-radius-full);
-  background: var(--panel-color-tertiary-container);
-  color: var(--panel-color-on-tertiary-container);
-  font-family: inherit;
-  font-size: var(--panel-text-label-lg);
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .basalte-nav__foot {
   margin-top: auto;
 }
@@ -2134,53 +2113,18 @@ textarea.basalte-input {
 
 /* ---- L’écran d’édition ---- */
 
-/* Trois colonnes : la structure — la page, la langue, les sections — à
-   gauche, l’aperçu au centre, le formulaire de ce qui est choisi à droite.
-   Le journal a la même forme : ses billets sont sa structure. La page qu’on
-   modifie est au milieu de l’écran et prend ce que les deux autres lui
-   laissent ; la structure est étroite, un nom suffit à choisir ; le
-   formulaire a la largeur d’une colonne de lecture. Dans le document, le
-   formulaire précède l’aperçu — c’est l’ordre de l’empilement — et c’est la
-   feuille qui les place. */
+/* Deux colonnes : l’aperçu, qui est la surface de travail et prend tout ce
+   qu’on lui laisse, et le volet de ce qu’on modifie, à la largeur d’une
+   colonne de lecture. Une troisième portait la page, la langue et les
+   sections ; la sélection s’y faisait, et c’était sa raison d’être. Le volet
+   s’accroche à la grille pour venir par-dessus l’aperçu sur un écran
+   étroit. */
 .basalte-edit {
+  position: relative;
   display: grid;
   gap: var(--panel-space-xl);
-  align-items: start;
-  grid-template-columns: var(--panel-width-structure) minmax(0, 1fr) var(
-      --panel-width-aside
-    );
-}
-
-.basalte-edit > .basalte-stage {
-  order: 2;
-}
-
-.basalte-edit > .basalte-form {
-  order: 3;
-}
-
-/* À pleine hauteur, les colonnes s’étirent et défilent chacune pour
-   elle-même : le formulaire suit ce qu’on remplit sans emmener l’aperçu. */
-.basalte-main[data-fill='true'] .basalte-edit {
   align-items: stretch;
-}
-
-.basalte-structure,
-.basalte-form {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  gap: var(--panel-space-md);
-}
-
-.basalte-main[data-fill='true'] :where(.basalte-structure, .basalte-form) {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  /* L’anneau de focus d’un champ déborde : sans cette gouttière, la colonne
-     qui défile le rogne. */
-  padding: var(--panel-space-xs);
-  margin: calc(-1 * var(--panel-space-xs));
+  grid-template-columns: minmax(0, 1fr) var(--panel-width-aside);
 }
 
 .basalte-stage {
@@ -2189,6 +2133,143 @@ textarea.basalte-input {
   min-height: 0;
   flex-direction: column;
   gap: var(--panel-space-md);
+}
+
+/* ---- Les actualités ---- */
+
+/* Le premier niveau : la liste, en pleine largeur, dans une carte qui tient
+   la hauteur de la fenêtre et défile par son corps. */
+.basalte-journal {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.basalte-posts {
+  display: grid;
+  gap: var(--panel-space-xl);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Un billet : sa couverture, son titre, sa date, et ce qu’il en est de sa
+   parution. Ce qu’on reconnaît d’un coup d’œil, et les deux gestes qu’on
+   fait dessus. */
+.basalte-post {
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-md);
+  background: var(--panel-color-surface-container-lowest);
+}
+
+.basalte-post:hover {
+  border-color: var(--panel-color-primary);
+}
+
+/* Un brouillon porte les hachures du reste du panel : il n’est pas en ligne. */
+.basalte-post[data-away='true'] .basalte-post__cover {
+  background-image: var(--panel-hatch);
+}
+
+.basalte-post__open {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.basalte-post__cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  background: var(--panel-color-surface-container);
+  color: var(--panel-color-on-surface-variant);
+}
+
+.basalte-post__cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.basalte-post__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--panel-space-xxs);
+  padding: var(--panel-space-lg) var(--panel-space-lg) var(--panel-space-sm);
+}
+
+.basalte-post__marks {
+  display: flex;
+  align-items: center;
+  gap: var(--panel-space-sm);
+  padding: 0 var(--panel-space-sm) var(--panel-space-sm) var(--panel-space-lg);
+}
+
+/* Le second niveau : le billet ouvert. Il couvre la liste sans couvrir la
+   barre d’application, où « Enregistrer » et « Mettre en ligne » restent. */
+.basalte-writer {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--panel-space-md);
+  background: var(--panel-color-surface-container-low);
+}
+
+.basalte-writer[data-open='false'] {
+  display: none;
+}
+
+.basalte-writer__head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--panel-space-md);
+}
+
+.basalte-writer__body {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  gap: var(--panel-space-xl);
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) var(--panel-width-aside);
+}
+
+/* Le volet, et les deux boutons qui n’ont de sens qu’en couche : le retour
+   vers l’aperçu, et l’ouverture de la liste. Ancré, le volet est simplement la
+   seconde colonne de la grille, et ni l’un ni l’autre n’a de rôle. */
+.basalte-inspector {
+  min-width: 0;
+}
+
+.basalte-inspector__close,
+.basalte-inspector__open {
+  display: none;
+}
+
+/* Le bouton qui ouvre le volet se pose sur l’aperçu, en bas à droite : c’est
+   le seul chemin vers la liste tant qu’on n’a rien désigné. */
+.basalte-inspector__open {
+  position: absolute;
+  z-index: 30;
+  right: var(--panel-space-xxl);
+  bottom: var(--panel-space-xxl);
+  box-shadow: var(--panel-elevation-2);
 }
 
 /* L’aperçu est un seul objet : sa barre d’outils et la page qu’elle commande
@@ -3073,55 +3154,30 @@ textarea.basalte-input {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  /* En une colonne, il n’y a plus de colonnes à faire défiler chacune pour
-     elle-même : la page reprend le défilement. La structure vient d’abord,
-     puis le formulaire, puis l’aperçu — ce qu’on règle avant ce qu’on relit. */
-  .basalte-main[data-fill='true'] {
-    display: block;
-    overflow-y: auto;
-    padding-bottom: var(--panel-space-gutter);
+  /* L’aperçu prend l’écran, et le volet vient par-dessus lui — jamais
+     par-dessus la barre d’application, où « Enregistrer » et « Mettre en
+     ligne » vivent à la même place partout. Le volet ne se démonte pas pour
+     autant : c’est la seule règle qui change de forme, pas l’arbre. */
+  .basalte-inspector {
+    position: absolute;
+    z-index: 40;
+    inset: 0;
+    background: var(--panel-color-surface);
   }
 
-  .basalte-main[data-fill='true'] .basalte-edit {
-    align-items: start;
+  .basalte-inspector[data-open='false'] {
+    display: none;
   }
 
-  .basalte-edit > .basalte-stage,
-  .basalte-edit > .basalte-form {
-    order: 0;
+  /* Ancré, le volet n’a nulle part où se fermer ; en couche, il découvre
+     l’aperçu. Le bouton qui le rouvre suit la même règle. Refermé, il n’y a
+     plus rien à cacher : le bouton ne paraît qu’alors. */
+  .basalte-inspector__close {
+    display: inline-flex;
   }
 
-  .basalte-main[data-fill='true'] :where(.basalte-structure, .basalte-form) {
-    overflow: visible;
-    padding: 0;
-    margin: 0;
-  }
-
-  /* Empilée, la structure tient sur deux colonnes — la page et sa langue à
-     côté des sections — pour que le formulaire ne descende pas d’un écran. */
-  .basalte-structure {
-    display: grid;
-    align-items: start;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .basalte-structure > .basalte-banner,
-  .basalte-structure > :only-child {
-    grid-column: 1 / -1;
-  }
-
-  /* Un champ d’un bord à l’autre d’une tablette fait des lignes trop longues
-     pour être relues : le formulaire garde la largeur d’une page. */
-  .basalte-form {
-    max-width: var(--panel-width-page);
-  }
-
-  /* L’aperçu ne tire plus sa hauteur de la colonne : il la déclare. Il
-     cesse d’être flexible pour cela — un `flex: 1` dans une colonne sans
-     hauteur ignore la hauteur écrite et se tasse sur sa barre. */
-  .basalte-stage__screen {
-    flex: none;
-    height: 70vh;
+  .basalte-inspector__open:has(~ .basalte-inspector[data-open='false']) {
+    display: inline-flex;
   }
 }
 
@@ -3227,8 +3283,7 @@ textarea.basalte-input {
     flex: 1;
   }
 
-  .basalte-account,
-  .basalte-structure {
+  .basalte-account {
     grid-template-columns: minmax(0, 1fr);
   }
 

@@ -20,7 +20,6 @@ export default block({
       of: {
         image: f.image({
           label: 'Logo',
-          help: 'Le nom de la marque se saisit comme texte alternatif dans la médiathèque.',
           required: true,
         }),
         href: f.url({ label: 'Lien', external: true }),

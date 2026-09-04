@@ -15,12 +15,10 @@ export default block({
     }),
     file: f.document({
       label: 'Le document',
-      help: 'Un PDF, déposé dans la médiathèque.',
       required: true,
     }),
     label: f.text({
       label: 'Libellé du bouton',
-      help: 'Laissé vide, il reprend « Télécharger ».',
       i18n: true,
       max: 40,
     }),

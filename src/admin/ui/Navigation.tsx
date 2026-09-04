@@ -13,6 +13,8 @@
 import { useState, type ReactNode } from 'react'
 
 import { Count } from './Badge.js'
+import { IconButton } from './Button.js'
+import { Settings } from './icons.js'
 import { joined } from './Layout.js'
 import { Anchor, Menu } from './Overlay.js'
 
@@ -87,29 +89,33 @@ export function Brand({ name }: { readonly name: string }) {
   )
 }
 
-type AvatarProps = {
-  /** L’adresse du compte : sa première lettre fait l’avatar. */
-  readonly account: string
+/**
+ * Les réglages, et le menu qu’ils ouvrent : le compte, et la déconnexion.
+ *
+ * C’était une pastille à l’initiale du compte, sous une pastille à l’initiale
+ * du site : deux cercles lettrés pour une seule personne, et le second promettait
+ * un compte quand le menu porte aussi la sortie. Seule l’identité du site
+ * compte, et elle reste en tête du rail.
+ */
+export function AccountMenu({
+  label,
+  children,
+}: {
   readonly label: string
   readonly children: ReactNode
-}
-
-/** L’avatar du compte, et le menu qu’il ouvre. */
-export function Avatar({ account, label, children }: AvatarProps) {
+}) {
   const [opened, setOpened] = useState(false)
 
   return (
     <Anchor>
-      <button
-        type="button"
-        className="basalte-avatar"
-        aria-label={label}
+      <IconButton
+        label={label}
+        toggled={opened}
         aria-expanded={opened}
-        title={label}
         onClick={() => setOpened((state) => !state)}
       >
-        {initial(account)}
-      </button>
+        <Settings />
+      </IconButton>
       <Menu opened={opened} onClose={() => setOpened(false)} label={label}>
         {children}
       </Menu>

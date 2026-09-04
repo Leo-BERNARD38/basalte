@@ -15,7 +15,6 @@ export default block({
       of: {
         value: f.text({
           label: 'Le chiffre',
-          help: 'Avec son unité et son signe, tels qu’ils s’affichent.',
           i18n: true,
           required: true,
           max: 12,

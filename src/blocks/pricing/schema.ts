@@ -27,14 +27,12 @@ export default block({
         }),
         price: f.text({
           label: 'Prix',
-          help: 'Tel qu’il s’affiche, avec sa devise : « 890 € ».',
           i18n: true,
           required: true,
           max: 24,
         }),
         note: f.text({
           label: 'Précision de prix',
-          help: 'Par exemple « à partir de », « par mois », « TTC ».',
           i18n: true,
           max: 60,
         }),

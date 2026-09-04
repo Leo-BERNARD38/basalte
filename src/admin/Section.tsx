@@ -8,6 +8,11 @@
 //
 // Une section masquée se dit par les hachures, comme tout ce qui n’existe pas
 // encore sur le site : le bandeau rappelle qu’elle reste modifiable ici.
+//
+// Le titre de la section suffit à dire ce qu’on remplit. Ce qu’une section
+// *fait* se lit au moment où on la choisit, dans la fenêtre d’ajout, et pas
+// une fois de plus au-dessus de chaque formulaire : on la connaît, puisqu’on
+// vient de la poser.
 
 import type { PageBlock } from '../content/page.js'
 import type { PanelBlockType } from '../server/panel.js'
@@ -17,12 +22,11 @@ import { FieldSet, type FieldIssue } from './fields/Field.js'
 import { Button } from './ui/Button.js'
 import { Group, Stack } from './ui/Layout.js'
 import { Banner } from './ui/Surface.js'
-import { Eyebrow, Text, Title } from './ui/Text.js'
+import { Text, Title } from './ui/Text.js'
 import { SwitchRow } from './ui/Toggle.js'
 
 export function Section({
   section,
-  context,
   type,
   hideable = true,
   issues,
@@ -30,8 +34,6 @@ export function Section({
   onRemove,
 }: {
   readonly section: PageBlock
-  /** Ce que la ligne de contexte ajoute : la langue écrite, s’il y en a plusieurs. */
-  readonly context?: string | undefined
   readonly type: PanelBlockType | undefined
   /** L’en-tête et le pied de page sont sur toutes les pages : ils ne se masquent pas. */
   readonly hideable?: boolean
@@ -46,15 +48,7 @@ export function Section({
 
   return (
     <Stack gap="xl">
-      <Stack gap="xs">
-        <Eyebrow>
-          {['section choisie', context]
-            .filter((part) => part !== undefined)
-            .join(' · ')}
-        </Eyebrow>
-        <Title role="title-md">{type?.label ?? section.type}</Title>
-        {type?.help !== undefined && <Text tone="muted">{type.help}</Text>}
-      </Stack>
+      <Title role="title-md">{type?.label ?? section.type}</Title>
 
       {hideable && (
         <SwitchRow

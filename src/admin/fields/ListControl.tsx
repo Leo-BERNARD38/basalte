@@ -31,13 +31,7 @@ import { Modal } from '../ui/Overlay.js'
 import { Row, RowGlyph, RowText } from '../ui/Row.js'
 import { Card } from '../ui/Surface.js'
 import { Text } from '../ui/Text.js'
-import {
-  below,
-  FieldSet,
-  hint,
-  useFieldError,
-  type ControlProps,
-} from './Field.js'
+import { below, FieldSet, useFieldError, type ControlProps } from './Field.js'
 
 export function ListControl({
   description,
@@ -88,7 +82,6 @@ export function ListControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group

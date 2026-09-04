@@ -13,7 +13,6 @@ export type FieldDescription = {
   readonly name: string
   readonly kind: FieldKind
   readonly label: string
-  readonly help?: string
   readonly required: boolean
   readonly i18n: boolean
   readonly min?: number
@@ -39,7 +38,6 @@ function describe(name: string, field: AnyField): FieldDescription {
     label: field.label ?? name,
     required: field.required,
     i18n: 'i18n' in field && field.i18n,
-    ...(field.help === undefined ? {} : { help: field.help }),
     ...detail(field),
   }
 }

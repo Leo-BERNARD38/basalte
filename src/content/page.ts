@@ -14,14 +14,12 @@ export const CONTENT_FORMAT = 1
 export const META_FIELDS = {
   title: f.text({
     label: 'Titre de la page',
-    help: 'Ce que Google affiche en bleu, et ce que porte l’onglet.',
     i18n: true,
     required: true,
     max: 60,
   }),
   description: f.textarea({
     label: 'Description',
-    help: 'Les deux lignes affichées sous le titre dans les résultats.',
     i18n: true,
     required: true,
     max: 160,
@@ -31,7 +29,6 @@ export const META_FIELDS = {
   // vide, la carte reprend la première image de la page (D124).
   image: f.image({
     label: 'Image de partage',
-    help: 'Ce qui s’affiche quand le lien de cette page est partagé.',
     ratio: '1200/630',
   }),
 }

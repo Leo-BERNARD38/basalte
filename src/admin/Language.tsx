@@ -44,7 +44,11 @@ function draftMark(language: PanelLanguage | undefined) {
   )
 }
 
-export function Language() {
+/**
+ * `form` : « bar » quand le choix se tient dans une tête d’écran, où une
+ * hauteur de champ n’a pas sa place.
+ */
+export function Language({ form }: { readonly form?: 'bar' | undefined }) {
   const editing = useEditing()
   const [opened, setOpened] = useState(false)
 
@@ -55,9 +59,10 @@ export function Language() {
   )
 
   return (
-    <Anchor fill>
+    <Anchor fill={form === undefined}>
       <Selector
         label="Langue"
+        form={form}
         value={chosen?.label ?? editing.language}
         mark={draftMark(chosen)}
         opened={opened}

@@ -28,7 +28,6 @@ export default block({
         }),
         image: f.image({
           label: 'Portrait',
-          help: 'Facultatif. Le texte alternatif se règle dans la médiathèque.',
           ratio: '1/1',
         }),
       },

@@ -26,6 +26,15 @@ const FOCUSABLE =
 const stack: HTMLElement[] = []
 
 /**
+ * Vrai tant qu’une fenêtre est ouverte. Ce qui écoute l’échappement ailleurs
+ * dans le panel s’en sert pour se taire : deux écouteurs posés sur le même
+ * document, la fenêtre ne peut pas retenir la touche pour elle seule.
+ */
+export function overlaid(): boolean {
+  return stack.length > 0
+}
+
+/**
  * Le curseur à l’ouverture. React pose `autoFocus` lui-même, avant cet effet et
  * sans laisser d’attribut à chercher : un champ déjà visé garde donc le
  * curseur, et le premier pas ne sert qu’à la fenêtre qui ne vise rien.

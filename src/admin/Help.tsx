@@ -86,7 +86,15 @@ export function notesFor(
       addingNote(support),
       {
         heading: 'L’aperçu',
-        body: 'Il montre le dernier enregistrement, c’est-à-dire ce qui partira en ligne. Enregistrez pour le voir se mettre à jour.',
+        body: 'Cliquez une section dedans pour la modifier : ce que vous voyez est ce que vous réglez. Il montre le dernier enregistrement, c’est-à-dire ce qui partira en ligne — enregistrez pour le voir se mettre à jour.',
+      },
+      {
+        heading: 'Un champ laissé vide',
+        body: 'Beaucoup se remplissent tout seuls. Sans logo, le nom du site s’affiche en toutes lettres ; sans liens dans l’en-tête, le menu reprend les pages du site ; sans libellé, un bouton de téléchargement dit « Télécharger » et le mot du menu sur téléphone dit « Menu ». Les horaires s’écrivent en 09:00, une ligne par jour ouvré.',
+      },
+      {
+        heading: 'Mettre un texte en forme',
+        body: 'Dans un texte long : ## pour un titre, - pour une liste, **gras**, *italique*, et [libellé](https://…) pour un lien. Le reste s’affiche tel quel, et l’aperçu sous le champ montre le résultat.',
       },
     ],
     journal: [

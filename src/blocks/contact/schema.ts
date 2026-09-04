@@ -15,7 +15,6 @@ export default block({
     }),
     labels: f.group({
       label: 'Libellés du formulaire',
-      help: 'Laissés vides, ils reprennent le libellé français par défaut.',
       fields: {
         name: f.text({ label: 'Champ « nom »', i18n: true, max: 40 }),
         email: f.text({ label: 'Champ « email »', i18n: true, max: 40 }),
@@ -25,7 +24,6 @@ export default block({
     }),
     answers: f.group({
       label: 'Réponses au visiteur',
-      help: 'Ce qui s’affiche une fois le formulaire envoyé.',
       fields: {
         sent: f.textarea({
           label: 'Message reçu',
@@ -49,7 +47,6 @@ export default block({
     }),
     consent: f.richtext({
       label: 'Mention de consentement',
-      help: 'Obligatoire en pratique : elle dit à quoi servent les coordonnées, et mène à la politique de confidentialité — [libellé](/confidentialite).',
       i18n: true,
       max: 300,
     }),

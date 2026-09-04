@@ -105,8 +105,3 @@ export function FieldSet({
     />
   ))
 }
-
-/** La phrase d’aide d’un champ, sous son libellé. */
-export function hint(description: FieldDescription): string | undefined {
-  return description.help
-}

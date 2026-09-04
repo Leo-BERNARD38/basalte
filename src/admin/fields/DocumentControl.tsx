@@ -8,7 +8,7 @@ import { Field } from '../ui/Field.js'
 import { Group, Spacer } from '../ui/Layout.js'
 import { Card } from '../ui/Surface.js'
 import { Mono, Text } from '../ui/Text.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 export function DocumentControl({
   description,
@@ -30,7 +30,6 @@ export function DocumentControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group

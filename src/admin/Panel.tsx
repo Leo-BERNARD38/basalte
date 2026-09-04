@@ -731,11 +731,17 @@ export default function Panel({
  * Le titre de l’en-tête : ce qui est ouvert quand un écran ouvre quelque chose,
  * le nom de l’écran ailleurs.
  */
+/**
+ * Ce que la barre d’application nomme : la page ouverte sur « Édition », et le
+ * nom de l’écran partout ailleurs. « Actualités » en fait partie : son écran
+ * est la liste de ses billets, et le billet qu’on écrit porte son titre dans
+ * l’en-tête de son propre niveau — le dire deux fois n’ajoutait rien.
+ */
 function heading(screen: Screen, opened: string | undefined): string {
   const label =
     SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
 
-  return screen === 'edit' || screen === 'journal' ? (opened ?? label) : label
+  return screen === 'edit' ? (opened ?? label) : label
 }
 
 function warning(asked: Asked | undefined): string {

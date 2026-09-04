@@ -22,7 +22,6 @@ import type {
 
 type Common = {
   readonly label?: string
-  readonly help?: string
   readonly required?: boolean
 }
 
@@ -161,7 +160,6 @@ export type FieldTypeDoc = {
 
 const COMMON = [
   'label — libellé affiché dans le panel',
-  'help — phrase d’aide sous le champ',
   'required — refuse une valeur vide',
 ]
 

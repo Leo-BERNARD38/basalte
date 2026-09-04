@@ -231,8 +231,6 @@ export const tokens = {
   width: {
     form: '400px',
     page: '860px',
-    /** La colonne de structure : la page, sa langue, ses sections. */
-    structure: '248px',
     /** La colonne où l’on écrit, et le panneau d’une médiathèque. */
     aside: '400px',
     menu: '300px',

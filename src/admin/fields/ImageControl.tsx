@@ -13,7 +13,7 @@ import { Field } from '../ui/Field.js'
 import { Picture } from '../ui/icons.js'
 import { Group, Spacer, Stack } from '../ui/Layout.js'
 import { Text } from '../ui/Text.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 export function ImageControl({
   description,
@@ -38,7 +38,6 @@ export function ImageControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group

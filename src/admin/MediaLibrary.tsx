@@ -372,7 +372,6 @@ function MediaDetail({
                 ? `Texte alternatif (${language.label})`
                 : 'Texte alternatif'
             }
-            hint="Ce que lisent les personnes qui ne voient pas l’image."
           >
             {(bound) => (
               <TextField

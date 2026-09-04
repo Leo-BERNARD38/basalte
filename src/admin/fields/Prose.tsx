@@ -17,7 +17,7 @@ import { translated, withLanguage } from '../draft.js'
 import { useEditing } from '../editing.js'
 import { Field, TextArea, TextField, type Bound } from '../ui/Field.js'
 import { Text } from '../ui/Text.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 const ROWS = 4
 
@@ -96,7 +96,6 @@ export function Prose({ description, value, issues, onChange }: ControlProps) {
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       foot={counter}

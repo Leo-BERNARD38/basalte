@@ -1,20 +1,20 @@
-// L’écran d’édition, en trois colonnes : ce qu’on modifie, le formulaire de
-// ce qui est choisi, et l’aperçu. C’est l’écran par défaut, celui que le
-// client ouvre chaque semaine.
+// L’écran d’édition, en deux colonnes : l’aperçu, et le volet de ce qu’on
+// modifie. C’est l’écran par défaut, celui que le client ouvre chaque semaine.
 //
-// La première colonne est la structure : la page ouverte et la langue écrite,
-// puis les sections de la page. C’est le plan de ce qu’on modifie, et c’est
-// pourquoi le choix de la page vit ici et non dans la barre de l’aperçu — une
-// puce d’adresse au bout d’une barre d’outils ne se lisait pas comme le menu
-// des pages, et disparaissait sous le formulaire dès que l’écran s’empilait.
-// La deuxième colonne est le formulaire, et il commence en haut : il n’a plus
-// à attendre que la liste des sections et les avertissements du site soient
-// passés. La troisième est l’aperçu (D96), réduit à l’échelle de sa colonne.
+// L’aperçu est la surface de travail : on y désigne une section en cliquant
+// dessus, et on y demande une section de plus entre deux autres. Le choix de la
+// page se fait dans sa barre, comme l’adresse dans une chrome de navigateur.
+// Une troisième colonne portait la page, la langue et la liste des sections ;
+// la sélection s’y faisait, et c’était sa raison d’être — elle se fait
+// maintenant là où l’on voit ce qu’on désigne.
 //
-// Ce que le site a à corriger avant sa mise en ligne se tient en tête du
-// formulaire, parce que c’est là qu’on y remédie ; ce qui ne fait que demander
-// un regard se range au pied de la structure, replié, parce qu’il ne concerne
-// pas la page ouverte plus qu’une autre.
+// Le volet ne montre qu’une chose à la fois : la liste des sections, ce qui
+// appartient à la page, ou le formulaire de la section choisie. Empilées, les
+// trois faisaient une colonne qu’on ne lisait plus.
+//
+// Ce que le site a à corriger se tient en tête du volet, dans les trois vues :
+// c’est là qu’on y remédie, et une même annonce à deux endroits se disait deux
+// fois.
 //
 // Une section se masque par langue, jamais par support (D107) : la liste ne
 // porte donc qu’une marque de masquage, et le support ne s’y règle pas.
@@ -23,32 +23,41 @@ import { useState } from 'react'
 
 import type { ContentIssue } from '../content/report.js'
 import type { PanelBlockType, PanelPayload } from '../server/panel.js'
-import { asideOf, asidesOf } from './asides.js'
-import {
-  emptyValues,
-  move,
-  sectionSummary,
-  type Draft,
-  type Values,
-} from './draft.js'
-import { editedLanguage, previewAddress, useEditing } from './editing.js'
+import { asideOf } from './asides.js'
+import { emptyValues, type Draft, type Values } from './draft.js'
+import { previewAddress, useEditing } from './editing.js'
 import { FieldSet, type FieldIssue } from './fields/Field.js'
+import { Inspector } from './Inspector.js'
 import { Language } from './Language.js'
-import { orderedPages, pageTitle } from './pages.js'
+import { pageTitle } from './pages.js'
+import { PageMenu } from './PageMenu.js'
 import { Section } from './Section.js'
-import { SortableItem, SortableList } from './Sortable.js'
+import { Sections } from './Sections.js'
 import { Stage } from './Stage.js'
-import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
-import { Description, Grip, HiddenMark, Plus } from './ui/icons.js'
+import { ArrowBack, Description } from './ui/icons.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
-import { Anchor, Menu, Modal, Selector } from './ui/Overlay.js'
-import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
-import { Banner, Card, Empty } from './ui/Surface.js'
-import { Eyebrow, Mono, plural, Text, Title } from './ui/Text.js'
+import { Modal } from './ui/Overlay.js'
+import { Banner, Empty } from './ui/Surface.js'
+import { Eyebrow, plural, Text, Title } from './ui/Text.js'
+import { Segmented } from './ui/Toggle.js'
 
+/**
+ * Ce que le volet montre : la liste des sections, ce qui appartient à la page,
+ * ou le formulaire de la section choisie. Une chose à la fois — les trois
+ * empilées dans une colonne étaient précisément ce qu’on ne lisait plus.
+ */
 type Focus =
-  { readonly kind: 'meta' } | { readonly kind: 'block'; readonly id: string }
+  | { readonly kind: 'browse'; readonly tab: 'sections' | 'page' }
+  | { readonly kind: 'block'; readonly id: string }
+
+/** Le volet au repos : les sections, parce que c’est ce qu’on modifie. */
+const BROWSE: Focus = { kind: 'browse', tab: 'sections' }
+
+const TABS = [
+  { value: 'sections' as const, label: 'Sections' },
+  { value: 'page' as const, label: 'Page' },
+]
 
 type Problems = PanelPayload['problems']
 
@@ -100,8 +109,11 @@ export function Edit({
   readonly onDraft: (draft: Draft) => void
 }) {
   const editing = useEditing()
-  const [focus, setFocus] = useState<Focus>({ kind: 'meta' })
-  const [opened, setOpened] = useState<string>(selected)
+  const [focus, setFocus] = useState<Focus>(BROWSE)
+  /** La page à laquelle le choix courant appartient. */
+  const [openedPage, setOpenedPage] = useState<string>(selected)
+  /** Vrai quand le volet est déployé : sous 1 200 px, il couvre l’aperçu. */
+  const [opened, setOpened] = useState(false)
   const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
   const [pages, setPages] = useState(false)
   /** Le rang où une section est demandée, ou rien si on n’en demande pas. */
@@ -121,9 +133,10 @@ export function Edit({
     if (wanted !== undefined) {
       setFocus(
         wanted.section === undefined
-          ? { kind: 'meta' }
+          ? { kind: 'browse', tab: 'page' }
           : { kind: 'block', id: wanted.section.id },
       )
+      setOpened(true)
     }
   }
 
@@ -132,16 +145,12 @@ export function Edit({
   const aside = asideOf(payload, selected)
   const fixed = aside !== undefined
 
-  // Le formulaire suit la page ouverte : sans cette remise à zéro, passer
-  // d’une page au chrome laisserait un identifiant que la nouvelle liste ne
-  // porte pas, et le formulaire dirait que la section a disparu.
-  if (opened !== selected) {
-    setOpened(selected)
-    setFocus(
-      aside === undefined
-        ? { kind: 'meta' }
-        : { kind: 'block', id: aside.sections[0]?.id ?? '' },
-    )
+  // Le volet suit la page ouverte : sans cette remise à zéro, passer d’une page
+  // au chrome laisserait un identifiant que la nouvelle liste ne porte pas, et
+  // le volet dirait que la section a disparu.
+  if (openedPage !== selected) {
+    setOpenedPage(selected)
+    setFocus(BROWSE)
   }
 
   // Ce qui bloque, rangé par section : la liste le marque, et le formulaire
@@ -152,7 +161,6 @@ export function Edit({
       .filter((id): id is string => id !== undefined),
   )
   const metaIssues = issuesOf(issues, undefined)
-  const spoken = editedLanguage(editing)
   const page = payload.pages.find((entry) => entry.name === selected)
 
   if (!fixed && page === undefined) {
@@ -170,12 +178,9 @@ export function Edit({
   // fixe : dans les deux cas, un descripteur par type.
   const types = aside?.types ?? payload.library
 
-  // Une entrée fixe n’a pas de métadonnées : son formulaire ouvre sur le
-  // premier emplacement plutôt que sur un formulaire qui n’existe pas.
-  const active: Focus =
-    fixed && focus.kind === 'meta'
-      ? { kind: 'block', id: draft.blocks[0]?.id ?? '' }
-      : focus
+  // Une entrée fixe n’a ni métadonnées ni ordre : son volet n’a que la liste
+  // de ses emplacements, jamais l’onglet « Page ».
+  const active: Focus = fixed && focus.kind === 'browse' ? BROWSE : focus
 
   const focused =
     active.kind === 'block'
@@ -213,9 +218,10 @@ export function Edit({
   // enregistrement : il peut nommer une section que le brouillon vient de
   // perdre, et c’est le brouillon qui fait foi.
   function pickInPreview(id: string): void {
-    if (draft.blocks.some((section) => section.id === id)) {
-      setFocus({ kind: 'block', id })
-    }
+    if (!draft.blocks.some((section) => section.id === id)) return
+
+    setFocus({ kind: 'block', id })
+    setOpened(true)
   }
 
   const problems = payload.problems.length > 0 && (
@@ -273,234 +279,99 @@ export function Edit({
 
   return (
     <div className="basalte-edit">
-      <div className="basalte-structure">
-        <Card pad="sm">
-          <Stack gap="xs">
-            <Anchor fill>
-              <Selector
-                label="Page"
-                value={title}
-                opened={pages}
-                onToggle={() => setPages(!pages)}
-              />
+      <Stage
+        address={(support) => previewAddress(previewed, editing, support)}
+        selection={active.kind === 'block' ? active.id : ''}
+        onPick={pickInPreview}
+        onInsert={fixed ? undefined : setInserting}
+        bar={
+          <PageMenu
+            payload={payload}
+            selected={selected}
+            title={title}
+            opened={pages}
+            onOpened={setPages}
+            onSelect={onSelect}
+          />
+        }
+        stale={dirty}
+        frameKey={String(savedAt ?? 0)}
+        title="Aperçu de la page"
+      />
 
-              <Menu
-                opened={pages}
-                align="left"
-                label="Vos pages"
-                onClose={() => setPages(false)}
-              >
-                <Eyebrow className="basalte-menu__note">
-                  vos pages · cliquez pour la modifier
-                </Eyebrow>
+      {/* Sous 1 200 pixels, le volet vient par-dessus l’aperçu : ce bouton est
+          alors le seul chemin vers la liste, puisqu’on n’a rien désigné. */}
+      <Button
+        className="basalte-inspector__open"
+        variant="tonal"
+        icon={<Description size={18} />}
+        onClick={() => setOpened(true)}
+      >
+        {fixed ? 'Emplacements' : 'Sections'}
+      </Button>
 
-                {orderedPages(payload.pages).map((entry) => (
-                  <Row
-                    key={entry.name}
-                    pill
-                    current={entry.name === selected}
-                    onClick={() => {
-                      onSelect(entry.name)
-                      setPages(false)
-                    }}
-                  >
-                    <RowStack>
-                      <span>{pageTitle(entry, site)}</span>
-                      <Mono className="basalte-row__note">{entry.route}</Mono>
-                    </RowStack>
-                    <Mono className="basalte-row__note">
-                      {entry.blocks.length}{' '}
-                      {plural(entry.blocks.length, 'section')}
-                    </Mono>
-                  </Row>
-                ))}
-
-                <span className="basalte-menu__rule" />
-
-                {asidesOf(payload).map((entry) => (
-                  <Row
-                    key={entry.entry}
-                    pill
-                    current={entry.entry === selected}
-                    onClick={() => {
-                      onSelect(entry.entry)
-                      setPages(false)
-                    }}
-                  >
-                    <RowText>{entry.title}</RowText>
-                  </Row>
-                ))}
-              </Menu>
-            </Anchor>
-
-            <Language />
-
-            {/* Ce qui appartient à la page et non à une section — son titre
-                et sa description — se tient avec la page, pas dans la liste
-                des sections, où la ligne passait pour une section de plus. */}
-            {!fixed && (
-              <Row
-                current={active.kind === 'meta'}
-                wrong={metaIssues.length > 0}
-                onClick={() => setFocus({ kind: 'meta' })}
-              >
-                <RowGlyph>
-                  <Description size={18} />
-                </RowGlyph>
-                <RowText>Titre et description</RowText>
-              </Row>
-            )}
-          </Stack>
-        </Card>
-
-        <Card pad="sm">
-          <Stack gap="md">
-            <Group gap="md" align="baseline" className="basalte-aside__head">
-              <Title role="title-md">
-                {fixed ? 'Emplacements' : 'Sections'}
-              </Title>
-              <Spacer />
-              <Text tone="meta" role="label-md">
-                {draft.blocks.length} {plural(draft.blocks.length, 'section')}
-              </Text>
-            </Group>
-
-            <Stack gap="hair">
-              {fixed ? (
-                // Ni poignée, ni œil barré : une entrée fixe ne se réordonne
-                // pas, et elle ne se masque pas.
-                draft.blocks.map((section) => (
-                  <Row
-                    key={section.id}
-                    current={
-                      active.kind === 'block' && active.id === section.id
-                    }
-                    wrong={wrong.has(section.id)}
-                    onClick={() => setFocus({ kind: 'block', id: section.id })}
-                  >
-                    <RowGlyph />
-                    <RowText>{labelOf(types, section.type)}</RowText>
-                  </Row>
-                ))
-              ) : (
-                <SortableList
-                  ids={draft.blocks.map((section) => section.id)}
-                  onMove={(from, to) =>
-                    onDraft({ ...draft, blocks: move(draft.blocks, from, to) })
-                  }
-                >
-                  {draft.blocks.map((section) => {
-                    const hidden = section.hidden[editing.language] === true
-                    const current =
-                      active.kind === 'block' && active.id === section.id
-                    const kind = labelOf(types, section.type)
-                    const summary = sectionSummary(
-                      types.find((entry) => entry.name === section.type)
-                        ?.fields ?? [],
-                      section.props as Values,
-                      editing.language,
-                    )
-
-                    return (
-                      <SortableItem key={section.id} id={section.id}>
-                        {(handle) => (
-                          <Row
-                            current={current}
-                            hidden={hidden}
-                            wrong={wrong.has(section.id)}
-                            handle={
-                              <button
-                                type="button"
-                                className="basalte-handle"
-                                ref={handle.ref}
-                                aria-label={`Déplacer « ${labelOf(types, section.type)} »`}
-                                {...handle.props}
-                              >
-                                <Grip />
-                              </button>
-                            }
-                            onClick={() =>
-                              setFocus({ kind: 'block', id: section.id })
-                            }
-                          >
-                            {/* Le texte de la section d’abord, sa sorte en
-                                note : c’est le texte qu’on cherche dans une
-                                liste, et quatorze « Grille de cartes » ne
-                                disaient pas laquelle. */}
-                            {summary === '' || summary === kind ? (
-                              <RowText>{kind}</RowText>
-                            ) : (
-                              <RowStack>
-                                <span>{summary}</span>
-                                <Text tone="meta" role="label-md">
-                                  {kind}
-                                </Text>
-                              </RowStack>
-                            )}
-                            {hidden && (
-                              <Mark hatched>
-                                <HiddenMark size={12} />
-                                masquée
-                              </Mark>
-                            )}
-                          </Row>
-                        )}
-                      </SortableItem>
-                    )
-                  })}
-                </SortableList>
-              )}
-            </Stack>
-
-            {!fixed && draft.blocks.length === 0 && (
-              <Empty
-                title="Aucune section"
-                note="Cette page est vide. Ajoutez-en une pour commencer."
-              />
-            )}
-
-            {!fixed && (
+      <Inspector
+        opened={opened}
+        onClose={() => setOpened(false)}
+        head={
+          <>
+            {active.kind === 'block' ? (
               <Button
                 variant="text"
-                icon={<Plus />}
-                onClick={() => setInserting(draft.blocks.length)}
+                size="sm"
+                icon={<ArrowBack size={18} />}
+                onClick={() => setFocus(BROWSE)}
               >
-                Ajouter une section
+                {fixed ? 'Emplacements' : 'Sections'}
               </Button>
+            ) : fixed ? (
+              <Title role="title-md">Emplacements</Title>
+            ) : (
+              <Segmented
+                label="Ce que vous modifiez"
+                value={active.tab}
+                items={TABS}
+                onChange={(tab) => setFocus({ kind: 'browse', tab })}
+              />
             )}
-          </Stack>
-        </Card>
+            <Spacer />
+            <Language form="bar" />
+          </>
+        }
+      >
+        <Stack gap="xl">
+          {problems}
 
-        {!blocking && problems}
-      </div>
+          {active.kind === 'browse' && active.tab === 'sections' && (
+            <Sections
+              draft={draft}
+              types={types}
+              fixed={fixed}
+              wrong={wrong}
+              current=""
+              onFocus={(id) => setFocus({ kind: 'block', id })}
+              onDraft={onDraft}
+              onAdd={setInserting}
+            />
+          )}
 
-      <div className="basalte-form">
-        {blocking && problems}
+          {active.kind === 'browse' && active.tab === 'page' && (
+            <Stack gap="xl">
+              <Text tone="muted">
+                Ce que les moteurs de recherche et les réseaux montrent de cette
+                page.
+              </Text>
+              <FieldSet
+                descriptions={payload.meta}
+                values={draft.meta as Values}
+                issues={metaIssues}
+                onChange={(meta) => onDraft({ ...draft, meta })}
+              />
+            </Stack>
+          )}
 
-        <Card>
-          <Stack gap="xl">
-            {active.kind === 'meta' ? (
-              <Stack gap="xl">
-                <Stack gap="xs">
-                  <Eyebrow>
-                    {[previewed, spoken]
-                      .filter((part) => part !== undefined)
-                      .join(' · ')}
-                  </Eyebrow>
-                  <Title role="title-md">Titre et description</Title>
-                  <Text tone="muted">
-                    Ce que les moteurs de recherche et les réseaux montrent de
-                    cette page.
-                  </Text>
-                </Stack>
-                <FieldSet
-                  descriptions={payload.meta}
-                  values={draft.meta as Values}
-                  issues={metaIssues}
-                  onChange={(meta) => onDraft({ ...draft, meta })}
-                />
-              </Stack>
-            ) : focused === undefined ? (
+          {active.kind === 'block' &&
+            (focused === undefined ? (
               <Empty
                 title="Section introuvable"
                 note="Elle n’est plus dans la page."
@@ -508,20 +379,21 @@ export function Edit({
             ) : (
               <Section
                 section={focused}
-                context={spoken}
                 type={types.find((entry) => entry.name === focused.type)}
                 hideable={!fixed}
                 issues={issuesOf(issues, focused.id)}
                 onRemove={
                   fixed
                     ? undefined
-                    : () =>
+                    : () => {
+                        setFocus(BROWSE)
                         onDraft({
                           ...draft,
                           blocks: draft.blocks.filter(
                             (entry) => entry.id !== focused.id,
                           ),
                         })
+                      }
                 }
                 onChange={(next) =>
                   onDraft({
@@ -532,24 +404,13 @@ export function Edit({
                   })
                 }
               />
-            )}
-          </Stack>
-        </Card>
-      </div>
+            ))}
+        </Stack>
+      </Inspector>
 
-      <Stage
-        address={(support) => previewAddress(previewed, editing, support)}
-        selection={active.kind === 'block' ? active.id : ''}
-        onPick={pickInPreview}
-        onInsert={fixed ? undefined : setInserting}
-        stale={dirty}
-        frameKey={String(savedAt ?? 0)}
-        title="Aperçu de la page"
-      />
-
-      {/* Le choix d’une section est le seul moment où le client a besoin
-          qu’on lui dise ce qu’une section fait : c’est ici, et nulle part
-          ailleurs, que la phrase d’un bloc se lit. */}
+      {/* Le choix d’une section est le seul moment où le client a besoin qu’on
+          lui dise ce qu’une section fait : c’est ici, et nulle part ailleurs,
+          que la phrase d’un bloc se lit. */}
       <Modal
         opened={inserting !== undefined}
         title="Ajouter une section"
@@ -600,11 +461,4 @@ export function issuesOf(
       ...(issue.language === undefined ? {} : { language: issue.language }),
       message: issue.message,
     }))
-}
-
-function labelOf(
-  types: readonly { readonly name: string; readonly label: string }[],
-  type: string,
-): string {
-  return types.find((entry) => entry.name === type)?.label ?? type
 }

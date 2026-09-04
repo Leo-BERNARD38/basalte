@@ -8,11 +8,9 @@ export default block({
   fields: {
     logo: f.image({
       label: 'Logo',
-      help: 'Laissé vide, le nom du site s’affiche en toutes lettres.',
     }),
     links: f.list({
       label: 'Liens du menu',
-      help: 'Laissée vide, la liste reprend les pages du site.',
       itemLabel: 'label',
       // La seule borne haute du socle. Le menu est une rangée qui ne se replie
       // pas : au-delà, elle déborde de la largeur de contenu et toute la page
@@ -30,7 +28,6 @@ export default block({
     }),
     menuLabel: f.text({
       label: 'Bouton du menu',
-      help: 'Le mot qui ouvre le menu sur téléphone. Vide, c’est « Menu ».',
       i18n: true,
       max: 16,
     }),

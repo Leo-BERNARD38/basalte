@@ -235,7 +235,6 @@ export function Account({
 
               <Field
                 label="Nouveau mot de passe"
-                hint={`${MINIMUM} caractères au minimum.`}
                 error={
                   tooShort ? `${MINIMUM} caractères au minimum.` : undefined
                 }

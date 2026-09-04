@@ -37,12 +37,10 @@ export default block({
         }),
         image: f.image({
           label: 'Image',
-          help: 'Facultative. Sans elle, la carte ne porte que son texte.',
           ratio: '16/9',
         }),
         size: f.select({
           label: 'Largeur',
-          help: 'Une carte large occupe deux colonnes sur ordinateur.',
           options: [
             { value: 'normal', label: 'Normale' },
             { value: 'large', label: 'Large' },

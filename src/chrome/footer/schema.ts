@@ -8,7 +8,6 @@ export default block({
   fields: {
     links: f.list({
       label: 'Liens',
-      help: 'Les mentions légales et la politique de confidentialité y vivent. L’adresse et le téléphone, eux, restent dans les mentions légales.',
       itemLabel: 'label',
       of: {
         label: f.text({

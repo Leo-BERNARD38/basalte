@@ -49,7 +49,7 @@ import {
 } from './ui/icons.js'
 import { Divider, Group, Stack } from './ui/Layout.js'
 import {
-  Avatar,
+  AccountMenu,
   Brand,
   Navigation,
   TopAppBar,
@@ -182,7 +182,7 @@ export function Shell({
     }))
 
   const account = (
-    <Avatar account={payload.account} label="Compte">
+    <AccountMenu label="Réglages">
       <Stack gap="xs">
         <div className="basalte-menu__note">
           <Text role="label-md" tone="meta">
@@ -205,7 +205,7 @@ export function Shell({
           <RowText>Se déconnecter</RowText>
         </Row>
       </Stack>
-    </Avatar>
+    </AccountMenu>
   )
 
   const navigation = (form: 'rail' | 'bar') => (
