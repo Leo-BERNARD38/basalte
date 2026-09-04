@@ -1,30 +1,39 @@
-// La typographie du panel. Le contraste vient de la graisse et de la taille,
-// pas de la couleur : cinq pas, quatre graisses, et le chiffre en chasse fixe
-// pour qu’une colonne s’aligne.
+// La typographie du panel : l’échelle de type de Material. Un titre porte un
+// style de titre ou d’en-tête, un texte un style de corps ou d’étiquette, et
+// le contraste vient de la graisse et de la taille avant la couleur. Le
+// chiffre passe en chasse fixe pour qu’une colonne s’aligne.
 
 import type { ComponentProps, ReactNode } from 'react'
 
 import { joined } from './Layout.js'
 
+export type TextRole =
+  'body-lg' | 'body-md' | 'body-sm' | 'label-lg' | 'label-md' | 'label-sm'
+
+export type TitleRole =
+  'headline-md' | 'headline-sm' | 'title-lg' | 'title-md' | 'title-sm'
+
 type TextProps = ComponentProps<'span'> & {
   readonly tone?: 'muted' | 'meta' | 'refused' | 'strong' | undefined
-  readonly size?: 'eyebrow' | undefined
+  /** Le corps moyen par défaut. */
+  readonly role?: TextRole | undefined
   readonly children: ReactNode
 }
 
 type TitleProps = ComponentProps<'h2'> & {
-  readonly rank?: 'card' | undefined
+  /** Le grand titre par défaut ; l’en-tête moyen pour le titre d’un écran. */
+  readonly role?: TitleRole | undefined
   /** Le rang dans le plan de la page. Un écran en porte un et un seul. */
   readonly level?: 1 | undefined
   readonly children: ReactNode
 }
 
-export function Text({ tone, size, className, children, ...rest }: TextProps) {
+export function Text({ tone, role, className, children, ...rest }: TextProps) {
   return (
     <span
       className={joined('basalte-text', className)}
       data-tone={tone}
-      data-size={size}
+      data-role={role}
       {...rest}
     >
       {children}
@@ -33,7 +42,7 @@ export function Text({ tone, size, className, children, ...rest }: TextProps) {
 }
 
 export function Title({
-  rank,
+  role,
   level,
   className,
   children,
@@ -44,7 +53,7 @@ export function Title({
   return (
     <Tag
       className={joined('basalte-title', className)}
-      data-rank={rank}
+      data-role={role ?? (level === 1 ? 'headline-md' : undefined)}
       {...rest}
     >
       {children}

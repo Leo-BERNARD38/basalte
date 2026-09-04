@@ -15,7 +15,7 @@
 // Les documents partagent cet écran plutôt qu’un sixième onglet (D63), et ne
 // s’y montrent que si le site les accepte.
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 import type { PanelPayload } from '../server/panel.js'
 import type { MediaSummary } from '../server/library.js'
@@ -28,9 +28,10 @@ import { Button } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
-import { Banner, Card, Empty } from './ui/Surface.js'
+import { Banner, Card, CardBody, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
-import { Segmented } from './ui/Toggle.js'
+import { Tabs } from './ui/Tabs.js'
+import { Search } from './ui/icons.js'
 
 const CENTRE = 50
 
@@ -56,6 +57,7 @@ export function MediaLibrary({
   readonly onChanged: () => void
 }) {
   const editing = useEditing()
+  const detail = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<View>('images')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState('')
@@ -76,7 +78,7 @@ export function MediaLibrary({
   const images = view === 'images'
 
   return (
-    <Stack>
+    <Stack className="basalte-medias">
       {problem !== '' && (
         <Banner tone="refused">
           <Stack gap="sm">
@@ -95,9 +97,9 @@ export function MediaLibrary({
         </Banner>
       )}
 
-      <Group>
+      <Group wrap>
         {editing.capabilities.documents && (
-          <Segmented
+          <Tabs
             value={view}
             items={[
               { value: 'images', label: 'Images' },
@@ -105,18 +107,20 @@ export function MediaLibrary({
             ]}
             onChange={setView}
             label="Ce que l’écran range"
-            tone="ink"
           />
         )}
 
-        <TextField
-          value={search}
-          aria-label={
-            images ? 'Rechercher une image' : 'Rechercher un document'
-          }
-          placeholder="Rechercher"
-          onChange={(event) => setSearch(event.target.value)}
-        />
+        <span className="basalte-search">
+          <Search size={18} />
+          <TextField
+            value={search}
+            aria-label={
+              images ? 'Rechercher une image' : 'Rechercher un document'
+            }
+            placeholder="Rechercher"
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </span>
 
         <Spacer />
 
@@ -141,59 +145,71 @@ export function MediaLibrary({
         )}
       </Group>
 
-      <div className="basalte-edit">
+      <div className="basalte-library">
         {images ? (
           <>
-            <MediaGrid
-              media={media}
-              selected={selected}
-              columns={6}
-              flag={(item) =>
-                item.usage === 0 ? 'jamais utilisée' : undefined
-              }
-              slot={
-                <div className="basalte-slot">
-                  La prochaine image se rangera ici
-                </div>
-              }
-              empty={
-                asked === '' ? (
+            <Card fill>
+              <CardBody>
+                <MediaGrid
+                  media={media}
+                  selected={selected}
+                  columns={6}
+                  flag={(item) =>
+                    item.usage === 0 ? 'jamais utilisée' : undefined
+                  }
+                  empty={
+                    asked === '' ? (
+                      <Empty
+                        title="Aucune image pour l’instant"
+                        note="Ajoutez-en une : elle se rangera ici, et l’onglet « Édition » pourra la poser sur une page."
+                      />
+                    ) : (
+                      <Empty
+                        title="Aucune image ne répond à cette recherche"
+                        note="La recherche porte sur le texte alternatif des images."
+                      />
+                    )
+                  }
+                  onSelect={(key) => {
+                    setSelected(key)
+                    requestAnimationFrame(() =>
+                      detail.current?.scrollIntoView({
+                        block: 'nearest',
+                        behavior: 'smooth',
+                      }),
+                    )
+                  }}
+                />
+              </CardBody>
+            </Card>
+
+            {/* Sur un écran étroit, le panneau se range sous la grille, et
+                la vignette choisie l’amène en vue : sans ce défilement, le
+                client cliquait et ne voyait rien changer. */}
+            <Card fill className="basalte-aside" ref={detail}>
+              <CardBody>
+                {entry === undefined ? (
                   <Empty
-                    title="Aucune image pour l’instant"
-                    note="Ajoutez-en une : elle se rangera ici, et l’onglet « Édition » pourra la poser sur une page."
+                    title="Aucune image choisie"
+                    note="Cliquez une vignette : sa description, son sujet et les pages où elle sert s’ouvrent ici."
                   />
                 ) : (
-                  <Empty
-                    title="Aucune image ne répond à cette recherche"
-                    note="La recherche porte sur le texte alternatif des images."
+                  <MediaDetail
+                    key={entry.key}
+                    entry={entry}
+                    languages={editing.languages}
+                    places={placesOf(payload, entry.key)}
+                    onOpen={onOpen}
+                    onChanged={onChanged}
+                    onDeleted={() => {
+                      setSelected('')
+                      onChanged()
+                    }}
+                    onError={setProblem}
                   />
-                )
-              }
-              onSelect={setSelected}
-            />
-
-            <div className="basalte-rail">
-              {entry === undefined ? (
-                <Empty
-                  title="Aucune image choisie"
-                  note="Cliquez une vignette : sa description, son sujet et les pages où elle sert s’ouvrent ici."
-                />
-              ) : (
-                <MediaDetail
-                  key={entry.key}
-                  entry={entry}
-                  languages={editing.languages}
-                  places={placesOf(payload, entry.key)}
-                  onOpen={onOpen}
-                  onChanged={onChanged}
-                  onDeleted={() => {
-                    setSelected('')
-                    onChanged()
-                  }}
-                  onError={setProblem}
-                />
-              )}
-            </div>
+                )}
+              </CardBody>
+            </Card>
           </>
         ) : (
           <DocumentPanel
@@ -321,13 +337,13 @@ function MediaDetail({
   }
 
   return (
-    <Card>
+    <>
       <Stack>
         <Group gap="md">
-          <Title rank="card">Cette image</Title>
+          <Title role="title-md">Cette image</Title>
           <Spacer />
           {saved && !busy && (
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               Enregistré
             </Text>
           )}
@@ -362,7 +378,6 @@ function MediaDetail({
                 ? `Texte alternatif (${language.label})`
                 : 'Texte alternatif'
             }
-            hint="Ce que lisent les personnes qui ne voient pas l’image."
           >
             {(bound) => (
               <TextField
@@ -387,7 +402,7 @@ function MediaDetail({
 
         <Stack gap="xs">
           <Eyebrow>Point focal</Eyebrow>
-          <Text id={`${name}-focal`} tone="muted" size="eyebrow">
+          <Text id={`${name}-focal`} tone="muted" role="label-md">
             Cliquez le sujet de l’image, ou déplacez le point aux flèches :
             c’est lui que le cadrage garde toujours visible, quel que soit le
             format de l’emplacement. Il est à {focal.x} % depuis la gauche et{' '}
@@ -398,7 +413,8 @@ function MediaDetail({
         <Stack gap="xs">
           <Group>
             <Button
-              tone="danger"
+              variant="text"
+              tone="error"
               busy={busy}
               disabled={entry.usage > 0}
               onClick={() => setAsked(true)}
@@ -407,7 +423,7 @@ function MediaDetail({
             </Button>
           </Group>
           {entry.usage > 0 && (
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               Une section l’emploie : retirez-la d’abord de la page.
             </Text>
           )}
@@ -422,7 +438,7 @@ function MediaDetail({
           <>
             <Spacer />
             <Button onClick={() => setAsked(false)}>La garder</Button>
-            <Button tone="danger" onClick={() => void drop()}>
+            <Button variant="text" tone="error" onClick={() => void drop()}>
               Supprimer
             </Button>
           </>
@@ -433,6 +449,6 @@ function MediaDetail({
           garde ailleurs.
         </Text>
       </Modal>
-    </Card>
+    </>
   )
 }

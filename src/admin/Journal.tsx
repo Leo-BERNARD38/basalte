@@ -1,5 +1,4 @@
-// L’écran « Actualités » : la liste des billets, le formulaire de celui qui est
-// ouvert, et son aperçu.
+// L’écran « Actualités » : les billets du journal.
 //
 // C’est le sixième écran, et il en fallait un. D63 refusait le sixième parce
 // que « Réglages » était vide ; un journal ne l’est pas, et `panel.md` fait
@@ -8,55 +7,40 @@
 // « Édition » ne pouvait pas l’accueillir — c’est un menu déroulant, et il
 // devient inutilisable à trente entrées.
 //
-// L’écran ne ressemble pas à « Édition », et c’est le fond de la chose : un
-// billet n’a ni sections à choisir, ni ordre à régler. On ouvre, on écrit, on
-// enregistre. Trois colonnes le disent : les billets, celui qu’on écrit, et ce
-// qu’il donnera.
+// L’écran a **deux niveaux**, parce que le client y fait trois gestes et pas
+// un de plus : créer un billet, en reprendre un, en supprimer un. Le premier
+// niveau est la liste, en pleine largeur : une carte par billet, sa couverture,
+// sa date, et l’état de sa parution. Les trois gestes s’y voient d’un coup
+// d’œil. Le second est le billet, qui remplace le contenu de l’écran — l’aperçu
+// et le volet, exactement la forme de « Édition ».
+//
+// Ce niveau ne couvre pas la barre d’application : « Enregistrer » et « Mettre
+// en ligne » restent à la même place que sur les cinq autres écrans (D214), et
+// rien n’est dupliqué. Un billet, lui, n’a ni sections ni ordre : son volet ne
+// porte que ses champs, sa parution et sa suppression.
 
 import { useState } from 'react'
 
-import { formatDate, today } from '../fields/date.js'
 import type { ContentIssue } from '../content/report.js'
+import { formatDate, today } from '../fields/date.js'
+import { POST_SECTION } from '../journal/page.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { DraftPost } from '../server/posts.js'
 import type { Values } from './draft.js'
-import { editedLanguage, previewAddress, useEditing } from './editing.js'
-import { issuesOf } from './Edit.js'
-import { FieldSet } from './fields/Field.js'
+import { previewAddress, useEditing } from './editing.js'
+import { FieldSet, issuesOf } from './fields/Field.js'
+import { Inspector } from './Inspector.js'
 import { Language } from './Language.js'
-import { Mark } from './ui/Badge.js'
-import { Button } from './ui/Button.js'
+import { PostCard } from './PostCard.js'
+import { Stage } from './Stage.js'
+import { Button, Fab, IconButton } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
-import { Desktop, HiddenMark, Mobile, Plus } from './ui/icons.js'
+import { ArrowBack, Edit, Add } from './ui/icons.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
-import { Row, RowStack } from './ui/Row.js'
-import { Card, Empty } from './ui/Surface.js'
-import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
-import { Segmented, Switch } from './ui/Toggle.js'
-
-type Viewport = 'desktop' | 'mobile'
-
-const SUPPORTS = [
-  {
-    value: 'desktop' as const,
-    label: (
-      <>
-        <Desktop />
-        Bureau
-      </>
-    ),
-  },
-  {
-    value: 'mobile' as const,
-    label: (
-      <>
-        <Mobile />
-        Mobile
-      </>
-    ),
-  },
-]
+import { Card, CardBody, CardHead, Empty } from './ui/Surface.js'
+import { Mono, plural, Text, Title } from './ui/Text.js'
+import { SwitchRow } from './ui/Toggle.js'
 
 export type PostValues = {
   readonly hidden: Readonly<Record<string, boolean>>
@@ -89,10 +73,13 @@ export function Journal({
   readonly onDelete: (slug: string) => void
 }) {
   const editing = useEditing()
-  const [viewport, setViewport] = useState<Viewport>('desktop')
   const [writing, setWriting] = useState(false)
   const [title, setTitle] = useState('')
   const [removing, setRemoving] = useState<DraftPost | undefined>(undefined)
+  /** Vrai quand on écrit un billet : le second niveau couvre la liste. */
+  const [opened, setOpened] = useState(false)
+  /** Le volet du billet : déployé, et refermable quand il vient en couche. */
+  const [panel, setPanel] = useState(true)
 
   const journal = payload.journal
 
@@ -111,160 +98,167 @@ export function Journal({
 
     setWriting(false)
     setTitle('')
+    setOpened(true)
+    setPanel(true)
     onCreate(wanted)
+  }
+
+  // Ouvrir un billet peut demander confirmation, quand un autre porte des
+  // modifications : le second niveau ne s’ouvre alors que sur celui qui reste.
+  const write = (slug: string) => {
+    setOpened(true)
+    setPanel(true)
+    onSelect(slug)
   }
 
   return (
     <div className="basalte-journal">
-      <Card pad="sm">
-        <Stack gap="md">
-          <Button tone="ink" block onClick={() => setWriting(true)}>
-            <Plus />
+      <Card fill>
+        <CardHead>
+          <Title role="title-md">Billets</Title>
+          <Text tone="meta" role="label-md">
+            {posts.length} {plural(posts.length, 'billet')}
+          </Text>
+          <Spacer />
+          <Button
+            variant="filled"
+            icon={<Add />}
+            onClick={() => setWriting(true)}
+          >
             Nouveau billet
           </Button>
+        </CardHead>
 
-          <Group gap="md" align="baseline" className="basalte-rail__head">
-            <Title rank="card">Billets</Title>
-            <Spacer />
-            <Mono className="basalte-row__note">{posts.length}</Mono>
-          </Group>
-
-          <Stack gap="hair">
-            {posts.map((post) => {
-              const away = post.hidden[editing.language] === true
-
-              return (
-                <Row
-                  key={post.slug}
-                  current={post.slug === selected}
-                  hidden={away}
-                  onClick={() => onSelect(post.slug)}
-                >
-                  <RowStack>
-                    <span>{post.title}</span>
-                    <Mono className="basalte-row__note">
-                      {formatDate(post.date, editing.language)}
-                    </Mono>
-                  </RowStack>
-                  {away && (
-                    <Mark hatched>
-                      <HiddenMark size={12} />
-                      brouillon
-                    </Mark>
-                  )}
-                </Row>
-              )
-            })}
-          </Stack>
-
-          {posts.length === 0 && (
+        <CardBody>
+          {posts.length === 0 ? (
             <Empty title="Aucun billet" note="Le premier s’écrit maintenant.">
               <Button size="sm" onClick={() => setWriting(true)}>
                 Nouveau billet
               </Button>
             </Empty>
-          )}
-        </Stack>
-      </Card>
-
-      <Card>
-        {open === undefined ? (
-          <Empty
-            title="Rien à modifier"
-            note="Choisissez un billet à gauche, ou écrivez-en un."
-          />
-        ) : (
-          <Stack gap="xl">
-            <Group gap="md" align="start" wrap>
-              <Stack gap="xs">
-                <Eyebrow>
-                  {[open.route, editedLanguage(editing)]
-                    .filter((part) => part !== undefined)
-                    .join(' · ')}
-                </Eyebrow>
-                <Title rank="card">{open.title}</Title>
-              </Stack>
-              <Spacer />
-              <Switch
-                on={!hidden}
-                shown
-                label="Le billet paraît sur le site"
-                onChange={() =>
-                  onDraft({
-                    ...draft,
-                    hidden: { ...draft.hidden, [editing.language]: !hidden },
-                  })
-                }
-              />
-            </Group>
-
-            <Text tone="meta" size="eyebrow">
-              {hidden
-                ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
-                : 'Ce billet partira à la prochaine mise en ligne.'}
-            </Text>
-
-            <FieldSet
-              descriptions={journal.fields}
-              values={draft.fields}
-              issues={issuesOf(issues, undefined)}
-              onChange={(fields) => onDraft({ ...draft, fields })}
-            />
-
-            <Group>
-              <Button
-                tone="danger"
-                disabled={busy}
-                onClick={() => setRemoving(open)}
-              >
-                Supprimer ce billet
-              </Button>
-            </Group>
-          </Stack>
-        )}
-      </Card>
-
-      {/* L’aperçu d’un billet est le même objet que celui d’une page : sa barre
-          et ce qu’elle commande partagent un filet et un rayon. Le support
-          demandé se lit sur le cadre, et non sur la page qu’il porte — sans
-          quoi « Mobile » changeait le rendu sans jamais rétrécir la fenêtre
-          qui le montre. */}
-      <div className="basalte-stage">
-        <div className="basalte-stage__screen" data-viewport={viewport}>
-          <div className="basalte-stage__bar">
-            <Segmented
-              tone="ink"
-              label="Le support regardé"
-              value={viewport}
-              items={SUPPORTS}
-              onChange={setViewport}
-            />
-
-            <Spacer />
-
-            <Language />
-          </div>
-
-          {open !== undefined && dirty && (
-            <Text className="basalte-stage__note" tone="meta" size="eyebrow">
-              L’aperçu montre le dernier enregistrement. Enregistrez pour le
-              voir se mettre à jour.
-            </Text>
-          )}
-
-          {open === undefined ? (
-            <Empty
-              title="Aucun billet ouvert"
-              note="Choisissez-en un à gauche, ou écrivez-en un."
-            />
           ) : (
-            <iframe
-              key={`${savedAt ?? 0}-${viewport}-${open.slug}`}
-              className="basalte-stage__frame"
-              title="Aperçu du billet"
-              src={previewAddress(open.route, editing, viewport)}
-            />
+            <div className="basalte-posts">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.slug}
+                  post={post}
+                  media={editing.media}
+                  away={post.hidden[editing.language] === true}
+                  language={editing.language}
+                  onWrite={() => write(post.slug)}
+                  onRemove={() => setRemoving(post)}
+                />
+              ))}
+            </div>
           )}
+        </CardBody>
+      </Card>
+
+      {/* Le second niveau : le billet ouvert, avec la même forme que l’écran
+          d’édition. Il ne se démonte pas d’un écran à l’autre — c’est la
+          feuille qui le montre, et l’aperçu garde son cadre. */}
+      <div className="basalte-writer" data-open={String(opened)}>
+        <div className="basalte-writer__head">
+          <IconButton
+            label="Revenir aux billets"
+            onClick={() => setOpened(false)}
+          >
+            <ArrowBack />
+          </IconButton>
+          <Title role="title-md">{open?.title ?? 'Billet'}</Title>
+          {open !== undefined && (
+            <Mono className="basalte-row__note">{open.route}</Mono>
+          )}
+        </div>
+
+        <div className="basalte-writer__body">
+          <Stage
+            address={
+              open === undefined
+                ? undefined
+                : (support) => previewAddress(open.route, editing, support)
+            }
+            // Un billet compilé n’a qu’une section : la viser amène le corps
+            // en vue, plutôt que d’ouvrir sur l’en-tête et la couverture.
+            selection={POST_SECTION}
+            stale={open !== undefined && dirty}
+            frameKey={`${savedAt ?? 0}-${open?.slug ?? ''}`}
+            title="Aperçu du billet"
+            empty={
+              <Empty
+                title="Aucun billet ouvert"
+                note="Revenez à la liste pour en choisir un."
+              />
+            }
+          />
+
+          <Fab
+            className="basalte-inspector__open"
+            extended
+            label="Le billet"
+            icon={<Edit size={18} />}
+            onClick={() => setPanel(true)}
+          />
+
+          <Inspector
+            opened={panel}
+            onClose={() => setPanel(false)}
+            head={
+              <>
+                <Title role="title-md">Le billet</Title>
+                <Spacer />
+                <Language form="bar" />
+              </>
+            }
+          >
+            {open === undefined ? (
+              <Empty
+                title="Rien à modifier"
+                note="Revenez à la liste pour choisir un billet."
+              />
+            ) : (
+              <Stack gap="xl">
+                <Stack gap="sm">
+                  <SwitchRow
+                    on={!hidden}
+                    label="Le billet paraît sur le site"
+                    onChange={() =>
+                      onDraft({
+                        ...draft,
+                        hidden: {
+                          ...draft.hidden,
+                          [editing.language]: !hidden,
+                        },
+                      })
+                    }
+                  />
+                  <Text tone="meta" role="label-md">
+                    {hidden
+                      ? 'Masqué : ce billet ne partira pas à la prochaine mise en ligne.'
+                      : 'Ce billet partira à la prochaine mise en ligne.'}
+                  </Text>
+                </Stack>
+
+                <FieldSet
+                  descriptions={journal.fields}
+                  values={draft.fields}
+                  issues={issuesOf(issues, undefined)}
+                  onChange={(fields) => onDraft({ ...draft, fields })}
+                />
+
+                <Group>
+                  <Button
+                    variant="text"
+                    tone="error"
+                    disabled={busy}
+                    onClick={() => setRemoving(open)}
+                  >
+                    Supprimer ce billet
+                  </Button>
+                </Group>
+              </Stack>
+            )}
+          </Inspector>
         </div>
       </div>
 
@@ -276,17 +270,18 @@ export function Journal({
           <>
             <Spacer />
             <Button onClick={() => setWriting(false)}>Annuler</Button>
-            <Button tone="ink" disabled={title.trim() === ''} onClick={compose}>
+            <Button
+              variant="filled"
+              disabled={title.trim() === ''}
+              onClick={compose}
+            >
               Écrire
             </Button>
           </>
         }
       >
         <Stack gap="lg">
-          <Field
-            label="Titre"
-            hint="Il fait l’adresse du billet, et ne changera plus ensuite."
-          >
+          <Field label="Titre">
             {(bound) => (
               <TextField
                 {...bound}
@@ -313,11 +308,13 @@ export function Journal({
             <Spacer />
             <Button onClick={() => setRemoving(undefined)}>Le garder</Button>
             <Button
-              tone="danger"
+              variant="text"
+              tone="error"
               onClick={() => {
                 const slug = removing?.slug
 
                 setRemoving(undefined)
+                setOpened(false)
 
                 if (slug !== undefined) onDelete(slug)
               }}

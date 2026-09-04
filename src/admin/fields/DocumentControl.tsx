@@ -8,7 +8,7 @@ import { Field } from '../ui/Field.js'
 import { Group, Spacer } from '../ui/Layout.js'
 import { Card } from '../ui/Surface.js'
 import { Mono, Text } from '../ui/Text.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 export function DocumentControl({
   description,
@@ -30,7 +30,6 @@ export function DocumentControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group
@@ -39,12 +38,12 @@ export function DocumentControl({
         <Card nested pad="sm" {...bound}>
           <Group gap="sm">
             {entry === undefined ? (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 Aucun document
               </Text>
             ) : (
               <>
-                <Text size="eyebrow">{entry.name}</Text>
+                <Text role="label-md">{entry.name}</Text>
                 <Mono>{documentWeight(entry.bytes)}</Mono>
               </>
             )}
@@ -53,7 +52,12 @@ export function DocumentControl({
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button tone="danger" size="xs" onClick={() => onChange('')}>
+              <Button
+                variant="text"
+                tone="error"
+                size="xs"
+                onClick={() => onChange('')}
+              >
                 Retirer
               </Button>
             )}

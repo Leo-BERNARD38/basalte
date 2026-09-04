@@ -42,12 +42,10 @@ const DAYS = [
 export const BUSINESS_FIELDS = {
   legalName: f.text({
     label: 'Raison sociale',
-    help: 'Le nom légal de l’entreprise, tel qu’il figure sur un devis.',
     max: 120,
   }),
   kind: f.select({
     label: 'Type d’activité',
-    help: 'Ce que Google affiche à côté du nom dans ses résultats.',
     options: KINDS,
   }),
   address: f.group({
@@ -63,16 +61,14 @@ export const BUSINESS_FIELDS = {
   email: f.text({ label: 'Adresse email', max: 120 }),
   area: f.text({
     label: 'Zone desservie',
-    help: 'La ville ou la région où l’entreprise intervient.',
     max: 120,
   }),
   hours: f.list({
     label: 'Horaires',
-    help: 'Une ligne par jour ouvré. Laisse vide si les horaires varient.',
     of: {
       day: f.select({ label: 'Jour', options: DAYS }),
-      opens: f.text({ label: 'Ouverture', help: 'Par exemple 09:00', max: 5 }),
-      closes: f.text({ label: 'Fermeture', help: 'Par exemple 18:00', max: 5 }),
+      opens: f.text({ label: 'Ouverture', max: 5 }),
+      closes: f.text({ label: 'Fermeture', max: 5 }),
     },
     itemLabel: 'day',
   }),

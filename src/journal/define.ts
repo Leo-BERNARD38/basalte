@@ -77,19 +77,16 @@ export function resolveJournal(
 export const POST_FIELDS = {
   title: f.text({
     label: 'Titre',
-    help: 'Ce que Google affiche en bleu, et le grand titre du billet.',
     i18n: true,
     required: true,
     max: 60,
   }),
   date: f.date({
     label: 'Date',
-    help: 'Le jour du billet. C’est lui qui ordonne le journal.',
     required: true,
   }),
   excerpt: f.textarea({
     label: 'Résumé',
-    help: 'Les deux lignes lues dans la liste et sous le titre dans les résultats.',
     i18n: true,
     required: true,
     max: 160,
@@ -97,7 +94,6 @@ export const POST_FIELDS = {
   }),
   cover: f.image({
     label: 'Image de couverture',
-    help: 'Elle ouvre le billet, et c’est elle qu’on voit quand le lien est partagé.',
     ratio: '16/9',
   }),
   body: f.richtext({
@@ -109,7 +105,6 @@ export const POST_FIELDS = {
   }),
   gallery: f.list({
     label: 'Photos',
-    help: 'Facultatif : des images en fin de billet.',
     of: {
       image: f.image({ label: 'Photo', required: true }),
       caption: f.text({ label: 'Légende', i18n: true, max: 120 }),

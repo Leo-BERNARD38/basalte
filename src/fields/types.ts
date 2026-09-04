@@ -17,7 +17,6 @@ export interface Fields {
 
 type Base = {
   readonly label?: string
-  readonly help?: string
   readonly required: boolean
 }
 

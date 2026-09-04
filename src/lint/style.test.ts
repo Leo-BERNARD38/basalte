@@ -101,7 +101,7 @@ describe('hardcodedStyle, sur la feuille du panel', () => {
       'var(--panel-space-… )',
     )
     expect(panel('.a {\n  color: #fff;\n}')[0]?.message).toContain(
-      'var(--panel-ink-1)',
+      'var(--panel-color-on-surface)',
     )
   })
 

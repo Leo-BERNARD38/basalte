@@ -7,164 +7,169 @@
 // `basalte lint` le relit pour tenir le plancher de contraste (D164), et c’est
 // pourquoi il n’importe rien : la commande est du Node.
 //
-// Cinq principes portent l’allure. Un filet d’un pixel sépare deux plans, et
-// l’ombre ne reste qu’à ce qui flotte réellement au-dessus du reste. Le panel
-// n’a pas de couleur d’identité : le neutre est pur, l’action est noire, ce
-// qui se mesure est noir, et la sélection se donne par le poids de son aplat —
-// ne restent en couleur que le vert qui dit « en ligne » et le rouge qui
-// refuse. La forme pleine est le défaut, et trois familles gardent l’arête —
-// les champs et les lignes de liste, parce qu’une colonne se lit sur un axe
-// vertical net, et les surfaces, parce qu’on ne manipule pas une carte.
-// Enfin, l’écart porte la hiérarchie avant le trait : l’échelle monte jusqu’à
-// la gouttière d’un écran, et la typographie ne compte que cinq pas, chacun
-// séparé du suivant d’assez pour se voir.
+// Le panel parle Material Design 3 (D194). Ses couleurs sont des rôles, et
+// chaque rôle est un ton d’une palette tirée d’une graine : ce que ce module
+// écrit en clair est le schéma de la graine neutre, en clair puis en sombre,
+// et `scheme.test.ts` vérifie que c’est bien la sortie de `scheme.ts` — une
+// valeur retouchée à la main s’y verrait. Un site qui déclare sa graine reçoit
+// les mêmes rôles à ses couleurs, par une feuille inline (D199).
+//
+// Le reste est l’échelle de Material : la forme en sept rayons, le texte en
+// douze tailles, l’élévation en cinq ombres posées sur des surfaces de plus
+// en plus claires, le mouvement en trois durées et trois courbes, et les
+// couches d’état qui disent le survol, le focus et l’appui par une même
+// opacité posée sur la couleur du contenu.
 
 export const tokens = {
-  surface: {
-    /** Le seul gris de fond : le canvas de l’application, la scène d’aperçu. */
-    canvas: '#f5f5f5',
-    card: '#ffffff',
-    /** Le creux d’une carte posée dans une autre, et l’en-tête d’un tableau. */
-    raised: '#fafafa',
-    /**
-     * L’aplat de ce que le client est en train de modifier, et le surlignage
-     * d’un texte sélectionné. C’est la seule marque de la sélection, dans tout
-     * le panel : ni chevron, ni bâtonnet, ni coche — un aplat et un cran de
-     * graisse, partout pareil. Il se tient donc entre deux bornes : assez
-     * franc pour se distinguer du survol, assez clair pour ne pas se lire
-     * comme une ligne éteinte. Il ne porte que l’encre 1 et l’encre 2 :
-     * l’encre 3 n’y tient que 4,2:1.
-     */
-    chosen: '#e8e8eb',
-    /** Le plan sombre : la barre du haut et le bouton qui agit. */
-    ink: '#17171a',
-    /** Le noir plein, où le plan sombre n’a plus qu’un cran à descendre. */
-    inkHover: '#000000',
-  },
-
   /**
-   * Trois niveaux, pas quatre : entre l’encre pleine et une surface presque
-   * blanche, un quatrième gris lisible à 4,5:1 serait indiscernable du
-   * troisième.
+   * Les rôles de couleur, dans les deux modes. La feuille pose le clair sur
+   * `:root`, et le sombre sous `prefers-color-scheme: dark`.
    */
-  ink: {
-    1: '#17171a',
-    2: '#5c5c60',
-    3: '#6e6e73',
+  color: {
+    light: {
+      primary: '#5e5e62',
+      onPrimary: '#ffffff',
+      primaryContainer: '#e2e2e7',
+      onPrimaryContainer: '#1b1b1f',
+      secondary: '#5e5e60',
+      onSecondary: '#ffffff',
+      secondaryContainer: '#e2e2e5',
+      onSecondaryContainer: '#1b1b1d',
+      tertiary: '#5e5e60',
+      onTertiary: '#ffffff',
+      tertiaryContainer: '#e2e2e5',
+      onTertiaryContainer: '#1b1b1d',
+      error: '#ac3131',
+      onError: '#ffffff',
+      errorContainer: '#ffdad6',
+      onErrorContainer: '#410003',
+      success: '#146d34',
+      onSuccess: '#ffffff',
+      successContainer: '#a3f5b4',
+      onSuccessContainer: '#002108',
+      warning: '#815500',
+      onWarning: '#ffffff',
+      warningContainer: '#ffddb0',
+      onWarningContainer: '#2a1800',
+      surface: '#f9f9fb',
+      surfaceDim: '#dadadc',
+      surfaceBright: '#f9f9fb',
+      surfaceContainerLowest: '#ffffff',
+      surfaceContainerLow: '#f3f3f6',
+      surfaceContainer: '#eeeef0',
+      surfaceContainerHigh: '#e8e8ea',
+      surfaceContainerHighest: '#e2e2e5',
+      onSurface: '#1b1b1d',
+      onSurfaceVariant: '#46464a',
+      outline: '#77777b',
+      outlineVariant: '#c6c6cb',
+      inverseSurface: '#303032',
+      inverseOnSurface: '#f0f0f3',
+      inversePrimary: '#c6c6cb',
+      scrim: '#000000',
+      shadow: '#000000',
+    },
+    dark: {
+      primary: '#c6c6cb',
+      onPrimary: '#303034',
+      primaryContainer: '#46464a',
+      onPrimaryContainer: '#e2e2e7',
+      secondary: '#c6c6c8',
+      onSecondary: '#303032',
+      secondaryContainer: '#464648',
+      onSecondaryContainer: '#e2e2e5',
+      tertiary: '#c6c6c8',
+      onTertiary: '#303032',
+      tertiaryContainer: '#464648',
+      onTertiaryContainer: '#e2e2e5',
+      error: '#ffb3ad',
+      onError: '#68000a',
+      errorContainer: '#8f0e19',
+      onErrorContainer: '#ffdad6',
+      success: '#87d899',
+      onSuccess: '#003915',
+      successContainer: '#005322',
+      onSuccessContainer: '#a3f5b4',
+      warning: '#f6bc6a',
+      onWarning: '#452b00',
+      warningContainer: '#624000',
+      onWarningContainer: '#ffddb0',
+      surface: '#131315',
+      surfaceDim: '#131315',
+      surfaceBright: '#39393b',
+      surfaceContainerLowest: '#0e0e10',
+      surfaceContainerLow: '#1b1b1d',
+      surfaceContainer: '#1f1f21',
+      surfaceContainerHigh: '#2a2a2b',
+      surfaceContainerHighest: '#353536',
+      onSurface: '#e2e2e5',
+      onSurfaceVariant: '#c6c6cb',
+      outline: '#909095',
+      outlineVariant: '#46464a',
+      inverseSurface: '#e2e2e5',
+      inverseOnSurface: '#303032',
+      inversePrimary: '#5e5e62',
+      scrim: '#000000',
+      shadow: '#000000',
+    },
   },
 
-  /** L’encre posée sur le plan sombre. */
-  onInk: {
-    1: '#ffffff',
-    2: '#c2c2c6',
-    3: '#a1a1a6',
-  },
-
-  /** Le filet, à la distance où il sépare. */
-  line: {
-    /** Entre deux plans d’une même page — carte, tableau, champ. */
-    hair: '#ebebed',
-    /** Autour d’un objet posé sur le canvas — barre flottante. */
-    edge: '#e6e6e8',
-    /** Autour de ce qui flotte au-dessus — menu, modale. */
-    strong: '#e2e2e5',
-    /** Entre deux lignes d’un même tableau. */
-    soft: '#f2f2f4',
-  },
-
-  /** Ce qui est dessiné plutôt que lu, et ne porte donc jamais de texte. */
-  mute: {
-    /**
-     * La barre d’un graphique qui n’est pas aujourd’hui. Elle porte une
-     * valeur : c’est le seul de ces trois gris qui tienne le plancher du
-     * dessin, et c’est pourquoi il est plus sombre qu’il n’en a l’air.
-     */
-    chart: '#8e8e95',
-    /** La poignée au repos, le glyphe inerte. */
-    draw: '#c2c2c6',
-    /** Le libellé d’un contrôle éteint. Jamais sur blanc. */
-    inert: '#a1a1a6',
-  },
-
-  /**
-   * Les deux seules couleurs du panel, et elles disent toutes les deux quelque
-   * chose. Le panel n’a pas de couleur d’identité : la sélection se donne par
-   * le poids de son aplat et ce qui se mesure est noir, si bien qu’aucune
-   * teinte n’entre jamais en concurrence avec le site que le client édite,
-   * ouvert en aperçu au milieu de l’écran.
-   */
+  /** L’opacité d’une couche d’état, posée sur la couleur du contenu. */
   state: {
-    /** Tout est enregistré, la section paraît. Toujours doublé du mot. */
-    online: '#1a7f4b',
-    /** Ce qui bloque l’enregistrement, et ce qui détruit. */
-    refused: '#c0362c',
-    refusedWash: '#fdf1f0',
-    refusedLine: '#f6d9d6',
-    /**
-     * Ce qui mérite un regard sans rien empêcher. L’ambre se distingue du
-     * rouge par ce qu’il autorise : on peut mettre en ligne avec, jamais
-     * contre le rouge.
-     */
-    watch: '#8f5300',
-    watchWash: '#fdf6ec',
-    watchLine: '#f5e2c4',
+    hover: '8%',
+    focus: '10%',
+    pressed: '10%',
+    drag: '16%',
+    /** Le contenu d’un contrôle éteint, et son fond. */
+    disabledContent: '38%',
+    disabledContainer: '12%',
   },
 
-  /**
-   * Le mouvement. Une seule courbe pour tout ce qui se pose — départ franc,
-   * arrivée longue — et une durée choisie sur la distance parcourue. Sous
-   * `prefers-reduced-motion`, il ne reste que l’attente qui tourne.
-   */
   motion: {
-    /** Une couleur qui change sous le curseur. */
-    fast: '120ms',
-    /** Ce qui se déplace : la pastille d’un interrupteur, un panneau. */
-    base: '200ms',
-    /** Ce qui paraît par-dessus la page. */
-    slow: '260ms',
-    /** Départ franc, arrivée longue : la courbe de ce qui se pose. */
-    ease: 'cubic-bezier(0.2, 0, 0, 1)',
-    /** L’aller-retour d’un même objet, sans arrivée privilégiée. */
-    swing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    short: '100ms',
+    medium: '250ms',
+    long: '400ms',
+    standard: 'cubic-bezier(0.2, 0, 0, 1)',
+    decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+    accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
   },
-
-  /** Le voile posé sur le plan sombre, où aucun gris ne tiendrait. */
-  veil: {
-    hover: 'rgb(255 255 255 / 9%)',
-    chip: 'rgb(255 255 255 / 8%)',
-    chipHover: 'rgb(255 255 255 / 15%)',
-  },
-
-  /** Le seul noir du panel, et il n’est pas une encre. */
-  scrim: 'rgb(23 23 26 / 44%)',
 
   /**
-   * Les hachures à 45°. Elles ne décorent aucun fond : elles marquent les
-   * trois choses qui n’existent pas encore sur le site — un brouillon, une
-   * section masquée, un emplacement vide.
+   * Les cinq niveaux d’ombre de Material. Une surface s’élève d’abord par sa
+   * couleur — un conteneur plus clair —, l’ombre ne vient qu’à ce qui se
+   * détache vraiment : une carte élevée, un menu, une fenêtre, un bouton
+   * flottant.
+   */
+  elevation: {
+    1: '0 1px 2px rgb(0 0 0 / 30%), 0 1px 3px 1px rgb(0 0 0 / 15%)',
+    2: '0 1px 2px rgb(0 0 0 / 30%), 0 2px 6px 2px rgb(0 0 0 / 15%)',
+    3: '0 1px 3px rgb(0 0 0 / 30%), 0 4px 8px 3px rgb(0 0 0 / 15%)',
+    4: '0 2px 3px rgb(0 0 0 / 30%), 0 6px 10px 4px rgb(0 0 0 / 15%)',
+    5: '0 4px 4px rgb(0 0 0 / 30%), 0 8px 12px 6px rgb(0 0 0 / 15%)',
+  },
+
+  scrim: 'rgb(0 0 0 / 32%)',
+
+  /**
+   * Les hachures à 45° : un pixel tous les six, sur la couleur du contenu
+   * pour qu’elles s’inversent avec le mode. Elles marquent ce qui n’existe
+   * pas encore sur le site — un brouillon, une section masquée, un
+   * emplacement vide.
    */
   hatch:
-    'repeating-linear-gradient(45deg, rgb(23 23 26 / 7.5%) 0 1px, transparent 1px 6px)',
+    'repeating-linear-gradient(45deg, color-mix(in srgb, currentColor 12%, transparent) 0 1px, transparent 1px 6px)',
 
-  /**
-   * La forme pleine est le défaut. Ces quatre rayons sont ce qui garde une
-   * arête : un champ, une ligne de liste, une carte, une fenêtre.
-   */
+  /** L’échelle de forme de Material, du carré au plein. */
   radius: {
-    field: '10px',
-    nested: '12px',
-    surface: '16px',
-    modal: '20px',
-    pill: '999px',
-    /** L’arrondi d’une barre de graphique : un dessin, pas une surface. */
-    bar: '3px',
+    none: '0',
+    xs: '4px',
+    sm: '8px',
+    md: '12px',
+    lg: '16px',
+    xl: '28px',
+    full: '999px',
   },
 
-  /**
-   * L’échelle va du cheveu à la gouttière. Les deux derniers pas ne servent
-   * jamais dans un objet : ils séparent des régions, et c’est par eux qu’un
-   * écran respire.
-   */
   space: {
     hair: '1px',
     xxs: '2px',
@@ -175,78 +180,69 @@ export const tokens = {
     xl: '16px',
     xxl: '20px',
     xxxl: '24px',
-    /** Entre deux régions d’un même écran. */
     region: '32px',
-    /** L’air entre le contenu et le bord de la fenêtre. */
     gutter: '48px',
   },
 
   /**
-   * Cinq pas, et de vrais écarts entre eux. Quatre tailles séparées d’un pixel
-   * ne font pas une hiérarchie : elles font une seule masse de petit gris. Un
-   * écran en emploie trois.
+   * Les tailles de l’échelle de type : un cran sous celles de Material pour
+   * les grands styles, les siennes pour le corps et les étiquettes (D216). Le
+   * panel est un outil de bureau, mais un outil qu’on lit : le corps à
+   * treize pixels ne se lisait pas. La graisse, l’interligne et l’approche de
+   * chaque style vivent dans la feuille : seule la taille est un token, parce
+   * que c’est elle que le lint contrôle.
    */
   text: {
-    /** La méta, l’étiquette, l’en-tête d’une colonne, le contrôle compact. */
-    eyebrow: '12px',
-    body: '15px',
-    /** Le titre d’une carte. */
-    lead: '19px',
-    /** Le titre de l’écran, et lui seul. */
-    title: '28px',
-    /** Le chiffre d’un indicateur. */
-    display: '40px',
+    labelSm: '12px',
+    labelMd: '13px',
+    labelLg: '14px',
+    bodySm: '13px',
+    bodyMd: '14px',
+    bodyLg: '15px',
+    titleSm: '14px',
+    titleMd: '16px',
+    titleLg: '18px',
+    headlineSm: '22px',
+    headlineMd: '26px',
+    displaySm: '30px',
+    displayMd: '36px',
+    displayLg: '45px',
   },
 
   font: {
-    sans: "'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif",
-    mono: "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+    sans: "'Roboto Flex', Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif",
+    mono: "'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
   },
 
-  /** Les hauteurs de contrôle, et rien entre elles. */
   control: {
-    /** La micro-marque, qui tient dans la hauteur d’une ligne de liste. */
-    mark: '22px',
-    xs: '28px',
-    sm: '32px',
-    md: '38px',
-    /** La ligne de liste. */
+    mark: '20px',
+    xs: '26px',
+    sm: '30px',
+    md: '36px',
+    field: '40px',
     row: '40px',
-    /** La barre du haut. */
+    touch: '44px',
+    fab: '48px',
     bar: '60px',
-    /** La cible tactile, sous 60 rem. */
-    touch: '48px',
+    rail: '72px',
   },
 
-  /** Les largeurs de lecture. */
   width: {
-    form: '420px',
+    form: '400px',
     page: '860px',
-    rail: '388px',
-    menu: '322px',
+    /** La colonne où l’on écrit, et le panneau d’une médiathèque. */
+    aside: '400px',
+    menu: '300px',
     modal: '960px',
-    /** Le cadre de l’aperçu en mobile. */
+    snackbar: '560px',
     phone: '414px',
     /**
-     * La colonne de l’application. Au-delà, la fenêtre grandit mais le
-     * contenu reste centré : une ligne qui court la fenêtre entière ne se lit
-     * plus, et un écran collé à ses deux bords n’a plus de composition.
+     * La largeur à laquelle le rendu bureau est demandé, avant réduction :
+     * celle d’un petit écran de bureau, où la mise en page est déjà celle du
+     * bureau — plus large, la réduction rendait le texte illisible pour rien.
      */
+    desktop: '1024px',
     shell: '1600px',
-  },
-
-  /** L’ombre grandit avec la distance au document. Rien d’autre en porte. */
-  shadow: {
-    /** Le bouton à filet — un cheveu, pour qu’il ne s’aplatisse pas. */
-    button: '0 1px 1px rgb(23 23 26 / 4%)',
-    /** La pastille d’un interrupteur à segments, dans sa glissière. */
-    thumb: '0 1px 2px rgb(23 23 26 / 7%)',
-    /** La barre flottante posée sur le canvas. */
-    float: '0 4px 16px rgb(23 23 26 / 9%)',
-    /** Le menu déroulant, et la ligne qu’on est en train de déplacer. */
-    menu: '0 14px 36px rgb(23 23 26 / 16%)',
-    /** La modale — le seul plan qui éteint la page derrière lui. */
-    modal: '0 24px 70px rgb(23 23 26 / 28%)',
   },
 } as const
 

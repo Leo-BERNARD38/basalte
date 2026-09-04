@@ -1,23 +1,34 @@
-// Les surfaces. Une carte se détache par son filet, jamais par une ombre :
-// dans la page, c’est le trait qui sépare, et l’ombre ne reste qu’à ce qui
-// flotte réellement au-dessus du reste.
+// Les surfaces. Une carte est un conteneur posé sur le fond : elle s’en
+// détache par sa couleur, la plus claire des surfaces, et par son rayon.
+// Élevée, elle porte la première ombre ; contournée, un filet (D200).
+//
+// Une carte `fill` tient la hauteur qu’on lui laisse et confie le défilement à
+// son corps : son en-tête reste lisible pendant qu’on parcourt ce qu’elle
+// contient. C’est la carte qui tient, pas la colonne autour d’elle.
 
 import type { ComponentProps, ReactNode } from 'react'
 
+import { ErrorMark } from './icons.js'
 import { joined } from './Layout.js'
 import { Text } from './Text.js'
 
 type CardProps = ComponentProps<'div'> & {
+  readonly variant?: 'elevated' | 'outlined' | undefined
+  /** Le conteneur bas : une carte posée dans une autre, ou en retrait. */
   readonly tone?: 'raised' | undefined
   readonly nested?: boolean | undefined
   readonly pad?: 'sm' | 'lg' | undefined
+  /** La carte prend la hauteur offerte ; son corps porte le défilement. */
+  readonly fill?: boolean | undefined
   readonly children: ReactNode
 }
 
 export function Card({
+  variant,
   tone,
   nested,
   pad,
+  fill,
   className,
   children,
   ...rest
@@ -25,9 +36,11 @@ export function Card({
   return (
     <div
       className={joined('basalte-card', className)}
+      data-variant={variant}
       data-tone={tone}
       data-nested={nested === true ? 'true' : undefined}
       data-pad={pad}
+      data-fill={fill === true ? 'true' : undefined}
       {...rest}
     >
       {children}
@@ -35,10 +48,27 @@ export function Card({
   )
 }
 
-/** Un objet posé sur le canvas, au-dessus de l’aperçu : filet net, et ombre. */
-export function Float({ className, children, ...rest }: ComponentProps<'div'>) {
+/** L’en-tête d’une carte `fill` : il ne défile pas et ne rétrécit pas. */
+export function CardHead({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'div'>) {
   return (
-    <div className={joined('basalte-float', className)} {...rest}>
+    <div className={joined('basalte-card__head', className)} {...rest}>
+      {children}
+    </div>
+  )
+}
+
+/** Le corps d’une carte `fill` : c’est lui, et lui seul, qui défile. */
+export function CardBody({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'div'>) {
+  return (
+    <div className={joined('basalte-card__body', className)} {...rest}>
       {children}
     </div>
   )
@@ -74,13 +104,13 @@ export function Banner({
 /**
  * Ce qui a échoué au niveau du site, et qui n’est attaché à aucun champ : une
  * mise en ligne qui n’a pas abouti, un enregistrement que le serveur a refusé
- * en bloc. Le bandeau traverse la fenêtre sous la barre, en aplat plein — il
- * n’appartient à aucun écran, il ne défile pas, et il reste jusqu’à ce que la
- * cause disparaisse.
+ * en bloc. Le bandeau traverse la fenêtre sous la barre d’application, sur le
+ * conteneur du refus — il n’appartient à aucun écran, il ne défile pas, et il
+ * reste jusqu’à ce que la cause disparaisse.
  *
- * C’est la forme réservée à l’**annonce** : un titre, une précision, rien à
- * cliquer. Ce qui se corrige champ par champ reste dans la page, où le clic
- * mène à l’endroit fautif (D166).
+ * C’est la forme réservée à l’**annonce** : une icône, un titre, une
+ * précision, rien à cliquer. Ce qui se corrige champ par champ reste dans la
+ * page, où le clic mène à l’endroit fautif (D166).
  */
 export function Alert({
   title,
@@ -91,10 +121,13 @@ export function Alert({
 }) {
   return (
     <div className="basalte-alert" role="alert">
-      <strong>{title}</strong>
-      {children !== undefined && (
-        <span className="basalte-alert__note">{children}</span>
-      )}
+      <ErrorMark size={18} />
+      <span className="basalte-alert__text">
+        <strong>{title}</strong>
+        {children !== undefined && (
+          <span className="basalte-alert__note">{children}</span>
+        )}
+      </span>
     </div>
   )
 }
@@ -110,11 +143,7 @@ export function Empty({ title, note, children }: EmptyProps) {
   return (
     <div className="basalte-empty">
       <strong>{title}</strong>
-      {note !== undefined && (
-        <Text tone="meta" data-size="eyebrow">
-          {note}
-        </Text>
-      )}
+      {note !== undefined && <Text tone="meta">{note}</Text>}
       {children}
     </div>
   )

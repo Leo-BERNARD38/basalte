@@ -4,6 +4,7 @@
 
 import type { ComponentType } from 'react'
 
+import type { ContentIssue } from '../../content/report.js'
 import type { FieldDescription } from '../../fields/describe.js'
 import type { FieldKind } from '../../fields/types.js'
 import type { Values } from '../draft.js'
@@ -106,7 +107,19 @@ export function FieldSet({
   ))
 }
 
-/** La phrase d’aide d’un champ, sous son libellé. */
-export function hint(description: FieldDescription): string | undefined {
-  return description.help
+/**
+ * Les incidents d’une section, leur chemin nu : le serveur le donne relatif aux
+ * champs de la section, et c’est exactement ce qu’un `FieldSet` attend.
+ */
+export function issuesOf(
+  issues: readonly ContentIssue[],
+  section: string | undefined,
+): readonly FieldIssue[] {
+  return issues
+    .filter((issue) => issue.section?.id === section)
+    .map((issue) => ({
+      path: issue.path ?? [],
+      ...(issue.language === undefined ? {} : { language: issue.language }),
+      message: issue.message,
+    }))
 }

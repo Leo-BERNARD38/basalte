@@ -2,7 +2,23 @@ import { describe, expect, it } from 'vitest'
 
 import { tokens } from '../admin/tokens.js'
 import { contrast, MINIMUM_RATIO } from './contrast.js'
-import { GRAPHIC_RATIO, panelContrast, panelPairs } from './panel.js'
+import {
+  GRAPHIC_RATIO,
+  panelContrast,
+  panelPairs,
+  seedContrast,
+} from './panel.js'
+
+const PLANES = [
+  'surface',
+  'surfaceDim',
+  'surfaceBright',
+  'surfaceContainerLowest',
+  'surfaceContainerLow',
+  'surfaceContainer',
+  'surfaceContainerHigh',
+  'surfaceContainerHighest',
+]
 
 describe('le plancher de contraste du panel', () => {
   it('tient sur chaque paire que le panel superpose vraiment', () => {
@@ -24,74 +40,69 @@ describe('le plancher de contraste du panel', () => {
     expect(panelContrast('src/admin/tokens.ts')).toEqual([])
   })
 
-  it('couvre chaque niveau d’encre sur chacun des trois plans clairs', () => {
+  it('couvre les deux encres sur la surface et ses cinq conteneurs, dans les deux modes', () => {
     const pairs = panelPairs()
 
-    for (const level of Object.keys(tokens.ink)) {
-      const backs = new Set(
-        pairs
-          .filter((pair) => pair.front === `ink.${level}`)
-          .map((pair) => pair.back),
-      )
+    for (const mode of ['light', 'dark']) {
+      for (const ink of ['onSurface', 'onSurfaceVariant']) {
+        const backs = new Set(
+          pairs
+            .filter((pair) => pair.front === `${mode}.${ink}`)
+            .map((pair) => pair.back),
+        )
 
-      for (const surface of [
-        'surface.canvas',
-        'surface.card',
-        'surface.raised',
-      ]) {
-        expect(backs.has(surface)).toBe(true)
+        for (const plane of PLANES) {
+          expect(
+            backs.has(`${mode}.${plane}`),
+            `${mode}.${ink} sur ${plane}`,
+          ).toBe(true)
+        }
       }
     }
   })
 
-  it('lit aussi l’encre posée sur les deux fonds sombres', () => {
-    const backs = new Set(
+  it('lit la snackbar : ses deux encres sur la surface inverse', () => {
+    const fronts = new Set(
       panelPairs()
-        .filter((pair) => pair.front.startsWith('onInk.'))
-        .map((pair) => pair.back),
+        .filter((pair) => pair.back === 'light.inverseSurface')
+        .map((pair) => pair.front),
     )
 
-    expect(backs).toEqual(new Set(['surface.ink', 'state.refused']))
-  })
-
-  // Le bandeau plein n’écrit qu’en blanc : ses deux niveaux se donnent par la
-  // taille et la graisse. Une seconde encre y descendrait sous le plancher, et
-  // c’est ce que cette borne empêche d’écrire par distraction.
-  it('n’écrit que le blanc plein sur le bandeau de refus', () => {
-    const fronts = panelPairs()
-      .filter((pair) => pair.back === 'state.refused')
-      .map((pair) => pair.front)
-
-    expect(fronts).toEqual(['onInk.1'])
+    expect(fronts).toEqual(
+      new Set(['light.inverseOnSurface', 'light.inversePrimary']),
+    )
   })
 
   it('lit ce qui porte une valeur au seuil du graphique, le texte au sien', () => {
     const pairs = panelPairs()
-    const bar = pairs.find((pair) => pair.front === 'mute.chart')
-    const ink = pairs.find((pair) => pair.front === 'ink.1')
+    const bar = pairs.find(
+      (pair) => pair.front === 'light.primary' && pair.ratio === GRAPHIC_RATIO,
+    )
+    const ink = pairs.find((pair) => pair.front === 'light.onSurface')
 
-    expect(bar?.ratio).toBe(GRAPHIC_RATIO)
+    expect(bar).toBeDefined()
     expect(ink?.ratio).toBe(MINIMUM_RATIO)
   })
 
   it('tient dehors ce qui sépare ou décore, et le tient nommément', () => {
     const fronts = new Set(panelPairs().map((pair) => pair.front))
 
-    // Le filet, la poignée au repos et le glyphe inerte ne portent aucune
-    // information : les mesurer obligerait à les assombrir jusqu’à ce qu’ils
-    // se lisent comme du contenu.
-    expect(fronts.has('line')).toBe(false)
-    expect(fronts.has('mute.draw')).toBe(false)
-    expect(fronts.has('accent.glyph')).toBe(false)
+    // Le filet entre deux plans ne porte aucune information : le mesurer
+    // obligerait à l’assombrir jusqu’à ce qu’il se lise comme du contenu.
+    expect(fronts.has('light.outlineVariant')).toBe(false)
+    expect(fronts.has('dark.outlineVariant')).toBe(false)
+    expect(fronts.has('light.scrim')).toBe(false)
+  })
+
+  it('mesure la graine d’un site, et n’a rien à redire à une couleur franche', () => {
+    expect(seedContrast('site.config.ts', '#2f5bea')).toEqual([])
   })
 
   it('refuserait une encre trop claire — la règle mord', () => {
-    // Les deux valeurs qui étaient écrites avant D164, sur le plan le plus
-    // sombre que le panel porte aujourd’hui.
-    expect(contrast('#9ea3af', tokens.surface.canvas)).toBeLessThan(
+    expect(contrast('#9ea3af', tokens.color.light.surface)).toBeLessThan(
       MINIMUM_RATIO,
     )
-    expect(contrast('#71757f', tokens.surface.canvas)).toBeLessThan(
+    expect(contrast('#71757f', tokens.color.light.surface)).toBeLessThan(
       MINIMUM_RATIO,
     )
   })

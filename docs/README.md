@@ -61,16 +61,18 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 
-Treize phases sont faites : rendu, authentification, panel, mise en ligne,
+Vingt phases sont faites : rendu, authentification, panel, mise en ligne,
 formulaire de contact, livraison, outillage, double rendu, chrome, cadrage des
 images et SEO, notification des messages, relevé du contenu, publication du
-socle. Un site se crée, se met en production et se monte de version en une
-commande chacune ; une version du socle se publie en une commande aussi.
+socle, sections partagées, journal, listes sans borne, relecture du panel,
+direction artistique, habillage des pages, et le panel en Material Design 3.
+Un site se crée, se met en production et se monte de version en une commande
+chacune ; une version du socle se publie en une commande aussi.
 `implementation.md` en tient le relevé, et `decisions.md` la raison de chaque
 choix.
 
-Une phase est écrite et à faire : **Partager** — un bloc écrit une fois sert à
-plusieurs sites.
+Aucune phase n'est en attente : ce qui a été laissé de côté est dans
+`roadmap.md`, avec ce qui le ferait revenir.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

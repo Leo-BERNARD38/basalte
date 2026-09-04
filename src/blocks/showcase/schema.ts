@@ -20,7 +20,6 @@ export default block({
     }),
     points: f.list({
       label: 'Points',
-      help: 'Des lignes courtes, qui se lisent d’un coup d’œil.',
       itemLabel: 'label',
       of: {
         label: f.text({
@@ -33,13 +32,11 @@ export default block({
     }),
     image: f.image({
       label: 'Image',
-      help: 'Le texte alternatif et le point focal se règlent dans la médiathèque.',
       required: true,
       ratio: '4/3',
     }),
     side: f.select({
       label: 'Côté de l’image',
-      help: 'Sur ordinateur seulement. Sur téléphone, l’image suit toujours le texte.',
       options: [
         { value: 'right', label: 'À droite du texte' },
         { value: 'left', label: 'À gauche du texte' },

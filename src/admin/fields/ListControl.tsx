@@ -25,19 +25,13 @@ import { useEditing } from '../editing.js'
 import { SortableItem, SortableList } from '../Sortable.js'
 import { Button } from '../ui/Button.js'
 import { Field } from '../ui/Field.js'
-import { Chevron, Grip } from '../ui/icons.js'
+import { ExpandMore, DragIndicator } from '../ui/icons.js'
 import { Group, Spacer, Stack } from '../ui/Layout.js'
 import { Modal } from '../ui/Overlay.js'
 import { Row, RowGlyph, RowText } from '../ui/Row.js'
 import { Card } from '../ui/Surface.js'
 import { Text } from '../ui/Text.js'
-import {
-  below,
-  FieldSet,
-  hint,
-  useFieldError,
-  type ControlProps,
-} from './Field.js'
+import { below, FieldSet, useFieldError, type ControlProps } from './Field.js'
 
 export function ListControl({
   description,
@@ -88,7 +82,6 @@ export function ListControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group
@@ -97,7 +90,7 @@ export function ListControl({
         <Stack gap="sm" {...bound}>
           <Group gap="sm">
             <Spacer />
-            <Text tone="meta" size="eyebrow">
+            <Text tone="meta" role="label-md">
               {items.length} élément{items.length > 1 ? 's' : ''}
               {description.max === undefined ? '' : ` sur ${description.max}`}
             </Text>
@@ -123,7 +116,7 @@ export function ListControl({
                           aria-label="Déplacer cet élément"
                           {...handle.props}
                         >
-                          <Grip />
+                          <DragIndicator />
                         </button>
                         <Row
                           current={open === index}
@@ -140,11 +133,12 @@ export function ListControl({
                             ) || `Élément ${index + 1}`}
                           </RowText>
                           <RowGlyph>
-                            <Chevron />
+                            <ExpandMore />
                           </RowGlyph>
                         </Row>
                         <Button
-                          tone="danger"
+                          variant="text"
+                          tone="error"
                           size="xs"
                           disabled={scarce}
                           onClick={() =>
@@ -187,12 +181,12 @@ export function ListControl({
               Ajouter un élément
             </Button>
             {full && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 La mise en page de ce bloc n’en porte pas davantage.
               </Text>
             )}
             {scarce && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 Ce bloc en demande au moins {description.min} : « Retirer »
                 attendra qu’il y en ait un de plus.
               </Text>
@@ -211,7 +205,8 @@ export function ListControl({
                 <Spacer />
                 <Button onClick={() => setAsked(null)}>Le garder</Button>
                 <Button
-                  tone="danger"
+                  variant="text"
+                  tone="error"
                   onClick={() => asked !== null && drop(asked)}
                 >
                   Retirer

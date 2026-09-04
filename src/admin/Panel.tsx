@@ -21,13 +21,18 @@ import { Spacer } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Text } from './ui/Text.js'
 import type { ContentIssue } from '../content/report.js'
-import { pageLabel } from '../content/naming.js'
 import type { PublishState } from '../publish/publish.js'
 import type { DraftPage } from '../server/pages.js'
 import type { PanelPayload } from '../server/panel.js'
 import { today } from '../fields/date.js'
 import type { DraftPost } from '../server/posts.js'
 import { Account } from './Account.js'
+import {
+  applyAppearance,
+  readAppearance,
+  writeAppearance,
+  type Appearance,
+} from './appearance.js'
 import {
   createPost,
   deletePost,
@@ -46,6 +51,7 @@ import { DocumentPicker } from './DocumentPicker.js'
 import { MediaLibrary } from './MediaLibrary.js'
 import { MediaPicker } from './MediaPicker.js'
 import { Messages } from './Messages.js'
+import { pageTitle } from './pages.js'
 import { screensFor, SCREENS, Shell, type Screen } from './Shell.js'
 import { SignIn } from './SignIn.js'
 import { Stats } from './Stats.js'
@@ -71,8 +77,23 @@ type Picker = {
   readonly resolve: (key: string | undefined) => void
 }
 
-export default function Panel({ site }: { readonly site: string }) {
+const DARK = '(prefers-color-scheme: dark)'
+
+export default function Panel({
+  site,
+  seed,
+}: {
+  readonly site: string
+  /** La graine du site, pour que « Compte » sache à quoi il revient. */
+  readonly seed?: string | undefined
+}) {
   const [payload, setPayload] = useState<PanelPayload | undefined>(undefined)
+  // L’apparence de cet appareil : le mode et la graine choisis dans
+  // « Compte », posés sur la racine dès le montage — le script d’amorçage
+  // les a déjà posés avant, et c’est ce qui évite le clignotement (D208).
+  const [appearance, setAppearance] = useState<Appearance>(() =>
+    readAppearance(window.localStorage),
+  )
   const [ready, setReady] = useState(false)
   const [screen, setScreen] = useState<Screen>(readScreen())
   const [selected, setSelected] = useState('')
@@ -95,10 +116,15 @@ export default function Panel({ site }: { readonly site: string }) {
   const [asked, setAsked] = useState<Asked | undefined>(undefined)
   const [publication, setPublication] = useState<PublishState>(IDLE)
   const [closed, setClosed] = useState('')
+  // Ce qui vient de réussir, dit une fois en bas de l’écran (D205).
+  const [notice, setNotice] = useState<string | undefined>(undefined)
 
   // La section qu’une ligne du résumé désigne. Elle voyage par l’état plutôt
   // que par un appel : c’est l’écran d’édition qui sait ouvrir une section, et
   // la même charge sert quand le client clique une ligne écrite hier.
+  //
+  // L’écran la suit par identité : recopiée à chaque clic, elle rouvre sa
+  // section même quand c’est la même ligne qu’on vient de cliquer.
   const [wanted, setWanted] = useState<ContentIssue | undefined>(undefined)
 
   // Une session fermée emporte sa raison jusqu’à l’écran de connexion : sans
@@ -219,6 +245,22 @@ export default function Panel({ site }: { readonly site: string }) {
 
     if (opened !== undefined) open(opened)
     else openAside(data, wanted)
+  }
+
+  useEffect(() => {
+    const media = window.matchMedia(DARK)
+    const apply = () =>
+      applyAppearance(appearance, seed, document.documentElement, media.matches)
+
+    apply()
+    media.addEventListener('change', apply)
+
+    return () => media.removeEventListener('change', apply)
+  }, [appearance, seed])
+
+  const chooseAppearance = (next: Appearance) => {
+    setAppearance(next)
+    writeAppearance(window.localStorage, next, seed)
   }
 
   useEffect(() => {
@@ -353,6 +395,7 @@ export default function Panel({ site }: { readonly site: string }) {
     setProblems([])
     setIssues([])
     setSavedAt(Date.now())
+    setNotice('Enregistré')
     await load(
       selected,
       editingJournal ? openedPost : undefined,
@@ -422,6 +465,7 @@ export default function Panel({ site }: { readonly site: string }) {
 
     if (answer.ok) {
       setPublication(answer.data.publication)
+      setNotice('Mise en ligne lancée')
       return
     }
 
@@ -547,17 +591,20 @@ export default function Panel({ site }: { readonly site: string }) {
           shown === 'journal'
             ? post?.title
             : (aside?.title ??
-                (page === undefined ? undefined : pageLabel(page.name))),
+                (page === undefined
+                  ? undefined
+                  : pageTitle(page, known.site.name))),
         )}
         onScreen={goTo}
         dirty={dirty}
         busy={busy}
-        savedAt={savedAt}
         problems={problems}
         refusal={refusal}
         issues={issues}
-        onIssue={setWanted}
+        onIssue={(issue) => setWanted({ ...issue })}
         publication={publication}
+        notice={notice}
+        onNoticeDone={() => setNotice(undefined)}
         onSave={() => void save()}
         onPublish={() => void goOnline()}
         onSignOut={() => ask({ kind: 'sign-out' })}
@@ -620,7 +667,14 @@ export default function Panel({ site }: { readonly site: string }) {
 
         {shown === 'stats' && <Stats onSignedOut={dropSession} />}
 
-        {shown === 'account' && <Account onSignedOut={dropSession} />}
+        {shown === 'account' && (
+          <Account
+            appearance={appearance}
+            siteSeed={seed}
+            onAppearance={chooseAppearance}
+            onSignedOut={dropSession}
+          />
+        )}
       </Shell>
 
       <MediaPicker
@@ -651,13 +705,13 @@ export default function Panel({ site }: { readonly site: string }) {
         onClose={() => setAsked(undefined)}
         foot={
           <>
-            <Button tone="danger" onClick={abandon}>
+            <Button variant="text" tone="error" onClick={abandon}>
               Abandonner les modifications
             </Button>
             <Spacer />
             <Button onClick={() => setAsked(undefined)}>Rester ici</Button>
             <Button
-              tone="ink"
+              variant="filled"
               busy={busy}
               onClick={() => {
                 void keepThenGo()
@@ -677,14 +731,16 @@ export default function Panel({ site }: { readonly site: string }) {
 }
 
 /**
- * Le titre de l’en-tête : ce qui est ouvert quand un écran ouvre quelque chose,
- * le nom de l’écran ailleurs.
+ * Ce que la barre d’application nomme : la page ouverte sur « Édition », et le
+ * nom de l’écran partout ailleurs. « Actualités » en fait partie : son écran
+ * est la liste de ses billets, et le billet qu’on écrit porte son titre dans
+ * l’en-tête de son propre niveau — le dire deux fois n’ajoutait rien.
  */
 function heading(screen: Screen, opened: string | undefined): string {
   const label =
     SCREENS.find((entry) => entry.value === screen)?.label ?? 'Édition'
 
-  return screen === 'edit' || screen === 'journal' ? (opened ?? label) : label
+  return screen === 'edit' ? (opened ?? label) : label
 }
 
 function warning(asked: Asked | undefined): string {

@@ -1,6 +1,11 @@
 // Les valeurs vivent dans `tokens.ts`, et `panel.css` les pose en variables.
 // Écrites deux fois, elles divergeraient : ce test les compare, si bien que la
 // feuille n’a pas à être générée pour rester juste.
+//
+// La feuille pose deux blocs : `:root`, qui porte tout et les couleurs du
+// clair, et le `:root` sous `prefers-color-scheme: dark`, qui ne porte que
+// les couleurs du sombre. Le test lit les deux, et chacun doit dire
+// exactement ce que le module dit.
 
 import { readFileSync } from 'node:fs'
 
@@ -12,10 +17,19 @@ const PREFIX = '--panel-'
 
 const sheet = readFileSync(new URL('./panel.css', import.meta.url), 'utf8')
 
-/** Le bloc `:root`, seul endroit où une variable du panel se définit. */
-function root(): string {
+/** Le premier `:root`, fermé par une accolade en début de ligne. */
+function lightBlock(): string {
   const opened = sheet.indexOf(':root {')
   const closed = sheet.indexOf('\n}', opened)
+
+  return sheet.slice(opened, closed)
+}
+
+/** Le `:root` du mode sombre, fermé par une accolade indentée d’un cran. */
+function darkBlock(): string {
+  const media = sheet.indexOf('@media (prefers-color-scheme: dark)')
+  const opened = sheet.indexOf(':root {', media)
+  const closed = sheet.indexOf('\n  }', opened)
 
   return sheet.slice(opened, closed)
 }
@@ -34,10 +48,10 @@ function plain(value: string): string {
     .trim()
 }
 
-function declared(): Map<string, string> {
+function declared(block: string): Map<string, string> {
   const found = new Map<string, string>()
 
-  for (const [, name, value] of root().matchAll(
+  for (const [, name, value] of block.matchAll(
     /(--panel-[a-z0-9-]+)\s*:\s*([^;]+);/g,
   )) {
     if (name !== undefined && value !== undefined) found.set(name, plain(value))
@@ -50,11 +64,24 @@ function kebab(name: string): string {
   return name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
 }
 
-/** Les tokens à plat, sous le nom que la feuille leur donne. */
-function expected(): Map<string, string> {
+/** Les rôles de couleur d’un mode, sous le nom que la feuille leur donne. */
+function colours(mode: 'light' | 'dark'): Map<string, string> {
   const flat = new Map<string, string>()
 
+  for (const [role, value] of Object.entries(tokens.color[mode])) {
+    flat.set(`${PREFIX}color-${kebab(role)}`, value)
+  }
+
+  return flat
+}
+
+/** Tout ce que le premier bloc doit poser : les tokens, et le clair. */
+function expected(): Map<string, string> {
+  const flat = colours('light')
+
   for (const [family, value] of Object.entries(tokens)) {
+    if (family === 'color') continue
+
     if (typeof value === 'string') {
       flat.set(`${PREFIX}${kebab(family)}`, plain(value))
       continue
@@ -70,7 +97,7 @@ function expected(): Map<string, string> {
 
 describe('les tokens du panel', () => {
   it('sont tous posés par la feuille, à la même valeur', () => {
-    const posed = declared()
+    const posed = declared(lightBlock())
 
     for (const [name, value] of expected()) {
       expect(posed.get(name), `« ${name} » manque à panel.css`).toBe(value)
@@ -79,15 +106,24 @@ describe('les tokens du panel', () => {
 
   it('n’en laissent aucun orphelin dans la feuille', () => {
     const known = expected()
-    const orphans = [...declared().keys()].filter((name) => !known.has(name))
+    const orphans = [...declared(lightBlock()).keys()].filter(
+      (name) => !known.has(name),
+    )
 
     expect(orphans).toEqual([])
   })
 
-  it('portent une police, une largeur et les hachures', () => {
-    const posed = declared()
+  it('posent le sombre sous la media query, et rien que ses couleurs', () => {
+    const posed = declared(darkBlock())
+    const dark = colours('dark')
 
-    expect(posed.get('--panel-font-sans')).toContain('Geist')
+    expect(new Map([...posed].sort())).toEqual(new Map([...dark].sort()))
+  })
+
+  it('portent une police, une largeur et les hachures', () => {
+    const posed = declared(lightBlock())
+
+    expect(posed.get('--panel-font-sans')).toContain('Roboto Flex')
     expect(posed.get('--panel-width-phone')).toBe('414px')
     expect(posed.get('--panel-hatch')).toContain('repeating-linear-gradient')
   })

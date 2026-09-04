@@ -1,6 +1,14 @@
 ---
-import { blocks, desktop, journalBlocks, journalDesktop } from 'virtual:basalte'
+import {
+  blocks,
+  desktop,
+  journalBlocks,
+  journalDesktop,
+  journalRegistry,
+  registry,
+} from 'virtual:basalte'
 
+import { BRIDGE } from '../admin/bridge.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { headingOf } from '../render/outline.js'
 import Layout from './Layout.astro'
@@ -26,9 +34,17 @@ const components =
   support === 'desktop' ? { ...desktop, ...journalDesktop } : {}
 const available = { ...blocks, ...journalBlocks }
 
+// Les sections visibles dans la langue affichée. Une section masquée n’est pas
+// rendue : c’est pourquoi le « + » désigne la section qui suivra la nouvelle
+// plutôt qu’un rang — un rang compté ici ne vaudrait rien dans la page.
 const sections = entry.page.blocks.filter(
   (section) => section.hidden[language] !== true,
 )
+
+// Le nom que le client lit dans le panel, pour le dire au survol de la
+// section. Le gabarit du billet est du lot : c’est une section comme une autre
+// dans l’aperçu.
+const kinds = { ...registry, ...journalRegistry }
 
 const image = (key: string, sizes?: string) =>
   resolveImage(schemas.media, key, language, sizes)
@@ -51,19 +67,170 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
   posts={posts}
 >
   {
+    /* Chaque section porte son identifiant et son nom : c’est ce qui permet
+       de la désigner en cliquant dessus, et de savoir ce qu’on désigne avant
+       de cliquer. Entre deux sections, un « + » ouvre le choix d’une section
+       à insérer là. Rien de tout cela n’existe dans le site construit : cette
+       page est la seule à porter l’enveloppe et le script. */
     sections.map((section, index) => {
       const Block = components[section.type] ?? available[section.type]
       return (
-        <Block
-          props={section.props}
-          language={language}
-          image={image}
-          document={document}
-          heading={headingOf(index)}
-          business={business}
-          posts={posts}
-        />
+        <div
+          id={section.id}
+          data-section
+          data-kind={kinds[section.type]?.label ?? section.type}
+        >
+          {/* Les deux bandes sont hors du flux, sur les bords de la section :
+              posées entre deux sections, elles auraient ajouté leur hauteur à
+              chaque intervalle, et l’aperçu n’aurait plus montré le rythme de
+              la page. */}
+          <button
+            class="basalte-insert"
+            type="button"
+            data-insert={section.id}
+            data-edge="top"
+          >
+            Ajouter une section ici
+          </button>
+          <Block
+            props={section.props}
+            language={language}
+            image={image}
+            document={document}
+            heading={headingOf(index)}
+            business={business}
+            posts={posts}
+          />
+          {index === sections.length - 1 && (
+            <button
+              class="basalte-insert"
+              type="button"
+              data-insert=""
+              data-edge="bottom"
+            >
+              Ajouter une section ici
+            </button>
+          )}
+        </div>
       )
     })
   }
+
+  {
+    /* Une page sans section n’offre rien à cliquer : la bande y prend sa
+       place dans le flux, et se voit sans qu’on la cherche. */
+    sections.length === 0 && (
+      <button
+        class="basalte-insert"
+        type="button"
+        data-insert=""
+        data-edge="only"
+      >
+        Ajouter une première section
+      </button>
+    )
+  }
+
+  {
+    /* Le script se pose dans le gabarit, jamais après : hors du composant, il
+       sortirait derrière la fermeture du document. */
+  }
+  <script is:inline set:html={BRIDGE} />
 </Layout>
+
+<style is:global>
+  /* L’aperçu est une surface d’édition : on y désigne une section en cliquant
+     dessus. Le survol la cerne d’un trait clair et la nomme ; la section
+     choisie garde le trait d’encre.
+     Il ne se propose que si le panel l’a dit : sous l’entrée de l’en-tête et
+     du pied, il montre l’accueil, dont les sections appartiennent à une autre
+     entrée — une section qui s’éclaire et ne répond pas ment. */
+  [data-section] {
+    position: relative;
+  }
+
+  [data-canvas] [data-section]:hover {
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+    cursor: pointer;
+  }
+
+  [data-section][data-current] {
+    box-shadow: inset 0 0 0 3px var(--color-fg);
+  }
+
+  /* Le nom de la section, au survol : savoir ce qu’on désigne avant de
+     cliquer. Il ne prend jamais le clic — c’est la section qui le reçoit. */
+  [data-section]::after {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    content: attr(data-kind);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [data-canvas] [data-section]:hover::after {
+    opacity: 1;
+  }
+
+  /* La bande d’insertion se pose sur le bord haut, là où le nom de la section
+     s’affiche : les deux ne se montrent pas ensemble. */
+  [data-canvas] [data-section]:has(.basalte-insert:hover)::after {
+    opacity: 0;
+  }
+
+  /* Sur le bord d’une section : une bande qui ne se voit qu’au survol, et qui
+     dit où la prochaine se posera. Elle est hors du flux — sa hauteur
+     s’ajouterait sinon à chaque intervalle, et l’aperçu ne montrerait plus le
+     rythme de la page. */
+  .basalte-insert {
+    display: none;
+  }
+
+  [data-canvas] .basalte-insert {
+    position: absolute;
+    z-index: 3;
+    right: 0;
+    left: 0;
+    display: flex;
+    height: var(--space-6);
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    opacity: 0;
+  }
+
+  [data-canvas] .basalte-insert[data-edge='top'] {
+    top: 0;
+    transform: translateY(-50%);
+  }
+
+  [data-canvas] .basalte-insert[data-edge='bottom'] {
+    bottom: 0;
+    transform: translateY(50%);
+  }
+
+  /* Une page vide n’a pas de bord à border : sa bande prend sa place. */
+  [data-canvas] .basalte-insert[data-edge='only'] {
+    position: static;
+    width: 100%;
+    opacity: 1;
+  }
+
+  [data-canvas] .basalte-insert:hover,
+  [data-canvas] .basalte-insert:focus-visible {
+    opacity: 1;
+  }
+</style>

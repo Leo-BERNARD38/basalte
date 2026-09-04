@@ -79,11 +79,19 @@ export function MediaGrid({
             aria-pressed={entry.key === selected}
             onClick={() => onSelect(entry.key)}
           >
+            {/* La vignette cadre sur le point focal, comme le site : une
+                image-texte recadrée au centre ne montrait que le milieu d’un
+                mot. */}
             <img
               className="basalte-tile__image"
               src={thumbnail(entry)}
               alt={
                 translated(entry.alt, editing.language) || 'Sans description'
+              }
+              style={
+                entry.focal === undefined || entry.focal === null
+                  ? undefined
+                  : { objectPosition: `${entry.focal.x}% ${entry.focal.y}%` }
               }
               draggable={false}
             />
@@ -113,12 +121,12 @@ type Chosen = {
 
 export function UploadButton({
   label = 'Ajouter une image',
-  tone = 'ink',
+  variant = 'filled',
   onDone,
   onError,
 }: {
   readonly label?: string | undefined
-  readonly tone?: 'ink' | 'line' | undefined
+  readonly variant?: 'filled' | 'outlined' | undefined
   readonly onDone: (media: MediaSummary) => void
   readonly onError: (message: string) => void
 }) {
@@ -183,7 +191,7 @@ export function UploadButton({
           event.target.value = ''
         }}
       />
-      <Button tone={tone} onClick={() => input.current?.click()}>
+      <Button variant={variant} onClick={() => input.current?.click()}>
         {label}
       </Button>
 
@@ -191,7 +199,7 @@ export function UploadButton({
         opened={chosen !== undefined}
         title="Décrire l’image"
         note={
-          <Text tone="muted" size="eyebrow">
+          <Text tone="muted" role="label-md">
             Décrivez ce que montre l’image : c’est ce que lisent les personnes
             qui ne la voient pas, et ce que comprend Google.
           </Text>
@@ -202,7 +210,7 @@ export function UploadButton({
             <Spacer />
             <Button onClick={close}>Annuler</Button>
             <Button
-              tone="ink"
+              variant="filled"
               disabled={!complete}
               busy={busy}
               onClick={() => void send()}

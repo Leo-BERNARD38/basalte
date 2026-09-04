@@ -10,10 +10,10 @@ import { useEditing } from '../editing.js'
 import { thumbnail } from '../Media.js'
 import { Button } from '../ui/Button.js'
 import { Field } from '../ui/Field.js'
-import { Picture } from '../ui/icons.js'
+import { Image } from '../ui/icons.js'
 import { Group, Spacer, Stack } from '../ui/Layout.js'
 import { Text } from '../ui/Text.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 export function ImageControl({
   description,
@@ -38,7 +38,6 @@ export function ImageControl({
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
       group
@@ -47,7 +46,7 @@ export function ImageControl({
         <Stack gap="sm" {...bound}>
           {entry === undefined ? (
             <div className="basalte-slot">
-              <Picture />
+              <Image />
               Aucune image
               {description.ratio === undefined
                 ? ''
@@ -56,7 +55,7 @@ export function ImageControl({
           ) : (
             <button
               type="button"
-              className="basalte-tile"
+              className="basalte-tile basalte-tile--field"
               aria-label="Remplacer l’image"
               onClick={choose}
             >
@@ -70,7 +69,7 @@ export function ImageControl({
 
           <Group gap="sm">
             {entry !== undefined && (
-              <Text tone="meta" size="eyebrow">
+              <Text tone="meta" role="label-md">
                 {translated(entry.alt, editing.language) || 'Sans description'}
               </Text>
             )}
@@ -79,7 +78,12 @@ export function ImageControl({
               {entry === undefined ? 'Choisir' : 'Remplacer'}
             </Button>
             {entry !== undefined && !description.required && (
-              <Button tone="danger" size="xs" onClick={() => onChange('')}>
+              <Button
+                variant="text"
+                tone="error"
+                size="xs"
+                onClick={() => onChange('')}
+              >
                 Retirer
               </Button>
             )}

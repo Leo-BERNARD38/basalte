@@ -1,18 +1,22 @@
-// Le champ, et ce qui l’entoure : son libellé, son aide, et l’erreur qui le
-// désigne. C’est ici que se tient l’affichage d’un refus de validation (D166)
-// — une phrase posée ailleurs oblige à relire l’écran pour retrouver lequel.
+// Le champ, et ce qui l’entoure : son libellé, et l’erreur qui le désigne.
+// C’est ici que se tient l’affichage d’un refus de validation (D166) — une
+// phrase posée ailleurs oblige à relire l’écran pour retrouver lequel.
+//
+// Il n’y a plus de phrase d’aide sous un champ. Ce qui n’est pas clair se dit
+// par le libellé, par la forme du contrôle, ou sous le « ? » de l’écran : une
+// glose grise sous chaque ligne mangeait la colonne, et elle expliquait à
+// quelqu’un qui connaît le champ depuis sa deuxième visite.
 //
 // Le champ garde l’arête : une colonne de formulaire se lit sur un axe
 // vertical net. Le focus noircit le filet et pose l’anneau à côté.
 
 import { useId, type ComponentProps, type ReactNode } from 'react'
 
-import { Chevron } from './icons.js'
+import { ExpandMore } from './icons.js'
 import { joined } from './Layout.js'
 
 type FieldProps = {
   readonly label?: string | undefined
-  readonly hint?: string | undefined
   readonly error?: string | undefined
   readonly required?: boolean | undefined
   /**
@@ -21,6 +25,10 @@ type FieldProps = {
    * le viser par `for`, qui ne désigne qu’un contrôle, et le nomme.
    */
   readonly group?: boolean | undefined
+  /** Ce que le pied du champ porte, sous le contrôle : un compteur. */
+  readonly foot?: ReactNode | undefined
+  /** Ce qui suit le pied du champ : l’aperçu d’un texte mis en forme. */
+  readonly after?: ReactNode | undefined
   /** Reçoit ce qu’un contrôle doit porter pour que l’erreur le désigne. */
   readonly children: (bound: Bound) => ReactNode
 }
@@ -36,15 +44,15 @@ export type Bound = {
 
 export function Field({
   label,
-  hint,
   error,
   required,
   group,
+  foot,
+  after,
   children,
 }: FieldProps) {
   const id = useId()
-  const said = error ?? hint
-  const saidId = said === undefined ? undefined : `${id}-said`
+  const saidId = error === undefined ? undefined : `${id}-said`
   const labelId = `${id}-label`
 
   const bound: Bound = {
@@ -72,16 +80,19 @@ export function Field({
           </label>
         ))}
       {children(bound)}
-      {said !== undefined && (
-        <span
-          id={saidId}
-          className="basalte-text"
-          data-size="eyebrow"
-          data-tone={error === undefined ? 'meta' : 'refused'}
-        >
-          {said}
+      {(error !== undefined || foot !== undefined) && (
+        <span className="basalte-field__foot">
+          {error !== undefined && (
+            <span id={saidId} className="basalte-text" data-tone="refused">
+              {error}
+            </span>
+          )}
+          {foot !== undefined && (
+            <span className="basalte-field__meta">{foot}</span>
+          )}
         </span>
       )}
+      {after}
     </div>
   )
 }
@@ -128,7 +139,7 @@ export function Select({ className, children, ...rest }: SelectProps) {
       <select className={joined('basalte-input', className)} {...rest}>
         {children}
       </select>
-      <Chevron />
+      <ExpandMore />
     </span>
   )
 }

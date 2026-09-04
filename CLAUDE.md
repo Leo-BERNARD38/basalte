@@ -4,7 +4,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 Package npm `@leobernard/basalte`, installé depuis git par tag dans un dépôt
 par site — dépôt public, jamais publié sur le registre npm.
 
-**État :** les dix-neuf phases sont faites — le socle rend, authentifie, édite,
+**État :** les vingt phases sont faites — le socle rend, authentifie, édite,
 publie, sert, se livre, s'outille, s'adapte à deux supports, encadre ses pages,
 cadre ses images, joint son client, constate ce qu'un site contient, se publie
 lui-même, porte les sections que la plupart des sites demandent, tient un
@@ -13,7 +13,13 @@ rendre son panel illisible, tient son panel au plancher qu'il exige de ses
 blocs — vérifié, non plus annoncé —, porte une direction artistique qui lui
 appartient sans bibliothèque d'interface, et habille enfin ses pages comme il
 habille son panel : trois plans de couleur, un rythme et un axe communs à tous
-ses blocs, et une landing complète pour le prouver. Un site se crée, se met en
+ses blocs, et une landing complète pour le prouver — et son panel parle enfin
+Material Design 3, depuis une graine de couleur, en clair et en sombre — et
+chacun règle, sur son appareil, le mode et la couleur de son panel — et son
+aperçu n'est plus un témoin mais la surface de travail : on y clique la section
+qu'on veut changer, tout le reste tient dans un volet qui ne montre qu'une
+chose à la fois, et plus une phrase grise ne s'intercale sous un champ. Un site
+se crée, se met en
 production et se monte de version en une commande chacune ; une version du
 socle se publie en une commande aussi. Ce que chaque phase a mis en place est
 relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
@@ -78,7 +84,7 @@ Le *comment* d'une phase se décide dans la phase, pas d'avance
 | Tout le code | TypeScript |
 | Rendu du site public | Astro, statique |
 | Schémas de contenu | Zod, sous un DSL `f.*` |
-| Panel d'édition | React 19 + compilateur React, dnd-kit ; composants maison |
+| Panel d'édition | React 19 + compilateur React, dnd-kit ; composants maison, dessinés d'après Material Design 3 |
 | Styles | CSS natif + custom properties |
 | Auth, sessions, leads | SQLite, par `node:sqlite` |
 | Traitement d'images | sharp |
@@ -113,9 +119,12 @@ src/
 │                   base.css, le plancher commun et le bouton, tenus par lint
 ├── admin/          panel : island React unique
 │   ├── tokens.ts   les valeurs du système, dans un module sans import
+│   ├── scheme.ts   les rôles de couleur tirés d'une graine, clair et sombre
+│   ├── appearance.ts le mode et la graine choisis par appareil (D208)
 │   ├── panel.css   les mêmes en variables --panel-*, et tout le dessin
-│   ├── ui/         les composants du panel, et son jeu d'icônes
-│   ├── fonts/      Geist, en fonte variable auto-hébergée (D181)
+│   ├── bridge.ts   ce que le panel et son aperçu se disent (D219)
+│   ├── ui/         les composants du panel, et ses icônes Material Symbols
+│   ├── fonts/      Roboto Flex et Roboto Mono, auto-hébergées (D206)
 │   ├── Help.tsx    ce que chaque écran explique, sous son « ? »
 │   └── fields/     un composant par type de champ, une table d'aiguillage
 ├── server/         auth, sessions, journal, email, contenu, médias, git ;
@@ -178,12 +187,15 @@ Détail dans `docs/conventions.md`. L'essentiel :
   retrait, ou inversé — vient de son **type**, jamais d'un champ (D185) ; et le
   bouton vit une seule fois, dans `src/astro/base.css`, que `lint` contrôle
   comme un bloc (D186). Le panel a sa propre couche de tokens,
-  `src/admin/tokens.ts` (D95), contrôlée par le même `lint` (D164). Un filet d'un pixel y sépare deux plans, et
-  l'ombre ne reste qu'à ce qui flotte (D172) ; l'action est noire, et l'accent
-  ne dit jamais « fais » (D174) ; la forme pleine est le défaut, sauf pour le
-  champ, la ligne de liste et la surface (D173). Ce qui s'affiche devant un
-  client vouvoie (D165), et ce qui explique attend qu'on le demande, sous le
-  « ? » de l'en-tête (D169).
+  `src/admin/tokens.ts` (D95), contrôlée par le même `lint` (D164), et elle
+  parle Material Design 3 (D194) : la couleur est un rôle tiré d'une graine,
+  neutre par défaut et déclarée par site (D195), dans les deux modes (D197) ;
+  une surface s'élève par sa couleur avant son ombre (D200) ; le bouton plein
+  dit « fais » (D201) ; le libellé d'un champ se tient au-dessus du contrôle,
+  jamais dedans (D203) ; l'échelle est celle de Material resserrée d'un cran
+  (D209), et l'apparence qu'un client choisit sur son appareil se pose sur
+  `<html>` avant toute feuille (D208). Ce qui s'affiche devant un client vouvoie (D165), et ce
+  qui explique attend qu'on le demande, sous le « ? » de la barre (D169).
 - **Un commentaire décrit ce qui existe, jamais comment on y est arrivé.**
   Pas de `// fix :`, pas de `// on utilise X plutôt que Y`, pas de
   `// amélioration :`, pas de `TODO`. Le pourquoi d'un choix va dans
@@ -448,6 +460,50 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
 - **Un brouillon se valide sans ses bornes basses** (`withoutMinimums`). L'oublier
   rend impossible la création d'un billet : ses champs requis sont vides à la
   seconde où il naît.
+- **Le `:root` du panel s'écrit deux fois, et la graine d'un site passe par
+  `:root[data-seed]`.** La feuille pose les rôles du clair sur `:root` et ceux
+  du sombre sous `prefers-color-scheme: dark` ; `tokens.test.ts` lit les deux
+  blocs. La feuille inline qu'`admin.astro` émet pour une graine porte
+  l'attribut exprès : l'ordre des feuilles dans `<head>` diffère entre `astro
+  dev` et le build, et une spécificité plus haute gagne dans les deux (D199).
+- **Une media query ne lit pas un token.** Les trois classes de fenêtre du
+  panel — 600, 840 et 1200 pixels — sont écrites en clair dans `panel.css`,
+  et `lint` les tolère parce qu'elles sont dans une condition, pas dans une
+  règle.
+- **Un composant nommé `Symbol` casse React.** Le runtime JSX lit
+  `Symbol.for` dans la portée du module : un export du même nom le masque, et
+  l'erreur nomme le premier écran rendu, jamais le module fautif.
 - **Le shell distant reçoit un script entier en un seul mot.** `deploy` le
   passe en argument de `sh -c`, échappé, et garde l'entrée standard libre : c'est
   par elle que le `.env` traverse, sans jamais devenir un fichier temporaire.
+- **Un menu qui défile tasse ses lignes.** `.basalte-menu` est une colonne
+  flex à `overflow-y: auto` : ses enfants gardent `flex-shrink: 1`, et une
+  ligne dont la hauteur minimale est écrite se tasse sur la suivante, sans la
+  moindre erreur. `.basalte-menu > * { flex-shrink: 0 }` le tient.
+- **L'apparence d'un appareil gagne sur la graine du site.** Le script
+  d'amorçage pose les rôles en variables inline sur `<html>`, et une variable
+  inline prime sur `:root[data-seed]` : un panel qui n'a pas la couleur de
+  `site.config.ts` a peut-être une préférence rangée dans ce navigateur-là —
+  « Compte » la montre, et « Couleur du site » l'efface.
+- **L'aperçu bureau est réduit par `transform: scale`, pas redimensionné**
+  (D213). Le cadre se pose à `--panel-width-desktop`, et sa hauteur vaut
+  `100cqh / échelle` : c'est ce qui fait qu'une fois réduit il remplit
+  exactement sa fenêtre. Toucher la largeur sans la hauteur laisse un vide en
+  bas du cadre, sans erreur ; et la fenêtre qui le porte doit garder
+  `container-type: size`, faute de quoi `cqh` vaut zéro et le cadre disparaît.
+- **L'écran du cadre ne coupe pas ce qui dépasse de lui.** Le menu des pages
+  s'ouvre depuis sa barre : un `overflow: hidden` posé sur
+  `.basalte-stage__screen` le rognerait à la hauteur de la barre, sans erreur.
+  Ce sont ses deux extrémités qui portent le rayon — la barre en haut, la
+  fenêtre en bas, qui coupe déjà pour elle-même.
+- **Une ligne de liste posée à côté d'un bouton a besoin de `min-width: 0`.**
+  `.basalte-row` porte `width: 100%` : sans cette borne, elle refuse de
+  descendre sous la largeur de son texte et pousse le bouton hors de la
+  colonne — c'est ce qui coupait « Retirer » dans un volet de 400 pixels.
+- **Le volet d'édition ne se démonte pas quand il devient une couche.** Sous
+  1 200 pixels, `.basalte-inspector` passe en `position: absolute; inset: 0`
+  dans son écran, jamais en `position: fixed` : une couche posée sur la fenêtre
+  couvrirait la barre d'application, où « Enregistrer » et « Mettre en ligne »
+  vivent à la même place partout (D214). C'est aussi pourquoi ce n'est pas une
+  `Modal` — elle démonte ce qu'elle contient, ce qui imposerait deux arbres
+  React et une lecture de la largeur en état.

@@ -9,11 +9,9 @@ supprime le problème, et `client:only` évite tout souci d'hydratation. Le pane
 n'a besoin ni de SEO ni de rendu serveur, puisqu'il est derrière une
 authentification.
 
-Il n'ajoute **aucune dépendance** (D57) : `@mantine/core` et `@mantine/hooks`
-pour les composants, dnd-kit pour le réordonnancement. `@mantine/form`,
-`@mantine/notifications`, `@mantine/modals` et `@mantine/dropzone` ont été
-écartés — quatre paquets de plus sur chaque VPS pour ce que `@mantine/core`
-porte déjà.
+Il n'ajoute **aucune dépendance** (D57, D175) : dnd-kit pour le
+réordonnancement, et rien d'autre. Ses composants sont écrits dans le dépôt,
+dans le langage de Material Design 3 (D194).
 
 ### Deux modes, deux durées de vie
 
@@ -63,9 +61,9 @@ inverse (D154) : ce n'était pas un écran vide.
 | Édition | l'aperçu de la page, ses sections, et le panneau de la section choisie — l'écran par défaut |
 | Actualités | les billets du journal, leur formulaire et leur aperçu — seulement si le site déclare un `journal` |
 | Médias | la médiathèque |
-| Compte | mot de passe, appareils, journal de connexion |
 | Messages | les leads du formulaire de contact |
 | Statistiques | le rapport d'audience — seulement si le site déclare `analytics` |
+| Compte | apparence, mot de passe, appareils, journal de connexion — derrière la roue crantée du rail, pas dans ses destinations (D204, D222) |
 
 Ce que le socle a gagné depuis n'en a ajouté aucune : l'en-tête, le pied de page
 et la fiche d'entreprise s'éditent depuis « Édition », comme des entrées de plus
@@ -75,14 +73,18 @@ puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi remplir un
 
 **« Actualités » ne ressemble pas à « Édition », et c'est le fond de la
 chose.** Un billet n'a ni sections à choisir, ni ordre à régler : on ouvre, on
-écrit, on enregistre. La liste tient les billets par date décroissante — le
-client vient y chercher ce qu'il a écrit hier, pas ce qu'il a écrit il y a deux
-ans —, « Nouveau billet » ne demande qu'un titre, et un interrupteur dit si le
-billet paraît. C'est le seul écran d'où le client **crée** et **détruit** du
+écrit, on enregistre. L'écran est donc **la liste de ses billets en pleine
+largeur** (D220) — une carte par billet, sa couverture, sa date, sa parution et
+ce qu'il lui reste à traduire —, par date décroissante : le client vient y
+chercher ce qu'il a écrit hier, pas ce qu'il a écrit il y a deux ans. Les trois
+gestes qu'il fait s'y voient d'un coup d'œil : créer, reprendre, supprimer.
+« Nouveau billet » ne demande qu'un titre, et écrire ouvre un **second niveau**
+qui remplace le contenu de l'écran — l'aperçu et le volet du billet, la forme de
+« Édition ». C'est le seul écran d'où le client **crée** et **détruit** du
 contenu ; le sélecteur de « Édition » ne pouvait pas l'accueillir, étant un menu
 déroulant qu'une trentaine d'entrées rend inutilisable.
 
-L'onglet « Messages » porte une pastille tant qu'un message n'est pas lu ;
+La destination « Messages » porte une pastille tant qu'un message n'est pas lu ;
 ouvrir un message le marque lu, sans que le client coche quoi que ce soit. Le
 badge orange « non transmis » ne paraît que sur une notification **réellement
 manquée** (D128) : sur un site qui ne prévient personne, l'afficher partout
@@ -120,6 +122,18 @@ décrit un **état** — « L'aperçu montre le dernier enregistrement », « Em
 par une section : retirez-la d'abord » — et ce qui accompagne un **geste** dans
 la fenêtre où on le fait.
 
+**Un champ n'a pas de phrase sous lui** (D223). L'option `help` a quitté le DSL
+`f.*` : trente-neuf gloses grises mangeaient la colonne du volet pour expliquer
+des champs à quelqu'un qui les connaît depuis sa deuxième visite. Ce qui
+décrivait un **repli** — sans logo, le nom du site s'affiche en toutes lettres ;
+sans liens, le menu reprend les pages — ou une **syntaxe** est remonté sous le
+« ? ». Ce qui reste au client est le **libellé**, et la hiérarchie de l'écran :
+c'est la présentation qui doit être claire, pas la prose qui l'accompagne.
+
+Le `help` d'un **bloc**, lui, tient toujours : il dit ce qu'une section *fait*,
+une fois, au seul moment où la question se pose — la fenêtre « Ajouter une
+section ». Il est aussi la seule prose de `basalte inventory`.
+
 **Deux niveaux de navigation au maximum.** Menu, puis page. Jamais un troisième
 étage d'onglets : une page qui réclame des onglets est deux pages.
 
@@ -144,108 +158,166 @@ description — recharge la médiathèque sans toucher au texte en cours.
 « build », ni « commit », ni « déployer ». On dit *section*, *enregistrer*,
 *mettre en ligne*. Une dizaine de mots fixés une fois et tenus partout.
 
-Mantine fournit des composants corrects, pas une hiérarchie. Dessinée depuis
-les écrans réels, la couche maison s'est révélée plus courte que prévu : le
-cadre (`Shell`), le panneau d'une section, la grille de médias, et le moteur de
-champs. `PageHeader` et `EmptyState` n'ont pas eu lieu d'être — deux titres et
-une phrase suffisaient.
-
-Le panel emploie l'**échelle de Mantine**, jamais les tokens du site (D65) : la
+Le panel emploie **sa propre échelle**, jamais les tokens du site (D65) : la
 DA d'un client ne décide pas de la lisibilité de son outil de travail. La règle
-des tokens de `design.md` reste donc bornée aux blocs.
+des tokens de `design.md` reste donc bornée aux blocs. Ce que le panel prend
+d'un client, c'est une graine de couleur (D195), et rien d'autre.
 
 ### La couche de tokens
 
 Le panel porte sa propre couche de tokens (D95). Les valeurs vivent dans
-`src/admin/tokens.ts` : surfaces, encre, filets, accent, états, échelle de
-texte, espacements, rayons, hauteurs de contrôle, ombres, largeurs de lecture,
-polices, et les hachures. `panel.css` les pose en variables `--panel-*` dans
-son bloc `:root`, et ne consomme rien d'autre.
+`src/admin/tokens.ts` : les rôles de couleur dans les deux modes, les opacités
+des couches d'état, le mouvement, les cinq ombres, le voile, les hachures,
+l'échelle de forme, les espacements, les tailles de texte, les polices, les
+hauteurs de contrôle et les largeurs de lecture. `panel.css` les pose en
+variables `--panel-*` — le clair sur `:root`, le sombre sous
+`prefers-color-scheme: dark` — et ne consomme rien d'autre.
 
-Les deux ne peuvent pas diverger : `src/admin/tokens.test.ts` relit ce bloc et
-le compare au module — chaque token doit y être, à la même valeur, et la feuille
-ne peut en poser aucun que le module ne porte. La feuille reste donc écrite à
-la main, sans étape de génération, et reste juste.
+Les deux ne peuvent pas diverger : `src/admin/tokens.test.ts` relit les deux
+blocs et les compare au module — chaque token doit y être, à la même valeur,
+et la feuille ne peut en poser aucun que le module ne porte. La feuille reste
+donc écrite à la main, sans étape de génération, et reste juste.
 
 Le module des valeurs n'importe rien : `basalte lint` doit les relire depuis une
 commande Node (D164).
 
-Quatre principes portent l'allure :
+#### La couleur vient d'une graine
 
-- **Un filet, pas une ombre** (D172). Un pixel de `#ebebed` sépare deux plans.
-  L'ombre ne reste qu'à ce qui flotte réellement au-dessus du reste : la barre
-  posée sur l'aperçu, un menu, une fenêtre. Cinq plans, et l'ombre grandit avec
-  la distance au document.
-- **L'action est noire** (D174). Le bouton qui change l'état du site, l'onglet
-  ouvert et la marque sont en `#17171a`. L'accent pétrole ne dit jamais
-  « fais » : il dit « voici ce que tu modifies » — l'aplat d'une ligne choisie,
-  où l'encre reste noire — et « voici ce qui se mesure » — une variation, une
-  jauge, l'anneau de focus. Ce qui détruit est rouge, et ce qui est en ligne est
-  vert, toujours doublé du mot.
-- **La forme pleine est le défaut** (D173). Tout ce qui agit, étiquette ou
-  compte s'arrondit complètement. Trois familles gardent l'arête, et elles
-  seules : le champ et la ligne de liste, parce qu'une colonne se lit sur un axe
-  vertical net, et la surface, parce qu'on ne manipule pas une carte. Là, quatre
-  rayons — 8 pour un champ ou une ligne, 10 pour une carte posée dans une autre,
-  12 pour une surface, 14 pour la fenêtre.
-- **Le contraste vient de la graisse et de la taille**, pas de la couleur :
-  32 / 20 / 15 / 13 / 12 / 11, en 400, 450, 500 ou 600. Le chiffre passe en
-  Geist Mono, en chasse fixe, pour qu'une colonne s'aligne.
+Le panel parle Material Design 3 (D194), et ses couleurs sont des **rôles** :
+`primary`, `onPrimary`, `primaryContainer`, `secondaryContainer`, `surface`
+et ses cinq conteneurs, `onSurface`, `outline`, `error`, `inverseSurface` —
+quarante et un, plus le vert qui dit « en ligne » et l'ambre qui demande un
+regard, que Material n'a pas. Chaque rôle est un **ton** fixe d'une palette,
+et toutes les palettes se tirent d'une seule **graine** (D195).
 
-Les **hachures à 45°** — un pixel tous les six, 7,5 % de noir — ne décorent
-aucun fond. Elles marquent les trois choses qui n'existent pas encore sur le
-site : un brouillon, une section masquée, un emplacement vide.
+`src/admin/scheme.ts` fait ce travail : la teinte et le chroma se lisent en
+OKLCH, le ton est la clarté L\* de CIELAB (D196). C'est L\* qui porte la
+garantie de Material — deux tons séparés de quarante se lisent à 3:1, de
+cinquante à 4,5:1, quelle que soit la graine —, et c'est ce que le lint mesure
+ensuite. Une graine grise garde tout gris : le neutre du panel est
+`#5c5c60`, et les deux schémas que `tokens.ts` écrit en clair sont sa sortie,
+que `scheme.test.ts` vérifie (D198).
 
-L'encre compte **trois** niveaux, et c'est une mesure, pas un goût : entre
-`#17171a` et une surface presque blanche, un quatrième gris qui tienne 4,5:1
-serait indiscernable du troisième. Le plan sombre porte les siens, trois aussi.
-Ce qui reste en dessous est du dessin, et ne porte jamais de texte.
+Un site déclare sa graine dans `site.config.ts` :
+
+```ts
+panel: { seed: '#2f5bea' }
+```
+
+`admin.astro` calcule alors les rôles côté serveur et les pose en `<style>`
+inline, sur `:root[data-seed]` (D199) — avant que l'island monte, et avec une
+spécificité qui gagne quel que soit l'ordre des feuilles. Le sombre suit
+`prefers-color-scheme` (D197).
+
+Ce qu'un client règle par-dessus — un mode forcé, une graine à lui — se
+choisit dans « Compte » et vit dans son navigateur, pas sur le serveur (D208) :
+`src/admin/appearance.ts` range la préférence avec les deux schémas déjà
+calculés, et un script inline émis par `admin.astro` les pose sur `<html>`
+avant toute feuille, en variables inline qui gagnent sur `:root[data-seed]`.
+Revenir au défaut efface tout, et le panel repart du site et du système.
+
+#### Ce que le lint mesure
 
 Le plancher est **vérifié par `basalte lint`** (D164) : `design/panel-contrast`
-mesure chaque niveau d'encre sur chacun des trois plans clairs, l'encre du plan
-sombre, l'accent partout où il porte du texte, et le rouge du refus. Les règles
-`style/*` refusent une longueur ou une couleur écrite en clair dans
-`panel.css`.
+mesure les paires que Material superpose vraiment — chaque encre sur la surface
+et ses cinq conteneurs, chaque « on » sur son conteneur, le texte coloré à même
+un plan, la snackbar — sur le schéma clair, sur le sombre, et sur la graine
+qu'un site déclare, au lint de son dépôt. Les règles `style/*` refusent une
+longueur ou une couleur écrite en clair dans `panel.css`.
 
-Le seuil du dessin, lui, ne vaut que pour ce qui **porte une information**
-(D177) : la barre d'un histogramme, une jauge, l'anneau de focus. Le filet qui
-sépare, la poignée au repos et le glyphe inerte en sont tenus dehors, et
-`panel.test.ts` vérifie qu'ils y restent — les y inclure obligerait à les
-assombrir jusqu'à ce qu'ils se lisent comme du contenu. La poignée se donne
-autrement : elle passe à l'encre 3 au survol et au focus, et une section se
-déplace aussi au clavier.
+Le seuil du dessin, 3:1, ne vaut que pour ce qui **porte une information**
+(D177) : la barre d'un histogramme, l'anneau de focus, le contour d'un champ,
+le point « en ligne ». Le filet qui sépare (`outlineVariant`), les couches
+d'état et le ton d'un contrôle éteint en sont tenus dehors, et
+`panel.test.ts` vérifie qu'ils y restent.
 
-Le reste du plancher — focus visible, cible tactile de 48 px sous 60 rem, jamais
-la couleur seule pour porter un état — demande encore de regarder un écran.
+Le reste du plancher — focus visible, cible tactile de 44 px sous 600 px,
+jamais la couleur seule pour porter un état — demande encore de regarder un
+écran.
 
 ### Les composants
 
 Le panel n'emploie aucune bibliothèque d'interface (D175). Ses composants vivent
 dans `src/admin/ui/`, un fichier par famille : la mise en place, la
 typographie, les boutons, le champ et ce qui l'entoure, la ligne de liste, les
-marques, les interrupteurs, les surfaces, ce qui flotte, et le jeu d'icônes.
+marques, les interrupteurs, les onglets, les surfaces, ce qui flotte, la
+navigation, ce qui dit qu'une chose se passe, et le jeu d'icônes. Chaque glyphe
+y porte le nom que Material lui donne, et lui seul : c'est ce qui permet de
+retrouver un tracé dans le catalogue, et d'en ajouter un sans se demander
+comment le nommer.
 
-Deux d'entre eux portent plus qu'une allure. `Field` tient l'affichage d'un
+Une **carte peut tenir la hauteur qu'on lui laisse** (D221) : en `fill`, elle
+devient une colonne dont `CardHead` reste en place et dont `CardBody` porte
+seul le défilement. C'est la forme du volet d'édition, de la liste des billets,
+des deux cartes de la boîte des messages et des deux de la médiathèque — la
+carte tient, son contenu passe dessous. Une colonne qui défilait emmenait la
+carte entière, et le titre de ce qu'on lisait sortait par le haut. Sous
+1 200 px, ces écrans rendent le défilement à la page : une colonne ne peut pas
+porter deux cartes à pleine hauteur l'une sous l'autre.
+
+Quatre mécaniques portent l'allure :
+
+- **Une surface s'élève par sa couleur** (D200). La surface, puis cinq
+  conteneurs de plus en plus clairs ; l'ombre ne vient qu'à ce qui se détache
+  vraiment — une carte élevée, un menu, une fenêtre, le bouton flottant.
+- **Ce qui se presse porte une couche d'état.** La couleur de son contenu,
+  posée dessus à huit pour cent au survol, dix au focus et à l'appui — une
+  seule règle, pour le bouton, la ligne, la puce et la destination du rail.
+- **Le bouton plein dit « fais »** (D201). Il change l'état du site ; le tonal
+  agit sur l'écran, le contour propose, le texte annule, et le ton d'erreur se
+  pose sur n'importe lequel. Le **bouton flottant** est à part : c'est l'action
+  première d'un écran, posée au-dessus de lui — le seul objet du panel qui
+  rouvre le volet quand il est devenu une couche.
+- **La forme pleine est celle de ce qui agit**, le rayon moyen celle de ce qui
+  contient (D202) : 0, 4, 8, 12, 16, 28 et le plein. Une ligne de liste de
+  deux hauteurs garde le rayon moyen, la forme pleine restant aux menus (D211).
+
+L'échelle est celle de Material **resserrée d'un cran** (D209) : le corps à
+13 px, le champ à 40 px, le bouton à 36 px, l'icône à 20 px. Le panel est un
+outil de bureau, et les tailles dessinées pour le pouce y faisaient tout
+paraître écrasé. Dans le même geste, un contour est un filet sur
+`outlineVariant` et non un cadre sur `outline`, un tonal éteint perd son fond,
+et l'état « enregistré » de la barre se lit sans cadre. Un interrupteur qui
+accompagne un titre se pose en **ligne d'interrupteur** sous lui — `SwitchRow`
+—, jamais à côté (D211).
+
+Deux composants portent plus qu'une allure. `Field` tient l'affichage d'un
 refus de validation : son render-prop remet à chaque contrôle l'identifiant,
 l'`aria-invalid` et l'`aria-describedby` qui font qu'une erreur atteint le champ
-qui la cause (D166). `Modal` piège le focus, ferme à Échap et au clic sur le
+qui la cause (D166) — et c'est pourquoi le libellé se tient **au-dessus** du
+contrôle, jamais dedans (D203) : un champ composite n'a pas de bord où le
+faire flotter. `Modal` piège le focus, ferme à Échap et au clic sur le
 voile, et ne rend rien tant qu'elle est fermée — le composant qui la porte reste
 monté, ce qui évite qu'un sélecteur rouvert propose le choix du précédent.
 
-La **police** est Geist, en fonte variable auto-hébergée (D181) : la graisse 450
-que portent les lignes de liste n'existe pas en statique, et le panel est servi
-depuis le VPS du client — il n'appelle pas un tiers pour s'afficher. Les deux
-`.woff2` vivent dans `src/admin/fonts/`, et `scripts/build.mjs` les recopie dans
-le paquet au même titre que la feuille.
+Ce qui vient de réussir se dit dans une **snackbar** — « Enregistré », « Mise
+en ligne lancée » — qui s'efface d'elle-même (D205) ; ce qui a échoué au
+niveau du site reste un bandeau sous la barre d'application, jusqu'à ce que la
+cause disparaisse.
+
+La **police** est Roboto Flex, avec Roboto Mono pour le chiffre, en fontes
+variables auto-hébergées (D206) : le panel est servi depuis le VPS du client, et
+n'appelle pas un tiers pour s'afficher. Les deux `.woff2` vivent dans
+`src/admin/fonts/`, et `scripts/build.mjs` les recopie dans le paquet au même
+titre que la feuille. Les icônes sont des Material Symbols recopiés en chemins
+inline (D207).
 
 ### Ce qui tient sur l'écran qu'on a
 
-La barre du haut demande environ 1 250 px pour ses six onglets, sa marque, sa
-langue et ses deux commandes : elle se replie donc à **80 rem**, ses onglets sur
-leur propre ligne et défilants (D167). Sous **75 rem**, les deux colonnes de
-l'édition s'empilent, et la colonne des sections et des réglages passe la
-première — ce qu'on règle vient avant ce qu'on relit. Sous **60 rem**, l'en-tête
-d'écran s'empile et tout ce qui se clique atteint 48 px.
+Le panel suit les classes de fenêtre de Material. À partir de **1 200 px**,
+l'écran d'édition tient en trois colonnes (D212) : la structure — la page, la
+langue, les sections — à gauche, l'aperçu au centre, réduit à l'échelle de sa
+colonne (D213), et le formulaire à droite. En dessous, tout s'empile —
+structure, formulaire, puis aperçu : ce qu'on règle vient avant ce qu'on
+relit —, la structure sur deux colonnes tant que l'écran le permet. À partir de **840 px**, la navigation est un rail à gauche, avec la
+marque du site en tête et l'avatar du compte au pied ; en dessous, c'est une
+barre en bas de l'écran, et l'avatar rejoint la barre d'application (D204).
+Sous **600 px**, la barre d'application s'empile et tout ce qui se presse
+atteint 44 px.
+
+L'écran de connexion tient en **deux volets** (D210) : le site à gauche, sur un
+dégradé tiré de sa graine ; le formulaire à droite, sur la surface. Sous
+840 px, le volet devient un bandeau au-dessus du formulaire.
 
 ## Authentification
 
@@ -414,13 +486,28 @@ ne valide toujours rien (D58) : il range un verdict qui vient du serveur.
 
 ### L'écran d'édition
 
-Trois colonnes, et l'aperçu au centre (D96) :
+Deux colonnes (D218) : l'aperçu, et le volet de ce qu'on modifie.
 
 | Colonne | Ce qu'elle porte |
 |---|---|
-| gauche | la page ouverte, la liste de ses sections — sélection, réordonnancement, et la seule prise sur une section masquée |
-| centre | `GET /admin/preview/<slug>` dans un cadre, en bureau ou en mobile |
-| droite | le panneau de la section choisie, ou les informations de la page |
+| gauche | `GET /admin/preview/<slug>` dans un cadre, en bureau — rendu à 1 024 px et réduit à l'échelle (D213) — ou en mobile. Sa barre porte le **choix de la page**, la bascule de support et le lien qui ouvre la page pour de vrai |
+| droite | le **volet**, une vue à la fois : la liste des sections, le titre et la description de la page, ou le formulaire de la section choisie. La langue écrite est en tête, sur toutes les vues |
+
+**L'aperçu est la surface de travail** (D219). On y désigne une section en
+cliquant dessus : elle se cerne au survol et se nomme, la section choisie garde
+un trait d'encre, et le volet ouvre son formulaire. Entre deux sections, une
+bande révélée au survol demande une section de plus **à ce rang** — c'est aussi
+ce qui rend une page vide lisible : sans elle, il n'y aurait rien à cliquer. Le
+panel et le cadre se parlent par `postMessage`, dans les deux sens
+(`src/admin/bridge.ts`), et le cadre redemande la marque après chaque
+rechargement plutôt que le panel ne devine quand la poser.
+
+Ce que le volet garde, et que l'aperçu ne peut pas dire : l'**ordre** des
+sections, celles qui sont **masquées** — elles n'y paraissent pas —, et celles
+qu'un contrôle a **refusées**.
+
+« Actualités » ne prend cette forme qu'à son second niveau (D220) : la liste des
+billets d'abord, puis le billet ouvert, avec l'aperçu et son volet.
 
 **Une liste répétable se parcourt repliée** (D163). Chaque élément est une
 ligne qui porte le champ que le bloc a désigné en `itemLabel` — la question
@@ -442,6 +529,10 @@ l'aperçu. Sur un site à un seul rendu elle ne change que la largeur, ce qu'ell
 faisait déjà — le client ne voit donc rien de nouveau (D25).
 
 **« En-tête et pied de page »** est la dernière entrée du sélecteur de page.
+Ses deux emplacements se choisissent dans la liste du volet, jamais dans
+l'aperçu : `Layout.astro` rend l'en-tête et le pied hors de l'enveloppe des
+sections, et l'aperçu montre alors l'accueil, dont les sections appartiennent à
+une autre entrée.
 Elle ouvre les deux emplacements du chrome comme deux sections, dans le même
 panneau et avec les mêmes champs — mais sans poignée, sans suppression et sans
 interrupteur de visibilité : ils sont sur toutes les pages, et `hidden` n'a

@@ -25,7 +25,6 @@ export default block({
     }),
     left: f.group({
       label: 'Première colonne',
-      help: 'La vôtre : c’est elle que le tableau met en avant.',
       fields: column,
     }),
     right: f.group({

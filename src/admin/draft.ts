@@ -137,6 +137,29 @@ export function labelOfItem(
   return translated(value, language)
 }
 
+/**
+ * Ce qu’une section dit d’elle-même dans une liste : son premier champ de
+ * texte court rempli — un titre, le plus souvent. Quatorze lignes « Grille de
+ * cartes » ne disaient pas laquelle on cherchait ; « Ce que le socle porte »
+ * le dit. Vide quand la section n’a pas encore de texte.
+ */
+export function sectionSummary(
+  fields: readonly FieldDescription[],
+  props: Values,
+  language: string,
+): string {
+  for (const field of fields) {
+    if (field.kind !== 'text') continue
+
+    const value = props[field.name]
+    const text = typeof value === 'string' ? value : translated(value, language)
+
+    if (text.trim() !== '') return text.trim()
+  }
+
+  return ''
+}
+
 /** Deux brouillons sont identiques quand leur JSON l’est, clé pour clé. */
 export function sameDraft(left: Draft, right: Draft): boolean {
   return JSON.stringify(left) === JSON.stringify(right)

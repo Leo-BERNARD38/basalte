@@ -48,17 +48,6 @@ export function useEditing(): Editing {
   return useContext(EditingContext)
 }
 
-/**
- * La phrase qui dit quelle langue on écrit, sur un site qui en a plusieurs.
- * Rien ne la disait : un champ traduisible est identique dans les deux langues,
- * et le seul indice vivait dans un menu, en haut à droite de l’écran.
- */
-export function editedLanguage(editing: Editing): string | undefined {
-  if (editing.languages.length < 2) return undefined
-
-  return `Vous modifiez le contenu en ${languageLabel(editing.languages, editing.language)}.`
-}
-
 /** Le nom d’une langue tel que le client le lit, jamais son code. */
 export function languageLabel(
   languages: readonly PanelLanguage[],

@@ -21,7 +21,6 @@ export default block({
       of: {
         image: f.image({
           label: 'Portrait',
-          help: 'Le texte alternatif se règle dans la médiathèque.',
           ratio: '1/1',
         }),
         name: f.text({ label: 'Nom', required: true, max: 60 }),

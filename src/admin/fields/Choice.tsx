@@ -7,7 +7,7 @@
 // contenu stocke —, et c’est le seul qui ouvre le sélecteur du téléphone.
 
 import { Field, Select, TextField } from '../ui/Field.js'
-import { hint, useFieldError, type ControlProps } from './Field.js'
+import { useFieldError, type ControlProps } from './Field.js'
 
 const EXTERNAL = 'https://exemple.fr'
 const INTERNAL = '/contact, https://…, mailto:…'
@@ -18,7 +18,6 @@ export function Link({ description, value, issues, onChange }: ControlProps) {
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
     >
@@ -40,7 +39,6 @@ export function Moment({ description, value, issues, onChange }: ControlProps) {
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
     >
@@ -63,7 +61,6 @@ export function Choice({ description, value, issues, onChange }: ControlProps) {
   return (
     <Field
       label={description.label}
-      hint={hint(description)}
       error={error}
       required={description.required}
     >

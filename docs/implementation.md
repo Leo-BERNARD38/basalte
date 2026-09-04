@@ -42,7 +42,7 @@ c'est ce pour quoi elles sont là.
 
 ## Ce qui est fait
 
-Dix-huit phases, et ce que chacune a mis en place. Le détail de leurs choix est
+Vingt phases, et ce que chacune a mis en place. Le détail de leurs choix est
 dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
 code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 
@@ -66,8 +66,8 @@ code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
 | 16 | Allonger | les listes délivrées de leur borne haute, la règle qui dit quand une borne se justifie, le poids d'une page mesuré au build, les éléments repliés dans le panel | D160 à D163 |
 | 17 | Relire le panel | `lint` étendu à la feuille et aux tokens du panel, l'encre ramenée au-dessus du plancher, douze défauts corrigés, une seule voix et une seule forme par geste, l'erreur de validation posée sous son champ, l'écran de connexion refait, le panel qui tient sur un portable et sur un téléphone, l'aide sous un « ? », et une allure qui porte un accent | D164 à D171 |
 | 18 | La direction artistique du panel | une couche de tokens refaite et tenue par un test, la feuille qui porte tout le dessin, les composants du panel écrits dans le dépôt, Geist auto-hébergée, les sept écrans repris sur la maquette, le plancher du dessin borné à ce qui porte une information, le recadrage retiré au profit du point focal, la section que le client ajoute, et douze images de départ pour un site neuf | D172 à D181 |
-
 | 19 | Habiller | trois plans de couleur et l'échelle étendue, le rythme et l'axe communs à tous les blocs, le bouton dans la feuille commune, l'en-tête collant, `showcase`, `bento` et `comparison`, et le site de démonstration devenu la landing de Basalte | D182 à D189 |
+| 20 | Material Design 3 | le panel réécrit dans le langage de Material : un schéma de couleurs tiré d'une graine, neutre par défaut et déclaré par site, en clair et en sombre ; l'échelle de forme, de texte et d'élévation ; le rail et la barre de navigation, la barre d'application, la snackbar ; Roboto Flex et les Material Symbols auto-hébergés ; le lint qui mesure les deux schémas et la graine d'un site ; puis la passe d'esthétique — l'échelle resserrée d'un cran, la connexion en deux volets, la ligne d'interrupteur, et l'apparence que chacun règle sur son appareil | D194 à D211 |
 
 Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
 Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui

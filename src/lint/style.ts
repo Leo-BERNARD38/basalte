@@ -91,14 +91,14 @@ export const SITE: StyleSystem = {
 }
 
 /**
- * Les tokens du panel, dans sa feuille. Elle porte désormais tout ce que le
- * panel dessine, largeurs comprises. La police en est la seule famille non
+ * Les tokens du panel, dans sa feuille. Elle porte tout ce que le panel
+ * dessine, largeurs comprises. La police en est la seule famille non
  * contrôlée : un `@font-face` nomme forcément la sienne en clair, et la règle
  * refuserait la déclaration même qui la rend disponible.
  */
 export const PANEL: StyleSystem = {
   prefix: 'panel-',
-  colour: '--panel-ink-1',
+  colour: '--panel-color-on-surface',
   families: new Set(['space', 'text', 'radius', 'width']),
   whole: true,
 }

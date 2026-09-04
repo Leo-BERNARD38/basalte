@@ -20,7 +20,6 @@ export default block({
     }),
     image: f.image({
       label: 'Image',
-      help: 'Le texte alternatif et le point focal se règlent dans la médiathèque.',
       ratio: '16/9',
     }),
     cta: f.group({
