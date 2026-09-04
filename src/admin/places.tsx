@@ -9,7 +9,7 @@
 import type { FieldDescription } from '../fields/describe.js'
 import type { PanelPayload } from '../server/panel.js'
 import { asidesOf } from './asides.js'
-import { ArrowRight } from './ui/icons.js'
+import { ChevronRight } from './ui/icons.js'
 import { Stack } from './ui/Layout.js'
 import { Row, RowGlyph, RowText } from './ui/Row.js'
 import { Eyebrow, Text } from './ui/Text.js'
@@ -124,7 +124,7 @@ export function Places({
             >
               <RowText>{place.label}</RowText>
               <RowGlyph>
-                <ArrowRight />
+                <ChevronRight />
               </RowGlyph>
             </Row>
           ))}

@@ -10,7 +10,7 @@ import type { DraftPost } from '../server/posts.js'
 import { preview } from './Media.js'
 import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
-import { HiddenMark, Picture } from './ui/icons.js'
+import { VisibilityOff, Image } from './ui/icons.js'
 import { Spacer } from './ui/Layout.js'
 import { Mono } from './ui/Text.js'
 
@@ -37,7 +37,7 @@ export function PostCard({
       <button type="button" className="basalte-post__open" onClick={onWrite}>
         <span className="basalte-post__cover">
           {cover === undefined ? (
-            <Picture size={24} />
+            <Image size={24} />
           ) : (
             <img src={preview(cover)} alt="" loading="lazy" />
           )}
@@ -53,7 +53,7 @@ export function PostCard({
       <div className="basalte-post__marks">
         {away && (
           <Mark hatched>
-            <HiddenMark size={12} />
+            <VisibilityOff size={12} />
             brouillon
           </Mark>
         )}

@@ -2,7 +2,7 @@
 // annonce une fois, en bas, et disparaît d’elle-même (D205) ; l’attente
 // linéaire dit qu’un travail tourne, sous la barre d’application.
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect } from 'react'
 
 import { Button } from './Button.js'
 
@@ -56,9 +56,4 @@ export function LinearProgress({ label }: { readonly label: string }) {
       aria-busy="true"
     />
   )
-}
-
-/** Le contenant d’un état qui n’a pas encore de forme. */
-export function Live({ children }: { readonly children: ReactNode }) {
-  return <div aria-live="polite">{children}</div>
 }

@@ -35,7 +35,7 @@ import { Problems } from './Problems.js'
 import { Section } from './Section.js'
 import { Sections } from './Sections.js'
 import { Stage } from './Stage.js'
-import { Button } from './ui/Button.js'
+import { Button, Fab } from './ui/Button.js'
 import { ArrowBack, Description } from './ui/icons.js'
 import { Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
@@ -246,15 +246,17 @@ export function Edit({
       />
 
       {/* Sous 1 200 pixels, le volet vient par-dessus l’aperçu : ce bouton est
-          alors le seul chemin vers la liste, puisqu’on n’a rien désigné. */}
-      <Button
+          alors le seul chemin vers la liste, puisqu’on n’a rien désigné. C’est
+          l’action première de l’écran, posée au-dessus de lui — le bouton
+          flottant du système, et la seule chose qui porte ici la troisième
+          ombre (D200). */}
+      <Fab
         className="basalte-inspector__open"
-        variant="tonal"
+        extended
+        label={fixed ? 'Emplacements' : 'Sections'}
         icon={<Description size={18} />}
         onClick={() => setOpened(true)}
-      >
-        {fixed ? 'Emplacements' : 'Sections'}
-      </Button>
+      />
 
       <Inspector
         opened={opened}

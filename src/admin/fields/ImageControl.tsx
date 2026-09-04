@@ -10,7 +10,7 @@ import { useEditing } from '../editing.js'
 import { thumbnail } from '../Media.js'
 import { Button } from '../ui/Button.js'
 import { Field } from '../ui/Field.js'
-import { Picture } from '../ui/icons.js'
+import { Image } from '../ui/icons.js'
 import { Group, Spacer, Stack } from '../ui/Layout.js'
 import { Text } from '../ui/Text.js'
 import { useFieldError, type ControlProps } from './Field.js'
@@ -46,7 +46,7 @@ export function ImageControl({
         <Stack gap="sm" {...bound}>
           {entry === undefined ? (
             <div className="basalte-slot">
-              <Picture />
+              <Image />
               Aucune image
               {description.ratio === undefined
                 ? ''

@@ -18,7 +18,7 @@ import { useState, type ReactNode } from 'react'
 import type { PanelPayload } from '../server/panel.js'
 import type { Screen } from './Shell.js'
 import { IconButton } from './ui/Button.js'
-import { Question } from './ui/icons.js'
+import { Help as HelpIcon } from './ui/icons.js'
 import { Stack } from './ui/Layout.js'
 import { Anchor, Menu } from './ui/Overlay.js'
 import { Eyebrow, Text } from './ui/Text.js'
@@ -75,10 +75,7 @@ const FORMATTING: Note = {
  * boutons sont sur tous, et c’est la question que le client pose le plus
  * souvent.
  */
-export function notesFor(
-  screen: Screen,
-  payload: PanelPayload,
-): readonly Note[] {
+function notesFor(screen: Screen, payload: PanelPayload): readonly Note[] {
   const support = payload.support
 
   const shared: Note = {
@@ -216,7 +213,7 @@ export function Help({
           aria-expanded={opened}
           onClick={() => setOpened(!opened)}
         >
-          <Question />
+          <HelpIcon />
         </IconButton>
 
         <Menu

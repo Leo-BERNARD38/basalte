@@ -74,15 +74,6 @@ export function CardBody({
   )
 }
 
-/** Un objet posé sur le canvas, au-dessus de l’aperçu : la deuxième ombre. */
-export function Float({ className, children, ...rest }: ComponentProps<'div'>) {
-  return (
-    <div className={joined('basalte-float', className)} {...rest}>
-      {children}
-    </div>
-  )
-}
-
 type BannerProps = ComponentProps<'div'> & {
   readonly tone?: 'refused' | 'watch' | 'raised' | undefined
   readonly hatched?: boolean | undefined

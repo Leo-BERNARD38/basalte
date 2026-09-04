@@ -25,7 +25,7 @@ import { useEditing } from '../editing.js'
 import { SortableItem, SortableList } from '../Sortable.js'
 import { Button } from '../ui/Button.js'
 import { Field } from '../ui/Field.js'
-import { Chevron, Grip } from '../ui/icons.js'
+import { ExpandMore, DragIndicator } from '../ui/icons.js'
 import { Group, Spacer, Stack } from '../ui/Layout.js'
 import { Modal } from '../ui/Overlay.js'
 import { Row, RowGlyph, RowText } from '../ui/Row.js'
@@ -116,7 +116,7 @@ export function ListControl({
                           aria-label="Déplacer cet élément"
                           {...handle.props}
                         >
-                          <Grip />
+                          <DragIndicator />
                         </button>
                         <Row
                           current={open === index}
@@ -133,7 +133,7 @@ export function ListControl({
                             ) || `Élément ${index + 1}`}
                           </RowText>
                           <RowGlyph>
-                            <Chevron />
+                            <ExpandMore />
                           </RowGlyph>
                         </Row>
                         <Button

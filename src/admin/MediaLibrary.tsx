@@ -30,7 +30,7 @@ import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Banner, Card, CardBody, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
-import { Tabs } from './ui/Chip.js'
+import { Tabs } from './ui/Tabs.js'
 import { Search } from './ui/icons.js'
 
 const CENTRE = 50

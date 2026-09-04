@@ -240,8 +240,11 @@ jamais la couleur seule pour porter un état — demande encore de regarder un
 Le panel n'emploie aucune bibliothèque d'interface (D175). Ses composants vivent
 dans `src/admin/ui/`, un fichier par famille : la mise en place, la
 typographie, les boutons, le champ et ce qui l'entoure, la ligne de liste, les
-marques, les interrupteurs, la puce et les onglets, les surfaces, ce qui
-flotte, la navigation, ce qui dit qu'une chose se passe, et le jeu d'icônes.
+marques, les interrupteurs, les onglets, les surfaces, ce qui flotte, la
+navigation, ce qui dit qu'une chose se passe, et le jeu d'icônes. Chaque glyphe
+y porte le nom que Material lui donne, et lui seul : c'est ce qui permet de
+retrouver un tracé dans le catalogue, et d'en ajouter un sans se demander
+comment le nommer.
 
 Une **carte peut tenir la hauteur qu'on lui laisse** (D221) : en `fill`, elle
 devient une colonne dont `CardHead` reste en place et dont `CardBody` porte
@@ -262,7 +265,9 @@ Quatre mécaniques portent l'allure :
   seule règle, pour le bouton, la ligne, la puce et la destination du rail.
 - **Le bouton plein dit « fais »** (D201). Il change l'état du site ; le tonal
   agit sur l'écran, le contour propose, le texte annule, et le ton d'erreur se
-  pose sur n'importe lequel.
+  pose sur n'importe lequel. Le **bouton flottant** est à part : c'est l'action
+  première d'un écran, posée au-dessus de lui — le seul objet du panel qui
+  rouvre le volet quand il est devenu une couche.
 - **La forme pleine est celle de ce qui agit**, le rayon moyen celle de ce qui
   contient (D202) : 0, 4, 8, 12, 16, 28 et le plein. Une ligne de liste de
   deux hauteurs garde le rayon moyen, la forme pleine restant aux menus (D211).

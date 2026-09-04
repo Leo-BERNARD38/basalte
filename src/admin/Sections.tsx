@@ -15,7 +15,7 @@ import { useEditing } from './editing.js'
 import { SortableItem, SortableList } from './Sortable.js'
 import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
-import { Grip, HiddenMark, Plus } from './ui/icons.js'
+import { DragIndicator, VisibilityOff, Add } from './ui/icons.js'
 import { Stack } from './ui/Layout.js'
 import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
 import { Empty } from './ui/Surface.js'
@@ -70,12 +70,7 @@ export function Sections({
           title="Aucune section"
           note="Cette page est vide. Ajoutez-en une pour commencer."
         />
-        <Button
-          variant="filled"
-          icon={<Plus />}
-          onClick={() => onAdd('')}
-          block
-        >
+        <Button variant="filled" icon={<Add />} onClick={() => onAdd('')} block>
           Ajouter une section
         </Button>
       </Stack>
@@ -115,7 +110,7 @@ export function Sections({
                         aria-label={`Déplacer « ${kind} »`}
                         {...handle.props}
                       >
-                        <Grip />
+                        <DragIndicator />
                       </button>
                     }
                     onClick={() => onFocus(section.id)}
@@ -136,7 +131,7 @@ export function Sections({
                     )}
                     {hidden && (
                       <Mark hatched>
-                        <HiddenMark size={12} />
+                        <VisibilityOff size={12} />
                         masquée
                       </Mark>
                     )}
@@ -148,7 +143,7 @@ export function Sections({
         </SortableList>
       </Stack>
 
-      <Button variant="text" icon={<Plus />} onClick={() => onAdd('')}>
+      <Button variant="text" icon={<Add />} onClick={() => onAdd('')}>
         Ajouter une section
       </Button>
     </Stack>

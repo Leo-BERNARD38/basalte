@@ -1,31 +1,11 @@
-// La puce de Material : un choix qu’on filtre ou une aide qu’on propose.
-// Choisie, elle perd son contour et prend le conteneur secondaire.
+// Les onglets : deux listes de même nature dans un même écran — les images et
+// les documents de la médiathèque. Une ligne sous celui qui est ouvert, et
+// c’est tout.
+//
+// Ce n’est pas un troisième étage de navigation : un écran qui réclamerait des
+// onglets pour deux choses différentes serait deux écrans.
 
-import type { ComponentProps, ReactNode } from 'react'
-
-import { joined } from './Layout.js'
-
-type ChipProps = Omit<ComponentProps<'button'>, 'type'> & {
-  /** Choisie, quand la puce filtre. */
-  readonly on?: boolean | undefined
-  readonly icon?: ReactNode | undefined
-  readonly children: ReactNode
-}
-
-export function Chip({ on, icon, className, children, ...rest }: ChipProps) {
-  return (
-    <button
-      type="button"
-      className={joined('basalte-chip', className)}
-      data-on={on === true ? 'true' : undefined}
-      aria-pressed={on}
-      {...rest}
-    >
-      {icon}
-      {children}
-    </button>
-  )
-}
+import type { ReactNode } from 'react'
 
 export type Tab<T extends string> = {
   readonly value: T

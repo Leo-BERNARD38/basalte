@@ -20,7 +20,7 @@ type Points = PanelPayload['problems']
  * groupées, elles font un titre, un compte, et douze lignes qu’on parcourt au
  * lieu de les lire. L’ordre d’arrivée est gardé — c’est celui du contrôle.
  */
-export function groupProblems(problems: Points): readonly {
+function groupProblems(problems: Points): readonly {
   readonly page: string
   readonly points: Points
 }[] {

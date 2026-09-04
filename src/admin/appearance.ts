@@ -75,7 +75,7 @@ function isPreference(value: unknown): value is Preference {
 }
 
 /** Rien de choisi : le panel fait ce que le site et le système disent. */
-export function isDefaultAppearance(appearance: Appearance): boolean {
+function isDefaultAppearance(appearance: Appearance): boolean {
   return appearance.mode === 'system' && appearance.seed === undefined
 }
 

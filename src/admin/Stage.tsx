@@ -20,7 +20,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { fromPreview, toPreview } from './bridge.js'
-import { Desktop, External, Mobile } from './ui/icons.js'
+import { Computer, OpenInNew, Smartphone } from './ui/icons.js'
 import { Spacer } from './ui/Layout.js'
 import { Text } from './ui/Text.js'
 import { Segmented } from './ui/Toggle.js'
@@ -32,7 +32,7 @@ const SUPPORTS = [
     value: 'desktop' as const,
     label: (
       <>
-        <Desktop />
+        <Computer />
         Bureau
       </>
     ),
@@ -41,7 +41,7 @@ const SUPPORTS = [
     value: 'mobile' as const,
     label: (
       <>
-        <Mobile />
+        <Smartphone />
         Mobile
       </>
     ),
@@ -169,7 +169,7 @@ export function Stage({
               target="_blank"
               rel="noopener"
             >
-              <External />
+              <OpenInNew />
               Ouvrir dans un onglet
             </a>
           )}

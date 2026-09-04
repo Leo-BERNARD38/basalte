@@ -33,9 +33,9 @@ import { Inspector } from './Inspector.js'
 import { Language } from './Language.js'
 import { PostCard } from './PostCard.js'
 import { Stage } from './Stage.js'
-import { Button, IconButton } from './ui/Button.js'
+import { Button, Fab, IconButton } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
-import { ArrowBack, Edit, Plus } from './ui/icons.js'
+import { ArrowBack, Edit, Add } from './ui/icons.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Card, CardBody, CardHead, Empty } from './ui/Surface.js'
@@ -122,7 +122,7 @@ export function Journal({
           <Spacer />
           <Button
             variant="filled"
-            icon={<Plus />}
+            icon={<Add />}
             onClick={() => setWriting(true)}
           >
             Nouveau billet
@@ -192,14 +192,13 @@ export function Journal({
             }
           />
 
-          <Button
+          <Fab
             className="basalte-inspector__open"
-            variant="tonal"
+            extended
+            label="Le billet"
             icon={<Edit size={18} />}
             onClick={() => setPanel(true)}
-          >
-            Le billet
-          </Button>
+          />
 
           <Inspector
             opened={panel}

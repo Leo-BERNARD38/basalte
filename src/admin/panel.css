@@ -148,7 +148,6 @@
   --panel-control-mark: 20px;
   --panel-control-xs: 26px;
   --panel-control-sm: 30px;
-  --panel-control-chip: 30px;
   --panel-control-md: 36px;
   --panel-control-field: 40px;
   --panel-control-row: 40px;
@@ -330,7 +329,6 @@ b {
   .basalte-button,
   .basalte-icon-button,
   .basalte-fab,
-  .basalte-chip,
   .basalte-row,
   .basalte-nav__indicator,
   .basalte-segmented__item,
@@ -344,7 +342,6 @@ b {
   .basalte-button,
   .basalte-icon-button,
   .basalte-fab,
-  .basalte-chip,
   .basalte-row,
   .basalte-nav__indicator,
   .basalte-segmented__item,
@@ -365,7 +362,6 @@ b {
     .basalte-button,
     .basalte-icon-button,
     .basalte-fab,
-    .basalte-chip,
     .basalte-segmented__item,
     .basalte-tab
   ):hover:not(:disabled)::after,
@@ -378,7 +374,6 @@ b {
     .basalte-button,
     .basalte-icon-button,
     .basalte-fab,
-    .basalte-chip,
     .basalte-segmented__item,
     .basalte-tab
   ):active:not(:disabled)::after,
@@ -710,8 +705,7 @@ b {
    l’action. */
 .basalte-button:disabled,
 .basalte-icon-button:disabled,
-.basalte-fab:disabled,
-.basalte-chip:disabled {
+.basalte-fab:disabled {
   border-color: color-mix(
     in srgb,
     var(--panel-color-on-surface) var(--panel-state-disabled-container),
@@ -1322,32 +1316,6 @@ textarea.basalte-input {
   width: 100%;
 }
 
-/* La puce : un choix qu’on filtre ou une aide qu’on propose. Choisie, elle
-   perd son contour et prend le conteneur secondaire. */
-.basalte-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--panel-space-md);
-  height: var(--panel-control-chip);
-  padding: 0 var(--panel-space-lg);
-  border: 1px solid var(--panel-color-outline-variant);
-  border-radius: var(--panel-radius-sm);
-  background: transparent;
-  color: var(--panel-color-on-surface-variant);
-  font-family: inherit;
-  font-size: var(--panel-text-label-lg);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.basalte-chip[data-on='true'] {
-  border-color: transparent;
-  background: var(--panel-color-secondary-container);
-  color: var(--panel-color-on-secondary-container);
-}
-
 /* Les onglets, quand un écran tient deux listes de même nature : une ligne
    sous celui qui est ouvert, et c’est tout. */
 .basalte-tabs {
@@ -1481,14 +1449,6 @@ textarea.basalte-input {
   border-radius: var(--panel-radius-md);
   background: var(--panel-color-error-container);
   color: var(--panel-color-on-error-container);
-}
-
-/* Un objet posé sur le canvas, au-dessus de l’aperçu : la deuxième ombre. */
-.basalte-float {
-  padding: var(--panel-space-md);
-  border-radius: var(--panel-radius-md);
-  background: var(--panel-color-surface-container-low);
-  box-shadow: var(--panel-elevation-2);
 }
 
 /* Un bandeau dit l’état du site, pas son contenu. Sans ton, il se pose à
@@ -2297,13 +2257,13 @@ textarea.basalte-input {
 }
 
 /* Le bouton qui ouvre le volet se pose sur l’aperçu, en bas à droite : c’est
-   le seul chemin vers la liste tant qu’on n’a rien désigné. */
+   le seul chemin vers la liste tant qu’on n’a rien désigné. C’est un bouton
+   flottant, et son ombre lui vient de là. */
 .basalte-inspector__open {
   position: absolute;
   z-index: 30;
   right: var(--panel-space-xxl);
   bottom: var(--panel-space-xxl);
-  box-shadow: var(--panel-elevation-2);
 }
 
 /* L’aperçu est un seul objet : sa barre d’outils et la page qu’elle commande
@@ -3006,7 +2966,6 @@ textarea.basalte-input {
   .basalte-button,
   .basalte-icon-button,
   .basalte-fab,
-  .basalte-chip,
   .basalte-tab,
   .basalte-row,
   .basalte-segmented__item,
@@ -3319,7 +3278,6 @@ textarea.basalte-input {
   .basalte-button,
   .basalte-icon-button,
   .basalte-tab,
-  .basalte-chip,
   .basalte-segmented,
   .basalte-selector,
   .basalte-input {

@@ -8,6 +8,11 @@
 //
 // Une icône ne se nomme pas, sauf quand elle est seule à porter un geste : le
 // mot est écrit à côté d’elle, et le dire deux fois l’efface.
+//
+// Chaque glyphe porte le nom que Material lui donne, et lui seul : c’est ce
+// qui permet de retrouver un tracé dans le catalogue, et d’en ajouter un sans
+// se demander comment le nommer. Un écran qui a déjà ce nom importe l’icône
+// sous un alias local — `Help as HelpIcon` —, jamais l’inverse.
 
 type IconProps = {
   readonly size?: number | undefined
@@ -396,18 +401,4 @@ export function Warning({ size, label }: IconProps) {
       d="M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm69-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5Zm0-120Q520-383 520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360q17 0 28.5-11.5ZM480-460Z"
     />
   )
-}
-
-// Les noms sous lesquels les écrans connaissaient les tracés de la phase 18.
-export {
-  DragIndicator as Grip,
-  ExpandMore as Chevron,
-  Help as Question,
-  VisibilityOff as HiddenMark,
-  OpenInNew as External,
-  Add as Plus,
-  Computer as Desktop,
-  Smartphone as Mobile,
-  Image as Picture,
-  ChevronRight as ArrowRight,
 }

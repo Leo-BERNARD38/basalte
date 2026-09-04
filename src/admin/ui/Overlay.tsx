@@ -13,7 +13,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
 import { IconButton } from './Button.js'
-import { Chevron, Close } from './icons.js'
+import { ExpandMore, Close } from './icons.js'
 
 const FOCUSABLE =
   'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
@@ -279,7 +279,7 @@ export function Selector({
         <span className="basalte-selector__value">{value}</span>
       </span>
       {mark}
-      <Chevron />
+      <ExpandMore />
     </button>
   )
 }

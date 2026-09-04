@@ -12,7 +12,7 @@
 
 import { useId, type ComponentProps, type ReactNode } from 'react'
 
-import { Chevron } from './icons.js'
+import { ExpandMore } from './icons.js'
 import { joined } from './Layout.js'
 
 type FieldProps = {
@@ -139,7 +139,7 @@ export function Select({ className, children, ...rest }: SelectProps) {
       <select className={joined('basalte-input', className)} {...rest}>
         {children}
       </select>
-      <Chevron />
+      <ExpandMore />
     </span>
   )
 }

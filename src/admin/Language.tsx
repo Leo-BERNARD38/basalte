@@ -27,7 +27,7 @@ import { useState } from 'react'
 import type { PanelLanguage } from '../server/panel.js'
 import { useEditing } from './editing.js'
 import { Mark } from './ui/Badge.js'
-import { HiddenMark } from './ui/icons.js'
+import { VisibilityOff } from './ui/icons.js'
 import { Anchor, Menu, Selector } from './ui/Overlay.js'
 import { Row, RowText } from './ui/Row.js'
 import { Eyebrow } from './ui/Text.js'
@@ -38,7 +38,7 @@ function draftMark(language: PanelLanguage | undefined) {
 
   return (
     <Mark hatched>
-      <HiddenMark size={12} />
+      <VisibilityOff size={12} />
       en préparation
     </Mark>
   )

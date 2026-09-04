@@ -218,7 +218,6 @@ export const tokens = {
     mark: '20px',
     xs: '26px',
     sm: '30px',
-    chip: '30px',
     md: '36px',
     field: '40px',
     row: '40px',
