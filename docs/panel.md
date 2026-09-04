@@ -63,7 +63,7 @@ inverse (D154) : ce n'était pas un écran vide.
 | Médias | la médiathèque |
 | Messages | les leads du formulaire de contact |
 | Statistiques | le rapport d'audience — seulement si le site déclare `analytics` |
-| Compte | apparence, mot de passe, appareils, journal de connexion — derrière l'avatar, pas dans le rail (D204) |
+| Compte | apparence, mot de passe, appareils, journal de connexion — derrière la roue crantée du rail, pas dans ses destinations (D204, D222) |
 
 Ce que le socle a gagné depuis n'en a ajouté aucune : l'en-tête, le pied de page
 et la fiche d'entreprise s'éditent depuis « Édition », comme des entrées de plus
@@ -73,10 +73,14 @@ puisque c'est là qu'on les voit ; et la troisième n'a pas de quoi remplir un
 
 **« Actualités » ne ressemble pas à « Édition », et c'est le fond de la
 chose.** Un billet n'a ni sections à choisir, ni ordre à régler : on ouvre, on
-écrit, on enregistre. La liste tient les billets par date décroissante — le
-client vient y chercher ce qu'il a écrit hier, pas ce qu'il a écrit il y a deux
-ans —, « Nouveau billet » ne demande qu'un titre, et un interrupteur dit si le
-billet paraît. C'est le seul écran d'où le client **crée** et **détruit** du
+écrit, on enregistre. L'écran est donc **la liste de ses billets en pleine
+largeur** (D220) — une carte par billet, sa couverture, sa date, sa parution et
+ce qu'il lui reste à traduire —, par date décroissante : le client vient y
+chercher ce qu'il a écrit hier, pas ce qu'il a écrit il y a deux ans. Les trois
+gestes qu'il fait s'y voient d'un coup d'œil : créer, reprendre, supprimer.
+« Nouveau billet » ne demande qu'un titre, et écrire ouvre un **second niveau**
+qui remplace le contenu de l'écran — l'aperçu et le volet du billet, la forme de
+« Édition ». C'est le seul écran d'où le client **crée** et **détruit** du
 contenu ; le sélecteur de « Édition » ne pouvait pas l'accueillir, étant un menu
 déroulant qu'une trentaine d'entrées rend inutilisable.
 
@@ -117,6 +121,18 @@ Ce qui reste dans les écrans est ce qui n'est pas de l'explication : ce qui
 décrit un **état** — « L'aperçu montre le dernier enregistrement », « Employée
 par une section : retirez-la d'abord » — et ce qui accompagne un **geste** dans
 la fenêtre où on le fait.
+
+**Un champ n'a pas de phrase sous lui** (D223). L'option `help` a quitté le DSL
+`f.*` : trente-neuf gloses grises mangeaient la colonne du volet pour expliquer
+des champs à quelqu'un qui les connaît depuis sa deuxième visite. Ce qui
+décrivait un **repli** — sans logo, le nom du site s'affiche en toutes lettres ;
+sans liens, le menu reprend les pages — ou une **syntaxe** est remonté sous le
+« ? ». Ce qui reste au client est le **libellé**, et la hiérarchie de l'écran :
+c'est la présentation qui doit être claire, pas la prose qui l'accompagne.
+
+Le `help` d'un **bloc**, lui, tient toujours : il dit ce qu'une section *fait*,
+une fois, au seul moment où la question se pose — la fenêtre « Ajouter une
+section ». Il est aussi la seule prose de `basalte inventory`.
 
 **Deux niveaux de navigation au maximum.** Menu, puis page. Jamais un troisième
 étage d'onglets : une page qui réclame des onglets est deux pages.
@@ -226,6 +242,13 @@ dans `src/admin/ui/`, un fichier par famille : la mise en place, la
 typographie, les boutons, le champ et ce qui l'entoure, la ligne de liste, les
 marques, les interrupteurs, la puce et les onglets, les surfaces, ce qui
 flotte, la navigation, ce qui dit qu'une chose se passe, et le jeu d'icônes.
+
+Une **carte peut tenir la hauteur qu'on lui laisse** (D221) : en `fill`, elle
+devient une colonne dont `CardHead` reste en place et dont `CardBody` porte
+seul le défilement. C'est la forme du volet d'édition, de la liste des billets
+et des deux cartes de la boîte des messages — la carte tient, son contenu passe
+dessous. Une colonne qui défilait emmenait la carte entière, et le titre de ce
+qu'on lisait sortait par le haut.
 
 Quatre mécaniques portent l'allure :
 
@@ -456,16 +479,28 @@ ne valide toujours rien (D58) : il range un verdict qui vient du serveur.
 
 ### L'écran d'édition
 
-Trois colonnes (D212), l'aperçu au centre :
+Deux colonnes (D218) : l'aperçu, et le volet de ce qu'on modifie.
 
 | Colonne | Ce qu'elle porte |
 |---|---|
-| gauche | la structure : la page ouverte et la langue écrite, le titre et la description de la page, puis la liste des sections — chacune par son premier texte, sélection, réordonnancement, et la seule prise sur une section masquée |
-| centre | `GET /admin/preview/<slug>` dans un cadre, en bureau — rendu à 1 024 px et réduit à l'échelle (D213) — ou en mobile ; il défile jusqu'à la section choisie et la souligne (D217) |
-| droite | le formulaire de la section choisie, ou le titre et la description de la page |
+| gauche | `GET /admin/preview/<slug>` dans un cadre, en bureau — rendu à 1 024 px et réduit à l'échelle (D213) — ou en mobile. Sa barre porte le **choix de la page**, la bascule de support et le lien qui ouvre la page pour de vrai |
+| droite | le **volet**, une vue à la fois : la liste des sections, le titre et la description de la page, ou le formulaire de la section choisie. La langue écrite est en tête, sur toutes les vues |
 
-« Actualités » a la même forme : ses billets pour structure, le billet ouvert
-pour formulaire, et le même aperçu.
+**L'aperçu est la surface de travail** (D219). On y désigne une section en
+cliquant dessus : elle se cerne au survol et se nomme, la section choisie garde
+un trait d'encre, et le volet ouvre son formulaire. Entre deux sections, une
+bande révélée au survol demande une section de plus **à ce rang** — c'est aussi
+ce qui rend une page vide lisible : sans elle, il n'y aurait rien à cliquer. Le
+panel et le cadre se parlent par `postMessage`, dans les deux sens
+(`src/admin/bridge.ts`), et le cadre redemande la marque après chaque
+rechargement plutôt que le panel ne devine quand la poser.
+
+Ce que le volet garde, et que l'aperçu ne peut pas dire : l'**ordre** des
+sections, celles qui sont **masquées** — elles n'y paraissent pas —, et celles
+qu'un contrôle a **refusées**.
+
+« Actualités » ne prend cette forme qu'à son second niveau (D220) : la liste des
+billets d'abord, puis le billet ouvert, avec l'aperçu et son volet.
 
 **Une liste répétable se parcourt repliée** (D163). Chaque élément est une
 ligne qui porte le champ que le bloc a désigné en `itemLabel` — la question
@@ -487,6 +522,10 @@ l'aperçu. Sur un site à un seul rendu elle ne change que la largeur, ce qu'ell
 faisait déjà — le client ne voit donc rien de nouveau (D25).
 
 **« En-tête et pied de page »** est la dernière entrée du sélecteur de page.
+Ses deux emplacements se choisissent dans la liste du volet, jamais dans
+l'aperçu : `Layout.astro` rend l'en-tête et le pied hors de l'enveloppe des
+sections, et l'aperçu montre alors l'accueil, dont les sections appartiennent à
+une autre entrée.
 Elle ouvre les deux emplacements du chrome comme deux sections, dans le même
 panneau et avec les mêmes champs — mais sans poignée, sans suppression et sans
 interrupteur de visibilité : ils sont sur toutes les pages, et `hidden` n'a

@@ -15,7 +15,10 @@ appartient sans bibliothèque d'interface, et habille enfin ses pages comme il
 habille son panel : trois plans de couleur, un rythme et un axe communs à tous
 ses blocs, et une landing complète pour le prouver — et son panel parle enfin
 Material Design 3, depuis une graine de couleur, en clair et en sombre — et
-chacun règle, sur son appareil, le mode et la couleur de son panel. Un site
+chacun règle, sur son appareil, le mode et la couleur de son panel — et son
+aperçu n'est plus un témoin mais la surface de travail : on y clique la section
+qu'on veut changer, tout le reste tient dans un volet qui ne montre qu'une
+chose à la fois, et plus une phrase grise ne s'intercale sous un champ. Un site
 se crée, se met en
 production et se monte de version en une commande chacune ; une version du
 socle se publie en une commande aussi. Ce que chaque phase a mis en place est
@@ -119,6 +122,7 @@ src/
 │   ├── scheme.ts   les rôles de couleur tirés d'une graine, clair et sombre
 │   ├── appearance.ts le mode et la graine choisis par appareil (D208)
 │   ├── panel.css   les mêmes en variables --panel-*, et tout le dessin
+│   ├── bridge.ts   ce que le panel et son aperçu se disent (D219)
 │   ├── ui/         les composants du panel, et ses icônes Material Symbols
 │   ├── fonts/      Roboto Flex et Roboto Mono, auto-hébergées (D206)
 │   ├── Help.tsx    ce que chaque écran explique, sous son « ? »
@@ -487,3 +491,19 @@ refuse. C'est depuis `examples/demo` ou un dépôt client qu'ils tournent.
   exactement sa fenêtre. Toucher la largeur sans la hauteur laisse un vide en
   bas du cadre, sans erreur ; et la fenêtre qui le porte doit garder
   `container-type: size`, faute de quoi `cqh` vaut zéro et le cadre disparaît.
+- **L'écran du cadre ne coupe pas ce qui dépasse de lui.** Le menu des pages
+  s'ouvre depuis sa barre : un `overflow: hidden` posé sur
+  `.basalte-stage__screen` le rognerait à la hauteur de la barre, sans erreur.
+  Ce sont ses deux extrémités qui portent le rayon — la barre en haut, la
+  fenêtre en bas, qui coupe déjà pour elle-même.
+- **Une ligne de liste posée à côté d'un bouton a besoin de `min-width: 0`.**
+  `.basalte-row` porte `width: 100%` : sans cette borne, elle refuse de
+  descendre sous la largeur de son texte et pousse le bouton hors de la
+  colonne — c'est ce qui coupait « Retirer » dans un volet de 400 pixels.
+- **Le volet d'édition ne se démonte pas quand il devient une couche.** Sous
+  1 200 pixels, `.basalte-inspector` passe en `position: absolute; inset: 0`
+  dans son écran, jamais en `position: fixed` : une couche posée sur la fenêtre
+  couvrirait la barre d'application, où « Enregistrer » et « Mettre en ligne »
+  vivent à la même place partout (D214). C'est aussi pourquoi ce n'est pas une
+  `Modal` — elle démonte ce qu'elle contient, ce qui imposerait deux arbres
+  React et une lecture de la largeur en état.
