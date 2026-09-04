@@ -118,7 +118,7 @@ const WRITES = new Set<Screen>(['edit', 'journal'])
  * sont ceux qui portent un aperçu : la page ne défile pas sous lui, et il
  * prend toute la hauteur qu’elle laisse.
  */
-const FILLS = new Set<Screen>(['edit', 'journal'])
+const FILLS = new Set<Screen>(['edit', 'journal', 'messages'])
 
 const ONLINE = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',

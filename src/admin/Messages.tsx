@@ -22,7 +22,7 @@ import { Button } from './ui/Button.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
-import { Banner, Card, Empty } from './ui/Surface.js'
+import { Banner, Card, CardBody, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
 
 const MOMENT = new Intl.DateTimeFormat('fr-FR', {
@@ -113,7 +113,7 @@ export function Messages({
   const current = leads?.find((lead) => lead.id === chosen)
 
   return (
-    <Stack gap="xl">
+    <Stack gap="xl" className="basalte-inbox">
       {problem !== '' && (
         <Banner tone="refused">
           <Stack gap="xs">
@@ -140,33 +140,35 @@ export function Messages({
 
       {leads !== undefined && leads.length > 0 && (
         <div className="basalte-messages">
-          <Card pad="sm">
-            <Stack gap="hair">
-              {leads.map((lead) => (
-                <Row
-                  key={lead.id}
-                  current={lead.id === chosen}
-                  onClick={() => void open(lead)}
-                >
-                  <RowGlyph>
-                    {lead.readAt === undefined && (
-                      <span className="basalte-badge__dot" />
-                    )}
-                  </RowGlyph>
-                  <RowStack>
-                    <RowText>{lead.name}</RowText>
-                    <RowText>
-                      <Text tone="meta" role="label-md">
-                        {previewOf(lead)}
-                      </Text>
-                    </RowText>
-                  </RowStack>
-                  <Mono className="basalte-row__note">
-                    {stampOf(lead.at, now)}
-                  </Mono>
-                </Row>
-              ))}
-            </Stack>
+          <Card fill pad="sm">
+            <CardBody>
+              <Stack gap="hair">
+                {leads.map((lead) => (
+                  <Row
+                    key={lead.id}
+                    current={lead.id === chosen}
+                    onClick={() => void open(lead)}
+                  >
+                    <RowGlyph>
+                      {lead.readAt === undefined && (
+                        <span className="basalte-badge__dot" />
+                      )}
+                    </RowGlyph>
+                    <RowStack>
+                      <RowText>{lead.name}</RowText>
+                      <RowText>
+                        <Text tone="meta" role="label-md">
+                          {previewOf(lead)}
+                        </Text>
+                      </RowText>
+                    </RowStack>
+                    <Mono className="basalte-row__note">
+                      {stampOf(lead.at, now)}
+                    </Mono>
+                  </Row>
+                ))}
+              </Stack>
+            </CardBody>
           </Card>
 
           {current === undefined ? (
@@ -175,41 +177,46 @@ export function Messages({
               note="Choisissez un message dans la liste : il s’ouvre ici."
             />
           ) : (
-            <Card>
-              <Stack gap="xl">
-                <Stack gap="xs">
-                  <Title role="title-md">{current.name}</Title>
-                  <Text tone="muted">{current.email}</Text>
-                  <Eyebrow>
-                    {MOMENT.format(current.at)} · reçu depuis {current.page}
-                  </Eyebrow>
+            <Card fill>
+              <CardBody>
+                <Stack gap="xl">
+                  <Stack gap="xs">
+                    <Title role="title-md">{current.name}</Title>
+                    <Text tone="muted">{current.email}</Text>
+                    <Eyebrow>
+                      {MOMENT.format(current.at)} · reçu depuis {current.page}
+                    </Eyebrow>
+                  </Stack>
+
+                  {current.delivery === 'failed' && (
+                    <Badge tone="refused">
+                      La notification n’a pas été transmise
+                    </Badge>
+                  )}
+
+                  <Card tone="raised" className="basalte-messages__body">
+                    {current.message}
+                  </Card>
+
+                  <Group gap="md">
+                    <a
+                      className="basalte-link"
+                      href={`mailto:${current.email}`}
+                    >
+                      Répondre par email
+                    </a>
+                    <Spacer />
+                    <Button
+                      variant="text"
+                      tone="error"
+                      size="sm"
+                      onClick={() => setAsked(current)}
+                    >
+                      Supprimer
+                    </Button>
+                  </Group>
                 </Stack>
-
-                {current.delivery === 'failed' && (
-                  <Badge tone="refused">
-                    La notification n’a pas été transmise
-                  </Badge>
-                )}
-
-                <Card tone="raised" className="basalte-messages__body">
-                  {current.message}
-                </Card>
-
-                <Group gap="md">
-                  <a className="basalte-link" href={`mailto:${current.email}`}>
-                    Répondre par email
-                  </a>
-                  <Spacer />
-                  <Button
-                    variant="text"
-                    tone="error"
-                    size="sm"
-                    onClick={() => setAsked(current)}
-                  >
-                    Supprimer
-                  </Button>
-                </Group>
-              </Stack>
+              </CardBody>
             </Card>
           )}
         </div>

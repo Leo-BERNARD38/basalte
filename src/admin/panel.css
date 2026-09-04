@@ -334,8 +334,7 @@ b {
   .basalte-row,
   .basalte-nav__indicator,
   .basalte-segmented__item,
-  .basalte-tab,
-  .basalte-picker
+  .basalte-tab
 ) {
   position: relative;
   isolation: isolate;
@@ -349,8 +348,7 @@ b {
   .basalte-row,
   .basalte-nav__indicator,
   .basalte-segmented__item,
-  .basalte-tab,
-  .basalte-picker
+  .basalte-tab
 )::after {
   content: '';
   position: absolute;
@@ -369,8 +367,7 @@ b {
     .basalte-fab,
     .basalte-chip,
     .basalte-segmented__item,
-    .basalte-tab,
-    .basalte-picker
+    .basalte-tab
   ):hover:not(:disabled)::after,
 .basalte-row:hover::after,
 .basalte-nav__item:hover .basalte-nav__indicator::after {
@@ -383,8 +380,7 @@ b {
     .basalte-fab,
     .basalte-chip,
     .basalte-segmented__item,
-    .basalte-tab,
-    .basalte-picker
+    .basalte-tab
   ):active:not(:disabled)::after,
 .basalte-row:active::after,
 .basalte-nav__item:active .basalte-nav__indicator::after {
@@ -2094,7 +2090,9 @@ textarea.basalte-input {
 
 /* Un écran qui tient dans la fenêtre : rien n’y défile en bloc, et l’aperçu
    prend toute la hauteur que la fenêtre lui laisse au lieu d’une hauteur
-   écrite. Ce sont ses colonnes qui portent le défilement. */
+   écrite. Ce sont ses cartes qui portent le défilement, chacune dans son
+   corps — la liste reste sous les yeux pendant qu’on lit ce qu’elle a
+   ouvert. */
 .basalte-main[data-fill='true'] {
   display: flex;
   overflow: hidden;
@@ -2106,7 +2104,11 @@ textarea.basalte-input {
   min-height: 0;
 }
 
-.basalte-main[data-fill='true'] .basalte-edit {
+/* Ce qui, dans un écran qui tient à la fenêtre, prend la hauteur restante :
+   la boîte des messages passe par un empilement, l’édition et le journal
+   sont posés directement. */
+.basalte-main[data-fill='true']
+  :where(.basalte-edit, .basalte-journal, .basalte-inbox, .basalte-messages) {
   flex: 1;
   min-height: 0;
 }
@@ -2407,53 +2409,6 @@ textarea.basalte-input {
 
 .basalte-aside__head {
   padding: 0 var(--panel-space-md);
-}
-
-/* Les deux sélecteurs de la barre posée au-dessus de l’aperçu : la page, et la
-   langue écrite. Ils décident de la même chose — ce que l’aperçu montre — et
-   n’ont donc qu’une forme : une puce, dont le menu dit ce qui est choisi. */
-.basalte-picker {
-  display: flex;
-  align-items: center;
-  gap: var(--panel-space-sm);
-  height: var(--panel-control-chip);
-  max-width: 100%;
-  padding: 0 var(--panel-space-md) 0 var(--panel-space-lg);
-  border: 1px solid var(--panel-color-outline-variant);
-  border-radius: var(--panel-radius-sm);
-  background: var(--panel-color-surface-container-lowest);
-  color: var(--panel-color-on-surface);
-  font-family: inherit;
-  font-size: var(--panel-text-label-lg);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.basalte-picker:hover {
-  border-color: var(--panel-color-outline);
-}
-
-/* Ce qu’une puce porte se coupe plutôt que de pousser la barre : une adresse
-   de billet compte cinquante caractères. */
-.basalte-picker > .basalte-mono,
-.basalte-picker > .basalte-picker__label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.basalte-picker > svg:last-child {
-  flex-shrink: 0;
-  color: var(--panel-color-on-surface-variant);
-}
-
-.basalte-rule {
-  width: 1px;
-  height: var(--panel-control-mark);
-  flex-shrink: 0;
-  background: var(--panel-color-outline-variant);
 }
 
 /* L’adresse de la page, et le lien qui l’ouvre pour de vrai. */
@@ -2778,9 +2733,9 @@ textarea.basalte-input {
    ait la taille de ce qui l’occupera. */
 .basalte-messages {
   display: grid;
+  min-height: 0;
   gap: var(--panel-space-xxxl);
   align-items: stretch;
-  min-height: 60vh;
   grid-template-columns: 320px minmax(0, 1fr);
 }
 
@@ -3028,7 +2983,6 @@ textarea.basalte-input {
   .basalte-tile__image,
   .basalte-mark,
   .basalte-badge,
-  .basalte-picker,
   .basalte-nav__item
 ) {
   transition:
@@ -3313,7 +3267,7 @@ textarea.basalte-input {
   .basalte-tab,
   .basalte-chip,
   .basalte-segmented,
-  .basalte-picker,
+  .basalte-selector,
   .basalte-input {
     min-height: var(--panel-control-touch);
   }
