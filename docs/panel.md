@@ -245,10 +245,12 @@ flotte, la navigation, ce qui dit qu'une chose se passe, et le jeu d'icônes.
 
 Une **carte peut tenir la hauteur qu'on lui laisse** (D221) : en `fill`, elle
 devient une colonne dont `CardHead` reste en place et dont `CardBody` porte
-seul le défilement. C'est la forme du volet d'édition, de la liste des billets
-et des deux cartes de la boîte des messages — la carte tient, son contenu passe
-dessous. Une colonne qui défilait emmenait la carte entière, et le titre de ce
-qu'on lisait sortait par le haut.
+seul le défilement. C'est la forme du volet d'édition, de la liste des billets,
+des deux cartes de la boîte des messages et des deux de la médiathèque — la
+carte tient, son contenu passe dessous. Une colonne qui défilait emmenait la
+carte entière, et le titre de ce qu'on lisait sortait par le haut. Sous
+1 200 px, ces écrans rendent le défilement à la page : une colonne ne peut pas
+porter deux cartes à pleine hauteur l'une sous l'autre.
 
 Quatre mécaniques portent l'allure :
 

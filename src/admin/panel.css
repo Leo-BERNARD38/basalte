@@ -1039,9 +1039,15 @@ textarea.basalte-input {
   line-height: 1.35;
 }
 
+/* La colonne d’une ligne : une icône, une pastille, ou rien. Elle garde sa
+   largeur même vide — sans cela, une ligne lue et une ligne non lue
+   n’alignaient pas leur texte, et la liste ondulait. */
 .basalte-row__glyph {
   display: flex;
+  min-width: var(--panel-control-mark);
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   color: var(--panel-color-outline);
 }
 
@@ -1415,15 +1421,26 @@ textarea.basalte-input {
   padding: var(--panel-space-region);
 }
 
-/* Une carte qui tient la hauteur qu’on lui laisse. Elle ne porte plus de
-   marge intérieure : ce sont son en-tête et son corps qui la portent, faute
-   de quoi le corps défilerait sous une gouttière. */
+/* Une carte qui tient la hauteur qu’on lui laisse. Elle ne porte plus sa marge
+   intérieure : ce sont son en-tête et son corps qui la portent, faute de quoi
+   le corps défilerait sous une gouttière. Elle la leur passe par
+   `--card-gutter`, pour que `pad` continue de valoir en pleine hauteur. */
 .basalte-card[data-fill='true'] {
+  --card-gutter: var(--panel-space-xxl);
+
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
   padding: 0;
+}
+
+.basalte-card[data-fill='true'][data-pad='sm'] {
+  --card-gutter: var(--panel-space-lg);
+}
+
+.basalte-card[data-fill='true'][data-pad='lg'] {
+  --card-gutter: var(--panel-space-region);
 }
 
 /* L’en-tête reste en place pendant qu’on parcourt le corps. Aucun filet ne
@@ -1433,18 +1450,24 @@ textarea.basalte-input {
   flex-shrink: 0;
   align-items: center;
   gap: var(--panel-space-md);
-  padding: var(--panel-space-xxl) var(--panel-space-xxl) var(--panel-space-lg);
+  padding: var(--card-gutter) var(--card-gutter) var(--panel-space-lg);
 }
 
-/* Le corps, et lui seul, défile. La gouttière du haut rend à l’anneau de
-   focus du premier contrôle la place que le défilement lui rognerait. */
+/* Le corps, et lui seul, défile. */
 .basalte-card__body {
   min-height: 0;
   flex: 1;
-  padding: var(--panel-space-xs) var(--panel-space-xxl) var(--panel-space-xxl);
-  margin-top: calc(-1 * var(--panel-space-xs));
+  padding: var(--card-gutter);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Sous un en-tête, le corps ne redouble pas la marge : il ne garde que la
+   gouttière que l’anneau de focus du premier contrôle demande, sans quoi le
+   défilement la rognerait. */
+.basalte-card__head + .basalte-card__body {
+  padding-top: var(--panel-space-xs);
+  margin-top: calc(-1 * var(--panel-space-xs));
 }
 
 /* Un champ composite — image, document, groupe, liste — porte son refus sur
@@ -2108,7 +2131,14 @@ textarea.basalte-input {
    la boîte des messages passe par un empilement, l’édition et le journal
    sont posés directement. */
 .basalte-main[data-fill='true']
-  :where(.basalte-edit, .basalte-journal, .basalte-inbox, .basalte-messages) {
+  :where(
+    .basalte-edit,
+    .basalte-journal,
+    .basalte-inbox,
+    .basalte-messages,
+    .basalte-medias,
+    .basalte-library
+  ) {
   flex: 1;
   min-height: 0;
 }
@@ -2400,15 +2430,7 @@ textarea.basalte-input {
 
 /* Le panneau d’une médiathèque : ce que dit l’image ou le document choisi. */
 .basalte-aside {
-  display: flex;
   min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  gap: var(--panel-space-md);
-}
-
-.basalte-aside__head {
-  padding: 0 var(--panel-space-md);
 }
 
 /* L’adresse de la page, et le lien qui l’ouvre pour de vrai. */
@@ -2447,11 +2469,16 @@ textarea.basalte-input {
   max-width: var(--panel-width-menu);
 }
 
+/* La vignette d’une médiathèque sert à **reconnaître** une image, pas à
+   montrer comment elle sera cadrée : elle tient entière dans son carreau,
+   sur le conteneur. Rognée au centre, un logo large ne montrait que trois
+   lettres du nom qu’on cherchait. Le cadrage du site, lui, se règle par le
+   point focal. */
 .basalte-tile__image {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--panel-radius-sm);
   background: var(--panel-color-surface-container);
 }
@@ -2694,8 +2721,9 @@ textarea.basalte-input {
 /* La médiathèque : la grille, et le panneau de ce qui est choisi. */
 .basalte-library {
   display: grid;
+  min-height: 0;
   gap: var(--panel-space-xxxl);
-  align-items: start;
+  align-items: stretch;
   grid-template-columns: minmax(0, 1fr) var(--panel-width-aside);
 }
 
@@ -2778,10 +2806,12 @@ textarea.basalte-input {
 
 /* Le compte : l’apparence, le mot de passe et les appareils sur une rangée,
    le journal en dessous sur toute la largeur. */
+/* Les trois cartes du compte s’alignent sur la plus haute : trois hauteurs
+   différentes sur une même rangée se lisaient comme trois écrans. */
 .basalte-account {
   display: grid;
   gap: var(--panel-space-xxxl);
-  align-items: start;
+  align-items: stretch;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -3132,6 +3162,27 @@ textarea.basalte-input {
 
   .basalte-inspector__open:has(~ .basalte-inspector[data-open='false']) {
     display: inline-flex;
+  }
+
+  /* Une colonne ne peut pas porter deux cartes à pleine hauteur l’une sous
+     l’autre : la médiathèque et la boîte rendent le défilement à la page, et
+     leurs cartes reprennent la hauteur de ce qu’elles contiennent. L’édition
+     et le journal gardent le leur — leur volet est une couche, et l’aperçu a
+     besoin de la hauteur qu’on lui laisse. */
+  .basalte-main[data-fill='true']:has(
+      :where(.basalte-library, .basalte-inbox)
+    ) {
+    display: block;
+    overflow-y: auto;
+    padding-bottom: var(--panel-space-gutter);
+  }
+
+  :where(.basalte-library, .basalte-messages) .basalte-card[data-fill='true'] {
+    flex: none;
+  }
+
+  :where(.basalte-library, .basalte-messages) .basalte-card__body {
+    overflow: visible;
   }
 }
 

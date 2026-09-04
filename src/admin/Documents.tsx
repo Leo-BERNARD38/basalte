@@ -16,7 +16,7 @@ import { Button } from './ui/Button.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Row, RowText } from './ui/Row.js'
-import { Card, Empty } from './ui/Surface.js'
+import { Card, CardBody, Empty } from './ui/Surface.js'
 import { Mono, Text, Title } from './ui/Text.js'
 
 export function DocumentList({
@@ -161,103 +161,109 @@ export function DocumentPanel({
 
   return (
     <>
-      <DocumentList
-        documents={documents}
-        selected={selected}
-        empty={
-          searching ? (
+      <Card fill>
+        <CardBody>
+          <DocumentList
+            documents={documents}
+            selected={selected}
+            empty={
+              searching ? (
+                <Empty
+                  title="Aucun document ne répond à cette recherche"
+                  note="La recherche porte sur le nom du fichier."
+                />
+              ) : (
+                <Empty
+                  title="Aucun document pour l’instant"
+                  note="Ajoutez-en un : les sections qui proposent un téléchargement pourront y mener."
+                />
+              )
+            }
+            onSelect={onSelect}
+          />
+        </CardBody>
+      </Card>
+
+      <Card fill className="basalte-aside">
+        <CardBody>
+          {entry === undefined ? (
             <Empty
-              title="Aucun document ne répond à cette recherche"
-              note="La recherche porte sur le nom du fichier."
+              title="Aucun document choisi"
+              note="Cliquez une ligne : son poids, les pages qui y mènent et sa suppression s’ouvrent ici."
             />
           ) : (
-            <Empty
-              title="Aucun document pour l’instant"
-              note="Ajoutez-en un : les sections qui proposent un téléchargement pourront y mener."
-            />
-          )
-        }
-        onSelect={onSelect}
-      />
+            <>
+              <Stack>
+                <Title role="title-md">{entry.name}</Title>
 
-      <div className="basalte-aside">
-        {entry === undefined ? (
-          <Empty
-            title="Aucun document choisi"
-            note="Cliquez une ligne : son poids, les pages qui y mènent et sa suppression s’ouvrent ici."
-          />
-        ) : (
-          <Card>
-            <Stack>
-              <Title role="title-md">{entry.name}</Title>
+                <Mono>
+                  {documentWeight(entry.bytes)} · {usageLabel(entry.usage)}
+                </Mono>
 
-              <Mono>
-                {documentWeight(entry.bytes)} · {usageLabel(entry.usage)}
-              </Mono>
-
-              <Group>
-                <a
-                  className="basalte-link"
-                  href={documentUrl(entry.key)}
-                  download={entry.name}
-                >
-                  Télécharger ce document
-                </a>
-              </Group>
-
-              <Places
-                title="Utilisé dans"
-                places={places}
-                none="Aucune page n’y mène pour l’instant."
-                onOpen={onOpen}
-              />
-
-              <Stack gap="xs">
                 <Group>
-                  <Button
-                    variant="text"
-                    tone="error"
-                    busy={busy}
-                    disabled={entry.usage > 0}
-                    onClick={() => setAsked(true)}
+                  <a
+                    className="basalte-link"
+                    href={documentUrl(entry.key)}
+                    download={entry.name}
                   >
-                    Supprimer ce document
-                  </Button>
+                    Télécharger ce document
+                  </a>
                 </Group>
-                {entry.usage > 0 && (
-                  <Text tone="meta" role="label-md">
-                    Une section y mène : retirez-le d’abord de la page.
-                  </Text>
-                )}
-              </Stack>
-            </Stack>
 
-            <Modal
-              opened={asked}
-              title="Supprimer ce document"
-              onClose={() => setAsked(false)}
-              foot={
-                <>
-                  <Spacer />
-                  <Button onClick={() => setAsked(false)}>Le garder</Button>
-                  <Button
-                    variant="text"
-                    tone="error"
-                    onClick={() => void drop()}
-                  >
-                    Supprimer
-                  </Button>
-                </>
-              }
-            >
-              <Text tone="muted">
-                « {entry.name} » sera effacé du dépôt. Les liens qui y menaient
-                ne mèneront plus nulle part.
-              </Text>
-            </Modal>
-          </Card>
-        )}
-      </div>
+                <Places
+                  title="Utilisé dans"
+                  places={places}
+                  none="Aucune page n’y mène pour l’instant."
+                  onOpen={onOpen}
+                />
+
+                <Stack gap="xs">
+                  <Group>
+                    <Button
+                      variant="text"
+                      tone="error"
+                      busy={busy}
+                      disabled={entry.usage > 0}
+                      onClick={() => setAsked(true)}
+                    >
+                      Supprimer ce document
+                    </Button>
+                  </Group>
+                  {entry.usage > 0 && (
+                    <Text tone="meta" role="label-md">
+                      Une section y mène : retirez-le d’abord de la page.
+                    </Text>
+                  )}
+                </Stack>
+              </Stack>
+
+              <Modal
+                opened={asked}
+                title="Supprimer ce document"
+                onClose={() => setAsked(false)}
+                foot={
+                  <>
+                    <Spacer />
+                    <Button onClick={() => setAsked(false)}>Le garder</Button>
+                    <Button
+                      variant="text"
+                      tone="error"
+                      onClick={() => void drop()}
+                    >
+                      Supprimer
+                    </Button>
+                  </>
+                }
+              >
+                <Text tone="muted">
+                  « {entry.name} » sera effacé du dépôt. Les liens qui y
+                  menaient ne mèneront plus nulle part.
+                </Text>
+              </Modal>
+            </>
+          )}
+        </CardBody>
+      </Card>
     </>
   )
 }

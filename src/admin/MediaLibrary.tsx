@@ -28,7 +28,7 @@ import { Button } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
-import { Banner, Card, Empty } from './ui/Surface.js'
+import { Banner, Card, CardBody, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, Text, Title } from './ui/Text.js'
 import { Tabs } from './ui/Chip.js'
 import { Search } from './ui/icons.js'
@@ -78,7 +78,7 @@ export function MediaLibrary({
   const images = view === 'images'
 
   return (
-    <Stack>
+    <Stack className="basalte-medias">
       {problem !== '' && (
         <Banner tone="refused">
           <Stack gap="sm">
@@ -148,62 +148,68 @@ export function MediaLibrary({
       <div className="basalte-library">
         {images ? (
           <>
-            <MediaGrid
-              media={media}
-              selected={selected}
-              columns={6}
-              flag={(item) =>
-                item.usage === 0 ? 'jamais utilisée' : undefined
-              }
-              empty={
-                asked === '' ? (
-                  <Empty
-                    title="Aucune image pour l’instant"
-                    note="Ajoutez-en une : elle se rangera ici, et l’onglet « Édition » pourra la poser sur une page."
-                  />
-                ) : (
-                  <Empty
-                    title="Aucune image ne répond à cette recherche"
-                    note="La recherche porte sur le texte alternatif des images."
-                  />
-                )
-              }
-              onSelect={(key) => {
-                setSelected(key)
-                requestAnimationFrame(() =>
-                  detail.current?.scrollIntoView({
-                    block: 'nearest',
-                    behavior: 'smooth',
-                  }),
-                )
-              }}
-            />
+            <Card fill>
+              <CardBody>
+                <MediaGrid
+                  media={media}
+                  selected={selected}
+                  columns={6}
+                  flag={(item) =>
+                    item.usage === 0 ? 'jamais utilisée' : undefined
+                  }
+                  empty={
+                    asked === '' ? (
+                      <Empty
+                        title="Aucune image pour l’instant"
+                        note="Ajoutez-en une : elle se rangera ici, et l’onglet « Édition » pourra la poser sur une page."
+                      />
+                    ) : (
+                      <Empty
+                        title="Aucune image ne répond à cette recherche"
+                        note="La recherche porte sur le texte alternatif des images."
+                      />
+                    )
+                  }
+                  onSelect={(key) => {
+                    setSelected(key)
+                    requestAnimationFrame(() =>
+                      detail.current?.scrollIntoView({
+                        block: 'nearest',
+                        behavior: 'smooth',
+                      }),
+                    )
+                  }}
+                />
+              </CardBody>
+            </Card>
 
             {/* Sur un écran étroit, le panneau se range sous la grille, et
                 la vignette choisie l’amène en vue : sans ce défilement, le
                 client cliquait et ne voyait rien changer. */}
-            <div className="basalte-aside" ref={detail}>
-              {entry === undefined ? (
-                <Empty
-                  title="Aucune image choisie"
-                  note="Cliquez une vignette : sa description, son sujet et les pages où elle sert s’ouvrent ici."
-                />
-              ) : (
-                <MediaDetail
-                  key={entry.key}
-                  entry={entry}
-                  languages={editing.languages}
-                  places={placesOf(payload, entry.key)}
-                  onOpen={onOpen}
-                  onChanged={onChanged}
-                  onDeleted={() => {
-                    setSelected('')
-                    onChanged()
-                  }}
-                  onError={setProblem}
-                />
-              )}
-            </div>
+            <Card fill className="basalte-aside" ref={detail}>
+              <CardBody>
+                {entry === undefined ? (
+                  <Empty
+                    title="Aucune image choisie"
+                    note="Cliquez une vignette : sa description, son sujet et les pages où elle sert s’ouvrent ici."
+                  />
+                ) : (
+                  <MediaDetail
+                    key={entry.key}
+                    entry={entry}
+                    languages={editing.languages}
+                    places={placesOf(payload, entry.key)}
+                    onOpen={onOpen}
+                    onChanged={onChanged}
+                    onDeleted={() => {
+                      setSelected('')
+                      onChanged()
+                    }}
+                    onError={setProblem}
+                  />
+                )}
+              </CardBody>
+            </Card>
           </>
         ) : (
           <DocumentPanel
@@ -331,7 +337,7 @@ function MediaDetail({
   }
 
   return (
-    <Card>
+    <>
       <Stack>
         <Group gap="md">
           <Title role="title-md">Cette image</Title>
@@ -443,6 +449,6 @@ function MediaDetail({
           garde ailleurs.
         </Text>
       </Modal>
-    </Card>
+    </>
   )
 }
