@@ -357,10 +357,6 @@ export function Edit({
 
           {active.kind === 'browse' && active.tab === 'page' && (
             <Stack gap="xl">
-              <Text tone="muted">
-                Ce que les moteurs de recherche et les réseaux montrent de cette
-                page.
-              </Text>
               <FieldSet
                 descriptions={payload.meta}
                 values={draft.meta as Values}
