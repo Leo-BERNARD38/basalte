@@ -10,10 +10,13 @@ describe('fromPreview', () => {
     expect(
       fromPreview({ channel: CHANNEL, kind: 'picked', id: 'hero' }),
     ).toEqual({ kind: 'picked', id: 'hero' })
-    expect(fromPreview({ channel: CHANNEL, kind: 'insert', at: 2 })).toEqual({
-      kind: 'insert',
-      at: 2,
-    })
+    expect(
+      fromPreview({ channel: CHANNEL, kind: 'insert', before: 'tarifs' }),
+    ).toEqual({ kind: 'insert', before: 'tarifs' })
+    // Vide : à la fin de la page.
+    expect(
+      fromPreview({ channel: CHANNEL, kind: 'insert', before: '' }),
+    ).toEqual({ kind: 'insert', before: '' })
   })
 
   it('refuse ce qui ne vient pas de l’aperçu', () => {
@@ -34,24 +37,27 @@ describe('fromPreview', () => {
     expect(
       fromPreview({ channel: CHANNEL, kind: 'picked', id: 12 }),
     ).toBeUndefined()
+    expect(fromPreview({ channel: CHANNEL, kind: 'insert' })).toBeUndefined()
     expect(
-      fromPreview({ channel: CHANNEL, kind: 'insert', at: '2' }),
-    ).toBeUndefined()
-    expect(
-      fromPreview({ channel: CHANNEL, kind: 'insert', at: 1.5 }),
+      fromPreview({ channel: CHANNEL, kind: 'insert', before: 2 }),
     ).toBeUndefined()
   })
 })
 
 describe('toPreview', () => {
   it('sépare désigner et amener en vue', () => {
-    expect(toPreview('hero', true)).toEqual({
+    expect(toPreview('hero', true, true)).toEqual({
       channel: CHANNEL,
       kind: 'select',
       id: 'hero',
       reveal: true,
+      live: true,
     })
-    expect(toPreview('', false)['reveal']).toBe(false)
+    expect(toPreview('', false, true)['reveal']).toBe(false)
+  })
+
+  it('dit quand le cadre n’est pas une surface d’édition', () => {
+    expect(toPreview('', false, false)['live']).toBe(false)
   })
 })
 
@@ -67,6 +73,13 @@ describe('BRIDGE', () => {
     // Le cadre est remonté à chaque enregistrement : sans cette annonce, la
     // marque de la section choisie serait perdue à chaque fois.
     expect(BRIDGE).toContain("tell({ kind: 'ready' })")
+  })
+
+  it('ne répond au clic que si le panel l’a dit', () => {
+    // Sous l’entrée de l’en-tête et du pied, le cadre montre l’accueil : ses
+    // sections appartiennent à une autre entrée, et rien ne doit y répondre.
+    expect(BRIDGE).toContain("hasAttribute('data-canvas')")
+    expect(BRIDGE).toContain("toggleAttribute('data-canvas'")
   })
 
   it('n’écrit ni n’évalue rien', () => {

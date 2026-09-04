@@ -24,21 +24,18 @@ import { useState } from 'react'
 import type { ContentIssue } from '../content/report.js'
 import { formatDate, today } from '../fields/date.js'
 import { POST_SECTION } from '../journal/page.js'
-import type { MediaSummary } from '../server/library.js'
 import type { PanelPayload } from '../server/panel.js'
 import type { DraftPost } from '../server/posts.js'
 import type { Values } from './draft.js'
 import { previewAddress, useEditing } from './editing.js'
-import { issuesOf } from './Edit.js'
-import { FieldSet } from './fields/Field.js'
+import { FieldSet, issuesOf } from './fields/Field.js'
 import { Inspector } from './Inspector.js'
 import { Language } from './Language.js'
-import { preview } from './Media.js'
+import { PostCard } from './PostCard.js'
 import { Stage } from './Stage.js'
-import { Mark } from './ui/Badge.js'
 import { Button, IconButton } from './ui/Button.js'
 import { Field, TextField } from './ui/Field.js'
-import { ArrowBack, Edit, HiddenMark, Picture, Plus } from './ui/icons.js'
+import { ArrowBack, Edit, Plus } from './ui/icons.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
 import { Card, CardBody, CardHead, Empty } from './ui/Surface.js'
@@ -333,71 +330,6 @@ export function Journal({
           mènera plus nulle part.
         </Text>
       </Modal>
-    </div>
-  )
-}
-
-/**
- * Un billet dans la liste : ce qu’on reconnaît d’un coup d’œil — sa couverture,
- * son titre, sa date — et les deux gestes qu’on fait dessus.
- *
- * L’avancement des traductions se lit ici et nulle part ailleurs : c’est la
- * seule vue où l’on compare les billets entre eux.
- */
-function PostCard({
-  post,
-  media,
-  away,
-  language,
-  onWrite,
-  onRemove,
-}: {
-  readonly post: DraftPost
-  readonly media: readonly MediaSummary[]
-  readonly away: boolean
-  readonly language: string
-  readonly onWrite: () => void
-  readonly onRemove: () => void
-}) {
-  const cover = media.find((entry) => entry.key === post.fields['cover'])
-  const behind = post.progress.filter((step) => step.filled < step.total)
-
-  return (
-    <div className="basalte-post" data-away={String(away)}>
-      <button type="button" className="basalte-post__open" onClick={onWrite}>
-        <span className="basalte-post__cover">
-          {cover === undefined ? (
-            <Picture size={24} />
-          ) : (
-            <img src={preview(cover)} alt="" loading="lazy" />
-          )}
-        </span>
-        <span className="basalte-post__text">
-          <strong>{post.title}</strong>
-          <Mono className="basalte-row__note">
-            {formatDate(post.date, language)}
-          </Mono>
-        </span>
-      </button>
-
-      <div className="basalte-post__marks">
-        {away && (
-          <Mark hatched>
-            <HiddenMark size={12} />
-            brouillon
-          </Mark>
-        )}
-        {behind.length > 0 && (
-          <Mark>
-            {behind.map((step) => step.language.toUpperCase()).join(' · ')} à
-            traduire
-          </Mark>
-        )}
-        <Spacer />
-        <Button variant="text" size="xs" tone="error" onClick={onRemove}>
-          Supprimer
-        </Button>
-      </div>
     </div>
   )
 }

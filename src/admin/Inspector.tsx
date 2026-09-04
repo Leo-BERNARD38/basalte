@@ -7,10 +7,15 @@
 // la largeur : le volet ne se démonte pas, il n’a donc qu’un seul arbre, et
 // c’est déjà ainsi que la navigation vit ses deux formes.
 //
+// En couche il se comporte comme une couche : ce qu’il couvre devient inerte,
+// le curseur entre dans sa tête, et l’échappement le referme. Ancré, aucune de
+// ces trois choses n’a de sens — rien n’est couvert —, et c’est la feuille qui
+// dit laquelle des deux formes il porte, lue une seule fois sur son cadre.
+//
 // Sa tête reste en place pendant qu’on parcourt son corps : ce qui défile est
 // le contenu de la carte, pas la carte.
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 import { IconButton } from './ui/Button.js'
 import { Close } from './ui/icons.js'
@@ -31,12 +36,27 @@ export function Inspector({
   readonly onClose: () => void
   readonly children: ReactNode
 }) {
+  const frame = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    if (!opened) return
+    const mine = frame.current
+
+    if (!opened || mine === null) return
+
+    // La feuille dit la forme : posé en couche, le volet est détaché du flux.
+    // C’est la seule lecture de la largeur, et elle passe par le style calculé
+    // plutôt que par une requête média écrite deux fois.
+    if (getComputedStyle(mine).position !== 'absolute') return
+
+    const covered = mine.parentElement?.querySelector('.basalte-stage')
+    const opener = document.activeElement
+
+    covered?.setAttribute('inert', '')
+    mine.focus()
 
     function heard(event: KeyboardEvent): void {
-      // Une fenêtre ouverte garde l’échappement pour elle : les deux écouteurs
-      // sont sur le même document, et elle ne peut pas l’y retenir seule.
+      // Une fenêtre ouverte garde l’échappement pour elle, et un menu aussi :
+      // les écouteurs sont sur le même document.
       if (event.key !== 'Escape' || overlaid()) return
 
       onClose()
@@ -44,11 +64,22 @@ export function Inspector({
 
     document.addEventListener('keydown', heard)
 
-    return () => document.removeEventListener('keydown', heard)
+    return () => {
+      document.removeEventListener('keydown', heard)
+      covered?.removeAttribute('inert')
+
+      if (opener instanceof HTMLElement) opener.focus()
+    }
   }, [opened, onClose])
 
   return (
-    <Card fill className="basalte-inspector" data-open={String(opened)}>
+    <Card
+      ref={frame}
+      fill
+      className="basalte-inspector"
+      data-open={String(opened)}
+      tabIndex={-1}
+    >
       <CardHead>
         {head}
         <Spacer />

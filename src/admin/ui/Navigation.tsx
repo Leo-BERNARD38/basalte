@@ -108,9 +108,12 @@ export function AccountMenu({
 
   return (
     <Anchor>
+      {/* `aria-expanded` et `aria-haspopup`, jamais `toggled` : ce bouton
+          déplie un menu, il ne reste pas enfoncé, et `aria-pressed` en même
+          temps l’annoncerait comme les deux à la fois. */}
       <IconButton
         label={label}
-        toggled={opened}
+        aria-haspopup="true"
         aria-expanded={opened}
         onClick={() => setOpened((state) => !state)}
       >

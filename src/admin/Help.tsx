@@ -62,6 +62,15 @@ function addingNote(support: string): Note {
 }
 
 /**
+ * Mettre un texte en forme : la même note sur les deux écrans qui portent un
+ * texte long — les sections d’une page, et le corps d’un billet.
+ */
+const FORMATTING: Note = {
+  heading: 'Mettre un texte en forme',
+  body: 'Dans un texte long : ## pour un titre, - pour une liste, **gras**, *italique*, et [libellé](https://…) pour un lien. Le reste s’affiche tel quel, et l’aperçu sous le champ montre le résultat.',
+}
+
+/**
  * Ce que cet écran-là explique. La première note est sur tous : les deux
  * boutons sont sur tous, et c’est la question que le client pose le plus
  * souvent.
@@ -94,12 +103,17 @@ export function notesFor(
       },
       {
         heading: 'Un champ laissé vide',
-        body: 'Beaucoup se remplissent tout seuls. Sans logo, le nom du site s’affiche en toutes lettres ; sans liens dans l’en-tête, le menu reprend les pages du site ; sans libellé, un bouton de téléchargement dit « Télécharger » et le mot du menu sur téléphone dit « Menu ». Les horaires s’écrivent en 09:00, une ligne par jour ouvré.',
+        body: 'Beaucoup se remplissent tout seuls. Sans logo, le nom du site s’affiche en toutes lettres ; sans liens dans l’en-tête, le menu reprend les pages du site ; sans libellé, un bouton de téléchargement dit « Télécharger » et le mot du menu sur téléphone dit « Menu ». Une liste d’actualités sans limite les porte toutes, groupées par année. Les horaires s’écrivent en 09:00, une ligne par jour ouvré.',
       },
       {
-        heading: 'Mettre un texte en forme',
-        body: 'Dans un texte long : ## pour un titre, - pour une liste, **gras**, *italique*, et [libellé](https://…) pour un lien. Le reste s’affiche tel quel, et l’aperçu sous le champ montre le résultat.',
+        heading: 'La mention de consentement',
+        body: 'Le formulaire de contact en demande une : elle dit à quoi servent les coordonnées, et mène à votre politique de confidentialité. Obligatoire en pratique, même si rien ne vous en empêche.',
       },
+      {
+        heading: 'Ce qui ne se voit que sur ordinateur',
+        body: 'Le côté d’une mise en avant et la largeur double d’une carte ne valent que là : sur téléphone, l’image suit toujours le texte, et chaque carte prend la ligne. Un prix et un chiffre clé, eux, s’affichent tels que vous les écrivez — avec leur devise, leur unité et leur signe.',
+      },
+      FORMATTING,
     ],
     journal: [
       {
@@ -110,6 +124,11 @@ export function notesFor(
         heading: 'L’adresse d’un billet',
         body: 'C’est son titre qui la fait, au moment où vous l’écrivez. Elle ne change plus ensuite, même si le titre change.',
       },
+      {
+        heading: 'La date',
+        body: 'C’est elle qui ordonne le journal, et non le jour où vous avez écrit. La changer déplace le billet dans la liste et sur le site.',
+      },
+      FORMATTING,
     ],
     media: [
       {

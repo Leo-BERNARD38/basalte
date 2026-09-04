@@ -122,6 +122,9 @@ export default function Panel({
   // La section qu’une ligne du résumé désigne. Elle voyage par l’état plutôt
   // que par un appel : c’est l’écran d’édition qui sait ouvrir une section, et
   // la même charge sert quand le client clique une ligne écrite hier.
+  //
+  // L’écran la suit par identité : recopiée à chaque clic, elle rouvre sa
+  // section même quand c’est la même ligne qu’on vient de cliquer.
   const [wanted, setWanted] = useState<ContentIssue | undefined>(undefined)
 
   // Une session fermée emporte sa raison jusqu’à l’écran de connexion : sans
@@ -598,7 +601,7 @@ export default function Panel({
         problems={problems}
         refusal={refusal}
         issues={issues}
-        onIssue={setWanted}
+        onIssue={(issue) => setWanted({ ...issue })}
         publication={publication}
         notice={notice}
         onNoticeDone={() => setNotice(undefined)}
@@ -727,10 +730,6 @@ export default function Panel({
   )
 }
 
-/**
- * Le titre de l’en-tête : ce qui est ouvert quand un écran ouvre quelque chose,
- * le nom de l’écran ailleurs.
- */
 /**
  * Ce que la barre d’application nomme : la page ouverte sur « Édition », et le
  * nom de l’écran partout ailleurs. « Actualités » en fait partie : son écran

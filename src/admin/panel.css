@@ -1385,6 +1385,10 @@ textarea.basalte-input {
    couleur, la plus claire des surfaces, et par son rayon. Élevée, elle porte
    la première ombre ; contournée, un filet. */
 .basalte-card {
+  /* La marge que l’en-tête et le corps reprennent quand la carte tient la
+     hauteur. Déclarée ici pour que `CardBody` vaille aussi hors `fill`. */
+  --card-gutter: var(--panel-space-xxl);
+
   min-width: 0;
   padding: var(--panel-space-xxl);
   border: 1px solid transparent;
@@ -1426,8 +1430,6 @@ textarea.basalte-input {
    le corps défilerait sous une gouttière. Elle la leur passe par
    `--card-gutter`, pour que `pad` continue de valoir en pleine hauteur. */
 .basalte-card[data-fill='true'] {
-  --card-gutter: var(--panel-space-xxl);
-
   display: flex;
   min-height: 0;
   flex: 1;
@@ -3119,6 +3121,7 @@ textarea.basalte-input {
    la cible tactile. */
 @media (max-width: 1199px) {
   .basalte-edit,
+  .basalte-writer__body,
   .basalte-library,
   .basalte-messages,
   .basalte-picker-body,

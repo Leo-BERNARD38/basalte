@@ -182,7 +182,12 @@ export function Menu({ opened, onClose, align, label, children }: MenuProps) {
     }
 
     function onKey(event: KeyboardEvent): void {
-      if (event.key === 'Escape') onClose()
+      if (event.key !== 'Escape') return
+
+      // Le menu retient la touche : ce qui écoute l’échappement plus haut —
+      // le volet d’un écran — se refermait en même temps que lui.
+      event.stopPropagation()
+      onClose()
     }
 
     document.addEventListener('mousedown', onDown)
@@ -237,8 +242,8 @@ type SelectorProps = {
   readonly value: ReactNode
   /** Une marque à côté du choix : les hachures d’une langue en préparation. */
   readonly mark?: ReactNode | undefined
-  /** `bar` : une seule ligne, pour une barre d’outils. */
-  readonly form?: 'field' | 'bar' | undefined
+  /** `bar` : une seule ligne, pour une barre d’outils. Sinon, un champ. */
+  readonly form?: 'bar' | undefined
   readonly opened: boolean
   readonly onToggle: () => void
 }

@@ -48,18 +48,6 @@ export function useEditing(): Editing {
   return useContext(EditingContext)
 }
 
-/**
- * La langue qu’on écrit, sur un site qui en a plusieurs — « en français »,
- * au bout de la ligne de contexte d’une page ou d’un billet. Rien ne la
- * disait : un champ traduisible est identique dans les deux langues, et le
- * seul indice vivait dans un menu, en haut à droite de l’écran.
- */
-export function editedLanguage(editing: Editing): string | undefined {
-  if (editing.languages.length < 2) return undefined
-
-  return `en ${languageLabel(editing.languages, editing.language)}`
-}
-
 /** Le nom d’une langue tel que le client le lit, jamais son code. */
 export function languageLabel(
   languages: readonly PanelLanguage[],

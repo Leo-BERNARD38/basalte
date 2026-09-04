@@ -65,8 +65,8 @@ export function Stage({
   readonly selection?: string | undefined
   /** Ce que le clic sur une section dans l’aperçu remonte. */
   readonly onPick?: ((id: string) => void) | undefined
-  /** Le rang, dans la page entière, où une section de plus est demandée. */
-  readonly onInsert?: ((at: number) => void) | undefined
+  /** L’identifiant de la section avant laquelle une section est demandée. */
+  readonly onInsert?: ((before: string) => void) | undefined
   /** Ce que la barre porte à gauche : le choix de la page, s’il y en a un. */
   readonly bar?: ReactNode | undefined
   /** Vrai quand ce qu’on écrit n’est pas encore ce que le cadre montre. */
@@ -81,10 +81,19 @@ export function Stage({
   const frame = useRef<HTMLIFrameElement>(null)
   /** La dernière section venue de l’aperçu : elle y est déjà sous les yeux. */
   const picked = useRef('')
-  /** Les rappels du rendu courant, pour n’écouter le canal qu’une fois. */
-  const answer = useRef({ onPick, onInsert, selection })
+  /**
+   * L’aperçu répond au clic tant que quelqu’un écoute. Sur une entrée fixe —
+   * l’en-tête et le pied — il montre l’accueil, dont les sections
+   * appartiennent à une autre entrée : personne n’écoute, et le cadre cesse
+   * alors de se proposer.
+   */
+  const live = onPick !== undefined || onInsert !== undefined
+  /** Ce que le rendu courant sait, pour n’écouter le canal qu’une fois. */
+  const answer = useRef({ onPick, onInsert, selection, live })
 
-  answer.current = { onPick, onInsert, selection }
+  useEffect(() => {
+    answer.current = { onPick, onInsert, selection, live }
+  })
 
   useEffect(() => {
     function heard(event: MessageEvent): void {
@@ -98,17 +107,23 @@ export function Stage({
       if (message === undefined) return
 
       if (message.kind === 'ready') {
-        // Le cadre est remonté à chaque enregistrement : c’est lui qui
-        // redemande la marque, plutôt que le panel qui devine quand la poser.
+        // Le cadre est remonté — un enregistrement, un changement de page :
+        // c’est lui qui redemande la marque, plutôt que le panel qui devine
+        // quand la poser. Elle vient en vue, sauf sur la section qu’on venait
+        // de désigner dans l’aperçu.
         mine.postMessage(
-          toPreview(answer.current.selection, false),
+          toPreview(
+            answer.current.selection,
+            answer.current.selection !== picked.current,
+            answer.current.live,
+          ),
           event.origin,
         )
         return
       }
 
       if (message.kind === 'insert') {
-        answer.current.onInsert?.(message.at)
+        answer.current.onInsert?.(message.before)
         return
       }
 
@@ -125,10 +140,10 @@ export function Stage({
     // Choisie depuis le panel, la section vient en vue ; désignée dans
     // l’aperçu, elle y est déjà, et l’y amener ferait sauter la page.
     frame.current?.contentWindow?.postMessage(
-      toPreview(selection, selection !== picked.current),
+      toPreview(selection, selection !== picked.current, live),
       window.location.origin,
     )
-  }, [selection])
+  }, [selection, live])
 
   const href = address?.(viewport)
 

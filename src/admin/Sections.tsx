@@ -40,8 +40,8 @@ export function Sections({
   readonly current: string
   readonly onFocus: (id: string) => void
   readonly onDraft: (draft: Draft) => void
-  /** Demander une section de plus, au rang donné. */
-  readonly onAdd: (at: number) => void
+  /** Demander une section de plus, avant celle-ci — vide : à la fin. */
+  readonly onAdd: (before: string) => void
 }) {
   const editing = useEditing()
 
@@ -70,7 +70,12 @@ export function Sections({
           title="Aucune section"
           note="Cette page est vide. Ajoutez-en une pour commencer."
         />
-        <Button variant="filled" icon={<Plus />} onClick={() => onAdd(0)} block>
+        <Button
+          variant="filled"
+          icon={<Plus />}
+          onClick={() => onAdd('')}
+          block
+        >
           Ajouter une section
         </Button>
       </Stack>
@@ -143,11 +148,7 @@ export function Sections({
         </SortableList>
       </Stack>
 
-      <Button
-        variant="text"
-        icon={<Plus />}
-        onClick={() => onAdd(draft.blocks.length)}
-      >
+      <Button variant="text" icon={<Plus />} onClick={() => onAdd('')}>
         Ajouter une section
       </Button>
     </Stack>

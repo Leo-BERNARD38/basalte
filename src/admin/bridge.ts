@@ -26,8 +26,13 @@ export type FromPreview =
   | { readonly kind: 'ready' }
   /** Une section a été désignée dans l’aperçu. */
   | { readonly kind: 'picked'; readonly id: string }
-  /** Une section de plus est demandée à ce rang, compté sur la page entière. */
-  | { readonly kind: 'insert'; readonly at: number }
+  /**
+   * Une section de plus est demandée **avant** celle-ci. Vide : à la fin.
+   * L’aperçu montre le dernier enregistrement, et le brouillon a pu être
+   * réordonné depuis : un rang y désignerait une autre place, un identifiant
+   * désigne toujours la même section.
+   */
+  | { readonly kind: 'insert'; readonly before: string }
 
 /**
  * Lit un message venu du cadre, et rend `undefined` pour tout ce qui n’est pas
@@ -43,27 +48,35 @@ export function fromPreview(data: unknown): FromPreview | undefined {
 
   const kind = message['kind']
   const id = message['id']
-  const at = message['at']
+  const before = message['before']
 
   if (kind === 'ready') return { kind: 'ready' }
   if (kind === 'picked' && typeof id === 'string') return { kind: 'picked', id }
-  if (kind === 'insert' && typeof at === 'number' && Number.isInteger(at)) {
-    return { kind: 'insert', at }
+  if (kind === 'insert' && typeof before === 'string') {
+    return { kind: 'insert', before }
   }
 
   return undefined
 }
 
 /**
- * Ce que le panel dit au cadre. `reveal` sépare les deux façons de choisir :
- * depuis le panel, la section vient en vue ; depuis un clic dans l’aperçu,
- * elle est déjà sous les yeux, et l’y amener ferait sauter la page.
+ * Ce que le panel dit au cadre.
+ *
+ * `reveal` sépare les deux façons de choisir : depuis le panel, la section
+ * vient en vue ; depuis un clic dans l’aperçu, elle est déjà sous les yeux, et
+ * l’y amener ferait sauter la page.
+ *
+ * `live` dit si le cadre est une surface d’édition. Il ne l’est pas quand ce
+ * qu’il montre n’appartient pas à ce qu’on modifie — l’accueil, sous l’entrée
+ * de l’en-tête et du pied —, et il cesse alors de se proposer au clic : une
+ * section qui s’éclaire sous la souris et ne répond pas ment.
  */
 export function toPreview(
   id: string,
   reveal: boolean,
+  live: boolean,
 ): Record<string, unknown> {
-  return { channel: CHANNEL, kind: 'select', id, reveal }
+  return { channel: CHANNEL, kind: 'select', id, reveal, live }
 }
 
 /**
@@ -104,24 +117,29 @@ export const BRIDGE = `(function () {
 
       if (target === null) return
 
+      // Rien ne navigue depuis l’aperçu, même quand il ne répond pas au
+      // clic : partir ailleurs y remplacerait ce que le panel montre.
+      // « Ouvrir dans un onglet » est là pour parcourir le site, et ce qui ne
+      // navigue pas — le dépliant du menu — garde son geste.
+      if (target.closest('a[href], [type="submit"]')) event.preventDefault()
+
+      if (!document.documentElement.hasAttribute('data-canvas')) return
+
       var insert = target.closest('[data-insert]')
 
       if (insert !== null) {
         event.preventDefault()
-        tell({ kind: 'insert', at: Number(insert.getAttribute('data-insert')) })
+        tell({ kind: 'insert', before: insert.getAttribute('data-insert') })
         return
       }
-
-      // Rien ne navigue depuis l'apercu : c'est une surface d'edition, et
-      // « Ouvrir dans un onglet » est la pour parcourir le site. Ce qui ne
-      // navigue pas — le depliant du menu — garde son geste.
-      if (target.closest('a[href], [type="submit"]')) event.preventDefault()
 
       var section = target.closest('[data-section]')
 
       if (section === null) return
 
-      mark(section.id, false)
+      // La marque ne bouge pas d’ici : le panel la renvoie s’il accepte le
+      // choix. Posée à l’avance, elle restait sur une section que le
+      // brouillon ne porte plus.
       tell({ kind: 'picked', id: section.id })
     },
     true,
@@ -135,6 +153,7 @@ export const BRIDGE = `(function () {
     if (data === null || typeof data !== 'object') return
     if (data.channel !== '${CHANNEL}' || data.kind !== 'select') return
 
+    document.documentElement.toggleAttribute('data-canvas', data.live === true)
     mark(typeof data.id === 'string' ? data.id : '', data.reveal === true)
   })
 

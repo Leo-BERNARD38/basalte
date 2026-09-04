@@ -26,20 +26,21 @@ import type { PanelBlockType, PanelPayload } from '../server/panel.js'
 import { asideOf } from './asides.js'
 import { emptyValues, type Draft, type Values } from './draft.js'
 import { previewAddress, useEditing } from './editing.js'
-import { FieldSet, type FieldIssue } from './fields/Field.js'
+import { FieldSet, issuesOf } from './fields/Field.js'
 import { Inspector } from './Inspector.js'
 import { Language } from './Language.js'
 import { pageTitle } from './pages.js'
 import { PageMenu } from './PageMenu.js'
+import { Problems } from './Problems.js'
 import { Section } from './Section.js'
 import { Sections } from './Sections.js'
 import { Stage } from './Stage.js'
 import { Button } from './ui/Button.js'
 import { ArrowBack, Description } from './ui/icons.js'
-import { Group, Spacer, Stack } from './ui/Layout.js'
+import { Spacer, Stack } from './ui/Layout.js'
 import { Modal } from './ui/Overlay.js'
-import { Banner, Empty } from './ui/Surface.js'
-import { Eyebrow, plural, Text, Title } from './ui/Text.js'
+import { Empty } from './ui/Surface.js'
+import { Text, Title } from './ui/Text.js'
 import { Segmented } from './ui/Toggle.js'
 
 /**
@@ -48,7 +49,12 @@ import { Segmented } from './ui/Toggle.js'
  * empilées dans une colonne étaient précisément ce qu’on ne lisait plus.
  */
 type Focus =
-  | { readonly kind: 'browse'; readonly tab: 'sections' | 'page' }
+  | {
+      readonly kind: 'browse'
+      readonly tab: 'sections' | 'page'
+      /** La section qu’on vient de quitter : la liste la garde en évidence. */
+      readonly from?: string
+    }
   | { readonly kind: 'block'; readonly id: string }
 
 /** Le volet au repos : les sections, parce que c’est ce qu’on modifie. */
@@ -58,33 +64,6 @@ const TABS = [
   { value: 'sections' as const, label: 'Sections' },
   { value: 'page' as const, label: 'Page' },
 ]
-
-type Problems = PanelPayload['problems']
-
-/**
- * Les points, rangés sous la page qu’ils visent. Une médiathèque qui porte
- * douze images inemployées écrivait douze phrases identiques à un mot près :
- * groupées, elles font un titre, un compte, et douze lignes qu’on parcourt au
- * lieu de les lire. L’ordre d’arrivée est gardé — c’est celui du contrôle.
- */
-export function groupProblems(problems: Problems): readonly {
-  readonly page: string
-  readonly points: Problems
-}[] {
-  const pages: string[] = []
-  const under = new Map<string, Problems[number][]>()
-
-  for (const problem of problems) {
-    const found = under.get(problem.page)
-
-    if (found === undefined) {
-      pages.push(problem.page)
-      under.set(problem.page, [problem])
-    } else found.push(problem)
-  }
-
-  return pages.map((page) => ({ page, points: under.get(page) ?? [] }))
-}
 
 export function Edit({
   payload,
@@ -116,14 +95,13 @@ export function Edit({
   const [opened, setOpened] = useState(false)
   const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
   const [pages, setPages] = useState(false)
-  /** Le rang où une section est demandée, ou rien si on n’en demande pas. */
-  const [inserting, setInserting] = useState<number | undefined>(undefined)
-  const [allProblems, setAllProblems] = useState(false)
+  /**
+   * Où une section est demandée : l’identifiant de celle qui la suivra, ou la
+   * chaîne vide pour la fin de la page. `undefined` : rien n’est demandé.
+   */
+  const [inserting, setInserting] = useState<string | undefined>(undefined)
 
   const site = payload.site.name
-  const blocking = payload.problems.some(
-    (problem) => problem.severity === 'error',
-  )
 
   // Une ligne du résumé ouvre la section qu’elle nomme : c’est le geste que le
   // client faisait à la main, en relisant la liste pour retrouver laquelle.
@@ -180,7 +158,10 @@ export function Edit({
 
   // Une entrée fixe n’a ni métadonnées ni ordre : son volet n’a que la liste
   // de ses emplacements, jamais l’onglet « Page ».
-  const active: Focus = fixed && focus.kind === 'browse' ? BROWSE : focus
+  const active: Focus =
+    fixed && focus.kind === 'browse'
+      ? { ...focus, tab: 'sections' as const }
+      : focus
 
   const focused =
     active.kind === 'block'
@@ -197,6 +178,17 @@ export function Edit({
     return asideOf(payload, entry)?.title ?? entry
   }
 
+  /**
+   * Le rang où la section se pose, tiré de celle qui la suivra : l’aperçu
+   * montre le dernier enregistrement, et le brouillon a pu être réordonné
+   * depuis. Une voisine qu’il ne porte plus renvoie à la fin.
+   */
+  const rankOf = (before: string | undefined): number => {
+    const found = draft.blocks.findIndex((section) => section.id === before)
+
+    return found === -1 ? draft.blocks.length : found
+  }
+
   function addSection(type: PanelBlockType): void {
     const languages = payload.site.languages.map((entry) => entry.code)
     const born = {
@@ -207,7 +199,7 @@ export function Edit({
     }
     const blocks = [...draft.blocks]
 
-    blocks.splice(inserting ?? blocks.length, 0, born)
+    blocks.splice(rankOf(inserting), 0, born)
 
     setInserting(undefined)
     setFocus({ kind: 'block', id: born.id })
@@ -224,65 +216,19 @@ export function Edit({
     setOpened(true)
   }
 
-  const problems = payload.problems.length > 0 && (
-    <Banner tone={blocking ? 'refused' : 'watch'}>
-      <Stack gap="sm">
-        <Group gap="md">
-          <strong>
-            {blocking
-              ? 'À corriger avant la mise en ligne'
-              : `${payload.problems.length} ${plural(payload.problems.length, 'point')} à regarder`}
-          </strong>
-          {!blocking && (
-            <>
-              <Spacer />
-              <button
-                type="button"
-                className="basalte-link"
-                onClick={() => setAllProblems(!allProblems)}
-              >
-                {allProblems ? 'replier' : 'voir'}
-              </button>
-            </>
-          )}
-        </Group>
-        {(blocking || allProblems) && (
-          <Stack gap="md">
-            {groupProblems(payload.problems).map((group) => (
-              <Stack key={group.page} gap="xs" className="basalte-points">
-                <Group gap="md" align="baseline">
-                  <Eyebrow>{nameOf(group.page)}</Eyebrow>
-                  <Spacer />
-                  {/* Un compte de un ne dit rien que la ligne en dessous ne
-                      dise déjà. */}
-                  {group.points.length > 1 && (
-                    <Eyebrow>{group.points.length}</Eyebrow>
-                  )}
-                </Group>
-                {group.points.map((point, rank) => (
-                  <Text
-                    key={`${rank}-${point.message}`}
-                    tone="muted"
-                    role="label-md"
-                  >
-                    {point.place === '' ? '' : `${point.place} — `}
-                    {point.message}
-                  </Text>
-                ))}
-              </Stack>
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Banner>
-  )
+  /** La section devant laquelle la nouvelle se posera, quand il y en a une. */
+  const neighbour = types.find(
+    (type) =>
+      type.name ===
+      draft.blocks.find((section) => section.id === inserting)?.type,
+  )?.label
 
   return (
     <div className="basalte-edit">
       <Stage
         address={(support) => previewAddress(previewed, editing, support)}
         selection={active.kind === 'block' ? active.id : ''}
-        onPick={pickInPreview}
+        onPick={fixed ? undefined : pickInPreview}
         onInsert={fixed ? undefined : setInserting}
         bar={
           <PageMenu
@@ -295,7 +241,7 @@ export function Edit({
           />
         }
         stale={dirty}
-        frameKey={String(savedAt ?? 0)}
+        frameKey={`${savedAt ?? 0}-${previewed}-${editing.language}`}
         title="Aperçu de la page"
       />
 
@@ -320,7 +266,9 @@ export function Edit({
                 variant="text"
                 size="sm"
                 icon={<ArrowBack size={18} />}
-                onClick={() => setFocus(BROWSE)}
+                onClick={() =>
+                  setFocus({ kind: 'browse', tab: 'sections', from: active.id })
+                }
               >
                 {fixed ? 'Emplacements' : 'Sections'}
               </Button>
@@ -340,7 +288,7 @@ export function Edit({
         }
       >
         <Stack gap="xl">
-          {problems}
+          <Problems points={payload.problems} nameOf={nameOf} />
 
           {active.kind === 'browse' && active.tab === 'sections' && (
             <Sections
@@ -348,7 +296,7 @@ export function Edit({
               types={types}
               fixed={fixed}
               wrong={wrong}
-              current=""
+              current={active.from ?? ''}
               onFocus={(id) => setFocus({ kind: 'block', id })}
               onDraft={onDraft}
               onAdd={setInserting}
@@ -412,9 +360,9 @@ export function Edit({
         title="Ajouter une section"
         note={
           <Text tone="meta" role="label-md">
-            {inserting === draft.blocks.length
+            {neighbour === undefined
               ? 'Elle se posera à la fin de la page.'
-              : `Elle se posera en ${(inserting ?? 0) + 1}${inserting === 0 ? 're' : 'e'} position.`}
+              : `Elle se posera avant « ${neighbour} ».`}
           </Text>
         }
         width="var(--panel-width-modal)"
@@ -440,21 +388,4 @@ export function Edit({
       </Modal>
     </div>
   )
-}
-
-/**
- * Les incidents d’une section, leur chemin nu : le serveur le donne relatif aux
- * champs de la section, et c’est exactement ce qu’un `FieldSet` attend.
- */
-export function issuesOf(
-  issues: readonly ContentIssue[],
-  section: string | undefined,
-): readonly FieldIssue[] {
-  return issues
-    .filter((issue) => issue.section?.id === section)
-    .map((issue) => ({
-      path: issue.path ?? [],
-      ...(issue.language === undefined ? {} : { language: issue.language }),
-      message: issue.message,
-    }))
 }
