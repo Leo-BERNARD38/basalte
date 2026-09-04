@@ -1,6 +1,14 @@
 ---
-import { blocks, desktop, journalBlocks, journalDesktop } from 'virtual:basalte'
+import {
+  blocks,
+  desktop,
+  journalBlocks,
+  journalDesktop,
+  journalRegistry,
+  registry,
+} from 'virtual:basalte'
 
+import { BRIDGE } from '../admin/bridge.js'
 import { resolveDocument, resolveImage } from '../media/resolve.js'
 import { headingOf } from '../render/outline.js'
 import Layout from './Layout.astro'
@@ -26,9 +34,20 @@ const components =
   support === 'desktop' ? { ...desktop, ...journalDesktop } : {}
 const available = { ...blocks, ...journalBlocks }
 
-const sections = entry.page.blocks.filter(
-  (section) => section.hidden[language] !== true,
-)
+// Ce que le panel montre : les sections visibles dans la langue affichée, mais
+// chacune avec son rang dans la page entière. C’est ce rang que le « + »
+// renvoie : compté sur les seules sections visibles, il insérerait au mauvais
+// endroit dès qu’une section est masquée.
+const marks = entry.page.blocks
+  .map((section, at) => ({ section, at }))
+  .filter(({ section }) => section.hidden[language] !== true)
+
+const sections = marks.map(({ section }) => section)
+
+// Le nom que le client lit dans le panel, pour le dire au survol de la
+// section. Le gabarit du billet est du lot : c’est une section comme une autre
+// dans l’aperçu.
+const kinds = { ...registry, ...journalRegistry }
 
 const image = (key: string, sizes?: string) =>
   resolveImage(schemas.media, key, language, sizes)
@@ -51,32 +70,112 @@ const document = (key: string) => resolveDocument(schemas.documents, key)
   posts={posts}
 >
   {
-    /* Chaque section porte son identifiant, pour que le panel l’amène en vue
-       et la souligne quand on la choisit dans la liste. L’enveloppe n’existe
-       que dans l’aperçu : le site construit ne la porte pas. */
-    sections.map((section, index) => {
+    /* Chaque section porte son identifiant et son nom : c’est ce qui permet
+       de la désigner en cliquant dessus, et de savoir ce qu’on désigne avant
+       de cliquer. Entre deux sections, un « + » ouvre le choix d’une section
+       à insérer là. Rien de tout cela n’existe dans le site construit : cette
+       page est la seule à porter l’enveloppe et le script. */
+    marks.map(({ section, at }, index) => {
       const Block = components[section.type] ?? available[section.type]
       return (
-        <div id={section.id} data-section>
-          <Block
-            props={section.props}
-            language={language}
-            image={image}
-            document={document}
-            heading={headingOf(index)}
-            business={business}
-            posts={posts}
-          />
-        </div>
+        <>
+          <button class="basalte-insert" type="button" data-insert={at}>
+            Ajouter une section ici
+          </button>
+          <div
+            id={section.id}
+            data-section
+            data-kind={kinds[section.type]?.label ?? section.type}
+          >
+            <Block
+              props={section.props}
+              language={language}
+              image={image}
+              document={document}
+              heading={headingOf(index)}
+              business={business}
+              posts={posts}
+            />
+          </div>
+        </>
       )
     })
   }
+  <button
+    class="basalte-insert"
+    type="button"
+    data-insert={entry.page.blocks.length}
+  >
+    Ajouter une section ici
+  </button>
+
+  {
+    /* Le script se pose dans le gabarit, jamais après : hors du composant, il
+       sortirait derrière la fermeture du document. */
+  }
+  <script is:inline set:html={BRIDGE} />
 </Layout>
 
 <style is:global>
-  /* La section choisie dans le panel : un trait d’encre à l’intérieur de son
-     bord, le temps qu’elle est visée. */
-  [data-section]:target {
+  /* L’aperçu est une surface d’édition : on y désigne une section en cliquant
+     dessus. Le survol la cerne d’un trait clair et la nomme ; la section
+     choisie garde le trait d’encre. */
+  [data-section] {
+    position: relative;
+  }
+
+  [data-section]:hover {
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+    cursor: pointer;
+  }
+
+  [data-section][data-current] {
     box-shadow: inset 0 0 0 3px var(--color-fg);
+  }
+
+  /* Le nom de la section, au survol : savoir ce qu’on désigne avant de
+     cliquer. Il ne prend jamais le clic — c’est la section qui le reçoit. */
+  [data-section]::after {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    padding: 0.25rem 0.6rem;
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    content: attr(data-kind);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [data-section]:hover::after {
+    opacity: 1;
+  }
+
+  /* Entre deux sections : une bande qui ne se voit qu’au survol, et qui dit
+     où la prochaine section se posera. Sans elle, une page vide n’offrirait
+     rien à cliquer. */
+  .basalte-insert {
+    display: flex;
+    width: 100%;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0;
+  }
+
+  .basalte-insert:hover,
+  .basalte-insert:focus-visible {
+    opacity: 1;
   }
 </style>

@@ -1420,6 +1420,38 @@ textarea.basalte-input {
   padding: var(--panel-space-region);
 }
 
+/* Une carte qui tient la hauteur qu’on lui laisse. Elle ne porte plus de
+   marge intérieure : ce sont son en-tête et son corps qui la portent, faute
+   de quoi le corps défilerait sous une gouttière. */
+.basalte-card[data-fill='true'] {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* L’en-tête reste en place pendant qu’on parcourt le corps. Aucun filet ne
+   l’en sépare : une surface s’élève par sa couleur. */
+.basalte-card__head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--panel-space-md);
+  padding: var(--panel-space-xxl) var(--panel-space-xxl) var(--panel-space-lg);
+}
+
+/* Le corps, et lui seul, défile. La gouttière du haut rend à l’anneau de
+   focus du premier contrôle la place que le défilement lui rognerait. */
+.basalte-card__body {
+  min-height: 0;
+  flex: 1;
+  padding: var(--panel-space-xs) var(--panel-space-xxl) var(--panel-space-xxl);
+  margin-top: calc(-1 * var(--panel-space-xs));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* Un champ composite — image, document, groupe, liste — porte son refus sur
    son conteneur : l’erreur se lit sous le champ, encore faut-il voir lequel. */
 .basalte-card[data-wrong='true'],
@@ -1560,14 +1592,6 @@ textarea.basalte-input {
   padding: 0 var(--panel-space-xxl) var(--panel-space-lg);
 }
 
-/* Le corps qui défile se sépare de la tête et du pied par un filet, comme
-   chez Material : sans lui, un contenu coupé net semblait fini. */
-.basalte-modal[data-scrolls='true'] .basalte-modal__body {
-  padding-top: var(--panel-space-xl);
-  border-top: 1px solid var(--panel-color-outline-variant);
-  border-bottom: 1px solid var(--panel-color-outline-variant);
-}
-
 /* Le menu défile plutôt que de sortir de l’écran : la bibliothèque d’un site
    porte une quinzaine de types, et le dernier doit rester atteignable. */
 .basalte-menu {
@@ -1691,6 +1715,38 @@ textarea.basalte-input {
 .basalte-selector > svg:last-child {
   flex-shrink: 0;
   color: var(--panel-color-on-surface-variant);
+}
+
+/* En barre, le choix tient sur une ligne : le libellé passe en préfixe
+   estompé devant la valeur, et le bouton reprend la hauteur d’un bouton. Il
+   ne prend que la place qu’il lui faut — la barre en a d’autres à loger. */
+.basalte-selector[data-form='bar'] {
+  width: auto;
+  min-width: 0;
+  min-height: var(--panel-control-md);
+  padding: var(--panel-space-xs) var(--panel-space-sm) var(--panel-space-xs)
+    var(--panel-space-md);
+  border-color: transparent;
+  border-radius: var(--panel-radius-full);
+  background: var(--panel-color-surface-container);
+}
+
+.basalte-selector[data-form='bar']:hover {
+  border-color: var(--panel-color-outline-variant);
+}
+
+.basalte-selector[data-form='bar'] .basalte-selector__text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--panel-space-sm);
+}
+
+.basalte-selector[data-form='bar'] .basalte-selector__label {
+  flex-shrink: 0;
+}
+
+.basalte-selector[data-form='bar'] .basalte-selector__value {
+  font-size: var(--panel-text-body-md);
 }
 
 /* La snackbar : ce qui vient de se passer, dit une fois, en bas, sur la
@@ -2138,12 +2194,15 @@ textarea.basalte-input {
 /* L’aperçu est un seul objet : sa barre d’outils et la page qu’elle commande
    partagent un contour et un rayon, comme la chrome d’un navigateur tient à
    sa fenêtre. */
+/* Le cadre ne coupe pas ce qui dépasse de lui : le menu des pages s’ouvre
+   depuis sa barre, et un `overflow: hidden` posé ici le rognait à la hauteur
+   de la barre. Ce sont ses deux extrémités qui portent le rayon — la barre en
+   haut, la fenêtre en bas, qui coupe déjà pour elle-même. */
 .basalte-stage__screen {
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
   border: 1px solid var(--panel-color-outline-variant);
   border-radius: var(--panel-radius-md);
   background: var(--panel-color-surface-container-lowest);
@@ -2156,6 +2215,7 @@ textarea.basalte-input {
 }
 
 .basalte-stage__bar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--panel-space-lg);
@@ -2163,6 +2223,8 @@ textarea.basalte-input {
   flex-wrap: nowrap;
   justify-content: space-between;
   padding: var(--panel-space-sm) var(--panel-space-lg);
+  border-top-left-radius: var(--panel-radius-md);
+  border-top-right-radius: var(--panel-radius-md);
   border-bottom: 1px solid var(--panel-color-outline-variant);
   background: var(--panel-color-surface-container-low);
 }
@@ -2184,12 +2246,45 @@ textarea.basalte-input {
   border-radius: 0;
 }
 
+/* Le choix d’une section à poser : deux colonnes de cartes, chacune avec son
+   nom et ce qu’elle fait. C’est le seul endroit du panel où la phrase d’un
+   bloc paraît — au moment où le client choisit une section qu’il ne connaît
+   pas, et pas une fois de plus ensuite. */
+.basalte-catalogue {
+  display: grid;
+  gap: var(--panel-space-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.basalte-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-space-xs);
+  padding: var(--panel-space-lg);
+  border: 1px solid var(--panel-color-outline-variant);
+  border-radius: var(--panel-radius-sm);
+  background: var(--panel-color-surface-container-lowest);
+  color: var(--panel-color-on-surface);
+  font-family: inherit;
+  font-size: var(--panel-text-body-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.basalte-choice:hover {
+  border-color: var(--panel-color-primary);
+  background: var(--panel-color-surface-container);
+}
+
 /* La fenêtre du cadre : elle prend la hauteur que l’écran lui laisse, et
-   c’est sur elle que la page se mesure. */
+   c’est sur elle que la page se mesure. C’est elle qui porte le rayon du
+   bas — l’écran ne coupe plus, pour que le menu de sa barre s’ouvre. */
 .basalte-stage__viewport {
   position: relative;
   flex: 1;
   min-height: 0;
+  border-bottom-left-radius: var(--panel-radius-md);
+  border-bottom-right-radius: var(--panel-radius-md);
   overflow: hidden;
   container-type: size;
 }

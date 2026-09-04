@@ -42,7 +42,7 @@ import { Mark } from './ui/Badge.js'
 import { Button } from './ui/Button.js'
 import { Description, Grip, HiddenMark, Plus } from './ui/icons.js'
 import { Group, Spacer, Stack } from './ui/Layout.js'
-import { Anchor, Menu, Selector } from './ui/Overlay.js'
+import { Anchor, Menu, Modal, Selector } from './ui/Overlay.js'
 import { Row, RowGlyph, RowStack, RowText } from './ui/Row.js'
 import { Banner, Card, Empty } from './ui/Surface.js'
 import { Eyebrow, Mono, plural, Text, Title } from './ui/Text.js'
@@ -104,7 +104,8 @@ export function Edit({
   const [opened, setOpened] = useState<string>(selected)
   const [followed, setFollowed] = useState<ContentIssue | undefined>(undefined)
   const [pages, setPages] = useState(false)
-  const [adding, setAdding] = useState(false)
+  /** Le rang où une section est demandée, ou rien si on n’en demande pas. */
+  const [inserting, setInserting] = useState<number | undefined>(undefined)
   const [allProblems, setAllProblems] = useState(false)
 
   const site = payload.site.name
@@ -199,10 +200,22 @@ export function Edit({
       hidden: {},
       props: emptyValues(type.fields, languages),
     }
+    const blocks = [...draft.blocks]
 
-    setAdding(false)
+    blocks.splice(inserting ?? blocks.length, 0, born)
+
+    setInserting(undefined)
     setFocus({ kind: 'block', id: born.id })
-    onDraft({ ...draft, blocks: [...draft.blocks, born] })
+    onDraft({ ...draft, blocks })
+  }
+
+  // Une section désignée dans l’aperçu. Le cadre montre le dernier
+  // enregistrement : il peut nommer une section que le brouillon vient de
+  // perdre, et c’est le brouillon qui fait foi.
+  function pickInPreview(id: string): void {
+    if (draft.blocks.some((section) => section.id === id)) {
+      setFocus({ kind: 'block', id })
+    }
   }
 
   const problems = payload.problems.length > 0 && (
@@ -447,39 +460,13 @@ export function Edit({
             )}
 
             {!fixed && (
-              <Anchor>
-                <Button
-                  variant="text"
-                  icon={<Plus />}
-                  aria-expanded={adding}
-                  onClick={() => setAdding(!adding)}
-                >
-                  Ajouter une section
-                </Button>
-
-                <Menu
-                  opened={adding}
-                  align="left"
-                  label="Les sections que vous pouvez ajouter"
-                  onClose={() => setAdding(false)}
-                >
-                  <Eyebrow className="basalte-menu__note">
-                    ce que vous pouvez poser sur cette page
-                  </Eyebrow>
-                  {types.map((type) => (
-                    <Row key={type.name} pill onClick={() => addSection(type)}>
-                      <RowStack>
-                        <span>{type.label}</span>
-                        {type.help !== undefined && (
-                          <Text tone="meta" role="label-md">
-                            {type.help}
-                          </Text>
-                        )}
-                      </RowStack>
-                    </Row>
-                  ))}
-                </Menu>
-              </Anchor>
+              <Button
+                variant="text"
+                icon={<Plus />}
+                onClick={() => setInserting(draft.blocks.length)}
+              >
+                Ajouter une section
+              </Button>
             )}
           </Stack>
         </Card>
@@ -552,11 +539,48 @@ export function Edit({
 
       <Stage
         address={(support) => previewAddress(previewed, editing, support)}
-        anchor={active.kind === 'block' ? active.id : undefined}
+        selection={active.kind === 'block' ? active.id : ''}
+        onPick={pickInPreview}
+        onInsert={fixed ? undefined : setInserting}
         stale={dirty}
         frameKey={String(savedAt ?? 0)}
         title="Aperçu de la page"
       />
+
+      {/* Le choix d’une section est le seul moment où le client a besoin
+          qu’on lui dise ce qu’une section fait : c’est ici, et nulle part
+          ailleurs, que la phrase d’un bloc se lit. */}
+      <Modal
+        opened={inserting !== undefined}
+        title="Ajouter une section"
+        note={
+          <Text tone="meta" role="label-md">
+            {inserting === draft.blocks.length
+              ? 'Elle se posera à la fin de la page.'
+              : `Elle se posera en ${(inserting ?? 0) + 1}${inserting === 0 ? 're' : 'e'} position.`}
+          </Text>
+        }
+        width="var(--panel-width-modal)"
+        onClose={() => setInserting(undefined)}
+      >
+        <div className="basalte-catalogue">
+          {types.map((type) => (
+            <button
+              key={type.name}
+              type="button"
+              className="basalte-choice"
+              onClick={() => addSection(type)}
+            >
+              <strong>{type.label}</strong>
+              {type.help !== undefined && (
+                <Text tone="meta" role="body-sm">
+                  {type.help}
+                </Text>
+              )}
+            </button>
+          ))}
+        </div>
+      </Modal>
     </div>
   )
 }

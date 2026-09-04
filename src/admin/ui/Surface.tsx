@@ -1,6 +1,10 @@
 // Les surfaces. Une carte est un conteneur posé sur le fond : elle s’en
 // détache par sa couleur, la plus claire des surfaces, et par son rayon.
 // Élevée, elle porte la première ombre ; contournée, un filet (D200).
+//
+// Une carte `fill` tient la hauteur qu’on lui laisse et confie le défilement à
+// son corps : son en-tête reste lisible pendant qu’on parcourt ce qu’elle
+// contient. C’est la carte qui tient, pas la colonne autour d’elle.
 
 import type { ComponentProps, ReactNode } from 'react'
 
@@ -14,6 +18,8 @@ type CardProps = ComponentProps<'div'> & {
   readonly tone?: 'raised' | undefined
   readonly nested?: boolean | undefined
   readonly pad?: 'sm' | 'lg' | undefined
+  /** La carte prend la hauteur offerte ; son corps porte le défilement. */
+  readonly fill?: boolean | undefined
   readonly children: ReactNode
 }
 
@@ -22,6 +28,7 @@ export function Card({
   tone,
   nested,
   pad,
+  fill,
   className,
   children,
   ...rest
@@ -33,8 +40,35 @@ export function Card({
       data-tone={tone}
       data-nested={nested === true ? 'true' : undefined}
       data-pad={pad}
+      data-fill={fill === true ? 'true' : undefined}
       {...rest}
     >
+      {children}
+    </div>
+  )
+}
+
+/** L’en-tête d’une carte `fill` : il ne défile pas et ne rétrécit pas. */
+export function CardHead({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'div'>) {
+  return (
+    <div className={joined('basalte-card__head', className)} {...rest}>
+      {children}
+    </div>
+  )
+}
+
+/** Le corps d’une carte `fill` : c’est lui, et lui seul, qui défile. */
+export function CardBody({
+  className,
+  children,
+  ...rest
+}: ComponentProps<'div'>) {
+  return (
+    <div className={joined('basalte-card__body', className)} {...rest}>
       {children}
     </div>
   )

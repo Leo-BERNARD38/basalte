@@ -5,6 +5,10 @@
 // rend rien tant qu’elle est fermée, et le composant qui la porte garde son
 // état — c’est ce qui évite qu’un sélecteur rouvert propose le choix du
 // précédent.
+//
+// Le volet d’un écran, lui, n’est pas une fenêtre : il change de forme sans
+// se démonter, et sa couche s’arrête sous la barre d’application. C’est la
+// feuille qui décide, jamais une lecture de la largeur.
 
 import { useEffect, useRef, type ReactNode } from 'react'
 
@@ -224,20 +228,26 @@ type SelectorProps = {
   readonly value: ReactNode
   /** Une marque à côté du choix : les hachures d’une langue en préparation. */
   readonly mark?: ReactNode | undefined
+  /** `bar` : une seule ligne, pour une barre d’outils. */
+  readonly form?: 'field' | 'bar' | undefined
   readonly opened: boolean
   readonly onToggle: () => void
 }
 
 /**
- * Le bouton d’un choix parmi quelques-uns : ce qu’on choisit au-dessus, ce
- * qui est choisi en dessous, et le chevron qui dit qu’un menu suit. Il a la
- * forme d’un champ et non d’une puce, parce qu’il se tient dans une colonne
- * de réglages, au-dessus de ce qu’il commande.
+ * Le bouton d’un choix parmi quelques-uns : ce qu’on choisit, ce qui est
+ * choisi, et le chevron qui dit qu’un menu suit.
+ *
+ * En forme de champ, il empile les deux et se tient dans une colonne de
+ * réglages, au-dessus de ce qu’il commande. En forme de barre, il les met sur
+ * une ligne, le libellé en préfixe estompé : c’est l’adresse d’une chrome de
+ * navigateur, et une barre d’outils n’a pas deux hauteurs à donner.
  */
 export function Selector({
   label,
   value,
   mark,
+  form,
   opened,
   onToggle,
 }: SelectorProps) {
@@ -245,6 +255,7 @@ export function Selector({
     <button
       type="button"
       className="basalte-selector"
+      data-form={form}
       aria-haspopup="true"
       aria-expanded={opened}
       onClick={onToggle}
