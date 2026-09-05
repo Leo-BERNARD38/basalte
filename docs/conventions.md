@@ -145,6 +145,11 @@ Trois familles, et rien d'autre :
 Un défaut courant ne porte **aucune** des trois : il se traite tout de suite. Un
 label `decision-porteur` se superpose : l'arbitrage n'appartient qu'au porteur.
 
+Une condition de `bloque` passe trois épreuves — **observable**, **pas encore
+vraie**, **sans réponse déjà écrite dans une décision** (D225). Une seule ratée
+et l'issue n'est pas différée : elle est enterrée, ou elle est un doublon. Les
+exemples sont sous la skill « consigner ».
+
 Le préfixe de titre est obligatoire pour la roadmap, parce que le numéro d'issue
 ne peut pas porter l'ordre : il est attribué à l'arrivée, et **partagé avec les
 pull requests**.

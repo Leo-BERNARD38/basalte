@@ -29,12 +29,28 @@ condition** qui la débloquerait — citée en tête de corps, en blockquote.
 
 La condition est la seule chose qui compte. Un sujet sans condition est un sujet
 qu'on reprendra par ennui ou qu'on oubliera, jamais un sujet qu'on reprendra au
-bon moment. Elle se formule en fait observable :
+bon moment. Elle passe **trois épreuves**, et une seule ratée la disqualifie
+(D225) :
 
-- oui — « la première fois qu'un bloc est recopié d'un dépôt à l'autre »
-- oui — « le premier client qui paie de la publicité »
-- oui — « le jour où `@astrojs/check` accepte `^7` »
-- non — « quand on aura le temps », « si ça devient gênant »
+1. **Observable.** Un fait qu'on remarquera sans le guetter.
+   - oui — « la première fois qu'un bloc est recopié d'un dépôt à l'autre »
+   - oui — « le jour où `@astrojs/check` accepte `^7` »
+   - non — « quand on aura le temps », « si ça devient gênant »
+   - non — « le premier site livré à quelqu'un qui navigue au clavier » : on ne
+     sait jamais qui visite une page. Une condition qu'on ne peut pas constater
+     ne tombe jamais, et l'issue n'est pas différée — elle est enterrée.
+2. **Pas encore vraie.** Si elle est remplie à la seconde où le produit sert,
+   ce n'est pas une condition : c'est une dette qu'on n'a pas voulu nommer.
+   « Le premier site dont les messages ont de la valeur » est vrai du premier
+   client payant — une landing sert à récolter des leads.
+3. **Sans réponse déjà écrite.** Si une décision numérotée porte à la fois la
+   question et sa réponse, l'issue en est un doublon : elle vieillira à côté,
+   et c'est la décision qu'on relira de toute façon.
+
+Vérifie aussi que la condition **est celle de l'objectif**. Le carousel
+attendait « plus d'images qu'une page n'en porte » quand son intérêt était le
+défilement contraint : la condition écrite était déjà remplie par `gallery`, et
+sa réalisation n'apprenait rien.
 
 **Pas de condition, pas d'issue.** Si tu n'en trouves pas, c'est que le sujet
 n'a pas encore de raison d'exister : ne l'écris pas.
@@ -45,7 +61,8 @@ l'appui : c'est ce qui permet à la session qui la prendra de vérifier que le
 constat tient encore.
 
 Si une décision numérotée a écarté le sujet, dis-la : la rouvrir demande
-d'acter la décision inverse, pas de la contourner.
+d'acter la décision inverse, pas de la contourner. Et si cette décision porte
+déjà ce qui la ferait tomber, n'ouvre rien — c'est la troisième épreuve.
 
 ## Retirer
 
