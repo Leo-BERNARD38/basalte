@@ -19,8 +19,8 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | brancher email, contact ou analytics | `services.md` |
 | mettre un site en ligne sur un VPS | `mise-en-prod.md` |
 | comprendre Docker, Caddy, les sauvegardes | `deploiement.md` |
-| savoir quoi construire ensuite | `implementation.md` |
-| savoir ce qui a été laissé de côté | `roadmap.md` |
+| savoir ce que le socle garantit | `implementation.md` |
+| savoir quoi construire ensuite | les issues du dépôt |
 
 ## Les documents
 
@@ -42,8 +42,7 @@ Socle technique pour landing pages éditables par leurs propriétaires.
 | `services.md` | Formulaire de contact, email, analytics |
 | `mise-en-prod.md` | Du VPS vide au site en ligne : `deploy`, `doctor`, retours en arrière |
 | `deploiement.md` | Docker, Caddy, dimensionnement, sauvegardes |
-| `implementation.md` | Ce que les phases ont laissé · le format d’un cahier · tests · blocs de référence · hors périmètre |
-| `roadmap.md` | Ce qui est laissé de côté, et ce qui le ferait revenir |
+| `implementation.md` | Les trois niveaux d’engagement · tests · blocs de référence · hors périmètre |
 
 ## Trois niveaux de lecture
 
@@ -61,18 +60,13 @@ consigne. Le *comment* d'une phase se décide dans la phase.
 
 ## Statut
 
-Vingt phases sont faites : rendu, authentification, panel, mise en ligne,
-formulaire de contact, livraison, outillage, double rendu, chrome, cadrage des
-images et SEO, notification des messages, relevé du contenu, publication du
-socle, sections partagées, journal, listes sans borne, relecture du panel,
-direction artistique, habillage des pages, et le panel en Material Design 3.
 Un site se crée, se met en production et se monte de version en une commande
-chacune ; une version du socle se publie en une commande aussi.
-`implementation.md` en tient le relevé, et `decisions.md` la raison de chaque
-choix.
+chacune ; une version du socle se publie en une commande aussi. `decisions.md`
+tient la raison de chaque choix — c'est la seule mémoire dont on ait besoin,
+puisque ce que le code fait se lit dans le code.
 
-Aucune phase n'est en attente : ce qui a été laissé de côté est dans
-`roadmap.md`, avec ce qui le ferait revenir.
+**Ce qui reste à faire vit dans les issues du dépôt**, et nulle part ailleurs
+(D224). `conventions.md` dit comment elles se rangent, et laquelle prendre.
 
 Ces documents remplacent le spec monolithique d'origine, dont le contenu a été
 réparti sans perte. L'historique git conserve la version validée.

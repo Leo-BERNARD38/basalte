@@ -1,0 +1,55 @@
+name: Bloqué
+description: Un sujet vu, et laissé de côté — une condition n'est pas remplie.
+labels: [bloque]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Pas de condition, pas d'issue.** Un sujet sans condition est un sujet
+        qu'on reprendra par ennui ou qu'on oubliera, jamais un sujet qu'on
+        reprendra au bon moment.
+
+        Elle se formule en fait observable :
+
+        - oui — « le premier client qui paie de la publicité »
+        - oui — « le jour où `@astrojs/check` accepte `^7` »
+        - non — « quand on aura le temps », « si ça devient gênant »
+
+  - type: textarea
+    id: condition
+    attributes:
+      label: Condition
+      description: >-
+        Ce qui ferait revenir le sujet. Elle sera citée en tête du corps, en
+        blockquote. Tant qu'elle n'est pas tombée, cette issue ne se prend
+        jamais.
+      placeholder: Le premier client qui …
+    validations:
+      required: true
+
+  - type: textarea
+    id: objectif
+    attributes:
+      label: Objectif
+      description: Quoi, jamais comment. L'état actuel se constate dans le code — nomme le fichier.
+    validations:
+      required: true
+
+  - type: textarea
+    id: perimetre
+    attributes:
+      label: Périmètre
+      description: >-
+        Ce qui serait touché, et ce qu'on ne touche pas. Si une décision
+        numérotée a écarté ce sujet, dis-la : la rouvrir demande d'acter la
+        décision inverse, pas de la contourner.
+    validations:
+      required: true
+
+  - type: textarea
+    id: fini
+    attributes:
+      label: Terminé quand
+      description: Un fait constatable, le jour où la condition sera tombée.
+    validations:
+      required: true

@@ -620,20 +620,16 @@ dangereuses. Ils sont listés dans `CLAUDE.md` et justifiés dans
 | email, contact, analytics | `docs/services.md` |
 | Docker, Caddy, sauvegardes | `docs/deploiement.md` |
 | comprendre un choix passé | `docs/decisions.md` |
-| ce qu'il reste à construire | `docs/implementation.md` |
-| ce qui a été laissé de côté | `docs/roadmap.md` |
+| ce que le socle garantit, et ce qui reste dehors | `docs/implementation.md` |
+| ce qu'il reste à construire | les issues du dépôt |
 
 ## Statut
 
-Les treize phases d'implémentation sont faites : rendu, authentification,
-panel, mise en ligne, formulaire de contact, livraison, outillage, double
-rendu, chrome, cadrage des images et SEO, notification des messages, relevé du
-contenu, publication du socle. Un site se crée, se met en production et se monte
-de version en une commande chacune ; une version du socle se publie en une
-commande aussi.
+Un site se crée, se met en production et se monte de version en une commande
+chacune ; une version du socle se publie en une commande aussi. `decisions.md`
+tient la mémoire de chaque choix, et le code dit ce qu'il fait.
 
-Une phase est écrite et à faire : *Partager* — un bloc écrit une fois sert à
-plusieurs sites. Son cahier est dans `docs/implementation.md`.
-
-Ce qui a été identifié et volontairement laissé de côté est listé dans
-`docs/roadmap.md`, avec ce qui le ferait revenir.
+**Ce qu'il reste à construire vit dans les issues du dépôt**, et nulle part
+ailleurs — préfixe `L1 ·` pour la roadmap, label `annexe` pour ce qui est
+indépendant, `bloque` pour ce qui attend une condition écrite (D224). La règle
+qui dit laquelle prendre est dans `docs/conventions.md`.

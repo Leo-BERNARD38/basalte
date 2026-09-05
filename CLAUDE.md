@@ -21,15 +21,17 @@ qu'on veut changer, tout le reste tient dans un volet qui ne montre qu'une
 chose à la fois, et plus une phrase grise ne s'intercale sous un champ. Un site
 se crée, se met en
 production et se monte de version en une commande chacune ; une version du
-socle se publie en une commande aussi. Ce que chaque phase a mis en place est
-relevé dans `docs/implementation.md` ; **pourquoi** chaque choix a été fait est dans
-`docs/decisions.md`, qui est la mémoire du projet.
+socle se publie en une commande aussi. **Pourquoi** chaque choix a été fait est
+dans `docs/decisions.md`, qui est la mémoire du projet ; ce que le socle garantit
+et comment on le prouve est dans `docs/implementation.md`.
 
-**À faire :** aucune phase en attente. Ce qui a été identifié et laissé de côté
-est dans `docs/roadmap.md`, avec ce qui le ferait revenir : c'est là que se
-prend la prochaine, quand un déclencheur se produit. Un bloc écrit pour un
-client ne circule pas vers un autre : il se recopie, et ce qui sert à plusieurs
-entre dans le socle (D147, D148).
+**À faire : tout le suivi vit dans les issues du dépôt**, et nulle part
+ailleurs (D224). Roadmap au préfixe `L1 ·`, `annexe` pour ce qui est
+indépendant, `bloque` pour ce qui attend une condition écrite en tête de corps.
+La règle qui dit laquelle prendre — et le rappel de confronter l'issue au code
+avant de commencer — est dans `docs/conventions.md`, et exécutable sous la skill
+« suivant ». Un bloc écrit pour un client ne circule pas vers un autre : il se
+recopie, et ce qui sert à plusieurs entre dans le socle (D147, D148).
 
 **Sur un clone neuf :** `npm install && npm run setup`, puis `npm run verify` —
 qui compile, typecheck, construit le site *et son panel*, teste, et vérifie
@@ -54,7 +56,8 @@ elle-même demandent de relancer.
 | le panel, l'auth, les médias | `docs/panel.md` + `docs/securite.md` |
 | le build, la mise en ligne | `docs/publication.md` |
 | une montée de version | `docs/mise-a-jour.md` |
-| ce qui a été laissé de côté, et ce qui le ferait revenir | `docs/roadmap.md` |
+| ce qui reste à faire, et ce qui le ferait revenir | les issues du dépôt |
+| ce que le socle garantit, et ce qui reste dehors | `docs/implementation.md` |
 | ce que contient un dépôt client | `docs/depot-client.md` |
 | les tokens, une maquette à implémenter | `docs/design.md` |
 | le référencement, le cadrage des images | `docs/seo-performances.md` |
@@ -74,8 +77,9 @@ Tout ce qui est écrit dans `docs/` n'engage pas au même degré :
 - **Hypothèse** — signalée *en italique*. Un point de départ, pas une consigne :
   la phase concernée la confirme ou la remplace, et consigne ce qu'elle retient.
 
-Le *comment* d'une phase se décide dans la phase, pas d'avance
-(`docs/implementation.md`).
+Le *comment* d'une phase se décide dans la phase, pas d'avance : une issue dit
+**quoi**, jamais comment. Le format d'un cahier de phase est dans la skill
+« phase ».
 
 ## Stack
 
@@ -151,12 +155,17 @@ notes/              une note de version par tag, livrée dans le paquet
 examples/demo/      la landing de Basalte : démonstration et banc de test
 scripts/            outillage du dépôt — jamais livré, jamais importé
 .githooks/          pré-commit et pré-push
+.github/            les formulaires d’issue, le gabarit de pull request, la CI,
+                    la synchronisation des labels et le contrôle « une PR
+                    référence son issue » (D224)
 .claude/            l'amorçage d'une session sur le web (D125), et les skills
-    skills/         de ce dépôt : « phase » écrit ou clôt un cahier de phase,
-                    « consigner » range ce qui vient d'être fait et retire ce
-                    qui n'apprend plus rien, « reutiliser » relit une diff pour
-                    y trouver ce qui existait déjà. Rien à voir avec le paquet
-                    d'un dépôt client, que src/client/ génère
+    skills/         de ce dépôt : « suivant » choisit la prochaine issue et la
+                    confronte au code, « phase » écrit ou clôt le cahier d'une
+                    phase dans son issue, « consigner » range ce qui vient
+                    d'être fait et retire ce qui n'apprend plus rien,
+                    « reutiliser » relit une diff pour y trouver ce qui
+                    existait déjà. Rien à voir avec le paquet d'un dépôt
+                    client, que src/client/ génère
 docs/
 ```
 

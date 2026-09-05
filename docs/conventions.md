@@ -124,8 +124,48 @@ ligne m'apprend quelque chose sur le code tel qu'il est ?* Sinon, elle saute.
 Le « pourquoi » d'un choix a un endroit à lui : `decisions.md`. La règle des
 commentaires n'est tenable que grâce à ce fichier.
 
-Pas de `TODO` dans le code : ce qui reste à faire va dans `implementation.md`
-ou dans une issue, pas dans un fichier source où il vieillira sans être vu.
+Pas de `TODO` dans le code : ce qui reste à faire va **dans une issue**, pas
+dans un fichier source où il vieillira sans être vu — ni dans un fichier de
+suivi, où il vieillira sans que personne le sache (D224).
+
+## Le suivi vit dans les issues
+
+Rien de ce qui reste à faire n'est écrit dans un fichier de ce dépôt. Un fichier
+de suivi n'a pas d'état : rien ne force à le tenir, rien ne signale qu'il est
+périmé, il diverge en silence — et il l'a fait ici en un jour (D224).
+
+Trois familles, et rien d'autre :
+
+| Famille | On la reconnaît à | Ce que c'est |
+|---|---|---|
+| **Roadmap** | préfixe de titre `L1 ·`, `L2 ·`… (et `L1.1 ·` pour les étapes) + un label de chantier | ordonnée, séquencée par pré-requis |
+| **Annexe** | label `annexe` | indépendant, faisable n'importe quand |
+| **Bloqué** | label `bloque` | une condition n'est pas remplie — elle est écrite en tête de corps |
+
+Un défaut courant ne porte **aucune** des trois : il se traite tout de suite. Un
+label `decision-porteur` se superpose : l'arbitrage n'appartient qu'au porteur.
+
+Le préfixe de titre est obligatoire pour la roadmap, parce que le numéro d'issue
+ne peut pas porter l'ordre : il est attribué à l'arrivée, et **partagé avec les
+pull requests**.
+
+**« En cours » = issue assignée.** C'est le seul signal d'état nécessaire.
+
+### Choisir la prochaine
+
+Dans cet ordre, on s'arrête au premier qui rend quelque chose :
+
+1. un défaut non bloqué ;
+2. le plus petit `L<n>` dont les pré-requis sont fermés ;
+3. une annexe, si le temps est court ;
+4. **jamais** un `bloque` tant que sa condition n'est pas tombée.
+
+Puis, avant d'écrire une ligne : **confronte l'issue au code.** Elle est datée du
+jour où elle a été écrite, et rien ne l'immunise contre ce qui a tué le fichier
+qu'elle remplace. Un constat démenti ne devient rien — pas de contournement, pas
+de ligne : son démenti va dans le corps de la pull request.
+
+La même règle est exécutable, sous la skill « suivant ».
 
 ## Signaux de taille
 

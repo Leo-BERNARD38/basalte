@@ -20,6 +20,7 @@ import { loadSite } from '../site/load.js'
 import { listBounds } from './bounds.js'
 import { contrastFindings } from './contrast.js'
 import { ordered, relative, type Finding } from './finding.js'
+import { deadReferences } from './references.js'
 import { panelContrast, seedContrast } from './panel.js'
 import { hardcodedStyle, PANEL, SITE } from './style.js'
 import { manualValidation } from './validation.js'
@@ -34,6 +35,7 @@ export async function lintProject(root: string): Promise<readonly Finding[]> {
 
   const findings: Finding[] = [
     ...(await catchAll(root)),
+    ...(await deadReferences(root)),
     ...(await tokens(root)),
     ...(await base(root)),
     ...(await panel(root)),

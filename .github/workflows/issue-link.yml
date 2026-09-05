@@ -1,0 +1,56 @@
+name: Issue liée
+
+# Le suivi de ce dépôt vit dans les issues. Une pull request qui n'en référence
+# aucune est un travail dont rien ne dit pourquoi il a eu lieu — et c'est
+# exactement par là que le travail dérive. Sans ce contrôle, « une PR référence
+# son issue » n'est que de la prose.
+#
+# NON BLOQUANT AUJOURD'HUI : il avertit, il sort en 0.
+#
+# CONDITION DE BASCULE, écrite pour ne pas être oubliée : le jour où un second
+# contributeur ouvre une pull request sur ce dépôt. Tant que le porteur est
+# seul, l'avertissement suffit à corriger la description ; à deux, la règle doit
+# refuser, parce que la description est le seul endroit où l'un dit à l'autre ce
+# qu'il a fait. Basculer, c'est retirer le `continue-on-error` du pas et rendre
+# `exit 1` au lieu de `exit 0`.
+#
+# Il ne vit pas dans pr.yml : celui-ci est une matrice de trois jobs lourds, et
+# ce garde doit pouvoir devenir bloquant sans toucher à la CI qui compile.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, ready_for_review, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      # Le corps est relu par l'API, jamais pris dans github.event : celui-ci
+      # est l'instantané du push, et une description corrigée après coup y
+      # resterait fausse. Le seul rattrapage serait alors un commit vide.
+      - name: Relire la description par l'API
+        id: body
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api "repos/$REPO/pulls/$NUMBER" --jq '.body // ""' > body.txt
+          echo "octets=$(wc -c < body.txt)" >> "$GITHUB_OUTPUT"
+
+      # Le corps est du texte libre : il passe par un fichier et par env, jamais
+      # par une interpolation dans un run.
+      - name: Chercher Closes #N ou Refs #N
+        run: |
+          if grep -qiE '(closes|close|closed|fixes|fix|fixed|resolves|resolve|resolved|refs|ref)[[:space:]]+#[0-9]+' body.txt; then
+            echo "La description référence une issue."
+            exit 0
+          fi
+
+          echo "::warning title=Aucune issue référencée::La description de cette pull request ne porte ni « Closes #N » ni « Refs #N ». Le suivi de ce dépôt vit dans les issues : une PR sans issue est un travail dont rien ne dit pourquoi il a eu lieu."
+          exit 0

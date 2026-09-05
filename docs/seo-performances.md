@@ -233,7 +233,8 @@ qui fonctionne. Le ratio reste une valeur, et non une valeur par support (D119).
 **Un bloc qui recadre pose le point focal.** Les sept blocs du socle qui rendent
 une image en `cover` écrivent son `object-position` ; `logos` ne le fait pas, et
 n'a pas à le faire — il est en `contain`, un logo ne se recadre pas. Rien ne
-l'impose encore à un bloc nouveau : c'est une ligne de `roadmap.md`.
+l'impose encore à un bloc nouveau : c'est une issue ouverte, et une règle de
+`basalte lint` le jour où elle se prend.
 
 Les recadrages faits avant D178 restent des médias comme les autres. Leur
 filiation continue d'être lue, et supprimer l'originale dont un dérivé est en
@@ -265,4 +266,5 @@ et le plan de titres par le même chemin que les autres (D152).
   `<head>`.
 - **L'index n'est pas paginé** (D159) : il porte tout le journal, groupé par
   année. Aucun billet ne devient inatteignable, et il n'y a ni canonique ni
-  `prev`/`next` à tenir. `roadmap.md` dit ce qui ferait revenir la pagination.
+  `prev`/`next` à tenir. Une issue bloquée dit ce qui ferait revenir la
+  pagination.
