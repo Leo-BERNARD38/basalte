@@ -9,11 +9,20 @@ body:
         qu'on reprendra par ennui ou qu'on oubliera, jamais un sujet qu'on
         reprendra au bon moment.
 
-        Elle se formule en fait observable :
+        Elle passe **trois épreuves**, et une seule ratée la disqualifie (D225) :
 
-        - oui — « le premier client qui paie de la publicité »
-        - oui — « le jour où `@astrojs/check` accepte `^7` »
-        - non — « quand on aura le temps », « si ça devient gênant »
+        1. **Observable** — un fait qu'on remarquera sans le guetter.
+           Oui : « le premier client qui paie de la publicité », « le jour où
+           `@astrojs/check` accepte `^7` ». Non : « quand on aura le temps »,
+           « le premier visiteur qui navigue au clavier » — on ne sait jamais
+           qui visite une page, et cette condition-là ne tombe jamais.
+        2. **Pas encore vraie** — si elle est remplie dès que le produit sert,
+           c'est une dette, pas une condition.
+        3. **Sans réponse déjà écrite** — si une décision porte la question
+           *et* sa réponse, cette issue en est un doublon.
+
+        Et vérifie qu'elle est bien la condition de **ton** objectif : sa
+        réalisation doit rendre le sujet nécessaire, pas seulement possible.
 
   - type: textarea
     id: condition

@@ -61,6 +61,11 @@ remplacement, pas de ligne dans un fichier.
 - Le sujet a changé de forme : réécris le corps de l'issue avant de commencer,
   pas après.
 - Le constat est faux mais le sujet tient : corrige le constat dans l'issue.
+- **La condition n'en était pas une** : elle n'est pas observable, elle était
+  vraie d'avance, ou sa réponse est déjà écrite dans une décision (D225, et les
+  trois épreuves sous la skill « consigner »). Alors l'issue **change de
+  famille** — annexe, lot de roadmap, ou fermée —, elle ne reste pas garée. Un
+  `bloque` dont la condition ne peut pas tomber ne diffère rien : il enterre.
 
 Dans tous les cas, le démenti va dans le corps de la pull request. C'est là que
 quelqu'un le cherchera.

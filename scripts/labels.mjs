@@ -37,10 +37,25 @@ const LABELS = [
     color: '5319e7',
     description: 'L’arbitrage n’appartient qu’au porteur du projet.',
   },
+  // Les lots de la roadmap portent tous la même couleur : ce sont trois
+  // instances d’une même famille, et c’est le nom qui les distingue, pas la
+  // teinte. Le rang du lot vit dans le titre des issues, jamais ici — il
+  // change, la description suivrait mal.
+  {
+    name: 'chantier-durabilite',
+    color: '1d76db',
+    description:
+      'Lot — ce qu’un site en production ne doit pas pouvoir perdre.',
+  },
   {
     name: 'chantier-rendus',
     color: '1d76db',
-    description: 'Lot L1 — ce qu’un support a le droit de ne pas montrer.',
+    description: 'Lot — ce qu’un support a le droit de ne pas montrer.',
+  },
+  {
+    name: 'chantier-dessin',
+    color: '1d76db',
+    description: 'Lot — les règles de dessin que le lint ne tient pas encore.',
   },
   {
     name: 'bug',
