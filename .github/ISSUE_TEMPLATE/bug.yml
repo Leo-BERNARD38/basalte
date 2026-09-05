@@ -1,0 +1,36 @@
+name: Défaut
+description: Quelque chose ne fait pas ce qu'il dit. Se traite tout de suite.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Un défaut ne porte **aucune** famille — ni `annexe`, ni `bloque`, ni
+        préfixe de roadmap. C'est ce qui le fait passer en premier dans la règle
+        de choix.
+
+  - type: textarea
+    id: objectif
+    attributes:
+      label: Objectif
+      description: Ce qui est faux, et où. Cite le fichier et la ligne.
+    validations:
+      required: true
+
+  - type: textarea
+    id: perimetre
+    attributes:
+      label: Périmètre
+      description: Ce qu'on corrige, et ce qu'on laisse tel quel.
+    validations:
+      required: true
+
+  - type: textarea
+    id: fini
+    attributes:
+      label: Terminé quand
+      description: >-
+        Un fait constatable. Pour un défaut, c'est souvent : le comportement
+        fautif, rejoué, ne se produit plus.
+    validations:
+      required: true

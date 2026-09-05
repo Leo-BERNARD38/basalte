@@ -1,0 +1,41 @@
+name: Tâche
+description: Un travail à faire, qu'aucune condition ne retient.
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Une tâche de **roadmap** porte un préfixe de titre `L1 ·`, `L2 ·` (ou
+        `L1.1 ·` pour une étape) **et** son label de chantier. Le numéro
+        d'issue ne peut pas porter l'ordre : il est attribué à l'arrivée, et
+        partagé avec les pull requests.
+
+        Une tâche **annexe** porte le label `annexe` et aucun préfixe.
+
+  - type: textarea
+    id: objectif
+    attributes:
+      label: Objectif
+      description: Quoi, jamais comment. Le manque se constate dans le code — nomme le fichier.
+    validations:
+      required: true
+
+  - type: textarea
+    id: perimetre
+    attributes:
+      label: Périmètre
+      description: Ce qui est touché, et surtout ce qu'on ne touche pas.
+    validations:
+      required: true
+
+  - type: textarea
+    id: fini
+    attributes:
+      label: Terminé quand
+      description: >-
+        Un fait constatable : une commande qui passe, un compteur qui tombe, un
+        comportement qui change. Quelqu'un d'autre doit pouvoir le vérifier sans
+        demander ton avis. Jamais « c'est fait ».
+      placeholder: '`npm run lint` refuse … et les fichiers actuels passent sans modification.'
+    validations:
+      required: true

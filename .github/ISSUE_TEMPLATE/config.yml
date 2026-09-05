@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+
+# Pas de formulaire vierge : une issue sans « Terminé quand » n'est pas une
+# issue, c'est une intention. Les trois formulaires posent le champ, et le
+# rendent obligatoire.
+#
+# Aucun d'eux ne porte de clé `type:` : les types d'issue GitHub sont une
+# fonctionnalité d'organisation, et ce dépôt appartient à un compte personnel —
+# l'API des types y répond 404, et `repository.issueTypes` rend null. La clé
+# serait inerte, et donnerait à croire que le type est posé.

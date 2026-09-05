@@ -1,0 +1,32 @@
+name: Labels
+
+# Les labels du dépôt vivent dans scripts/labels.mjs. Ce workflow les rejoue au
+# push sur main : c'est ce qui fait qu'un label a la couleur et la description
+# qu'on a choisies, plutôt que celles qu'un clic dans l'interface a laissées.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/labels.mjs
+      - .github/workflows/labels.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/labels.mjs --dry-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: node scripts/labels.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}

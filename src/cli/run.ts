@@ -39,7 +39,7 @@ export async function run(
       stdout: '',
       stderr:
         `La commande « ${command.name} » n’est pas encore implémentée.\n` +
-        'Voir docs/implementation.md pour la phase qui la porte.\n',
+        'Voir les issues du dépôt pour celle qui la porte.\n',
     }
   }
 

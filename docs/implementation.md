@@ -1,28 +1,17 @@
-# Implémentation
+# Ce que le socle garantit
 
-Ce que les phases ont laissé derrière elles, et le format d’un cahier pour
-celle qui viendra.
+Ce que le socle tient, et comment on le prouve : les tests, les blocs de
+référence, et ce qui reste dehors pour de bon.
 
-## Comment lire ce document
+**Ce document ne porte rien de ce qui reste à faire.** Le suivi vit dans les
+issues du dépôt, et nulle part ailleurs : un fichier de suivi n'a pas d'état —
+rien ne force à le tenir, rien ne signale qu'il est périmé, et il diverge en
+silence. Ce document en a fait la démonstration : il a porté une table des
+phases qui s'est arrêtée douze décisions avant le code (D224).
 
-Une phase n'est pas une liste de tâches. Chacune dit pourquoi elle existe, ce
-qu'elle doit produire, ce qui est en jeu, et où passe la frontière entre ce qui
-est déjà tranché et ce qui lui appartient.
-
-Le *comment* n'est pas ici, et c'est volontaire. Décider maintenant, à
-l'aveugle, des détails d'une phase qu'on n'a pas commencée produit de la dette :
-des choix qu'on ne peut pas encore évaluer, qu'on suivra par discipline, et
-qu'on paiera plus tard. Une session entière consacrée à une phase, qui en
-connaît les enjeux, décidera mieux.
-
-**Si ce document nomme un fichier ou une commande, c'est une hypothèse, jamais
-une spécification.** Les noms, les formes d'API, les écrans et l'ordre des
-travaux appartiennent à la phase.
-
-**Une phase, une session.** Elle commence par lire son cahier ci-dessous et les
-documents qu'il désigne. Elle finit par consigner ce qu'elle a décidé — dans le
-document concerné, et dans `decisions.md` si le choix engage le reste. Puis elle
-retire son cahier d'ici : ce document ne porte que ce qui reste à faire.
+Ce que le socle **a fait** se lit dans `decisions.md`, qui est sa seule mémoire :
+ce que le code fait aujourd'hui se lit dans le code, et pourquoi il le fait se
+lit là.
 
 ## Trois niveaux d'engagement
 
@@ -38,44 +27,10 @@ phase a le droit de changer.
 Les hypothèses sont signalées en italique. Les remplacer n'est pas un écart :
 c'est ce pour quoi elles sont là.
 
----
-
-## Ce qui est fait
-
-Vingt phases, et ce que chacune a mis en place. Le détail de leurs choix est
-dans `decisions.md`, qui est la seule mémoire dont on ait besoin : ce que le
-code fait aujourd'hui se lit dans le code, et pourquoi il le fait se lit là.
-
-| # | Nom | Ce qu'elle a mis en place | Décisions |
-|---|---|---|---|
-| 1 | Rendre | le DSL `f.*`, le moteur de blocs, l'intégration Astro, les médias, `check` et `inventory` | D40 à D46 |
-| 2 | Authentifier | mot de passe généré et haché, code email, appareil de confiance, sessions, journal, `admin:login` | D47 à D53 |
-| 3 | Éditer | le panel : formulaires produits des schémas, enregistrement commité, médiathèque, réordonnancement, aperçu | D55 à D65 |
-| 4 | Publier | rebase, build en processus enfant, bascule atomique, push, file à une place | D67 à D75 |
-| 5 | Servir | formulaire de contact sans JavaScript, anti-spam, leads gardés en base, purge, audience | D76 à D85 |
-| 6 | Livrer | `init`, le paquet Claude Code du dépôt client, `deploy`, `doctor`, `update`, les migrations | D87 à D94 |
-| 7 | Outiller | `f.richtext` enrichi, documents légaux, PDF, contexte du site, banc de blocs, capacités, profils | D98 à D102 |
-| 8 | Adapter | deux rendus depuis un seul contenu, la variante bureau d'un bloc, le contrat entre les deux | D103 à D108 |
-| 9 | Encadrer | l'en-tête et le pied de page, remplaçables par site, le menu déduit des pages, le `h1` | D109 à D116 |
-| 10 | Cadrer | le recadrage au ratio déclaré, la fiche d'entreprise, `src/seo/`, le bloc `faq` | D117 à D124 |
-| 11 | Joindre | le second canal de notification, les sondes DNS, la page de remerciement | D126 à D134 |
-| 12 | Constater | `basalte content`, la description requise, les constats de trouvabilité de `check` | D136 à D141 |
-| 13 | S'outiller | `basalte release`, la skill « reutiliser », la convention de commit | D142 à D146 |
-| 14 | Partager | huit sections de référence de plus, la fiche d'entreprise affichée, le critère d'un bloc de référence rouvert | D147 à D150 |
-| 15 | Tenir un journal | les billets, `f.date`, le sixième écran du panel, le flux RSS, le bloc de liste | D151 à D159 |
-| 16 | Allonger | les listes délivrées de leur borne haute, la règle qui dit quand une borne se justifie, le poids d'une page mesuré au build, les éléments repliés dans le panel | D160 à D163 |
-| 17 | Relire le panel | `lint` étendu à la feuille et aux tokens du panel, l'encre ramenée au-dessus du plancher, douze défauts corrigés, une seule voix et une seule forme par geste, l'erreur de validation posée sous son champ, l'écran de connexion refait, le panel qui tient sur un portable et sur un téléphone, l'aide sous un « ? », et une allure qui porte un accent | D164 à D171 |
-| 18 | La direction artistique du panel | une couche de tokens refaite et tenue par un test, la feuille qui porte tout le dessin, les composants du panel écrits dans le dépôt, Geist auto-hébergée, les sept écrans repris sur la maquette, le plancher du dessin borné à ce qui porte une information, le recadrage retiré au profit du point focal, la section que le client ajoute, et douze images de départ pour un site neuf | D172 à D181 |
-| 19 | Habiller | trois plans de couleur et l'échelle étendue, le rythme et l'axe communs à tous les blocs, le bouton dans la feuille commune, l'en-tête collant, `showcase`, `bento` et `comparison`, et le site de démonstration devenu la landing de Basalte | D182 à D189 |
-| 20 | Material Design 3 | le panel réécrit dans le langage de Material : un schéma de couleurs tiré d'une graine, neutre par défaut et déclaré par site, en clair et en sombre ; l'échelle de forme, de texte et d'élévation ; le rail et la barre de navigation, la barre d'application, la snackbar ; Roboto Flex et les Material Symbols auto-hébergés ; le lint qui mesure les deux schémas et la graine d'un site ; puis la passe d'esthétique — l'échelle resserrée d'un cran, la connexion en deux volets, la ligne d'interrupteur, et l'apparence que chacun règle sur son appareil | D194 à D211 |
-
-Entre les phases 6 et 7, le panel a repris sa direction artistique (D95 à D97).
-Entre la 11 et la 12, `basalte lint` a rendu vérifiables des conventions qui
-n'étaient que de la prose (D135).
-
-Ce qui a été identifié et volontairement laissé de côté est dans `roadmap.md`,
-avec ce qui le ferait revenir : c'est là que se prend une phase, quand un
-déclencheur se produit.
+Le *comment* d'une phase se décide dans la phase. Une issue dit **quoi**, jamais
+comment : les noms, les formes d'API, les écrans et l'ordre des travaux
+appartiennent à la session qui les prend. Le format d'un cahier de phase, et les
+quatre épreuves qu'il doit passer, sont dans la skill « phase ».
 
 ---
 
@@ -129,7 +84,7 @@ le rang) · `stats` (chiffres clés, l'unité dans la valeur) · `cta` (bandeau 
 relance) · `contact-details` (la fiche d'entreprise affichée, sans un champ de
 coordonnée) · `team` · `logos` · `pricing`.
 
-**Un seizième démontre une mécanique de plus** : `journal` (une liste que le
+**Un de plus démontre une mécanique que nul autre ne montre** : `journal` (une liste que le
 contenu ne porte pas — les billets arrivent en prop, comme la fiche
 d'entreprise, D149).
 
@@ -173,7 +128,3 @@ menu, ni d'entrée de sitemap.
 Ces exclusions sont des choix de v1, pas des impossibilités : le modèle de
 contenu les accueille sans réécriture.
 
-## Points ouverts
-
-Aucun qui ne relève d'une phase. Ce qui a été identifié et volontairement laissé
-de côté est dans `roadmap.md`, avec ce qui le ferait revenir.
